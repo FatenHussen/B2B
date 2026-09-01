@@ -9,6 +9,7 @@ use Modules\Identity\Presentation\Http\Controllers\AppAuthController;
 use Modules\Identity\Presentation\Http\Controllers\ChannelAuthController;
 use Modules\Identity\Presentation\Http\Controllers\PlatformAuthController;
 use Modules\Identity\Presentation\Http\Controllers\PublicAuthController;
+use Modules\Identity\Presentation\Http\Controllers\RepFieldController;
 use Modules\Identity\Presentation\Http\Controllers\WarehouseAuthController;
 use Modules\Identity\Presentation\Http\Middleware\RequirePasswordConfirmation;
 
@@ -59,5 +60,11 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
     Route::middleware(['auth:app', 'guard.tokenable:app'])->group(function (): void {
         Route::get('app/session', [AppAuthController::class, 'session']);
         Route::post('app/auth/logout', [AppAuthController::class, 'logout']);
+    });
+
+    Route::middleware(['auth:app', 'guard.tokenable:app', 'app.kind:rep'])->group(function (): void {
+        Route::get('app/rep/customers', [RepFieldController::class, 'customers']);
+        Route::post('app/rep/customers', [RepFieldController::class, 'storeCustomer']);
+        Route::post('app/rep/zones', [RepFieldController::class, 'requestZone']);
     });
 });

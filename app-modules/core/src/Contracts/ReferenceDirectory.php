@@ -25,4 +25,37 @@ interface ReferenceDirectory
      * @param  list<int>  $ids
      */
     public function allRootCategoriesExist(array $ids): bool;
+
+    public function saleUnitExists(int $saleUnitId): bool;
+
+    public function saleUnitName(int $saleUnitId): ?string;
+
+    public function currencyExists(int $currencyId): bool;
+
+    public function currencyCode(int $currencyId): ?string;
+
+    public function defaultCurrencyId(): ?int;
+
+    /**
+     * @param  list<int>  $ids
+     */
+    public function allActivityTypesExist(array $ids): bool;
+
+    /**
+     * @param  list<int>  $ids
+     */
+    public function allZonesExist(array $ids): bool;
+
+    public function activityTypeName(int $activityTypeId): ?string;
+
+    public function zoneName(int $zoneId): ?string;
+
+    public function zoneGovernorateId(int $zoneId): ?int;
+
+    public function rootCategoryName(int $rootCategoryId): ?string;
+
+    /**
+     * @return list<array{id: int, name: string, image: string|null, icon: string|null, order: int}>
+     */
+    public function activeRootCategories(): array;
 }

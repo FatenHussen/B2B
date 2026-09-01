@@ -21,4 +21,6 @@ return [
     'requires_password_confirm' => 'يلزم تأكيد كلمة المرور.',
     'challenge_invalid' => 'التحدي غير صالح أو منتهٍ.',
     'too_many_2fa' => 'محاولات تحقق ثنائي كثيرة.',
+    'profile_incomplete' => 'أكمل ملفك أولاً.',
+    'zone_not_found' => 'المنطقة غير موجودة.',
 ];

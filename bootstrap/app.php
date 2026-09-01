@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'guard.tokenable' => EnforceGuardTokenable::class,
             'password.confirmed' => RequirePasswordConfirmation::class,
+            'app.kind' => \Modules\Identity\Presentation\Http\Middleware\RequireAppKind::class,
         ]);
 
         $middleware->api(remove: [SubstituteBindings::class]);

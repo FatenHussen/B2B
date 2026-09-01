@@ -21,4 +21,6 @@ return [
     'requires_password_confirm' => 'Password confirmation is required.',
     'challenge_invalid' => 'Invalid or expired challenge.',
     'too_many_2fa' => 'Too many 2FA attempts.',
+    'profile_incomplete' => 'Complete your profile first.',
+    'zone_not_found' => 'Zone was not found.',
 ];

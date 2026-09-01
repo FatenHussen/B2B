@@ -18,4 +18,11 @@ interface ChannelDirectory
     public function coversAllZones(int $channelId, array $zoneIds): bool;
 
     public function name(int $channelId): ?string;
+
+    /**
+     * Active channels whose coverage includes the zone.
+     *
+     * @return list<int>
+     */
+    public function activeIdsCoveringZone(int $zoneId): array;
 }
