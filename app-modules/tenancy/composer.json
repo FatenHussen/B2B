@@ -1,0 +1,21 @@
+{
+    "name": "b2b/tenancy",
+    "description": "B2B Tenancy — supply channels and channel scope",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "b2b/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Tenancy\\": "src/",
+            "Modules\\Tenancy\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Tenancy\\TenancyServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev"
+}

@@ -1,0 +1,21 @@
+{
+    "name": "b2b/reference",
+    "description": "B2B Reference — governorates, zones, channel coverage",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "b2b/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Reference\\": "src/",
+            "Modules\\Reference\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Reference\\ReferenceServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev"
+}

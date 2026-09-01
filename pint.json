@@ -1,0 +1,8 @@
+{
+    "exclude": [
+        "Modules.old",
+        "docs",
+        "tools",
+        "vendor"
+    ]
+}

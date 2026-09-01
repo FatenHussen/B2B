@@ -1,0 +1,22 @@
+{
+    "name": "b2b/content",
+    "description": "B2B Content module",
+    "type": "library",
+    "require": {
+        "b2b/core": "*",
+        "php": "^8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Content\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Content\\ContentServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}

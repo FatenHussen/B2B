@@ -1,0 +1,139 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "laravel/laravel",
+    "type": "project",
+    "description": "B2B distribution platform API",
+    "keywords": [
+        "laravel",
+        "b2b"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "b2b/access": "*",
+        "b2b/catalog": "*",
+        "b2b/content": "*",
+        "b2b/core": "*",
+        "b2b/delivery": "*",
+        "b2b/finance": "*",
+        "b2b/fulfillment": "*",
+        "b2b/identity": "*",
+        "b2b/integration": "*",
+        "b2b/inventory": "*",
+        "b2b/loyalty": "*",
+        "b2b/notification": "*",
+        "b2b/ordering": "*",
+        "b2b/platform-billing": "*",
+        "b2b/pricing": "*",
+        "b2b/promotion": "*",
+        "b2b/reference": "*",
+        "b2b/reporting": "*",
+        "b2b/returns": "*",
+        "b2b/support": "*",
+        "b2b/sync": "*",
+        "b2b/tenancy": "*",
+        "laravel/framework": "^13.8",
+        "laravel/horizon": "^5.48",
+        "laravel/pulse": "^1.8",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^3.0",
+        "maatwebsite/excel": "^3.1",
+        "spatie/laravel-activitylog": "^4.12",
+        "spatie/laravel-data": "^4.23",
+        "spatie/laravel-medialibrary": "^11.23",
+        "spatie/laravel-permission": "^8.3",
+        "spatie/laravel-query-builder": "^7.3"
+    },
+    "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.7",
+        "deptrac/deptrac": "^4.0",
+        "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.10",
+        "laravel/pail": "^1.2.5",
+        "laravel/pao": "^1.0.6",
+        "laravel/pint": "^1.27",
+        "laravel/telescope": "^5.22",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "pestphp/pest": "^4.7",
+        "pestphp/pest-plugin-laravel": "^4.1",
+        "phpunit/phpunit": "^12.5.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "app-modules/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "scripts": {
+        "setup": [
+            "composer install",
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate",
+            "@php artisan migrate --force",
+            "npm install --ignore-scripts",
+            "npm run build"
+        ],
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan horizon\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,horizon,logs,vite --kill-others"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
+        ],
+        "pre-package-uninstall": [
+            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        },
+        "platform": {
+            "ext-pcntl": "8.3.0",
+            "ext-posix": "8.3.0"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

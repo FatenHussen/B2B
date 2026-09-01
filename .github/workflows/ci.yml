@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: b2b_platform_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: b2b_platform_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, redis
+          coverage: xdebug
+      - run: composer install --prefer-dist --no-interaction
+      - name: 'Gate 1 — Pint'
+        run: vendor/bin/pint --test
+      - name: 'Gate 2 — Larastan'
+        run: vendor/bin/phpstan analyse --memory-limit=1G
+      - name: 'Gate 3 — Deptrac'
+        run: vendor/bin/deptrac analyse --no-cache
+      - name: 'Gate 4 — Tests + coverage'
+        run: vendor/bin/pest --coverage --min=70
+      - name: 'Gate 5 — Critical permissions'
+        run: vendor/bin/pest --group=permissions
+      - name: 'Gate 6 — Tenant isolation'
+        run: vendor/bin/pest --group=tenancy

@@ -1,0 +1,25 @@
+deptrac:
+  paths:
+    - ./app-modules
+  exclude_files:
+    - '#.*test.*#'
+  layers:
+    - name: Foundation
+      collectors:
+        - type: directory
+          value: app-modules/(core|identity|access|reference|tenancy|integration)/.*
+    - name: Domain
+      collectors:
+        - type: directory
+          value: app-modules/(catalog|pricing|promotion|inventory|loyalty|content|notification|support|platform-billing)/.*
+    - name: Coordination
+      collectors:
+        - type: directory
+          value: app-modules/(ordering|fulfillment|delivery|returns|finance|sync|reporting)/.*
+  ruleset:
+    Coordination:
+      - Domain
+      - Foundation
+    Domain:
+      - Foundation
+    Foundation: ~

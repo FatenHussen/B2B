@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Identity\Domain\Models;
+
+use Database\Factories\WarehouseUserFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
+use Modules\Identity\Domain\Enums\UserStatus;
+use Spatie\Permission\Traits\HasRoles;
+
+/**
+ * @property int $id
+ * @property string $name
+ * @property UserStatus $status
+ * @property \Illuminate\Support\Carbon|null $last_login_at
+ */
+class WarehouseUser extends Authenticatable
+{
+    /** @use HasFactory<WarehouseUserFactory> */
+    use HasApiTokens, HasFactory, HasRoles;
+
+    protected $table = 'warehouse_users';
+
+    protected string $guard_name = 'warehouse';
+
+    protected $fillable = [
+        'name',
+        'status',
+        'last_login_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => UserStatus::class,
+            'last_login_at' => 'datetime',
+        ];
+    }
+
+    protected static function newFactory(): WarehouseUserFactory
+    {
+        return WarehouseUserFactory::new();
+    }
+}

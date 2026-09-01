@@ -1,0 +1,22 @@
+{
+    "name": "b2b/ordering",
+    "description": "B2B Ordering module",
+    "type": "library",
+    "require": {
+        "b2b/core": "*",
+        "php": "^8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Ordering\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Ordering\\OrderingServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}

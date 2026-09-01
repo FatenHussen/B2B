@@ -1,0 +1,21 @@
+{
+    "name": "b2b/access",
+    "description": "B2B Access — permission catalog and default roles",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "b2b/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Access\\": "src/",
+            "Modules\\Access\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Access\\AccessServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev"
+}

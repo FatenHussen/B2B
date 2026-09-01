@@ -1,0 +1,22 @@
+{
+    "name": "b2b/catalog",
+    "description": "B2B Catalog module",
+    "type": "library",
+    "require": {
+        "b2b/core": "*",
+        "php": "^8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Catalog\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Catalog\\CatalogServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}

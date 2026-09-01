@@ -1,0 +1,24 @@
+<?php
+
+return [
+    'channel_not_active' => 'قناة التوريد غير نشطة.',
+    'zone_outside_coverage' => 'منطقة أو أكثر خارج تغطية القناة.',
+    'activity_type_not_found' => 'نوع النشاط غير موجود.',
+    'phone_kind_conflict' => 'هذا الرقم مسجّل مسبقاً بدور تطبيق آخر.',
+    'zone_not_in_governorate' => 'المنطقة لا تتبع المحافظة المحددة.',
+    'categories_not_found' => 'تصنيف أو أكثر غير موجود.',
+    'equipments_not_found' => 'تجهيز أو أكثر غير موجود.',
+    'otp_invalid' => 'رمز التحقق غير صالح.',
+    'otp_expired' => 'انتهت صلاحية رمز التحقق.',
+    'otp_too_many_attempts' => 'محاولات كثيرة. اطلب رمزاً جديداً.',
+    'otp_cooldown' => 'انتظر :seconds ثانية قبل طلب رمز آخر.',
+    'otp_rate_limited' => 'تجاوزت حد طلبات رمز التحقق.',
+    'otp_not_found' => 'طلب الرمز غير موجود أو منتهٍ.',
+    'channel_membership_missing' => 'لا عضوية قناة لهذا الرقم.',
+    'invalid_device' => 'بيانات الجهاز غير صحيحة.',
+    'invalid_password' => 'كلمة المرور غير صحيحة.',
+    'invalid_2fa' => 'رمز التحقق غير صالح.',
+    'requires_password_confirm' => 'يلزم تأكيد كلمة المرور.',
+    'challenge_invalid' => 'التحدي غير صالح أو منتهٍ.',
+    'too_many_2fa' => 'محاولات تحقق ثنائي كثيرة.',
+];

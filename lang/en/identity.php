@@ -1,0 +1,24 @@
+<?php
+
+return [
+    'channel_not_active' => 'This supply channel is not active.',
+    'zone_outside_coverage' => 'One or more zones are outside the channel coverage.',
+    'activity_type_not_found' => 'Activity type was not found.',
+    'phone_kind_conflict' => 'This phone is already registered under another app kind.',
+    'zone_not_in_governorate' => 'Zone does not belong to the given governorate.',
+    'categories_not_found' => 'One or more categories were not found.',
+    'equipments_not_found' => 'One or more equipments were not found.',
+    'otp_invalid' => 'The verification code is invalid.',
+    'otp_expired' => 'The verification code has expired.',
+    'otp_too_many_attempts' => 'Too many attempts. Please request a new code.',
+    'otp_cooldown' => 'Please wait :seconds seconds before requesting another code.',
+    'otp_rate_limited' => 'OTP rate limit exceeded.',
+    'otp_not_found' => 'OTP request was not found or has expired.',
+    'channel_membership_missing' => 'No channel membership for this phone.',
+    'invalid_device' => 'Invalid device credentials.',
+    'invalid_password' => 'The password is incorrect.',
+    'invalid_2fa' => 'Invalid verification code.',
+    'requires_password_confirm' => 'Password confirmation is required.',
+    'challenge_invalid' => 'Invalid or expired challenge.',
+    'too_many_2fa' => 'Too many 2FA attempts.',
+];

@@ -1,0 +1,22 @@
+{
+    "name": "b2b/identity",
+    "description": "B2B Identity — OTP, sessions, devices",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "b2b/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Identity\\": "src/",
+            "Modules\\Identity\\Database\\Factories\\": "database/factories/",
+            "Modules\\Identity\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Identity\\IdentityServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev"
+}

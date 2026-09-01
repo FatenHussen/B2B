@@ -1,0 +1,20 @@
+{
+    "name": "b2b/integration",
+    "description": "B2B Integration — WhatsApp, SMS, and other adapters",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "b2b/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Integration\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Integration\\IntegrationServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev"
+}

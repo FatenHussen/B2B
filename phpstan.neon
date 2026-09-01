@@ -1,0 +1,23 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - app-modules
+        - tests
+
+    level: 6
+
+    treatPhpDocTypesAsCertain: false
+    checkModelProperties: false
+
+    excludePaths:
+        analyseAndScan:
+            - database/migrations
+            - app-modules/*/vendor
+            - app-modules/*/config
+            - app-modules/*/database
+
+    ignoreErrors:
+        - identifier: missingType.generics

@@ -1,0 +1,216 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    ep('EP-WH-001', 'SP-01', 'POST', '/warehouse/auth/device-login', 'warehouse', null, [
+        'name' => 'Device login',
+        'name_ar' => 'دخول جهاز المستودع',
+        'auth' => false,
+        'b' => ['device_token' => 'devtok_wh_mezzeh', 'pin' => '4821'],
+        'r' => [
+            'token' => '30|warehouse_xxxxx',
+            'warehouse' => ['id' => 1, 'name' => 'مستودع المزة'],
+            'permissions' => ['wh.queue.view', 'wh.picking.execute'],
+        ],
+        'd' => 'Device must be pre-registered. PIN is short.',
+        'e' => [401 => 'unauthenticated'],
+    ]),
+
+    ep('EP-WH-010', 'SP-11', 'GET', '/warehouse/queues', 'warehouse', 'wh.queue.view', [
+        'name' => 'Warehouse queues',
+        'name_ar' => 'طوابير المستودع',
+        'r' => [
+            'queues' => [
+                'to_pick' => 12,
+                'picking' => 3,
+                'to_pack' => 4,
+                'ready' => 6,
+                'awaiting_rep' => 2,
+                'inbound_returns' => 1,
+                'inbound_transfers' => 0,
+            ],
+            'alerts' => [['type' => 'picking_overdue', 'count' => 2]],
+        ],
+    ]),
+    ep('EP-WH-011', 'SP-11', 'GET', '/warehouse/picking-lists/{id}', 'warehouse', 'wh.picking.execute', [
+        'name' => 'Picking list',
+        'name_ar' => 'قائمة الالتقاط',
+        'r' => [
+            'header' => [
+                'order_no' => 'SO-9001',
+                'shop' => 'بقالية النور',
+                'zone' => 'المزة',
+                'expected_rep' => 'أحمد',
+                'items' => 4,
+                'units' => 12,
+                'due_at' => '2026-03-01T12:00:00+03:00',
+            ],
+            'lines' => [[
+                'id' => 1,
+                'image' => null,
+                'name' => 'زيت دوار الشمس 1 لتر',
+                'variant' => null,
+                'qty_required' => 4,
+                'qty_picked' => 0,
+                'sale_unit' => 'قطعة',
+                'location' => ['aisle' => 'A', 'shelf' => '12'],
+                'barcode' => '6291000000000',
+            ]],
+        ],
+        'd' => 'Lines ordered by pick path.',
+    ]),
+    ep('EP-WH-012', 'SP-11', 'POST', '/warehouse/picking-lists/{id}/scan', 'warehouse', 'wh.picking.execute', [
+        'name' => 'Scan pick line',
+        'name_ar' => 'مسح صنف',
+        'b' => ['barcode' => '6291000000000', 'qty' => 1],
+        'r' => ['line_id' => 1, 'qty_picked' => 1, 'qty_required' => 4],
+        'e' => [422 => 'barcode_not_in_order'],
+        'd' => 'Unknown barcode → 422 barcode_not_in_order with audio/visual warning.',
+    ]),
+    ep('EP-WH-013', 'SP-11', 'POST', '/warehouse/picking-lists/{id}/lines/{lineId}/manual', 'warehouse', 'wh.picking.execute', [
+        'name' => 'Manual pick qty',
+        'name_ar' => 'إدخال يدوي',
+        'b' => ['qty' => 4],
+        'r' => ['line_id' => 1, 'qty_picked' => 4, 'manual' => true],
+        'd' => 'Flagged as manual entry.',
+    ]),
+    ep('EP-WH-014', 'SP-11', 'POST', '/warehouse/picking-lists/{id}/shortage', 'warehouse', 'wh.picking.shortage', [
+        'name' => 'Report pick shortage',
+        'name_ar' => 'نقص أثناء الالتقاط',
+        'b' => [
+            'line_id' => 1,
+            'qty_available' => 2,
+            'reason' => 'out_of_stock',
+        ],
+        'r' => ['status' => 'shortage_reported'],
+        'd' => 'reason: out_of_stock|damaged|not_in_location. Immediate sales alert.',
+    ]),
+    ep('EP-WH-015', 'SP-11', 'POST', '/warehouse/picking-lists/{id}/complete', 'warehouse', 'wh.picking.execute', [
+        'name' => 'Complete picking',
+        'name_ar' => 'إنهاء الالتقاط',
+        'b' => new stdClass(),
+        'r' => ['status' => 'to_pack'],
+        'd' => 'Moves to packing queue. Retailer status becomes processing.',
+    ]),
+    ep('EP-WH-016', 'SP-11', 'POST', '/warehouse/packing/{id}/verify', 'warehouse', 'wh.packing.execute', [
+        'name' => 'Verify packing scans',
+        'name_ar' => 'تحقق التغليف',
+        'b' => ['scans' => [['barcode' => '6291000000000', 'qty' => 4]]],
+        'r' => ['mismatches' => []],
+    ]),
+    ep('EP-WH-017', 'SP-11', 'POST', '/warehouse/packing/{id}/complete', 'warehouse', 'wh.packing.execute', [
+        'name' => 'Complete packing',
+        'name_ar' => 'إنهاء التغليف',
+        'b' => [
+            'packages_count' => 1,
+            'total_weight' => 4.2,
+            'flags' => ['fragile'],
+        ],
+        'r' => ['labels' => [['package_no' => 'PKG-9001-1', 'qr' => 'qr_pkg_9001_1']]],
+        'd' => 'flags: fragile|cold_chain',
+    ]),
+    ep('EP-WH-018', 'SP-11', 'GET', '/warehouse/handovers/pending', 'warehouse', 'wh.handover.execute', [
+        'name' => 'Pending handovers',
+        'name_ar' => 'عهد بانتظار المندوب',
+        'r' => [
+            'reps' => [[
+                'id' => 70,
+                'name' => 'أحمد',
+                'orders_count' => 4,
+                'packages' => 5,
+                'total_value' => 210000,
+            ]],
+        ],
+    ]),
+    ep('EP-WH-019', 'SP-11', 'POST', '/warehouse/handovers', 'warehouse', 'wh.handover.execute', [
+        'name' => 'Create handover',
+        'name_ar' => 'إنشاء عهدة',
+        'b' => [
+            'rep_id' => 70,
+            'sub_order_ids' => [9001, 9002],
+            'rep_qr' => null,
+        ],
+        'r' => [
+            'handover_id' => 44,
+            'status' => 'awaiting_rep_confirm',
+            'temp_code' => '7391',
+        ],
+        'd' => 'Does NOT deduct stock or set on_the_way by itself (REQ-IN-02).',
+        'in' => 'REQ-IN-02',
+    ]),
+    ep('EP-WH-020', 'SP-11', 'POST', '/warehouse/handovers/{id}/return-trip', 'warehouse', 'wh.handover.return_trip', [
+        'name' => 'Return trip',
+        'name_ar' => 'عودة المندوب',
+        'b' => [
+            'undelivered' => [['sub_order_id' => 9002, 'reason' => 'closed_shop']],
+        ],
+        'r' => ['restocked' => [9002], 'wallet_matched' => true],
+        'd' => 'Restocks undelivered and matches the cash bag.',
+    ]),
+    ep('EP-WH-021', 'SP-11', 'POST', '/warehouse/receiving', 'warehouse', 'wh.receiving.execute', [
+        'name' => 'Create receiving',
+        'name_ar' => 'استلام وارد',
+        'b' => [
+            'source' => 'purchase',
+            'reference_no' => 'PO-331',
+            'lines' => [[
+                'product_id' => 880,
+                'variant_id' => null,
+                'qty_expected' => 100,
+                'qty_received' => 100,
+                'lot_no' => 'L202603',
+                'expiry_date' => '2027-03-01',
+                'location_id' => 12,
+            ]],
+        ],
+        'r' => ['id' => 90, 'status' => 'pending_qc'],
+        'd' => 'source: purchase|transfer|field_return',
+    ]),
+    ep('EP-WH-022', 'SP-11', 'POST', '/warehouse/receiving/{id}/qc', 'warehouse', 'wh.receiving.qc', [
+        'name' => 'Receiving QC',
+        'name_ar' => 'فحص الوارد',
+        'b' => [
+            'lines' => [['line_id' => 1, 'decision' => 'accept', 'qty' => 100, 'photos' => []]],
+        ],
+        'r' => ['status' => 'posted'],
+    ]),
+    ep('EP-WH-023A', 'SP-11', 'POST', '/warehouse/stocktakes', 'warehouse', 'wh.stocktake.execute', [
+        'name' => 'Start stocktake',
+        'name_ar' => 'بدء جرد',
+        'b' => ['warehouse_id' => 1, 'scope' => 'full'],
+        'r' => ['id' => 12, 'status' => 'counting'],
+        'd' => 'Book quantity is never shown to the counter.',
+    ]),
+    ep('EP-WH-023B', 'SP-11', 'POST', '/warehouse/stocktakes/{id}/lines', 'warehouse', 'wh.stocktake.execute', [
+        'name' => 'Record counted qty',
+        'name_ar' => 'تسجيل العد',
+        'b' => ['product_id' => 880, 'variant_id' => null, 'location_id' => 12, 'counted_qty' => 418],
+        'r' => ['line_id' => 1],
+    ]),
+    ep('EP-WH-023C', 'SP-11', 'POST', '/warehouse/stocktakes/{id}/submit', 'warehouse', 'wh.stocktake.execute', [
+        'name' => 'Submit stocktake',
+        'name_ar' => 'تسليم الجرد',
+        'b' => new stdClass(),
+        'r' => ['status' => 'pending_approval'],
+    ]),
+    ep('EP-WH-024', 'SP-11', 'POST', '/warehouse/stocktakes/{id}/approve', 'warehouse', 'wh.stocktake.approve', [
+        'name' => 'Approve stocktake',
+        'name_ar' => 'اعتماد الجرد',
+        'b' => ['reason' => 'فروقات ضمن السماح'],
+        'r' => ['status' => 'posted', 'adjustments' => 3],
+        'dual' => true,
+        'crit' => true,
+        'd' => 'Critical + dual + SOD-03.',
+    ]),
+    ep('EP-WH-030', 'SP-12', 'POST', '/warehouse/returns/{id}/sort', 'warehouse', 'wh.returns.sort', [
+        'name' => 'Sort returned goods',
+        'name_ar' => 'فرز المرتجع',
+        'b' => [
+            'lines' => [['line_id' => 1, 'condition' => 'resalable']],
+        ],
+        'r' => ['status' => 'sorted'],
+        'd' => 'condition: resalable|damaged|expired. Warehouse decides item condition, not the requester.',
+        'in' => 'REQ-IN-04',
+    ]),
+];

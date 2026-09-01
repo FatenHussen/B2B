@@ -1,0 +1,22 @@
+{
+    "name": "b2b/support",
+    "description": "B2B Support module",
+    "type": "library",
+    "require": {
+        "b2b/core": "*",
+        "php": "^8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Support\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Support\\SupportServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}

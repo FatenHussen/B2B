@@ -1,0 +1,22 @@
+{
+    "name": "b2b/pricing",
+    "description": "B2B Pricing module",
+    "type": "library",
+    "require": {
+        "b2b/core": "*",
+        "php": "^8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Pricing\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Pricing\\PricingServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}
