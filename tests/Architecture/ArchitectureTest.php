@@ -4,25 +4,11 @@
  * Architecture rules from CLAUDE.md and DOC-10 sections 2.2 and 5.
  * These fail the build. They are why the boundaries are real and not aspirational.
  */
-$modules = [
-    'Core', 'Identity', 'Access', 'Reference', 'Tenancy', 'Integration',
-    'Catalog', 'Pricing', 'Promotion', 'Inventory', 'Loyalty', 'Content',
-    'Notification', 'Support', 'PlatformBilling',
-    'Ordering', 'Fulfillment', 'Delivery', 'Returns', 'Finance', 'Sync', 'Reporting',
-];
-
-foreach ($modules as $module) {
-    foreach ($modules as $other) {
-        if ($module === $other) {
-            continue;
-        }
-
-        arch("{$module} does not import {$other} models")
-            ->expect("Modules\\{$module}")
-            ->not->toUse("Modules\\{$other}\\Domain\\Models")
-            ->group('arch');
-    }
-}
+// Rule 1 — no module imports another module's Eloquent model — used to be 462 generated
+// pair rules here. They are gone: `not->toUse` names the pair and never the file, because
+// Pest\Arch\Blueprint::expectToUse() discards the Violation carrying the path. The rule now
+// lives in CrossModuleModelImportTest.php, scans the source and reports every offending
+// path in one list.
 
 arch('no float on any money path')
     ->expect(['Modules\\Finance', 'Modules\\Pricing', 'Modules\\Promotion'])

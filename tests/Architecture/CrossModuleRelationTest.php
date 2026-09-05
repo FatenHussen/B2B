@@ -16,8 +16,7 @@ declare(strict_types=1);
  */
 
 use Symfony\Component\Finder\Finder;
-
-const NS_SEPARATOR = '\\';
+use Tests\Support\ModuleNames;
 
 const RELATION_METHODS = [
     'belongsTo', 'belongsToMany', 'hasMany', 'hasManyThrough', 'hasOne',
@@ -32,18 +31,19 @@ const RELATION_METHODS = [
  */
 function crossModuleRelations(string $code): array
 {
-    if (preg_match('/^\s*namespace\s+([^;]+);/m', $code, $matched) !== 1) {
+    $namespace = ModuleNames::namespaceOf($code);
+
+    if ($namespace === null) {
         return [];
     }
 
-    $namespace = trim($matched[1]);
-    $owner = moduleOwning($namespace.NS_SEPARATOR);
+    $owner = ModuleNames::owning($namespace.ModuleNames::SEPARATOR);
 
     if ($owner === null) {
         return [];
     }
 
-    $aliases = importedAliases($code);
+    $aliases = ModuleNames::imports($code);
     $methods = implode('|', RELATION_METHODS);
     $found = [];
 
@@ -56,7 +56,7 @@ function crossModuleRelations(string $code): array
     );
 
     foreach ($calls as $call) {
-        $found[] = resolveClassName($call[2], $call[1] !== '', $namespace, $aliases);
+        $found[] = ModuleNames::resolve($call[2], $call[1] !== '', $namespace, $aliases);
     }
 
     // ->belongsTo('Modules\Catalog\Domain\Models\Product')
@@ -73,67 +73,11 @@ function crossModuleRelations(string $code): array
 
     $foreign = array_filter(
         $found,
-        fn (string $class): bool => moduleOwning($class) !== null && moduleOwning($class) !== $owner,
+        fn (string $class): bool => ModuleNames::owning($class) !== null && ModuleNames::owning($class) !== $owner,
     );
 
     return array_values(array_unique($foreign));
 }
-
-/** The module a fully qualified name belongs to, or null when it is not a module class. */
-function moduleOwning(string $class): ?string
-{
-    return preg_match('/^Modules\x5c([A-Za-z0-9_]+)\x5c/', $class, $matched) === 1
-        ? $matched[1]
-        : null;
-}
-
-/**
- * alias => fully qualified name, for every `use` statement in $code.
- *
- * @return array<string, string>
- */
-function importedAliases(string $code): array
-{
-    preg_match_all(
-        '/^\s*use\s+([A-Za-z_][\w\x5c]*)(?:\s+as\s+([A-Za-z_]\w*))?\s*;/mi',
-        $code,
-        $uses,
-        PREG_SET_ORDER,
-    );
-
-    $aliases = [];
-
-    foreach ($uses as $use) {
-        $target = $use[1];
-        $at = strrpos($target, NS_SEPARATOR);
-        $short = $at === false ? $target : substr($target, $at + 1);
-        $aliases[$use[2] ?? $short] = $target;
-    }
-
-    return $aliases;
-}
-
-/**
- * Resolve a class name the way PHP does: rooted, then by import, then relative.
- *
- * @param  array<string, string>  $aliases
- */
-function resolveClassName(string $name, bool $rooted, string $namespace, array $aliases): string
-{
-    if ($rooted) {
-        return $name;
-    }
-
-    $parts = explode(NS_SEPARATOR, $name);
-    $head = array_shift($parts);
-
-    if (isset($aliases[$head])) {
-        return $aliases[$head].($parts === [] ? '' : NS_SEPARATOR.implode(NS_SEPARATOR, $parts));
-    }
-
-    return $namespace.NS_SEPARATOR.$name;
-}
-
 it('declares no Eloquent relation across a module boundary', function () {
     $offenders = [];
 
