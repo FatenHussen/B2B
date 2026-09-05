@@ -80,3 +80,6 @@ jobs:
 
       - name: 'Gate 7 — Tenant isolation'
         run: vendor/bin/pest --group=tenancy
+
+      - name: 'Gate 8 — Cross-guard baseline'
+        run: vendor/bin/pest --group=security
