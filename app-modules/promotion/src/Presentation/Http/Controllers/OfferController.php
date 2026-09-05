@@ -9,8 +9,6 @@ use Illuminate\Http\Request;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Http\ApiController;
 use Modules\Core\Support\MediaUrl;
-use Modules\Identity\Domain\Enums\AppUserKind;
-use Modules\Identity\Domain\Models\AppUser;
 use Modules\Promotion\Application\Actions\CreateOffer;
 use Modules\Promotion\Application\Actions\StopOffer;
 use Modules\Promotion\Domain\Models\Offer;
@@ -73,7 +71,7 @@ final class OfferController extends ApiController
         $channelIds = [];
 
         $user = $request->user();
-        if ($user instanceof AppUser && $user->kind === AppUserKind::Retailer) {
+        if ($shopping->isRetailer($user)) {
             $ctx = $shopping->for($user);
             $zoneId = $zoneId ?: $ctx['zone_id'];
             $activityId = $activityId ?: $ctx['activity_type_id'];
@@ -92,7 +90,7 @@ final class OfferController extends ApiController
         $zoneId = 0;
         $activityId = 0;
         $channelIds = [];
-        if ($user instanceof AppUser && $user->kind === AppUserKind::Retailer) {
+        if ($shopping->isRetailer($user)) {
             $ctx = $shopping->for($user);
             $zoneId = $ctx['zone_id'];
             $activityId = $ctx['activity_type_id'];
