@@ -35,11 +35,18 @@ final class ApiResponse
     }
 
     /**
+     * $permission names the permission a 403 wanted (DOC-10 §5.5). It sits beside the
+     * code rather than inside details because a client reads it directly.
+     *
      * @param  array<string, mixed>  $details
      */
-    public static function error(string $code, string $message, int $status = 400, array $details = []): JsonResponse
+    public static function error(string $code, string $message, int $status = 400, array $details = [], ?string $permission = null): JsonResponse
     {
         $error = ['code' => $code, 'message' => $message];
+
+        if ($permission !== null && $permission !== '') {
+            $error['permission'] = $permission;
+        }
 
         if ($details !== []) {
             $error['details'] = $details;
