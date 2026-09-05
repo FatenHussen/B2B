@@ -184,5 +184,7 @@ it('bootstraps the app session and logs out', function () {
 
     $this->app['auth']->forgetGuards();
 
-    CatalogAssert::error($this->getJson('/api/v1/app/session', $auth), 401, 'unauthenticated');
+    // token_revoked, not unauthenticated: logout deleted the row behind this token, and
+    // the client needs to tell "your session ended" from "you never had one".
+    CatalogAssert::error($this->getJson('/api/v1/app/session', $auth), 401, 'token_revoked');
 });
