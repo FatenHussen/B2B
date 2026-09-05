@@ -6,7 +6,7 @@ namespace Modules\Ordering\Application\Support;
 
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\PricingEngine;
-use Modules\Identity\Domain\Models\RetailerProfile;
+use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Ordering\Domain\Enums\CartStatus;
 use Modules\Ordering\Domain\Models\Cart;
 
@@ -15,6 +15,7 @@ final class CartAssembler
     public function __construct(
         private readonly PricingEngine $pricing,
         private readonly CatalogProductLookup $products,
+        private readonly RetailerDirectory $retailers,
     ) {}
 
     public function activeFor(object $owner): Cart
@@ -166,11 +167,11 @@ final class CartAssembler
 
         $sections = [];
         foreach ($byRetailer as $row) {
-            $shop = RetailerProfile::query()->find($row['retailer_id']);
+            $shop = $this->retailers->find((int) $row['retailer_id']);
             $sections[] = [
                 'retailer' => [
                     'id' => $row['retailer_id'],
-                    'shop_name' => $shop?->shop_name ?? '',
+                    'shop_name' => $shop['shop_name'] ?? '',
                 ],
                 'lines' => $row['lines'],
                 'total' => $row['total'],

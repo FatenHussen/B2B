@@ -22,4 +22,6 @@ interface RepDirectory
     public function channelIdForUser(int $repUserId): ?int;
 
     public function displayName(int $repUserId): ?string;
+
+    public function phone(int $repUserId): ?string;
 }

@@ -9,7 +9,6 @@ use Modules\Core\Contracts\IssuesInvoice;
 use Modules\Core\Contracts\RepDirectory;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Domain\Exceptions\DomainException;
-use Modules\Identity\Domain\Models\AppUser;
 use Modules\Ordering\Domain\Enums\SubOrderStatus;
 use Modules\Ordering\Domain\Models\SubOrder;
 
@@ -36,7 +35,7 @@ final class ShowRetailerOrder
         $rep = null;
         if ($sub->status === SubOrderStatus::OnTheWay && $sub->rep_id) {
             $name = $this->reps->displayName((int) $sub->rep_id);
-            $phone = AppUser::query()->whereKey($sub->rep_id)->value('phone');
+            $phone = $this->reps->phone((int) $sub->rep_id);
             $rep = ['name' => $name, 'phone' => $phone];
         }
 

@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\Ordering\Application\Queries;
 
+use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\Tenant;
-use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Ordering\Domain\Models\SubOrder;
 use Modules\Ordering\Domain\SubOrderStateMachine;
 
 final class ShowChannelSubOrder
 {
-    public function __construct(private readonly SubOrderStateMachine $machine) {}
+    public function __construct(
+        private readonly SubOrderStateMachine $machine,
+        private readonly RetailerDirectory $retailers,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -23,7 +26,7 @@ final class ShowChannelSubOrder
         if ($sub === null) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }
-        $shop = RetailerProfile::query()->find($sub->retailer_id);
+        $shop = $this->retailers->find((int) $sub->retailer_id);
         $permissions = [];
         if (method_exists($user, 'getAllPermissions')) {
             $permissions = $user->getAllPermissions()->pluck('name')->all();
@@ -33,7 +36,7 @@ final class ShowChannelSubOrder
             'header' => [
                 'sub_order_no' => $sub->sub_order_no,
                 'status' => $sub->status->value,
-                'shop' => $shop?->shop_name,
+                'shop' => $shop['shop_name'] ?? null,
             ],
             'lines' => $sub->lines->map(fn ($l) => [
                 'id' => (int) $l->id,

@@ -9,11 +9,10 @@ use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\IssuesInvoice;
 use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Contracts\RepDirectory;
+use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\Tenant;
-use Modules\Identity\Domain\Models\AppUser;
-use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Ordering\Domain\Models\SubOrder;
 use Modules\Ordering\Domain\Models\SubOrderEvent;
 use Modules\Ordering\Domain\SubOrderStateMachine;
@@ -27,6 +26,7 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
         private readonly ReferenceDirectory $refs,
         private readonly RepDirectory $reps,
         private readonly IssuesInvoice $invoices,
+        private readonly RetailerDirectory $retailers,
     ) {}
 
     public function header(int $subOrderId): ?array
@@ -35,8 +35,8 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
         if ($sub === null) {
             return null;
         }
-        $shop = RetailerProfile::query()->find($sub->retailer_id);
-        $phone = $shop !== null ? AppUser::query()->whereKey($shop->app_user_id)->value('phone') : null;
+        $shop = $this->retailers->find((int) $sub->retailer_id);
+        $phone = $shop !== null ? $this->retailers->phone((int) $sub->retailer_id) : null;
 
         return [
             'id' => (int) $sub->id,
@@ -49,10 +49,10 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
             'rep_user_id' => $sub->rep_id ? (int) $sub->rep_id : null,
             'total' => (int) $sub->total,
             'scheduled_at' => $sub->scheduled_at?->timezone('Asia/Damascus')->toIso8601String(),
-            'shop_name' => $shop?->shop_name ?? '',
+            'shop_name' => $shop['shop_name'] ?? '',
             'zone_name' => $sub->zone_id ? ($this->refs->zoneName((int) $sub->zone_id) ?? '') : '',
             'channel_name' => $this->channels->name((int) $sub->channel_id) ?? '',
-            'address' => $shop?->address,
+            'address' => $shop['address'] ?? null,
             'phone' => is_string($phone) ? $phone : null,
         ];
     }

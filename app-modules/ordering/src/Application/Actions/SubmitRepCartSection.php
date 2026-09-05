@@ -7,8 +7,8 @@ namespace Modules\Ordering\Application\Actions;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Contracts\RepCommercialLimits;
 use Modules\Core\Contracts\RepSellingContext;
+use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Domain\Exceptions\DomainException;
-use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Ordering\Application\Support\CartAssembler;
 use Modules\Ordering\Domain\Enums\CartStatus;
 use Modules\Ordering\Domain\Enums\OrderSource;
@@ -25,6 +25,7 @@ final class SubmitRepCartSection
         private readonly CartAssembler $carts,
         private readonly RepSellingContext $selling,
         private readonly RepCommercialLimits $limits,
+        private readonly RetailerDirectory $retailers,
     ) {}
 
     /**
@@ -41,10 +42,10 @@ final class SubmitRepCartSection
             throw new DomainException(__('ordering.discount_cap_exceeded'), 'discount_cap_exceeded', 403);
         }
 
-        $retailer = RetailerProfile::query()->find($retailerId);
-        if ($retailer === null) {
+        if (! $this->retailers->exists($retailerId)) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }
+        $retailerZoneId = (int) $this->retailers->zoneId($retailerId);
 
         $cart = $this->carts->activeFor($user);
         $section = CartSection::query()
@@ -55,10 +56,10 @@ final class SubmitRepCartSection
             throw new DomainException(__('ordering.cart_empty'), 'validation_failed', 422);
         }
 
-        $this->carts->reprice($cart, (int) $retailer->zone_id, $retailerId, (int) $section->channel_id);
+        $this->carts->reprice($cart, $retailerZoneId, $retailerId, (int) $section->channel_id);
         $section->refresh()->load('lines');
 
-        $sub = DB::transaction(function () use ($cart, $section, $retailer, $percent, $user): SubOrder {
+        $sub = DB::transaction(function () use ($cart, $section, $retailerId, $retailerZoneId, $percent, $user): SubOrder {
             $subtotal = 0;
             $discount = 0;
             foreach ($section->lines as $line) {
@@ -69,7 +70,7 @@ final class SubmitRepCartSection
             $total = $subtotal - $extra;
 
             $order = Order::query()->create([
-                'retailer_id' => $retailer->id,
+                'retailer_id' => $retailerId,
                 'source' => OrderSource::RepApp,
                 'order_no' => 'ORD-tmp',
                 'status' => SubOrderStatus::Pending->value,
@@ -80,8 +81,8 @@ final class SubmitRepCartSection
             $sub = SubOrder::query()->create([
                 'order_id' => $order->id,
                 'channel_id' => $section->channel_id,
-                'retailer_id' => $retailer->id,
-                'zone_id' => $retailer->zone_id,
+                'retailer_id' => $retailerId,
+                'zone_id' => $retailerZoneId,
                 'source' => OrderSource::RepApp,
                 'sub_order_no' => 'SO-tmp',
                 'status' => SubOrderStatus::Pending,

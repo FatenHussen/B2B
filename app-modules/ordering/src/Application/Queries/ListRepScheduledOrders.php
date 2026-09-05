@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Ordering\Application\Queries;
 
-use Modules\Identity\Domain\Models\AppUser;
-use Modules\Identity\Domain\Models\RetailerProfile;
+use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Ordering\Domain\Enums\SubOrderStatus;
 use Modules\Ordering\Domain\Models\SubOrder;
 
 final class ListRepScheduledOrders
 {
+    public function __construct(private readonly RetailerDirectory $retailers) {}
+
     /**
      * @return list<array<string, mixed>>
      */
@@ -25,13 +26,13 @@ final class ListRepScheduledOrders
         }
 
         return $query->get()->map(function (SubOrder $row) {
-            $shop = RetailerProfile::query()->find($row->retailer_id);
-            $phone = $shop !== null ? AppUser::query()->whereKey($shop->app_user_id)->value('phone') : null;
+            $shop = $this->retailers->find((int) $row->retailer_id);
+            $phone = $shop !== null ? $this->retailers->phone((int) $row->retailer_id) : null;
 
             return [
                 'shop_logo' => null,
-                'shop' => $shop?->shop_name,
-                'address' => $shop?->address,
+                'shop' => $shop['shop_name'] ?? null,
+                'address' => $shop['address'] ?? null,
                 'phone' => $phone,
                 'scheduled_at' => $row->scheduled_at?->timezone('Asia/Damascus')->toIso8601String(),
                 'status' => $row->status->value,

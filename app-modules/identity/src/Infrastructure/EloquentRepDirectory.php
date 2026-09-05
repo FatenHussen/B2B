@@ -63,4 +63,11 @@ final class EloquentRepDirectory implements RepDirectory
 
         return is_string($name) && $name !== '' ? $name : null;
     }
+
+    public function phone(int $repUserId): ?string
+    {
+        $phone = AppUser::query()->whereKey($repUserId)->value('phone');
+
+        return is_string($phone) && $phone !== '' ? $phone : null;
+    }
 }

@@ -7,8 +7,8 @@ namespace Modules\Ordering\Application\Actions;
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\PricingEngine;
 use Modules\Core\Contracts\RepSellingContext;
+use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Domain\Exceptions\DomainException;
-use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Ordering\Application\Support\CartAssembler;
 use Modules\Ordering\Application\Support\OpaqueChannelRef;
 use Modules\Ordering\Domain\Enums\CartLineSource;
@@ -22,6 +22,7 @@ final class AddRepCartLine
         private readonly CatalogProductLookup $products,
         private readonly PricingEngine $pricing,
         private readonly RepSellingContext $selling,
+        private readonly RetailerDirectory $retailers,
     ) {}
 
     /**
@@ -31,8 +32,8 @@ final class AddRepCartLine
     public function __invoke(object $user, array $data): array
     {
         $selling = $this->selling->for($user);
-        $retailer = RetailerProfile::query()->find((int) $data['retailer_id']);
-        if ($retailer === null) {
+        $retailerId = (int) $data['retailer_id'];
+        if (! $this->retailers->exists($retailerId)) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }
 
@@ -44,7 +45,7 @@ final class AddRepCartLine
 
         $cart = $this->carts->activeFor($user);
         $section = CartSection::query()->firstOrCreate(
-            ['cart_id' => $cart->id, 'channel_id' => $channelId, 'retailer_id' => (int) $retailer->id],
+            ['cart_id' => $cart->id, 'channel_id' => $channelId, 'retailer_id' => $retailerId],
             ['opaque_ref' => OpaqueChannelRef::make($channelId)],
         );
 
@@ -68,7 +69,7 @@ final class AddRepCartLine
             ]);
         }
 
-        $this->carts->reprice($cart, (int) $retailer->zone_id, (int) $retailer->id, $channelId);
+        $this->carts->reprice($cart, (int) $this->retailers->zoneId($retailerId), $retailerId, $channelId);
 
         return $this->carts->presentRep($cart->fresh(['sections.lines']));
     }
