@@ -6,14 +6,17 @@ namespace Modules\Fulfillment\Infrastructure;
 
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\CreatesPickingList;
+use Modules\Core\Contracts\WarehouseLocationDirectory;
 use Modules\Fulfillment\Domain\Enums\PickingStatus;
 use Modules\Fulfillment\Domain\Models\PickingLine;
 use Modules\Fulfillment\Domain\Models\PickingList;
-use Modules\Inventory\Domain\Models\WarehouseLocation;
 
 final class EloquentCreatesPickingList implements CreatesPickingList
 {
-    public function __construct(private readonly CatalogProductLookup $products) {}
+    public function __construct(
+        private readonly CatalogProductLookup $products,
+        private readonly WarehouseLocationDirectory $locations,
+    ) {}
 
     public function create(array $payload): int
     {
@@ -30,11 +33,7 @@ final class EloquentCreatesPickingList implements CreatesPickingList
             'due_at' => now()->addHours(4),
         ]);
 
-        $locations = WarehouseLocation::query()
-            ->where('warehouse_id', $payload['warehouse_id'])
-            ->orderBy('aisle')
-            ->orderBy('shelf')
-            ->get();
+        $locations = collect($this->locations->orderedForWarehouse((int) $payload['warehouse_id']));
 
         $sorted = $payload['lines'];
         usort($sorted, function (array $a, array $b) use ($locations): int {
@@ -52,7 +51,7 @@ final class EloquentCreatesPickingList implements CreatesPickingList
                 'variant_id' => $line['variant_id'] ?? null,
                 'qty_required' => $line['qty'],
                 'qty_picked' => 0,
-                'location_id' => $loc?->id,
+                'location_id' => $loc['id'] ?? null,
                 'barcode' => $snap['barcode'] ?? null,
             ]);
         }

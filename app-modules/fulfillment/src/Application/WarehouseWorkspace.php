@@ -8,6 +8,7 @@ use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Contracts\SubOrderLifecycle;
+use Modules\Core\Contracts\WarehouseLocationDirectory;
 use Modules\Core\Domain\Events\HandoverConfirmedByRep;
 use Modules\Core\Domain\Events\HandoverOpened;
 use Modules\Core\Domain\Events\PickingShortageReported;
@@ -25,7 +26,6 @@ use Modules\Fulfillment\Domain\Models\PickingLine;
 use Modules\Fulfillment\Domain\Models\PickingList;
 use Modules\Fulfillment\Domain\Models\Stocktake;
 use Modules\Fulfillment\Domain\Models\StocktakeLine;
-use Modules\Inventory\Domain\Models\WarehouseLocation;
 
 final class WarehouseWorkspace
 {
@@ -34,6 +34,7 @@ final class WarehouseWorkspace
         private readonly SubOrderLifecycle $orders,
         private readonly StockLedger $ledger,
         private readonly RecordsAudit $audit,
+        private readonly WarehouseLocationDirectory $locations,
     ) {}
 
     public function warehouseId(): int
@@ -88,7 +89,7 @@ final class WarehouseWorkspace
             ],
             'lines' => $lines->map(function (PickingLine $line) {
                 $snap = $this->products->snapshot((int) $line->product_id, $line->variant_id ? (int) $line->variant_id : null);
-                $loc = $line->location_id ? WarehouseLocation::query()->find($line->location_id) : null;
+                $loc = $line->location_id ? $this->locations->find((int) $line->location_id) : null;
 
                 return [
                     'id' => (int) $line->id,
@@ -98,7 +99,7 @@ final class WarehouseWorkspace
                     'qty_required' => (int) $line->qty_required,
                     'qty_picked' => (int) $line->qty_picked,
                     'sale_unit' => $snap['sale_unit'] ?? null,
-                    'location' => $loc ? ['aisle' => $loc->aisle, 'shelf' => $loc->shelf] : null,
+                    'location' => $loc ? ['aisle' => $loc['aisle'], 'shelf' => $loc['shelf']] : null,
                     'barcode' => $line->barcode,
                 ];
             })->all(),

@@ -7,7 +7,9 @@ namespace Modules\Inventory;
 use Illuminate\Support\ServiceProvider;
 use Modules\Core\Contracts\AvailabilityClassifier;
 use Modules\Core\Contracts\StockLedger;
+use Modules\Core\Contracts\WarehouseLocationDirectory;
 use Modules\Inventory\Infrastructure\EloquentStockLedger;
+use Modules\Inventory\Infrastructure\EloquentWarehouseLocationDirectory;
 use Modules\Inventory\Infrastructure\StockAvailabilityClassifier;
 
 class InventoryServiceProvider extends ServiceProvider
@@ -16,6 +18,7 @@ class InventoryServiceProvider extends ServiceProvider
     {
         $this->app->singleton(StockLedger::class, EloquentStockLedger::class);
         $this->app->singleton(AvailabilityClassifier::class, StockAvailabilityClassifier::class);
+        $this->app->singleton(WarehouseLocationDirectory::class, EloquentWarehouseLocationDirectory::class);
     }
 
     public function boot(): void
