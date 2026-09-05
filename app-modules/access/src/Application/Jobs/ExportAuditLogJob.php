@@ -10,7 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
-use Modules\Core\Domain\Models\AuditLog;
+use Modules\Core\Contracts\AuditTrail;
 
 final class ExportAuditLogJob implements ShouldQueue
 {
@@ -26,36 +26,25 @@ final class ExportAuditLogJob implements ShouldQueue
         public readonly string $format = 'xlsx',
     ) {}
 
-    public function handle(): void
+    public function handle(AuditTrail $audit): void
     {
-        $query = AuditLog::query()->orderBy('created_at');
-
-        if (isset($this->filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $this->filters['date_from']);
-        }
-        if (isset($this->filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $this->filters['date_to']);
-        }
-        if (isset($this->filters['actor'])) {
-            $query->where('actor_id', $this->filters['actor']);
-        }
-        if (isset($this->filters['action'])) {
-            $query->where('action', $this->filters['action']);
-        }
-        if (isset($this->filters['channel_id'])) {
-            $query->where('channel_id', $this->filters['channel_id']);
-        }
-
         $handle = fopen('php://temp', 'r+');
         fputcsv($handle, ['at', 'actor', 'action', 'entity_type', 'entity_id', 'ip']);
-        foreach ($query->cursor() as $log) {
+
+        foreach ($audit->stream([
+            'actor' => $this->filters['actor'] ?? null,
+            'action' => $this->filters['action'] ?? null,
+            'channel_id' => $this->filters['channel_id'] ?? null,
+            'date_from' => $this->filters['date_from'] ?? null,
+            'date_to' => $this->filters['date_to'] ?? null,
+        ]) as $entry) {
             fputcsv($handle, [
-                $log->created_at?->toIso8601String(),
-                $log->actor_id,
-                $log->action,
-                $log->subject_type,
-                $log->subject_id,
-                $log->ip,
+                $entry['at'],
+                $entry['actor'],
+                $entry['action'],
+                $entry['entity_type'],
+                $entry['entity_id'],
+                $entry['ip'],
             ]);
         }
         rewind($handle);

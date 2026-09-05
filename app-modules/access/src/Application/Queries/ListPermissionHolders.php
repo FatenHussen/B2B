@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Access\Application\Queries;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Modules\Access\Domain\Models\AccessRole;
+use Modules\Core\Contracts\AuditTrail;
 use Modules\Core\Domain\Exceptions\DomainException;
-use Modules\Core\Domain\Models\AuditLog;
 use Spatie\Permission\Models\Permission;
 
 final class ListPermissionHolders
 {
+    public function __construct(private readonly AuditTrail $audit) {}
+
     /**
      * @return array{roles: list<array{id: int, key: string}>, users: list<array{id: int, name: string}>, recent_usage: list<array{at: string, actor: int|null, action: string}>}
      */
@@ -44,20 +47,13 @@ final class ListPermissionHolders
             ->values()
             ->all();
 
-        $recent = AuditLog::query()
-            ->where(function ($q) use ($code): void {
-                $q->where('action', 'like', '%'.$code.'%')
-                    ->orWhere('action', 'simulate');
-            })
-            ->orderByDesc('created_at')
-            ->limit(10)
-            ->get()
-            ->map(fn (AuditLog $log) => [
-                'at' => $log->created_at?->timezone('Asia/Damascus')->toIso8601String(),
-                'actor' => $log->actor_id,
-                'action' => $log->action,
-            ])
-            ->all();
+        $recent = array_map(fn (array $entry): array => [
+            'at' => $entry['at'] === null
+                ? null
+                : CarbonImmutable::parse($entry['at'])->timezone('Asia/Damascus')->toIso8601String(),
+            'actor' => $entry['actor'],
+            'action' => $entry['action'],
+        ], $this->audit->recent(['action_like' => $code, 'action_any' => ['simulate']], 10));
 
         return [
             'roles' => $roles,
