@@ -18,9 +18,14 @@ final class IdentityRetailerShoppingContext implements RetailerShoppingContext
         private readonly ReferenceDirectory $refs,
     ) {}
 
+    public function isRetailer(object $user): bool
+    {
+        return $user instanceof AppUser && $user->kind === AppUserKind::Retailer;
+    }
+
     public function for(object $user): array
     {
-        if (! $user instanceof AppUser || $user->kind !== AppUserKind::Retailer) {
+        if (! $this->isRetailer($user)) {
             throw new DomainException(__('auth.forbidden'), 'insufficient_permission', 403);
         }
 

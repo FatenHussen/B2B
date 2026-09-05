@@ -8,8 +8,6 @@ use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\PricingEngine;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Domain\Exceptions\DomainException;
-use Modules\Identity\Domain\Enums\AppUserKind;
-use Modules\Identity\Domain\Models\AppUser;
 
 final class QuotePrices
 {
@@ -28,7 +26,7 @@ final class QuotePrices
         $retailerId = null;
         $channelId = null;
 
-        if ($user instanceof AppUser && $user->kind === AppUserKind::Retailer) {
+        if ($this->shopping->isRetailer($user)) {
             $ctx = $this->shopping->for($user);
             $retailerId = $ctx['retailer_id'];
             foreach ($data['lines'] as $line) {
