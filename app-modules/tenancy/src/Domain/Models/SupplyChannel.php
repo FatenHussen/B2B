@@ -5,6 +5,7 @@ namespace Modules\Tenancy\Domain\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Tenancy\Database\Factories\SupplyChannelFactory;
 
 /**
@@ -17,7 +18,7 @@ use Modules\Tenancy\Database\Factories\SupplyChannelFactory;
  * @property string|null $email
  * @property string $status
  * @property array<string, mixed>|null $settings
- * @property \Illuminate\Support\Carbon|null $created_at
+ * @property Carbon|null $created_at
  */
 class SupplyChannel extends Model
 {

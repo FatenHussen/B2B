@@ -4,9 +4,10 @@ namespace Modules\Tenancy\Presentation\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Tenancy\Domain\Models\SupplyChannel;
 
 /**
- * @mixin \Modules\Tenancy\Domain\Models\SupplyChannel
+ * @mixin SupplyChannel
  */
 class SupplyChannelResource extends JsonResource
 {

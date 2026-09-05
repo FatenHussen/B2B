@@ -11,7 +11,6 @@ use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Contracts\WarehouseDirectory;
 use Modules\Core\Domain\Events\SubOrderConfirmed;
 use Modules\Core\Domain\Exceptions\DomainException;
-use Modules\Core\Support\Tenant;
 use Modules\Ordering\Domain\Enums\SubOrderStatus;
 use Modules\Ordering\Domain\Models\SubOrder;
 use Modules\Ordering\Domain\Models\SubOrderEvent;

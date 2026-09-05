@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Finance\Infrastructure;
 
-use Illuminate\Support\Facades\DB;
 use Modules\Core\Contracts\IssuesInvoice;
 use Modules\Core\Support\Tenant;
 use Modules\Finance\Domain\Models\Invoice;

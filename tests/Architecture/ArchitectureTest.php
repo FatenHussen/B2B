@@ -4,7 +4,6 @@
  * Architecture rules from CLAUDE.md and DOC-10 sections 2.2 and 5.
  * These fail the build. They are why the boundaries are real and not aspirational.
  */
-
 $modules = [
     'Core', 'Identity', 'Access', 'Reference', 'Tenancy', 'Integration',
     'Catalog', 'Pricing', 'Promotion', 'Inventory', 'Loyalty', 'Content',
@@ -45,15 +44,9 @@ arch('controllers never redirect')
     ->not->toUse(['Illuminate\\Http\\RedirectResponse', 'redirect'])
     ->group('arch');
 
-arch('every channel controller is behind the channel guard')
-    ->expect('Modules\\*\\Presentation\\Http\\Controllers\\Channel')
-    ->toUseMiddleware('auth:channel')
-    ->group('arch');
-
-arch('every platform controller is behind the platform guard')
-    ->expect('Modules\\*\\Presentation\\Http\\Controllers\\Platform')
-    ->toUseMiddleware('auth:platform')
-    ->group('arch');
+// The two `toUseMiddleware` rules that used to sit here are gone: Pest has no such
+// expectation, and a namespace cannot tell you what middleware a route was
+// registered with. Guards are asserted against the real route table in GuardTest.php.
 
 arch('app stays thin')
     ->expect('App')

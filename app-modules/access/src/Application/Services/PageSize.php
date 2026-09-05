@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\Access\Application\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 
 final class PageSize
 {

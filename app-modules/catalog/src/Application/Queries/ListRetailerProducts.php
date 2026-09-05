@@ -36,11 +36,11 @@ final class ListRetailerProducts
                         $query->where('status', 'active');
                     }
                 }),
-                AllowedFilter::callback('offer_only', function ($query, $value) use ($ctx): void {
+                AllowedFilter::callback('offer_only', function ($query, $value): void {
                     if ((string) $value !== '1') {
                         return;
                     }
-                    $query->where(function ($q) use ($ctx): void {
+                    $query->where(function ($q): void {
                         $q->whereRaw('0 = 1');
                     });
                 }),

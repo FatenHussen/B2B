@@ -8,6 +8,7 @@ use Database\Factories\PlatformUserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Identity\Domain\Enums\UserStatus;
 use Spatie\Permission\Traits\HasRoles;
@@ -20,7 +21,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property UserStatus $status
  * @property string|null $two_factor_secret
  * @property array<int, string>|null $two_factor_recovery_codes
- * @property \Illuminate\Support\Carbon|null $last_login_at
+ * @property Carbon|null $last_login_at
  */
 class PlatformUser extends Authenticatable
 {

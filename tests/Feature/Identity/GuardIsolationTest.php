@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\ChannelUser;

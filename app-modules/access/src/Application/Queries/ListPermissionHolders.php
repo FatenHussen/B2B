@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Access\Application\Queries;
 
+use Illuminate\Support\Facades\DB;
 use Modules\Access\Domain\Models\AccessRole;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Domain\Models\AuditLog;
@@ -31,7 +32,7 @@ final class ListPermissionHolders
             ->values()
             ->all();
 
-        $users = \Illuminate\Support\Facades\DB::table('model_has_roles')
+        $users = DB::table('model_has_roles')
             ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
             ->join('role_has_permissions', 'role_has_permissions.role_id', '=', 'roles.id')
             ->where('role_has_permissions.permission_id', $permission->id)

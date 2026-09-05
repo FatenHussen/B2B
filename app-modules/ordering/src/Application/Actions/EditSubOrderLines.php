@@ -39,6 +39,7 @@ final class EditSubOrderLines
             }
             if (! empty($change['removed'])) {
                 $line->delete();
+
                 continue;
             }
             $line->qty = (int) $change['qty'];

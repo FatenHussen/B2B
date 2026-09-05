@@ -7,6 +7,7 @@ namespace Modules\Identity\Domain\Models;
 use Database\Factories\WarehouseUserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Identity\Domain\Enums\UserStatus;
 use Spatie\Permission\Traits\HasRoles;
@@ -15,7 +16,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property int $id
  * @property string $name
  * @property UserStatus $status
- * @property \Illuminate\Support\Carbon|null $last_login_at
+ * @property Carbon|null $last_login_at
  */
 class WarehouseUser extends Authenticatable
 {

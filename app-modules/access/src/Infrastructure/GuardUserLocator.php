@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Access\Infrastructure;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Auth;
 use Modules\Access\Domain\PermissionCatalog;
 
@@ -33,7 +34,7 @@ final class GuardUserLocator
 
     public function morphAlias(object $user): string
     {
-        $map = \Illuminate\Database\Eloquent\Relations\Relation::morphMap();
+        $map = Relation::morphMap();
         $class = $user::class;
         $alias = array_search($class, $map, true);
 

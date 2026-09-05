@@ -20,7 +20,7 @@ final class VerifyPermissionsCommand extends Command
 
         foreach ($files as $file) {
             $contents = (string) file_get_contents($file);
-            if (preg_match_all("/permission:([a-z0-9_.*|]+)/", $contents, $matches) === false) {
+            if (preg_match_all('/permission:([a-z0-9_.*|]+)/', $contents, $matches) === false) {
                 continue;
             }
             foreach ($matches[1] as $raw) {

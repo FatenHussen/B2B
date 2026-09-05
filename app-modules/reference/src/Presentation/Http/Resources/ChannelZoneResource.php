@@ -4,9 +4,10 @@ namespace Modules\Reference\Presentation\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Reference\Domain\Models\ChannelZone;
 
 /**
- * @mixin \Modules\Reference\Domain\Models\ChannelZone
+ * @mixin ChannelZone
  */
 class ChannelZoneResource extends JsonResource
 {

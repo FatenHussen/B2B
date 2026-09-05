@@ -2,6 +2,11 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
+    # Per-project cache. The default is a directory in the system temp folder shared by
+    # every project on the machine, and a cache left there by another Laravel version is
+    # what made `phpstan analyse` die on "Undefined constant LARAVEL_VERSION".
+    tmpDir: build/phpstan
+
     paths:
         - app
         - app-modules

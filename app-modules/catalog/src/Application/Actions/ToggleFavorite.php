@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Application\Actions;
 
-use Modules\Catalog\Domain\Models\RetailerProductFavorite;
 use Modules\Catalog\Application\Support\VisibleCatalogQuery;
+use Modules\Catalog\Domain\Models\RetailerProductFavorite;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 

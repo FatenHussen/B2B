@@ -6,6 +6,7 @@ namespace Modules\Identity\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $token_id
  * @property string|null $ip
  * @property string|null $user_agent
- * @property \Illuminate\Support\Carbon|null $last_active_at
+ * @property Carbon|null $last_active_at
  */
 class PlatformSession extends Model
 {

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Identity\Domain\Enums\UserStatus;
 use Spatie\Permission\Traits\HasRoles;
@@ -19,7 +20,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $phone
  * @property string|null $email
  * @property UserStatus $status
- * @property \Illuminate\Support\Carbon|null $last_login_at
+ * @property Carbon|null $last_login_at
  */
 class ChannelUser extends Authenticatable
 {

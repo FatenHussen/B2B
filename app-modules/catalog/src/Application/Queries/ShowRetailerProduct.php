@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Application\Queries;
 
-use Illuminate\Http\Request;
 use Modules\Catalog\Application\Support\ProductCardAssembler;
 use Modules\Catalog\Application\Support\VisibleCatalogQuery;
 use Modules\Catalog\Domain\Enums\ProductMediaRole;
-use Modules\Catalog\Domain\Models\Product;
 use Modules\Catalog\Domain\Models\RetailerProductFavorite;
 use Modules\Core\Contracts\AvailabilityClassifier;
 use Modules\Core\Contracts\PricingEngine;

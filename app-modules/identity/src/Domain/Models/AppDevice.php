@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Identity\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $platform
  * @property string|null $name
  * @property string|null $push_token
- * @property \Illuminate\Support\Carbon|null $last_seen_at
+ * @property Carbon|null $last_seen_at
  */
 class AppDevice extends Model
 {

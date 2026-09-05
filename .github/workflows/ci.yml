@@ -15,7 +15,8 @@ jobs:
           MYSQL_DATABASE: b2b_platform_test
           MYSQL_ROOT_PASSWORD: root
         ports:
-          - 3306:3306
+          # Host port 3308 everywhere: .env, .env.example, phpunit.xml and docker-compose agree.
+          - 3308:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
           --health-interval=10s
@@ -24,7 +25,7 @@ jobs:
     env:
       DB_CONNECTION: mysql
       DB_HOST: 127.0.0.1
-      DB_PORT: 3306
+      DB_PORT: 3308
       DB_DATABASE: b2b_platform_test
       DB_USERNAME: root
       DB_PASSWORD: root
@@ -34,17 +35,48 @@ jobs:
         with:
           php-version: '8.3'
           extensions: mbstring, pdo_mysql, redis
+          ini-values: memory_limit=1G
           coverage: xdebug
       - run: composer install --prefer-dist --no-interaction
+
       - name: 'Gate 1 — Pint'
         run: vendor/bin/pint --test
+
       - name: 'Gate 2 — Larastan'
         run: vendor/bin/phpstan analyse --memory-limit=1G
+
       - name: 'Gate 3 — Deptrac'
         run: vendor/bin/deptrac analyse --no-cache
-      - name: 'Gate 4 — Tests + coverage'
+
+      - name: 'Deptrac report'
+        # Runs even when the gate above failed: the report is how you read the violation.
+        if: always()
+        run: |
+          mkdir -p build/deptrac
+          vendor/bin/deptrac analyse --no-cache --formatter=json \
+            --output=build/deptrac/deptrac.json || true
+          vendor/bin/deptrac analyse --no-cache --formatter=table \
+            --report-uncovered > build/deptrac/deptrac.txt || true
+
+      - name: 'Upload deptrac report'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deptrac-report
+          path: build/deptrac/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: 'Gate 4 — Architecture'
+        # An independent gate. The boundaries fail the build on their own, before
+        # anyone has to read a single feature-test failure.
+        run: vendor/bin/pest --group=arch
+
+      - name: 'Gate 5 — Tests + coverage'
         run: vendor/bin/pest --coverage --min=70
-      - name: 'Gate 5 — Critical permissions'
+
+      - name: 'Gate 6 — Critical permissions'
         run: vendor/bin/pest --group=permissions
-      - name: 'Gate 6 — Tenant isolation'
+
+      - name: 'Gate 7 — Tenant isolation'
         run: vendor/bin/pest --group=tenancy

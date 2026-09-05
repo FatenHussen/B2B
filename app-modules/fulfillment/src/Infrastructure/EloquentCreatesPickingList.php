@@ -39,6 +39,7 @@ final class EloquentCreatesPickingList implements CreatesPickingList
         $sorted = $payload['lines'];
         usort($sorted, function (array $a, array $b) use ($locations): int {
             $la = $locations->firstWhere('product_id', $a['product_id']); // locations aren't per product
+
             return 0;
         });
 

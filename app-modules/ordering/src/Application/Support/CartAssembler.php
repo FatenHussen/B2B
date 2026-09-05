@@ -6,11 +6,9 @@ namespace Modules\Ordering\Application\Support;
 
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\PricingEngine;
-use Modules\Identity\Domain\Models\AppUser;
+use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Ordering\Domain\Enums\CartStatus;
 use Modules\Ordering\Domain\Models\Cart;
-use Modules\Ordering\Domain\Models\CartLine;
-use Modules\Ordering\Domain\Models\CartSection;
 
 final class CartAssembler
 {
@@ -168,7 +166,7 @@ final class CartAssembler
 
         $sections = [];
         foreach ($byRetailer as $row) {
-            $shop = \Modules\Identity\Domain\Models\RetailerProfile::query()->find($row['retailer_id']);
+            $shop = RetailerProfile::query()->find($row['retailer_id']);
             $sections[] = [
                 'retailer' => [
                     'id' => $row['retailer_id'],

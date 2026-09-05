@@ -6,12 +6,13 @@ namespace Modules\Identity\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $public_id
  * @property int $platform_user_id
- * @property \Illuminate\Support\Carbon $expires_at
+ * @property Carbon $expires_at
  * @property int $attempts
  */
 class OtpChallenge extends Model

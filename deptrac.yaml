@@ -4,20 +4,48 @@ deptrac:
     - ./app
 
   layers:
+    # Presentation is a directory inside every module, not a module of its own,
+    # so each business layer below must exclude it or a controller would count twice.
+    - name: Presentation
+      collectors:
+        - type: directory
+          value: 'app-modules/.*/src/Presentation/.*'
+
     - name: Foundation
       collectors:
-        - type: directory
-          value: 'app-modules/(core|identity|access|reference|tenancy|integration)/.*'
+        - type: bool
+          must:
+            - type: directory
+              value: 'app-modules/(core|identity|access|reference|tenancy|integration)/.*'
+          must_not:
+            - type: directory
+              value: 'app-modules/.*/src/Presentation/.*'
+
     - name: Domain
       collectors:
-        - type: directory
-          value: 'app-modules/(catalog|pricing|promotion|inventory|loyalty|content|notification|support|platform-billing)/.*'
+        - type: bool
+          must:
+            - type: directory
+              value: 'app-modules/(catalog|pricing|promotion|inventory|loyalty|content|notification|support|platform-billing)/.*'
+          must_not:
+            - type: directory
+              value: 'app-modules/.*/src/Presentation/.*'
+
     - name: Coordination
       collectors:
-        - type: directory
-          value: 'app-modules/(ordering|fulfillment|delivery|returns|finance|sync|reporting)/.*'
+        - type: bool
+          must:
+            - type: directory
+              value: 'app-modules/(ordering|fulfillment|delivery|returns|finance|sync|reporting)/.*'
+          must_not:
+            - type: directory
+              value: 'app-modules/.*/src/Presentation/.*'
 
   ruleset:
+    Presentation:
+      - Coordination
+      - Domain
+      - Foundation
     Coordination:
       - Domain
       - Foundation

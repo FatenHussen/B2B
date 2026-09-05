@@ -6,11 +6,12 @@ namespace Modules\Identity\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $platform_user_id
- * @property \Illuminate\Support\Carbon $confirmed_until
+ * @property Carbon $confirmed_until
  */
 class PasswordConfirmation extends Model
 {

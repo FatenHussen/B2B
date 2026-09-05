@@ -6,6 +6,7 @@ namespace Modules\Identity\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $channel_id
  * @property int|null $warehouse_user_id
  * @property string|null $label
- * @property \Illuminate\Support\Carbon|null $revoked_at
+ * @property Carbon|null $revoked_at
  */
 class WarehouseDevice extends Model
 {

@@ -8,7 +8,6 @@ use Modules\Catalog\Application\Support\VisibleCatalogQuery;
 use Modules\Catalog\Domain\Models\RetailerShortage;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Support\InvalidFields;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class AddShortage
 {

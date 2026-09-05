@@ -10,6 +10,7 @@ use Modules\Reference\Domain\Enums\RefStatus;
 class Equipment extends Model
 {
     protected $table = 'equipments';
+
     protected $fillable = ['name', 'icon', 'description', 'order', 'status'];
 
     protected function casts(): array

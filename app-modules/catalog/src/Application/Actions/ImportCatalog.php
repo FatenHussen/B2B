@@ -6,7 +6,6 @@ namespace Modules\Catalog\Application\Actions;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
-use Modules\Catalog\Application\Jobs\ExportCatalogJob;
 use Modules\Catalog\Application\Jobs\ImportCatalogJob;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Core\Contracts\RecordsAudit;
@@ -37,6 +36,7 @@ final class ImportCatalog
             $name = (string) ($row['B'] ?? $row[1] ?? '');
             if ($sku === '') {
                 $errors[] = ['row' => $rowNum, 'message' => __('catalog.import_sku_required')];
+
                 continue;
             }
             if (isset($seen[$sku]) || Product::query()->where('sku', $sku)->exists()) {

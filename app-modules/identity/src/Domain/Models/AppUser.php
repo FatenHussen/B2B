@@ -8,6 +8,7 @@ use Database\Factories\AppUserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Identity\Domain\Enums\AppUserKind;
 use Modules\Identity\Domain\Enums\UserStatus;
@@ -18,7 +19,7 @@ use Modules\Identity\Domain\Enums\UserStatus;
  * @property string $phone
  * @property AppUserKind|null $kind
  * @property UserStatus $status
- * @property \Illuminate\Support\Carbon|null $last_login_at
+ * @property Carbon|null $last_login_at
  * @property RetailerProfile|null $retailerProfile
  * @property RepProfile|null $repProfile
  */

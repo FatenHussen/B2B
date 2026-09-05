@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Identity\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Modules\Identity\Domain\Enums\OtpChannelUsed;
 use Modules\Identity\Domain\Enums\OtpPurpose;
 
@@ -19,10 +19,10 @@ use Modules\Identity\Domain\Enums\OtpPurpose;
  * @property string|null $client
  * @property string|null $ip
  * @property string|null $device_id
- * @property \Illuminate\Support\Carbon $expires_at
+ * @property Carbon $expires_at
  * @property int $attempts
- * @property \Illuminate\Support\Carbon|null $consumed_at
- * @property \Illuminate\Support\Carbon|null $created_at
+ * @property Carbon|null $consumed_at
+ * @property Carbon|null $created_at
  */
 class OtpRequest extends Model
 {

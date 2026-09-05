@@ -7,9 +7,7 @@ namespace Modules\Ordering\Application\Queries;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Modules\Core\Support\Tenant;
-use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Ordering\Domain\Models\SubOrder;
-use Modules\Ordering\Domain\SubOrderStateMachine;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 

@@ -36,7 +36,8 @@ services:
       MYSQL_DATABASE: b2b
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - '3306:3306'
+      # Host port 3308 everywhere: .env, .env.example, phpunit.xml and CI agree.
+      - '3308:3306'
     volumes:
       - mysql_data:/var/lib/mysql
 

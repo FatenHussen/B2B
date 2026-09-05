@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Access\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Modules\Access\Domain\Enums\TempGrantStatus;
 
 /**
@@ -14,13 +15,13 @@ use Modules\Access\Domain\Enums\TempGrantStatus;
  * @property string $permission
  * @property TempGrantStatus $status
  * @property int $duration_minutes
- * @property \Illuminate\Support\Carbon|null $granted_until
- * @property \Illuminate\Support\Carbon|null $expires_request_at
+ * @property Carbon|null $granted_until
+ * @property Carbon|null $expires_request_at
  * @property int|null $request_id
  * @property int $requester_id
  * @property int|null $approver_id
  * @property string $reason
- * @property \Illuminate\Support\Carbon|null $revoked_at
+ * @property Carbon|null $revoked_at
  */
 class TempGrant extends Model
 {

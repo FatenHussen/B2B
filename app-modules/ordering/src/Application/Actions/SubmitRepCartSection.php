@@ -60,7 +60,7 @@ final class SubmitRepCartSection
         $this->carts->reprice($cart, (int) $retailer->zone_id, $retailerId, (int) $section->channel_id);
         $section->refresh()->load('lines');
 
-        $sub = DB::transaction(function () use ($cart, $section, $retailer, $data, $percent, $user): SubOrder {
+        $sub = DB::transaction(function () use ($cart, $section, $retailer, $percent, $user): SubOrder {
             $subtotal = 0;
             $discount = 0;
             foreach ($section->lines as $line) {

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Core\Infrastructure\Audit;
 
-use Illuminate\Http\Request;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Domain\Models\AuditLog;
 

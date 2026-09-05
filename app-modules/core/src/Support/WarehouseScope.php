@@ -10,21 +10,21 @@ final class WarehouseScope
 
     public static function set(?int $id): void
     {
-        static::$warehouseId = $id;
+        self::$warehouseId = $id;
     }
 
     public static function currentId(): ?int
     {
-        return static::$warehouseId;
+        return self::$warehouseId;
     }
 
     public static function check(): bool
     {
-        return static::$warehouseId !== null;
+        return self::$warehouseId !== null;
     }
 
     public static function forget(): void
     {
-        static::$warehouseId = null;
+        self::$warehouseId = null;
     }
 }

@@ -7,7 +7,6 @@ namespace Modules\Catalog\Application\Queries;
 use Modules\Catalog\Application\Support\VisibleCatalogQuery;
 use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Catalog\Domain\Models\Brand;
-use Modules\Catalog\Domain\Models\Category;
 use Modules\Core\Contracts\OfferFeed;
 use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Contracts\RetailerShoppingContext;

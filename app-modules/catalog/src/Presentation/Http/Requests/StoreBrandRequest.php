@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Presentation\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Core\Http\ApiFormRequest;
-use Illuminate\Validation\Rule;
 
 final class StoreBrandRequest extends ApiFormRequest
 {

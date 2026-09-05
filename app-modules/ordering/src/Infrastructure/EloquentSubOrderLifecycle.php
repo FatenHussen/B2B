@@ -14,7 +14,6 @@ use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\RetailerProfile;
-use Modules\Ordering\Domain\Enums\SubOrderStatus;
 use Modules\Ordering\Domain\Models\SubOrder;
 use Modules\Ordering\Domain\Models\SubOrderEvent;
 use Modules\Ordering\Domain\SubOrderStateMachine;

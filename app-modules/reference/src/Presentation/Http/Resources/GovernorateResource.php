@@ -4,9 +4,10 @@ namespace Modules\Reference\Presentation\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Reference\Domain\Models\Governorate;
 
 /**
- * @mixin \Modules\Reference\Domain\Models\Governorate
+ * @mixin Governorate
  */
 class GovernorateResource extends JsonResource
 {

@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Http\ApiController;
+use Modules\Core\Support\MediaUrl;
 use Modules\Identity\Domain\Enums\AppUserKind;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Promotion\Application\Actions\CreateOffer;
@@ -106,7 +107,7 @@ final class OfferController extends ApiController
         $card = $feed->card($offer, $zoneId);
 
         return $this->ok($card + [
-            'images' => $offer->media->map(fn ($m) => \Modules\Core\Support\MediaUrl::of((int) $m->media_id))->filter()->values()->all(),
+            'images' => $offer->media->map(fn ($m) => MediaUrl::of((int) $m->media_id))->filter()->values()->all(),
             'long_description' => $offer->description,
             'icons' => [$offer->type->value],
             'same_company_offers' => [],

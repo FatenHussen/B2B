@@ -226,12 +226,12 @@ final class EloquentStockLedger implements StockLedger
     ): void {
         DB::transaction(function () use ($warehouseId, $productId, $variantId, $qty, $condition, $actor, $refType, $refId): void {
             $this->inWarehouse($warehouseId, function () use ($warehouseId, $productId, $variantId, $qty, $condition, $actor, $refType, $refId): void {
-            $row = $this->lock($warehouseId, $productId, $variantId);
-            $bucket = $condition === 'resalable' ? 'on_hand' : 'damaged';
-            $before = (int) $row->{$bucket};
-            $row->{$bucket} = $before + $qty;
-            $row->save();
-            $this->write($row, MovementType::ReturnIn, $qty, $before, (int) $row->{$bucket}, $condition, $actor, $refType, $refId);
+                $row = $this->lock($warehouseId, $productId, $variantId);
+                $bucket = $condition === 'resalable' ? 'on_hand' : 'damaged';
+                $before = (int) $row->{$bucket};
+                $row->{$bucket} = $before + $qty;
+                $row->save();
+                $this->write($row, MovementType::ReturnIn, $qty, $before, (int) $row->{$bucket}, $condition, $actor, $refType, $refId);
             });
         });
     }

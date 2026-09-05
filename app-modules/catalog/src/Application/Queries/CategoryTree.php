@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Application\Queries;
 
+use Illuminate\Support\Collection;
 use Modules\Catalog\Domain\Models\Category;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Core\Contracts\ReferenceDirectory;
@@ -47,7 +48,7 @@ final class CategoryTree
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, Category>>  $byParent
+     * @param  Collection<string, Collection<int, Category>>  $byParent
      * @return array<string, mixed>
      */
     private function node(Category $category, $byParent): array

@@ -6,6 +6,7 @@ namespace Modules\Access\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Modules\Access\Domain\Enums\ReviewItemDecision;
 
 /**
@@ -17,7 +18,7 @@ use Modules\Access\Domain\Enums\ReviewItemDecision;
  * @property ReviewItemDecision|null $decision
  * @property string|null $reason
  * @property int|null $decided_by
- * @property \Illuminate\Support\Carbon|null $decided_at
+ * @property Carbon|null $decided_at
  */
 class AccessReviewItem extends Model
 {
