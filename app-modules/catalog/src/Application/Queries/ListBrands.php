@@ -15,7 +15,7 @@ final class ListBrands
     public function __invoke(Request $request): LengthAwarePaginator
     {
         return QueryBuilder::for(Brand::class)
-            ->allowedFilters([AllowedFilter::exact('status')])
+            ->allowedFilters(AllowedFilter::exact('status'))
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
     }

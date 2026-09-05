@@ -28,7 +28,7 @@ final class ListRetailerProducts
         $base = VisibleCatalogQuery::products($ctx)->with(['brand', 'media', 'variants']);
 
         return QueryBuilder::for($base)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('category_id'),
                 AllowedFilter::exact('brand_id'),
                 AllowedFilter::callback('available_only', function ($query, $value): void {
@@ -50,7 +50,7 @@ final class ListRetailerProducts
                             ->orWhere('sku', 'like', '%'.$value.'%');
                     });
                 }),
-            ])
+            )
             ->when($request->filled('barcode'), fn ($q) => $q->where('barcode', $request->string('barcode')->toString()))
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));

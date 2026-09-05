@@ -44,4 +44,24 @@ class WarehouseUser extends Authenticatable
     {
         return WarehouseUserFactory::new();
     }
+
+    public function defaultChannelId(): ?int
+    {
+        $id = WarehouseDevice::query()
+            ->where('warehouse_user_id', $this->id)
+            ->whereNull('revoked_at')
+            ->value('channel_id');
+
+        return $id !== null ? (int) $id : null;
+    }
+
+    public function warehouseId(): ?int
+    {
+        $id = WarehouseDevice::query()
+            ->where('warehouse_user_id', $this->id)
+            ->whereNull('revoked_at')
+            ->value('warehouse_id');
+
+        return $id !== null ? (int) $id : null;
+    }
 }

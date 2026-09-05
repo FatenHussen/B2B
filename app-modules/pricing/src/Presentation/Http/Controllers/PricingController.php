@@ -29,7 +29,7 @@ final class PricingController extends ApiController
     public function lists(Request $request): JsonResponse
     {
         $page = QueryBuilder::for(PriceList::class)
-            ->allowedFilters([AllowedFilter::exact('type')])
+            ->allowedFilters(AllowedFilter::exact('type'))
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
 
@@ -64,13 +64,13 @@ final class PricingController extends ApiController
     public function changeLog(Request $request): JsonResponse
     {
         $page = QueryBuilder::for(PriceChangeLog::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('product_id'),
                 AllowedFilter::exact('user_id', 'actor_user_id'),
                 AllowedFilter::callback('date', function ($query, $value): void {
                     $query->whereDate('at', $value);
                 }),
-            ])
+            )
             ->defaultSort('-at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
 

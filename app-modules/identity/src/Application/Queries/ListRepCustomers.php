@@ -32,11 +32,11 @@ final class ListRepCustomers
         $zoneIds = $user->repProfile?->zoneIds() ?? [];
 
         return QueryBuilder::for(RetailerProfile::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::callback('search', function ($query, $value): void {
                     $query->where('shop_name', 'like', '%'.$value.'%');
                 }),
-            ])
+            )
             ->where(function ($query) use ($shopIds, $zoneIds): void {
                 if ($shopIds !== []) {
                     $query->whereIn('id', $shopIds);

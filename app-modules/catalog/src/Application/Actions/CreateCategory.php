@@ -76,19 +76,19 @@ final class CreateCategory
             InvalidFields::throw(['parent_id' => 'catalog.parent_required']);
         }
 
+        $parent = Category::query()->find($parentId);
+        if ($parent !== null) {
+            return [
+                (int) $parent->level + 1,
+                (int) $parent->id,
+                $parent->root_category_id ? (int) $parent->root_category_id : null,
+            ];
+        }
+
         if ($this->refs->rootCategoryExists($parentId)) {
             return [2, null, $parentId];
         }
 
-        $parent = Category::query()->find($parentId);
-        if ($parent === null) {
-            InvalidFields::throw(['parent_id' => 'catalog.parent_not_found']);
-        }
-
-        return [
-            (int) $parent->level + 1,
-            (int) $parent->id,
-            $parent->root_category_id ? (int) $parent->root_category_id : null,
-        ];
+        InvalidFields::throw(['parent_id' => 'catalog.parent_not_found']);
     }
 }

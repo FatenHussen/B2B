@@ -19,7 +19,6 @@ final class ReplaceProductPricingRequest extends ApiFormRequest
             'tiers.*.to' => ['nullable', 'integer'],
             'tiers.*.price' => ['required', 'integer', 'min:0'],
             'reason' => ['nullable', 'string', 'max:255'],
-            'unit_price' => ['prohibited'],
         ];
     }
 }

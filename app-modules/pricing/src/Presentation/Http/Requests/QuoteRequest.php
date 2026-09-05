@@ -15,10 +15,7 @@ final class QuoteRequest extends ApiFormRequest
             'lines.*.product_id' => ['required', 'integer', 'min:1'],
             'lines.*.variant_id' => ['nullable', 'integer'],
             'lines.*.qty' => ['required', 'integer', 'min:1'],
-            'lines.*.unit_price' => ['prohibited'],
             'zone_id' => ['required', 'integer', 'min:1'],
-            'unit_price' => ['prohibited'],
-            'retailer_id' => ['prohibited'],
         ];
     }
 }

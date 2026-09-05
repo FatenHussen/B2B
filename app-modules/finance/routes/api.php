@@ -1,8 +1,5 @@
 <?php
 
-use Illuminate\Routing\Middleware\SubstituteBindings;
-use Illuminate\Support\Facades\Route;
+declare(strict_types=1);
 
-Route::middleware(['api', 'auth:sanctum', 'tenant', SubstituteBindings::class])->prefix('api/v1')->group(function () {
-    // Finance — filled in later sprints
-});
+// L3 finance: invoice header + receipt counter only. SP-13 adds payments.

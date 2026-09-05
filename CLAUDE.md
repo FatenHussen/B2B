@@ -1,0 +1,155 @@
+# B2B Distribution Platform — API repository rules
+
+Read this before touching anything. It is the standard every pull request is judged against.
+
+## What this repository is
+
+**A pure JSON API. Laravel 11, API-only.** It serves five clients that live in a separate repository:
+two Flutter apps and three Next.js dashboards.
+
+**There is no Blade, no view layer and no server-rendered page.** If you find yourself writing one, you
+have misread the ticket.
+
+- No `resources/views/` for user interfaces.
+- No `routes/web.php` beyond a health redirect.
+- No redirect responses, no flash messages, no session-driven page state.
+- Every endpoint returns JSON in the envelope below, including errors.
+- The only templates permitted anywhere are PDF document templates under a module
+  `Presentation/Pdf/`, used to render invoices and statements as files. They are documents, not pages.
+
+Route files: `routes/api_public.php`, `api_app.php`, `api_channel.php`, `api_warehouse.php`, `api_platform.php`.
+Each includes the route files the modules publish. Base path is `/api/v1`.
+
+## Stack
+
+Laravel 11 · MySQL 8 · Redis · Sanctum · Horizon · Pest · Larastan · Deptrac
+Pattern: modular monolith, API-first.
+
+## Where code lives
+
+- `app/` is deliberately thin: Kernel, Providers and Console only. **No controller, model or service here.**
+- `app-modules/` holds every piece of business logic, one local Composer path repository per module.
+- `docs/backlog/` holds one markdown file per ticket. Implement a ticket by reading its file.
+
+## The four layers and the dependency direction
+
+```
+Presentation  (Api: Platform / Channel / Warehouse / App-Retailer / App-Rep)
+      ↓
+Coordination  (Ordering · Fulfillment · Delivery · Returns · Finance · Sync · Reporting)
+      ↓
+Domain        (Catalog · Pricing · Promotion · Inventory · Loyalty · Content · Notification · Support · PlatformBilling)
+      ↓
+Foundation    (Core · Identity · Access · Reference · Tenancy · Integration)
+```
+
+**Dependency points downward only.** A Domain module knows nothing about a Coordination module.
+
+## Rules that are never broken
+
+Enforced by CI, not by reviewers. Breaking one fails the build.
+
+1. **No module imports another module Eloquent model.** `Modules\*\Domain\Models` is module-private.
+2. **Cross-module communication is through public `Contracts/` or events only.**
+3. **No direct query against another module tables.**
+4. **Cross-boundary relations are by identifier, never by an Eloquent relation.**
+5. **Events notify, they do not control.** The emitting module never waits for a result.
+6. **No view layer.** No module may use `Illuminate\View`, the `View` facade or a Blade directive
+   outside `Presentation/Pdf/`.
+7. **Every amount is a `bigInteger` in the smallest currency unit wrapped in a `Money` value object.**
+   `float` and `double` are forbidden on any money path. Rounding happens in `MoneyResource` only.
+8. **`status` is `$guarded` and changes only through the lifecycle service.** Every transition is logged
+   with actor, reason and time. An illegal transition throws and maps to 409.
+9. **Every write accepts `X-Idempotency-Key`.** Known and complete replays the stored response; known and
+   in flight returns 409 `operation_in_progress`; new executes and stores for 24 hours.
+10. **Every channel-owned model carries `supply_channel_id`** with a composite index starting on it, and
+    `ChannelScope` applied automatically.
+11. **A foreign channel id in a URL returns 404, not 403.** Existence is never disclosed.
+12. **Reference entities are never hard deleted.** Disabling is logical and audited.
+
+## Authentication
+
+Four guards, four user tables: `app` (retailer and rep), `channel`, `warehouse`, `platform`.
+
+- Mobile clients authenticate with Sanctum personal access tokens bound to `device_uuid`.
+- Web dashboards use Sanctum SPA cookie mode on a shared subdomain — **the same endpoints**, not a
+  parallel web login. CSRF protection applies to that cookie flow only.
+- A token presented to the wrong guard returns 403 `wrong_guard`.
+
+## Response contract
+
+```jsonc
+// success
+{ "data": { }, "meta": { "server_time": "...", "sync_cursor": "..." } }
+// list
+{ "data": [ ], "meta": { "page": 1, "per_page": 25, "total": 412, "last_page": 17 } }
+// error
+{ "error": { "code": "insufficient_permission", "message": "...", "permission": "sc.orders.confirm", "details": { } } }
+```
+
+The `code` is the contract. The `message` is for the human. A raw Laravel validation payload must never
+reach a client, and no endpoint ever returns HTML.
+
+| HTTP | Internal codes |
+|---|---|
+| 401 | `unauthenticated`, `token_revoked` |
+| 403 | `wrong_guard`, `insufficient_permission`, `requires_2fa`, `requires_password_confirm`, `sod_violation` |
+| 404 | `not_found` — also used for out-of-tenant access |
+| 409 | `illegal_transition`, `operation_in_progress`, `stale_version`, `idempotency_key_conflict` |
+| 422 | `validation_failed`, `ref_in_use` |
+| 423 | `plan_limit_exceeded` |
+| 426 | `upgrade_required` |
+| 429 | `rate_limited` |
+| 503 | `maintenance_mode` |
+
+## Naming
+
+| Element | Convention | Example |
+|---|---|---|
+| Tables | plural snake_case | `sub_orders` |
+| Columns | snake_case, foreign keys `*_id` | `supply_channel_id` |
+| States | PHP Enum, string in the database | `pending`, `confirmed`, `on_the_way` |
+| Routes | kebab-case, plural | `/api/v1/channel/sub-orders` |
+| Permissions | from the DOC-08 catalog, verbatim | `sc.orders.confirm` |
+| Events | past tense | `SubOrderConfirmed` |
+| Jobs and Actions | imperative verb | `GenerateDailySnapshot`, `SubmitOrder` |
+
+## Queues
+
+`critical` (OTP, handover, payments, outbox intake) · `default` (notifications, invoices, repricing) ·
+`media` (image processing) · `reports` (snapshots, exports). Supervised by Horizon.
+
+## The API contract is a published artefact
+
+Every endpoint is documented in OpenAPI and the TypeScript client is generated from it. A change to a
+response shape is a contract change: regenerate the document, and say so in the pull request. The frontend
+repository consumes that generated client and writes no types by hand.
+
+## Before you say a ticket is done
+
+```bash
+composer deptrac                          # module boundaries
+./vendor/bin/pest --group=arch            # architecture rules
+./vendor/bin/phpstan analyse              # Larastan level 6
+./vendor/bin/pest                         # full suite
+./vendor/bin/pint --test                  # formatting
+php artisan openapi:generate --check      # contract is current
+```
+
+All six must pass. A ticket is not done because the feature works.
+
+## How to work a ticket
+
+1. Read `docs/backlog/L{n}/{TICKET-ID}.md` in full, including its front matter.
+2. Read the `Working rules` section: it names the only directories you may touch.
+3. Do not implement anything outside that ticket. If a dependency is missing, stop and say so.
+4. Write a test for every acceptance criterion before declaring completion.
+5. Run the six commands above.
+
+## Contract status
+
+Tickets in `docs/backlog/L1/` carry real `EP-ID` values from the API catalog. **They are implementable.**
+
+Tickets in `L2`, `L3` and `L4` have `contract: proposed`. Their endpoints do not exist in the catalog yet.
+Do not invent a path, a request body or a response shape. If asked to implement one, stop and say the
+contract is not fixed.

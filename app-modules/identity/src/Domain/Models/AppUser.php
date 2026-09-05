@@ -56,6 +56,17 @@ class AppUser extends Authenticatable
         return $this->hasOne(RepProfile::class);
     }
 
+    public function defaultChannelId(): ?int
+    {
+        if ($this->kind !== AppUserKind::Rep) {
+            return null;
+        }
+
+        $id = RepProfile::query()->where('app_user_id', $this->id)->value('channel_id');
+
+        return $id !== null ? (int) $id : null;
+    }
+
     public function profileCompleted(): bool
     {
         if ($this->kind === AppUserKind::Retailer) {

@@ -71,6 +71,7 @@ final class EloquentOfferApplicator implements OfferApplicator
                 $discount = $free * (int) $line['unit_price'];
                 $quote['lines'][$i]['discount'] = ($line['discount'] ?? 0) + $discount;
                 $quote['lines'][$i]['line_total'] = ((int) $line['unit_price'] * (int) $line['qty']) - $quote['lines'][$i]['discount'];
+                $quote['lines'][$i]['offer_id'] = (int) $offer->id;
             }
 
             if ($offer->type === OfferType::ProductDiscount) {
@@ -83,6 +84,7 @@ final class EloquentOfferApplicator implements OfferApplicator
                 }
                 $quote['lines'][$i]['discount'] = ($line['discount'] ?? 0) + $discount;
                 $quote['lines'][$i]['line_total'] = ((int) $line['unit_price'] * (int) $line['qty']) - $quote['lines'][$i]['discount'];
+                $quote['lines'][$i]['offer_id'] = (int) $offer->id;
             }
         }
 

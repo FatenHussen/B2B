@@ -23,4 +23,5 @@ return [
     'too_many_2fa' => 'Too many 2FA attempts.',
     'profile_incomplete' => 'Complete your profile first.',
     'zone_not_found' => 'Zone was not found.',
+    'zone_not_covered' => 'This zone is outside your coverage.',
 ];

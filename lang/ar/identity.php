@@ -23,4 +23,5 @@ return [
     'too_many_2fa' => 'محاولات تحقق ثنائي كثيرة.',
     'profile_incomplete' => 'أكمل ملفك أولاً.',
     'zone_not_found' => 'المنطقة غير موجودة.',
+    'zone_not_covered' => 'هذه المنطقة خارج تغطيتك.',
 ];

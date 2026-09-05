@@ -223,7 +223,7 @@ final class PermissionCatalog
             'platform_admin' => self::codesForSystem('platform'),
             'channel_manager' => self::codesForSystem('channel'),
             'sales_manager' => self::codesForModules('channel', ['orders', 'reps', 'merchants', 'promotions', 'dashboard', 'pricing']),
-            'catalog_manager' => self::codesForModules('channel', ['catalog', 'pricing', 'promotions', 'content']),
+            'catalog_manager' => self::codesForModules('channel', ['catalog', 'pricing', 'offers', 'promotions', 'content']),
             'accountant' => self::codesForModules('channel', ['finance', 'returns']),
             'warehouse_keeper' => self::codesForSystem('warehouse'),
             'retailer' => self::codesStartingWith('rt.'),

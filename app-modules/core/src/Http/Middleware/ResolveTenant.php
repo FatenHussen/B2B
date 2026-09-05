@@ -7,6 +7,7 @@ namespace Modules\Core\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Modules\Core\Support\Tenant;
+use Modules\Core\Support\WarehouseScope;
 use Symfony\Component\HttpFoundation\Response;
 
 class ResolveTenant
@@ -40,12 +41,17 @@ class ResolveTenant
             }
         }
 
+        if (method_exists($user, 'warehouseId')) {
+            WarehouseScope::set($user->warehouseId());
+        }
+
         return $next($request);
     }
 
     public function terminate(Request $request, Response $response): void
     {
         Tenant::forget();
+        WarehouseScope::forget();
     }
 
     private function canSwitchChannel(object $user): bool

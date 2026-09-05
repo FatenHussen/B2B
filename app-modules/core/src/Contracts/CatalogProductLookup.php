@@ -22,4 +22,26 @@ interface CatalogProductLookup
      * @param  array{zone_id: int, activity_type_id: int, channel_ids: list<int>, category_ids?: list<int>}  $shopping
      */
     public function isVisibleToRetailer(int $productId, array $shopping): bool;
+
+    /**
+     * @return array{
+     *     id: int,
+     *     name: string,
+     *     sku: string,
+     *     barcode: string|null,
+     *     brand: string|null,
+     *     channel_id: int,
+     *     tracked: bool,
+     *     reorder_point: int,
+     *     min_order_qty: int,
+     *     sale_unit: string|null,
+     *     image: string|null
+     * }|null
+     */
+    public function snapshot(int $productId, ?int $variantId = null): ?array;
+
+    /**
+     * @return array{product_id: int, variant_id: int|null}|null
+     */
+    public function findByBarcode(string $barcode): ?array;
 }

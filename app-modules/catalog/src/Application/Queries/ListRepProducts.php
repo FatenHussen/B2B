@@ -39,7 +39,7 @@ final class ListRepProducts
             ->with('brand');
 
         return QueryBuilder::for($base)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('category_id'),
                 AllowedFilter::exact('brand_id'),
                 AllowedFilter::exact('channel_id', 'supply_channel_id'),
@@ -48,7 +48,7 @@ final class ListRepProducts
                         $q->where('name_ar', 'like', '%'.$value.'%')->orWhere('sku', 'like', '%'.$value.'%');
                     });
                 }),
-            ])
+            )
             ->when($request->filled('barcode'), fn ($q) => $q->where('barcode', $request->string('barcode')->toString()))
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));

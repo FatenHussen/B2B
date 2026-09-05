@@ -1,0 +1,394 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Inventory\Infrastructure;
+
+use Illuminate\Support\Facades\DB;
+use Modules\Core\Contracts\StockLedger;
+use Modules\Core\Contracts\WarehouseDirectory;
+use Modules\Core\Domain\Exceptions\DomainException;
+use Modules\Core\Support\Tenant;
+use Modules\Inventory\Domain\Enums\MovementType;
+use Modules\Inventory\Domain\Models\StockBalance;
+use Modules\Inventory\Domain\Models\StockMovement;
+use Modules\Inventory\Domain\Models\StockReservation;
+
+final class EloquentStockLedger implements StockLedger
+{
+    public function __construct(private readonly WarehouseDirectory $warehouses) {}
+
+    public function snapshot(int $warehouseId, int $productId, ?int $variantId = null): array
+    {
+        $row = $this->balance($warehouseId, $productId, $variantId);
+
+        return [
+            'on_hand' => (int) $row->on_hand,
+            'reserved' => (int) $row->reserved,
+            'in_transit' => (int) $row->in_transit,
+            'damaged' => (int) $row->damaged,
+            'available' => $row->available(),
+        ];
+    }
+
+    public function available(int $warehouseId, int $productId, ?int $variantId = null): int
+    {
+        return $this->snapshot($warehouseId, $productId, $variantId)['available'];
+    }
+
+    public function adjust(
+        int $warehouseId,
+        int $productId,
+        ?int $variantId,
+        int $qtyDelta,
+        string $reason,
+        object $actor,
+        string $bucket = 'on_hand',
+        ?string $refType = null,
+        ?int $refId = null,
+    ): array {
+        $bucket = $this->classifyBucket($bucket, $reason);
+
+        return DB::transaction(function () use ($warehouseId, $productId, $variantId, $qtyDelta, $reason, $actor, $bucket, $refType, $refId): array {
+            $row = $this->lock($warehouseId, $productId, $variantId);
+            $before = (int) $row->{$bucket};
+            $after = $before + $qtyDelta;
+            if ($after < 0) {
+                throw new DomainException(__('inventory.insufficient_stock'), 'insufficient_stock', 409);
+            }
+            $row->{$bucket} = $after;
+            $row->save();
+
+            $movement = $this->write(
+                $row,
+                MovementType::Adjust,
+                $qtyDelta,
+                $before,
+                $after,
+                $reason,
+                $actor,
+                $refType,
+                $refId,
+            );
+
+            return ['movement_id' => (int) $movement->id, 'available' => $row->available()];
+        });
+    }
+
+    public function reserve(
+        int $subOrderId,
+        int $warehouseId,
+        int $productId,
+        ?int $variantId,
+        int $qty,
+        object $actor,
+    ): void {
+        DB::transaction(function () use ($subOrderId, $warehouseId, $productId, $variantId, $qty, $actor): void {
+            $row = $this->lock($warehouseId, $productId, $variantId);
+            if ($row->available() < $qty) {
+                throw new DomainException(__('inventory.insufficient_stock'), 'insufficient_stock', 409);
+            }
+            $before = (int) $row->reserved;
+            $row->reserved = $before + $qty;
+            $row->save();
+
+            StockReservation::query()->create([
+                'warehouse_id' => $warehouseId,
+                'sub_order_id' => $subOrderId,
+                'product_id' => $productId,
+                'variant_id' => $this->vid($variantId),
+                'qty' => $qty,
+            ]);
+
+            $this->write($row, MovementType::Reserve, $qty, $before, (int) $row->reserved, 'confirm', $actor, 'sub_order', $subOrderId);
+        });
+    }
+
+    public function release(int $subOrderId, object $actor): void
+    {
+        DB::transaction(function () use ($subOrderId, $actor): void {
+            $rows = Tenant::withoutScope(fn () => StockReservation::query()
+                ->where('sub_order_id', $subOrderId)
+                ->whereNull('released_at')
+                ->lockForUpdate()
+                ->get());
+
+            foreach ($rows as $reservation) {
+                $this->inWarehouse((int) $reservation->warehouse_id, function () use ($reservation, $actor, $subOrderId): void {
+                    $row = $this->lock(
+                        (int) $reservation->warehouse_id,
+                        (int) $reservation->product_id,
+                        (int) $reservation->variant_id ?: null,
+                    );
+                    $qty = (int) $reservation->qty;
+                    $before = (int) $row->reserved;
+                    $row->reserved = max(0, $before - $qty);
+                    $row->save();
+                    $reservation->released_at = now();
+                    $reservation->save();
+                    $this->write($row, MovementType::Release, -$qty, $before, (int) $row->reserved, 'release', $actor, 'sub_order', $subOrderId);
+                });
+            }
+        });
+    }
+
+    public function pickDeduct(int $subOrderId, object $actor): void
+    {
+        DB::transaction(function () use ($subOrderId, $actor): void {
+            $rows = Tenant::withoutScope(fn () => StockReservation::query()
+                ->where('sub_order_id', $subOrderId)
+                ->whereNull('released_at')
+                ->lockForUpdate()
+                ->get());
+
+            foreach ($rows as $reservation) {
+                $this->inWarehouse((int) $reservation->warehouse_id, function () use ($reservation, $actor, $subOrderId): void {
+                    $row = $this->lock(
+                        (int) $reservation->warehouse_id,
+                        (int) $reservation->product_id,
+                        (int) $reservation->variant_id ?: null,
+                    );
+                    $qty = (int) $reservation->qty;
+                    $onHandBefore = (int) $row->on_hand;
+                    $reservedBefore = (int) $row->reserved;
+                    if ($onHandBefore < $qty) {
+                        throw new DomainException(__('inventory.insufficient_stock'), 'insufficient_stock', 409);
+                    }
+                    $row->on_hand = $onHandBefore - $qty;
+                    $row->reserved = max(0, $reservedBefore - $qty);
+                    $row->save();
+                    $reservation->released_at = now();
+                    $reservation->save();
+                    $this->write($row, MovementType::PickDeduct, -$qty, $onHandBefore, (int) $row->on_hand, 'handover', $actor, 'sub_order', $subOrderId);
+                });
+            }
+        });
+    }
+
+    public function receive(
+        int $warehouseId,
+        int $productId,
+        ?int $variantId,
+        int $qty,
+        object $actor,
+        string $refType,
+        int $refId,
+    ): void {
+        DB::transaction(function () use ($warehouseId, $productId, $variantId, $qty, $actor, $refType, $refId): void {
+            $row = $this->lock($warehouseId, $productId, $variantId);
+            $inTransit = (int) $row->in_transit;
+            if ($inTransit > 0) {
+                $consumed = min($inTransit, $qty);
+                $row->in_transit = $inTransit - $consumed;
+            }
+            $before = (int) $row->on_hand;
+            $row->on_hand = $before + $qty;
+            $row->save();
+            $this->write($row, MovementType::Receive, $qty, $before, (int) $row->on_hand, 'receive', $actor, $refType, $refId);
+        });
+    }
+
+    public function transferSent(int $fromWarehouseId, int $toWarehouseId, array $lines, int $transferId, object $actor): void
+    {
+        DB::transaction(function () use ($fromWarehouseId, $toWarehouseId, $lines, $transferId, $actor): void {
+            foreach ($lines as $line) {
+                $productId = (int) $line['product_id'];
+                $variantId = isset($line['variant_id']) ? (int) $line['variant_id'] : null;
+                $qty = (int) $line['qty'];
+
+                $from = $this->lock($fromWarehouseId, $productId, $variantId);
+                if ($from->available() < $qty) {
+                    throw new DomainException(__('inventory.insufficient_stock'), 'insufficient_stock', 409);
+                }
+                $before = (int) $from->on_hand;
+                $from->on_hand = $before - $qty;
+                $from->save();
+                $this->write($from, MovementType::TransferOut, -$qty, $before, (int) $from->on_hand, 'transfer', $actor, 'stock_transfer', $transferId);
+
+                $to = $this->lock($toWarehouseId, $productId, $variantId);
+                $transitBefore = (int) $to->in_transit;
+                $to->in_transit = $transitBefore + $qty;
+                $to->save();
+                $this->write($to, MovementType::TransferIn, $qty, $transitBefore, (int) $to->in_transit, 'transfer', $actor, 'stock_transfer', $transferId);
+            }
+        });
+    }
+
+    public function returnIn(
+        int $warehouseId,
+        int $productId,
+        ?int $variantId,
+        int $qty,
+        string $condition,
+        object $actor,
+        string $refType,
+        int $refId,
+    ): void {
+        DB::transaction(function () use ($warehouseId, $productId, $variantId, $qty, $condition, $actor, $refType, $refId): void {
+            $this->inWarehouse($warehouseId, function () use ($warehouseId, $productId, $variantId, $qty, $condition, $actor, $refType, $refId): void {
+            $row = $this->lock($warehouseId, $productId, $variantId);
+            $bucket = $condition === 'resalable' ? 'on_hand' : 'damaged';
+            $before = (int) $row->{$bucket};
+            $row->{$bucket} = $before + $qty;
+            $row->save();
+            $this->write($row, MovementType::ReturnIn, $qty, $before, (int) $row->{$bucket}, $condition, $actor, $refType, $refId);
+            });
+        });
+    }
+
+    public function stocktakeDelta(
+        int $warehouseId,
+        int $productId,
+        ?int $variantId,
+        int $qtyDelta,
+        object $actor,
+        int $stocktakeId,
+    ): void {
+        if ($qtyDelta === 0) {
+            return;
+        }
+        DB::transaction(function () use ($warehouseId, $productId, $variantId, $qtyDelta, $actor, $stocktakeId): void {
+            $row = $this->lock($warehouseId, $productId, $variantId);
+            $before = (int) $row->on_hand;
+            $after = $before + $qtyDelta;
+            if ($after < 0) {
+                throw new DomainException(__('inventory.insufficient_stock'), 'insufficient_stock', 409);
+            }
+            $row->on_hand = $after;
+            $row->save();
+            $this->write($row, MovementType::Stocktake, $qtyDelta, $before, $after, 'stocktake', $actor, 'stocktake', $stocktakeId);
+        });
+    }
+
+    public function restockUndelivered(int $subOrderId, object $actor): void
+    {
+        $this->receiveFromField($subOrderId, $actor);
+    }
+
+    private function receiveFromField(int $subOrderId, object $actor): void
+    {
+        $this->returnInFromReservation($subOrderId, $actor);
+    }
+
+    private function returnInFromReservation(int $subOrderId, object $actor): void
+    {
+        DB::transaction(function () use ($subOrderId, $actor): void {
+            $rows = StockReservation::query()
+                ->where('sub_order_id', $subOrderId)
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($rows as $reservation) {
+                $row = $this->lock(
+                    (int) $reservation->warehouse_id,
+                    (int) $reservation->product_id,
+                    (int) $reservation->variant_id ?: null,
+                );
+                $qty = (int) $reservation->qty;
+                $before = (int) $row->on_hand;
+                $row->on_hand = $before + $qty;
+                $row->save();
+                $this->write($row, MovementType::Receive, $qty, $before, (int) $row->on_hand, 'return_trip', $actor, 'sub_order', $subOrderId);
+            }
+        });
+    }
+
+    /**
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @return T
+     */
+    private function inWarehouse(int $warehouseId, callable $callback): mixed
+    {
+        return Tenant::as($this->warehouses->channelId($warehouseId), $callback);
+    }
+
+    private function classifyBucket(string $bucket, string $reason): string
+    {
+        if ($bucket === 'damaged' || str_contains(mb_strtolower($reason), 'تلف') || str_contains(mb_strtolower($reason), 'damag')) {
+            return 'damaged';
+        }
+
+        return 'on_hand';
+    }
+
+    private function vid(?int $variantId): int
+    {
+        return $variantId !== null && $variantId > 0 ? $variantId : 0;
+    }
+
+    private function balance(int $warehouseId, int $productId, ?int $variantId): StockBalance
+    {
+        $row = StockBalance::query()
+            ->where('warehouse_id', $warehouseId)
+            ->where('product_id', $productId)
+            ->where('variant_id', $this->vid($variantId))
+            ->first();
+
+        if ($row !== null) {
+            return $row;
+        }
+
+        return StockBalance::query()->create([
+            'warehouse_id' => $warehouseId,
+            'product_id' => $productId,
+            'variant_id' => $this->vid($variantId),
+            'on_hand' => 0,
+            'reserved' => 0,
+            'in_transit' => 0,
+            'damaged' => 0,
+        ]);
+    }
+
+    private function lock(int $warehouseId, int $productId, ?int $variantId): StockBalance
+    {
+        $this->assertWarehouse($warehouseId);
+        $this->balance($warehouseId, $productId, $variantId);
+
+        return StockBalance::query()
+            ->where('warehouse_id', $warehouseId)
+            ->where('product_id', $productId)
+            ->where('variant_id', $this->vid($variantId))
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    private function assertWarehouse(int $warehouseId): void
+    {
+        $channelId = Tenant::currentId();
+        if ($channelId !== null && ! $this->warehouses->belongsToChannel($warehouseId, $channelId)) {
+            throw new DomainException(__('inventory.warehouse_not_found'), 'not_found', 404);
+        }
+    }
+
+    private function write(
+        StockBalance $row,
+        MovementType $type,
+        int $delta,
+        int $before,
+        int $after,
+        string $reason,
+        object $actor,
+        ?string $refType,
+        ?int $refId,
+    ): StockMovement {
+        $actorId = method_exists($actor, 'getAuthIdentifier') ? (int) $actor->getAuthIdentifier() : null;
+
+        return StockMovement::query()->create([
+            'warehouse_id' => $row->warehouse_id,
+            'product_id' => $row->product_id,
+            'variant_id' => $row->variant_id,
+            'type' => $type,
+            'qty_delta' => $delta,
+            'qty_before' => $before,
+            'qty_after' => $after,
+            'reason' => $reason,
+            'actor_type' => $actor::class,
+            'actor_id' => $actorId,
+            'ref_type' => $refType,
+            'ref_id' => $refId,
+            'at' => now(),
+        ]);
+    }
+}

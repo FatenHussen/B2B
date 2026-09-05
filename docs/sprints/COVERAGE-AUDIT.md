@@ -7,7 +7,7 @@
 
 **نعم — الأربع طبقات تغطي المشروع الخلفي بالكامل** بعد إلحاق توسعة الكتالوج (DOC-07 / DOC-12E) في L1 §5.3 وL4 §9.
 
-ما لا تغطيه ملفات سبرنت **الباك** (وهذا مقصود هناك): شاشات فرق العملاء. عقد الفرونت لطبقة 1: `docs/sprints/frontend/` (ملف لكل منتج). هيكل الفريق البشري يبقى DOC-13.
+ما لا تغطيه ملفات سبرنت **الباك** (وهذا مقصود هناك): شاشات فرق العملاء. عقد الفرونت: `docs/DocsLast/` (Flutter / Web، مجلد لكل منتج، `L1.md`…`L4.md`). هيكل الفريق البشري يبقى DOC-13.
 
 ## الأرقام
 
@@ -52,11 +52,11 @@
 | DOC-10 معمارية ووحدات | L1 قواعد الموديول + 22 حزمة + Deptrac + ADRs |
 | DOC-11A خطة الباك | SP-00…18 بالترتيب؛ SP-05 مدمج |
 | DOC-11B كتالوج API | كل صف `docs/api/catalog` بما فيه 10 و11 |
-| DOC-12A تطبيق التاجر | باك: `/app/retailer/*` · فرونت: [`frontend/01-retailer-app.md`](./frontend/01-retailer-app.md) |
-| DOC-12B تطبيق المندوب | باك: `/app/rep/*` · فرونت: [`frontend/02-rep-app.md`](./frontend/02-rep-app.md) |
-| DOC-12C لوحة القناة | باك تشغيل L2–L4 · فرونت L1: [`frontend/03-channel-dashboard.md`](./frontend/03-channel-dashboard.md) |
-| DOC-12D مستودع | باك L1 دخول + L3 تشغيل · فرونت: [`frontend/04-warehouse-web.md`](./frontend/04-warehouse-web.md) |
-| DOC-12E سوبر أدمن | باك `/platform/*` · فرونت: [`frontend/05-platform-admin.md`](./frontend/05-platform-admin.md) |
+| DOC-12A تطبيق التاجر | باك: `/app/retailer/*` · فرونت: [`../DocsLast/flutter/retailer/`](../DocsLast/flutter/retailer/) |
+| DOC-12B تطبيق المندوب | باك: `/app/rep/*` · فرونت: [`../DocsLast/flutter/rep/`](../DocsLast/flutter/rep/) |
+| DOC-12C لوحة القناة | باك تشغيل L2–L4 · فرونت: [`../DocsLast/web/channel/`](../DocsLast/web/channel/) |
+| DOC-12D مستودع | باك L1 دخول + L3 تشغيل · فرونت: [`../DocsLast/web/warehouse/`](../DocsLast/web/warehouse/) |
+| DOC-12E سوبر أدمن | باك `/platform/*` · فرونت: [`../DocsLast/web/platform/`](../DocsLast/web/platform/) |
 | DOC-13 أدوار الفريق | صلاحيات النظام في SP-02؛ لا يصف تنظيم الشركة |
 
 OpenAPI وPostman مولَّدان من نفس الكتالوج — ليسا تقسيماً ثالثاً.

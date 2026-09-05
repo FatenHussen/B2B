@@ -15,7 +15,7 @@ final class ListChannelProducts
     public function __invoke(Request $request): LengthAwarePaginator
     {
         return QueryBuilder::for(Product::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('brand_id'),
                 AllowedFilter::exact('category_id'),
                 AllowedFilter::exact('status'),
@@ -29,7 +29,7 @@ final class ListChannelProducts
                             ->orWhere('barcode', 'like', '%'.$value.'%');
                     });
                 }),
-            ])
+            )
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
     }

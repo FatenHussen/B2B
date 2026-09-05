@@ -46,35 +46,47 @@ class RolesPermissionsSeeder extends Seeder
         $registrar->setPermissionsTeamId(0);
 
         foreach (PermissionCatalog::all() as $code => $row) {
-            Permission::findOrCreate($code, PermissionCatalog::guardForSystem($row['system']));
+            $this->permission($code, PermissionCatalog::guardForSystem($row['system']));
         }
 
         foreach (['platform', 'channel', 'warehouse', 'app', 'web'] as $guard) {
             foreach (AccessMatrix::permissions() as $name) {
-                Permission::findOrCreate($name, $guard);
+                $this->permission($name, $guard);
             }
         }
+
+        $registrar->forgetCachedPermissions();
 
         $grants = PermissionCatalog::builtinGrants();
         $legacy = AccessMatrix::roles();
 
         foreach (self::ROLE_SYSTEM as $key => $system) {
             $guard = PermissionCatalog::guardForSystem($system);
-            $role = AccessRole::query()->firstOrCreate(
-                ['name' => $key, 'guard_name' => $guard, 'team_id' => 0],
-                [
+            $role = AccessRole::query()
+                ->where('name', $key)
+                ->where('guard_name', $guard)
+                ->where(fn ($q) => $q->whereNull('team_id')->orWhere('team_id', 0))
+                ->first();
+
+            if ($role === null) {
+                $role = AccessRole::query()->create([
+                    'name' => $key,
+                    'guard_name' => $guard,
+                    'team_id' => 0,
                     'label' => self::LABELS[$key],
                     'system' => $system,
                     'status' => RoleStatus::Active,
                     'is_builtin' => true,
-                ],
-            );
-            $role->forceFill([
-                'label' => self::LABELS[$key],
-                'system' => $system,
-                'status' => RoleStatus::Active,
-                'is_builtin' => true,
-            ])->save();
+                ]);
+            } else {
+                $role->forceFill([
+                    'team_id' => 0,
+                    'label' => self::LABELS[$key],
+                    'system' => $system,
+                    'status' => RoleStatus::Active,
+                    'is_builtin' => true,
+                ])->save();
+            }
 
             $names = array_values(array_unique([
                 ...($grants[$key] ?? []),
@@ -82,7 +94,7 @@ class RolesPermissionsSeeder extends Seeder
             ]));
             $permissions = [];
             foreach ($names as $name) {
-                $permissions[] = Permission::findOrCreate($name, $guard);
+                $permissions[] = $this->permission($name, $guard);
             }
             $role->syncPermissions($permissions);
         }
@@ -98,5 +110,12 @@ class RolesPermissionsSeeder extends Seeder
         );
 
         $registrar->forgetCachedPermissions();
+    }
+
+    private function permission(string $name, string $guard): Permission
+    {
+        return Permission::query()->firstOrCreate(
+            ['name' => $name, 'guard_name' => $guard],
+        );
     }
 }

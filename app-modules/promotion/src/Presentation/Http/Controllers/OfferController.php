@@ -25,10 +25,10 @@ final class OfferController extends ApiController
     public function index(Request $request): JsonResponse
     {
         $page = QueryBuilder::for(Offer::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('type'),
-            ])
+            )
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
 

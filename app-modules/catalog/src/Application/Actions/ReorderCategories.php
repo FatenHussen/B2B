@@ -73,27 +73,27 @@ final class ReorderCategories
             InvalidFields::throw(['moves' => 'catalog.category_cycle']);
         }
 
+        $parent = Category::query()->find($parentId);
+        if ($parent !== null) {
+            $cursor = $parent;
+            while ($cursor !== null) {
+                if ((int) $cursor->id === $id) {
+                    InvalidFields::throw(['moves' => 'catalog.category_cycle']);
+                }
+                $cursor = $cursor->parent_id ? Category::query()->find($cursor->parent_id) : null;
+            }
+
+            return [
+                (int) $parent->level + 1,
+                (int) $parent->id,
+                $parent->root_category_id ? (int) $parent->root_category_id : null,
+            ];
+        }
+
         if ($this->refs->rootCategoryExists($parentId)) {
             return [2, null, $parentId];
         }
 
-        $parent = Category::query()->find($parentId);
-        if ($parent === null) {
-            InvalidFields::throw(['moves' => 'catalog.parent_not_found']);
-        }
-
-        $cursor = $parent;
-        while ($cursor !== null) {
-            if ((int) $cursor->id === $id) {
-                InvalidFields::throw(['moves' => 'catalog.category_cycle']);
-            }
-            $cursor = $cursor->parent_id ? Category::query()->find($cursor->parent_id) : null;
-        }
-
-        return [
-            (int) $parent->level + 1,
-            (int) $parent->id,
-            $parent->root_category_id ? (int) $parent->root_category_id : null,
-        ];
+        InvalidFields::throw(['moves' => 'catalog.parent_not_found']);
     }
 }

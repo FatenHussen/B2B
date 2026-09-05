@@ -17,8 +17,12 @@ class CatalogServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(CatalogProductLookup::class, EloquentCatalogProductLookup::class);
-        $this->app->singleton(AvailabilityClassifier::class, ActiveProductAvailabilityClassifier::class);
-        $this->app->singletonIf(OfferFeed::class, EmptyOfferFeed::class);
+        if (! $this->app->bound(AvailabilityClassifier::class)) {
+            $this->app->singleton(AvailabilityClassifier::class, ActiveProductAvailabilityClassifier::class);
+        }
+        if (! $this->app->bound(OfferFeed::class)) {
+            $this->app->singleton(OfferFeed::class, EmptyOfferFeed::class);
+        }
     }
 
     public function boot(): void

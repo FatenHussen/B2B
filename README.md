@@ -16,14 +16,17 @@ php artisan serve
 curl http://127.0.0.1:8000/api/v1/health
 ```
 
-Full steps (MySQL port, OTP log, seed users, Docker, warehouse device): **[docs/sprints/frontend/00-install-the-api.md](docs/sprints/frontend/00-install-the-api.md)**
+Full steps (MySQL port, OTP log, seed users, Docker, warehouse device): **[docs/DocsLast/_shared/00-install-the-api.md](docs/DocsLast/_shared/00-install-the-api.md)**
 
 Local platform login after seed: `admin@platform.sy` / `password`.  
 OTP codes (dev): `storage/logs/laravel.log` with `OTP_CHANNEL=log`.
 
-## Frontend briefs (Layer 1)
+## Frontend briefs
 
-Start at **[docs/sprints/frontend/README.md](docs/sprints/frontend/README.md)**.
+**[docs/DocsLast/README.md](docs/DocsLast/README.md)** — Flutter apps and web dashboards, one folder each, `L1.md`…`L4.md` per sprint.
+
+- Flutter kit: [docs/DocsLast/_shared/flutter-client.md](docs/DocsLast/_shared/flutter-client.md)
+- React kit: [docs/DocsLast/_shared/react-client.md](docs/DocsLast/_shared/react-client.md)
 
 ## Backend specs
 

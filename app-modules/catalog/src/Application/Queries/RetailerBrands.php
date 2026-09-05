@@ -33,11 +33,11 @@ final class RetailerBrands
             ->where('status', BrandStatus::Active);
 
         return QueryBuilder::for($base)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::callback('activity_type_id', function ($query, $value): void {
                     $query->whereHas('activityTypes', fn ($q) => $q->where('activity_type_id', $value));
                 }),
-            ])
+            )
             ->defaultSort('order')
             ->paginate(min((int) $request->get('per_page', 25), 100));
     }
