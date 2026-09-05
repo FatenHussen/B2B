@@ -49,14 +49,24 @@ it('never lets a channel manager reach another channel through this endpoint', f
         ->and($response->json('data.id'))->not->toBe($otherChannel->id);
 });
 
-it('rejects a user with no channel', function () {
+it('rejects an app token on the channel route as a guard mismatch', function () {
     $retailer = AppUser::factory()->retailer()->create();
-    Sanctum::actingAs($retailer, ['*'], 'app');
 
-    // Actual behaviour, not the documented one. An app token on a channel route is a
-    // guard mismatch, and nothing in the codebase yet distinguishes that from being
-    // unauthenticated: `auth:channel` simply finds no channel user and 401s. DOC-08
-    // specifies 403 `wrong_guard` here; implementing it is BE-C02.
+    // A real token, not `Sanctum::actingAs()`. actingAs seats a user on a guard without
+    // resolving a credential, so it cannot present an app token to `auth:channel` at all
+    // — under it this test asserted a mismatch it never performed. Since BE-C02 the
+    // channel guard's rejection is re-read from the presented token and named: an app
+    // holder is 403 `wrong_guard`, distinct from having no token at all.
+    $token = $retailer->createToken('channel-settings', ['*'])->plainTextToken;
+
+    $this->getJson('/api/v1/channel', ['Authorization' => 'Bearer '.$token])
+        ->assertForbidden()
+        ->assertJsonPath('error.code', 'wrong_guard');
+});
+
+it('rejects a request with no token at all as unauthenticated', function () {
+    // The control for the test above: `wrong_guard` only means something if an absent
+    // credential still answers `unauthenticated`.
     $this->getJson('/api/v1/channel')
         ->assertUnauthorized()
         ->assertJsonPath('error.code', 'unauthenticated');

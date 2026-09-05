@@ -31,23 +31,39 @@ it('lets a platform admin create a channel', function () {
     ])->assertCreated()->assertJsonPath('data.slug', 'fresh-foods');
 });
 
-it('blocks a channel manager from the admin roster even though they hold settings permissions', function () {
+/**
+ * A real personal access token issued to a channel user, for the two tests below.
+ * `Sanctum::actingAs()` sets a user on a guard directly and never resolves a token, so
+ * it cannot measure what `auth:platform` does with a channel credential — under it these
+ * two tests could not fail. The token is real, and each test sends exactly one request:
+ * a guard keeps its resolved user for the life of the application, so a second request
+ * here would answer from the first one's holder.
+ */
+function channelManagerBearer(): array
+{
     $channel = SupplyChannel::factory()->create();
     $manager = ChannelUser::factory()->forChannel($channel)->create();
     $manager->assignRole('channel_manager');
-    Sanctum::actingAs($manager, ['*'], 'channel');
 
-    // Actual behaviour, not the documented one. Holding `settings.*` on the channel guard
-    // no longer even reaches the role check: `auth:platform` rejects the channel token
-    // first, so the answer is 401 `unauthenticated`. DOC-08 specifies 403 `wrong_guard`
-    // here; implementing it is BE-C02.
-    $this->getJson('/api/v1/admin/channels')
-        ->assertUnauthorized()
-        ->assertJsonPath('error.code', 'unauthenticated');
+    return ['Authorization' => 'Bearer '.$manager->createToken('admin-roster', ['*'])->plainTextToken];
+}
 
-    $this->postJson('/api/v1/admin/channels', ['name' => 'x', 'slug' => 'x'])
-        ->assertUnauthorized()
-        ->assertJsonPath('error.code', 'unauthenticated');
+it('blocks a channel manager from reading the admin roster even though they hold settings permissions', function () {
+    // The holder does carry `settings.view` — 66 interim AccessMatrix names are seeded
+    // on the channel guard and channel_manager holds all of them. It never matters here:
+    // `auth:platform` rejects a channel token before any gate runs. Since BE-C02 the
+    // answer names the reason, 403 `wrong_guard`, instead of 401 `unauthenticated`.
+    $this->getJson('/api/v1/admin/channels', channelManagerBearer())
+        ->assertForbidden()
+        ->assertJsonPath('error.code', 'wrong_guard');
+});
+
+it('blocks a channel manager from creating a channel', function () {
+    $this->postJson('/api/v1/admin/channels', ['name' => 'x', 'slug' => 'x'], channelManagerBearer())
+        ->assertForbidden()
+        ->assertJsonPath('error.code', 'wrong_guard');
+
+    expect(SupplyChannel::where('slug', 'x')->exists())->toBeFalse();
 });
 
 it('lets a platform admin delete a channel', function () {
