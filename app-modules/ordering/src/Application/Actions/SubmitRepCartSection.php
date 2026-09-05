@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Ordering\Application\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Core\Contracts\RepCommercialLimits;
 use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Identity\Domain\Models\RetailerProfile;
@@ -17,13 +18,13 @@ use Modules\Ordering\Domain\Models\Order;
 use Modules\Ordering\Domain\Models\SubOrder;
 use Modules\Ordering\Domain\Models\SubOrderEvent;
 use Modules\Ordering\Domain\Models\SubOrderLine;
-use Modules\Pricing\Domain\Models\RepCommercialLimit;
 
 final class SubmitRepCartSection
 {
     public function __construct(
         private readonly CartAssembler $carts,
         private readonly RepSellingContext $selling,
+        private readonly RepCommercialLimits $limits,
     ) {}
 
     /**
@@ -35,10 +36,7 @@ final class SubmitRepCartSection
         $selling = $this->selling->for($user);
         $percent = (int) ($data['discount_percent'] ?? 0);
         $channelId = $selling['channel_ids'][0] ?? 0;
-        $cap = (int) RepCommercialLimit::query()
-            ->where('channel_id', $channelId)
-            ->where('rep_id', $user->getAuthIdentifier())
-            ->value('max_discount_percent');
+        $cap = $this->limits->maxDiscountPercent($channelId, (int) $user->getAuthIdentifier());
         if ($percent > 0 && $percent > $cap) {
             throw new DomainException(__('ordering.discount_cap_exceeded'), 'discount_cap_exceeded', 403);
         }
