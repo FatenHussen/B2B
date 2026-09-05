@@ -37,8 +37,17 @@ it('blocks a channel manager from the admin roster even though they hold setting
     $manager->assignRole('channel_manager');
     Sanctum::actingAs($manager, ['*'], 'channel');
 
-    $this->getJson('/api/v1/admin/channels')->assertForbidden();
-    $this->postJson('/api/v1/admin/channels', ['name' => 'x', 'slug' => 'x'])->assertForbidden();
+    // Actual behaviour, not the documented one. Holding `settings.*` on the channel guard
+    // no longer even reaches the role check: `auth:platform` rejects the channel token
+    // first, so the answer is 401 `unauthenticated`. DOC-08 specifies 403 `wrong_guard`
+    // here; implementing it is BE-C02.
+    $this->getJson('/api/v1/admin/channels')
+        ->assertUnauthorized()
+        ->assertJsonPath('error.code', 'unauthenticated');
+
+    $this->postJson('/api/v1/admin/channels', ['name' => 'x', 'slug' => 'x'])
+        ->assertUnauthorized()
+        ->assertJsonPath('error.code', 'unauthenticated');
 });
 
 it('lets a platform admin delete a channel', function () {

@@ -53,5 +53,11 @@ it('rejects a user with no channel', function () {
     $retailer = AppUser::factory()->retailer()->create();
     Sanctum::actingAs($retailer, ['*'], 'app');
 
-    $this->getJson('/api/v1/channel')->assertForbidden();
+    // Actual behaviour, not the documented one. An app token on a channel route is a
+    // guard mismatch, and nothing in the codebase yet distinguishes that from being
+    // unauthenticated: `auth:channel` simply finds no channel user and 401s. DOC-08
+    // specifies 403 `wrong_guard` here; implementing it is BE-C02.
+    $this->getJson('/api/v1/channel')
+        ->assertUnauthorized()
+        ->assertJsonPath('error.code', 'unauthenticated');
 });

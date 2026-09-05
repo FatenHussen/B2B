@@ -10,10 +10,6 @@ class PlatformBillingServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $routes = __DIR__.'/../routes/api.php';
-        if (is_file($routes)) {
-            $this->loadRoutesFrom($routes);
-        }
         $migrations = __DIR__.'/../database/migrations';
         if (is_dir($migrations)) {
             $this->loadMigrationsFrom($migrations);
