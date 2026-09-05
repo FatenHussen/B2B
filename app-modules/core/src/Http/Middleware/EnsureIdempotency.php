@@ -27,6 +27,10 @@ final class EnsureIdempotency
             return $next($request);
         }
 
+        if ($this->isExempt($request)) {
+            return $next($request);
+        }
+
         $key = $request->header('X-Idempotency-Key') ?: $request->header('Idempotency-Key');
 
         if (! is_string($key) || $key === '') {
@@ -99,6 +103,22 @@ final class EnsureIdempotency
         }
 
         return $response;
+    }
+
+    /**
+     * Credential-establishing endpoints carry no key (BE-C03 §5). The list lives in
+     * config so the exemption is a readable contract rather than a condition buried
+     * in this method; the frontend kit omits the header on exactly these paths.
+     */
+    private function isExempt(Request $request): bool
+    {
+        $exempt = config('core.idempotency_exempt', []);
+
+        if (! is_array($exempt) || $exempt === []) {
+            return false;
+        }
+
+        return $request->is(...array_map(strval(...), $exempt));
     }
 
     private function findLive(string $key, int $ttlHours): ?IdempotencyKey
