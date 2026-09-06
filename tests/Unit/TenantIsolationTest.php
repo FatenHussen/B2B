@@ -1,5 +1,27 @@
 <?php
 
+/**
+ * `ChannelScope` measured against a throwaway table, deliberately outside tests/Feature.
+ *
+ * This file builds its own fixture table rather than borrowing a real one, which is the
+ * right shape for the thing under test — but under `tests/Feature` it was quietly
+ * corrupting the whole suite. `tests/Pest.php` applies `RefreshDatabase` to Feature only,
+ * so every test there runs inside a wrapping transaction, and **MySQL commits implicitly
+ * on any DDL**. The `Schema::create` below ended that transaction instead of being rolled
+ * back with it, and the suite then failed in unrelated files with missing or duplicated
+ * tables — 10 to 19 errors on a different random set each run, never an assertion.
+ *
+ * Adding `Schema::dropIfExists` to `afterEach` does not fix that: the drop is DDL too,
+ * a second implicit commit. The transaction has to not exist, which is what `tests/Unit`
+ * gives. Nothing here needs Feature anyway — no HTTP request, no seeded rows, no migrated
+ * table. Only `tenant_fixtures`, `Tenant` and `BelongsToChannel`.
+ *
+ * The price of leaving the transaction behind is that cleanup is now this file's job:
+ * it drops the table before creating it and again afterwards, so a run that dies midway
+ * cannot poison the next one. `tests/Architecture/TestSuiteDdlTest.php` keeps the DDL
+ * from drifting back into Feature.
+ */
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -24,6 +46,10 @@ class ChannelScopedFixture extends Model
 }
 
 beforeEach(function () {
+    // No transaction wraps a Unit test, so nothing rolls this table back. Drop first in
+    // case a previous run was interrupted between its create and its afterEach.
+    Schema::dropIfExists('tenant_fixtures');
+
     Schema::create('tenant_fixtures', function (Blueprint $table) {
         $table->id();
         $table->unsignedBigInteger('supply_channel_id')->index();
@@ -41,7 +67,10 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(fn () => Tenant::forget());
+afterEach(function () {
+    Tenant::forget();
+    Schema::dropIfExists('tenant_fixtures');
+});
 
 it('returns only the current channel rows', function () {
     Tenant::set(1);
