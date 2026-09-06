@@ -17,12 +17,27 @@ have misread the ticket.
 - The only templates permitted anywhere are PDF document templates under a module
   `Presentation/Pdf/`, used to render invoices and statements as files. They are documents, not pages.
 
-Route files: `routes/api_public.php`, `api_app.php`, `api_channel.php`, `api_warehouse.php`, `api_platform.php`.
-Each includes the route files the modules publish. Base path is `/api/v1`.
+Each module publishes its own `routes/api.php` and loads it with `loadRoutesFrom`
+in its service provider. Base path is `/api/v1`.
+
+**The route prefix decides the guard.** This is enforced by
+`tests/Architecture/GuardTest.php`, not by convention:
+
+| Prefix | Guard |
+|---|---|
+| `/api/v1/platform/*` and `/api/v1/admin/*` | `auth:platform` |
+| `/api/v1/channel/*` | `auth:channel` |
+| `/api/v1/warehouse/*` | `auth:warehouse` |
+| `/api/v1/app/*` | `auth:app` |
+| `/api/v1/public/*` | no guard |
+
+No route inside `api/v1` may use any other guard. `auth:sanctum` in particular is
+not a guard in this application — Sanctum injects it at runtime with a null provider,
+so it resolves instead of failing and then rejects everyone with a silent 401.
 
 ## Stack
 
-Laravel 11 · MySQL 8 · Redis · Sanctum · Horizon · Pest · Larastan · Deptrac
+Laravel 13 · MySQL 8 · Redis · Sanctum · Horizon · Pest · Larastan · Deptrac
 Pattern: modular monolith, API-first.
 
 ## Where code lives
@@ -124,6 +139,9 @@ DOC-08 and the API catalog **intersect; neither contains the other.**
   DOC-08 does not define — `sc.notify.view` on `EP-SC-092 GET /channel/notifications/log`
   is a real endpoint whose permission the document has not caught up with.
 
+As of 2026-09-05: PermissionCatalog seeds 133 codes. 39 DOC-08 codes are not yet
+seeded — a code is added when a route needs it, never speculatively.
+
 On a conflict: **the catalog is the source of the path, DOC-08 is the source of the
 permission name.** A permission that exists only in the catalog is a legitimate addition —
 record it in `PermissionCatalog` with a comment naming its endpoint, do not delete it and
@@ -151,11 +169,13 @@ composer deptrac                          # module boundaries
 ./vendor/bin/phpstan analyse              # Larastan level 6
 ./vendor/bin/pest                         # full suite
 ./vendor/bin/pint --test                  # formatting
-php artisan openapi:generate --check      # NOT AVAILABLE YET — see BE-F06.
-                                          # Until it lands, state any response-shape
-                                          # change explicitly in the pull request.```
+```
 
-All six must pass. A ticket is not done because the feature works.
+**Five gates must pass.** A ticket is not done because the feature works.
+
+A sixth gate is specified but does not exist yet: `php artisan openapi:generate --check`.
+The `openapi` package registers no artisan commands in this repository — see BE-F06.
+Until it lands, state any response-shape change explicitly in the pull request.
 
 ## How to work a ticket
 
@@ -163,7 +183,7 @@ All six must pass. A ticket is not done because the feature works.
 2. Read the `Working rules` section: it names the only directories you may touch.
 3. Do not implement anything outside that ticket. If a dependency is missing, stop and say so.
 4. Write a test for every acceptance criterion before declaring completion.
-5. Run the six commands above.
+5. Run the five gates above.
 
 ## Contract status
 
