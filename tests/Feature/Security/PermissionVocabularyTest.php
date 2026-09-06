@@ -5,22 +5,29 @@ declare(strict_types=1);
 /**
  * The permission vocabulary, measured against DOC-08.
  *
- * CLAUDE.md, Naming: "Permissions — from the DOC-08 catalog, verbatim". This file does
- * not enforce that rule, it measures the distance from it. Every assertion below either
- * fails with the exact list of offending names, or pins today's numbers so the gap
- * cannot widen unnoticed while the failing assertions stay red.
+ * CLAUDE.md, Naming: "Permissions — from the DOC-08 catalog, verbatim".
  *
- * Two vocabularies are seeded side by side:
+ * This file was written to measure the distance from that rule while two vocabularies
+ * were seeded side by side: `PermissionCatalog`, the code's copy of DOC-08, and
+ * `AccessMatrix`, 66 bare `{unit}.{action}` names seeded on all four guards plus `web`.
+ * 129 + (66 x 5) = 459 rows, and the interim names were live: every write route under
+ * `Modules\Reference` and `Modules\Tenancy` ran on `can:settings.*`, which existed only
+ * in AccessMatrix and on every guard at once, so a channel manager could create a
+ * governorate. The last test here is that probe, now inverted.
  *
- *  1. `PermissionCatalog` — 129 `{system}.{module}.{action}` codes, the code's copy of
- *     DOC-08, seeded once each on the guard its `system` names.
- *  2. `AccessMatrix` — 66 bare `{unit}.{action}` names carrying a docblock that calls
- *     itself "interim ... until DOC-08's 170 SystemPermission values land in SP-02",
- *     seeded on all five guards including `web`, which no role and no route uses.
+ * AccessMatrix is gone. One vocabulary remains and the assertions below hold, with two
+ * named exemptions rather than a loosened rule:
  *
- * 129 + (66 x 5) = 459 rows. The second vocabulary is live, not vestigial: every write
- * route under `Modules\Reference` and `Modules\Tenancy` is gated on `can:settings.*`,
- * which exists only in AccessMatrix. That is what the last test here exercises.
+ *  - `sc.notify.view` — real. `EP-SC-092 GET /channel/notifications/log` carries it in
+ *    the API catalog, the OpenAPI document and the Postman collection. DOC-08's text is
+ *    what is behind here, not the code.
+ *  - `ad.billing.manage` — a phantom with no route and no catalog entry. The sprint spec
+ *    assigns it to EP-AD-055, which the catalog itself gates on `ad.billing.assign_plan`.
+ *    It survives because `bin/extract-permissions.php` re-injects it on every generation
+ *    and `IamTest` asserts it exists. Resolving that contradiction belongs to BE-T12.
+ *
+ * Naming them here is deliberate: a third stray code must fail this file, so the rule
+ * stays "nothing outside DOC-08" plus a written exemption, not "mostly DOC-08".
  *
  * Hazards this file is shaped around, inherited from CrossGuardTest:
  *
@@ -32,8 +39,8 @@ declare(strict_types=1);
 
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Access\Domain\PermissionCatalog;
-use Modules\Access\Domain\Support\AccessMatrix;
 use Modules\Identity\Domain\Models\ChannelUser;
+use Modules\Reference\Domain\Models\Governorate;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -51,6 +58,12 @@ const ROLE_GUARDS = [
     'retailer' => 'app',
     'rep' => 'app',
 ];
+
+/**
+ * The two codes this file permits outside DOC-08, each for a reason written in the
+ * docblock above. Not a wildcard and not a count — the exact names, so a third one fails.
+ */
+const DOC08_EXEMPT = ['ad.billing.manage', 'sc.notify.view'];
 
 /**
  * The DOC-08 catalog as the document defines it, read from the document rather than
@@ -92,12 +105,15 @@ it('seeds no permission name that DOC-08 does not define', function () {
         $report[] = sprintf('%s: %d rows — %s', $guard, count($names), implode(' ', $names));
     }
 
-    // SHOULD BE per CLAUDE.md: no line at all.
-    // IS, recorded 2026-09-05: five lines, 332 rows — the whole 66-name AccessMatrix
-    // vocabulary on each of `app`, `channel`, `platform`, `warehouse` and `web`, plus
-    // the two PermissionCatalog codes DOC-08 never defines: `sc.notify.view` on the
-    // channel guard and `ad.billing.manage` on the platform guard.
-    expect($report)->toBe([]);
+    // WAS, before the vocabulary batch: five lines, 332 rows — the whole 66-name
+    // AccessMatrix vocabulary on each of `app`, `channel`, `platform`, `warehouse` and
+    // `web`, plus the two exemptions.
+    // IS: one row per exemption and nothing else. Every other seeded name is verbatim
+    // from DOC-08, on the single guard its `system` names.
+    expect($report)->toBe([
+        'channel: 1 rows — sc.notify.view',
+        'platform: 1 rows — ad.billing.manage',
+    ]);
 })->group('security');
 
 it('gives no role a permission that DOC-08 does not define', function () {
@@ -115,20 +131,24 @@ it('gives no role a permission that DOC-08 does not define', function () {
         }
     }
 
-    // SHOULD BE per CLAUDE.md: no line at all.
-    // IS, recorded 2026-09-05: six of the eight roles. `retailer` and `rep` are clean
-    // because PermissionCatalog is their only source; AccessMatrix defines no role for
-    // either. Every other role carries the full 66-name interim vocabulary or a slice.
-    expect($report)->toBe([]);
+    // WAS: six of the eight roles, each carrying the full 66-name interim vocabulary or
+    // a slice of it — channel_manager held 67 names of 110 that DOC-08 never defined.
+    // IS: only the two roles that receive a whole system's codes, and only because each
+    // system contains one exemption. The six other roles are clean.
+    expect($report)->toBe([
+        'platform_admin (platform): 1 of 62 — ad.billing.manage',
+        'channel_manager (channel): 1 of 48 — sc.notify.view',
+    ]);
 })->group('security');
 
 it('names the roles that can write through a permission DOC-08 does not define', function () {
     $catalog = doc08Codes();
 
-    // The action segment of a name that changes state. `view` is the only read verb in
-    // AccessMatrix; a role holding only `*.view` outside the catalog is noise, a role
-    // holding `settings.create` outside it is an authorisation hole.
-    $writes = ['create', 'update', 'delete', 'approve', 'fulfil', 'handover', 'wallets', 'financial', 'receive'];
+    // The action segment of a name that changes state. A role holding a stray `*.view`
+    // is noise; a role holding a stray write verb is an authorisation hole. `manage` is
+    // in the list on purpose, so the surviving `ad.billing.manage` is counted honestly
+    // rather than filtered out by a verb list that happens to omit it.
+    $writes = ['create', 'update', 'delete', 'approve', 'manage', 'fulfil', 'handover', 'wallets', 'financial', 'receive'];
 
     $report = [];
     foreach (ROLE_GUARDS as $name => $guard) {
@@ -146,39 +166,64 @@ it('names the roles that can write through a permission DOC-08 does not define',
         }
     }
 
-    // SHOULD BE per CLAUDE.md: no line at all.
-    // IS, recorded 2026-09-05: platform_admin 54, channel_manager 54, sales_manager 14,
-    // catalog_manager 10, accountant 7, warehouse_keeper 7.
-    expect($report)->toBe([]);
+    // WAS: platform_admin 54, channel_manager 54, sales_manager 14, catalog_manager 10,
+    // accountant 7, warehouse_keeper 7 — 146 grants to write through a name DOC-08 does
+    // not define, spread across every role but the two app ones.
+    // IS: one, the phantom. No channel, warehouse or app role can write through a name
+    // outside the document any more.
+    expect($report)->toBe([
+        'platform_admin (platform): 1 — ad.billing.manage',
+    ]);
 })->group('security');
 
-it('pins the size of the gap so it cannot widen while the assertions above stay red', function () {
-    // A red rule cannot signal the next breach of the same rule — the assertions above
-    // stay red until the vocabulary is replaced, and a 67th interim name added tomorrow
-    // would change nothing about how they fail. This one is green and counts, so it
-    // moves the day anything is added or removed on either side.
+it('pins the shape of the catalog so the gap cannot widen unnoticed', function () {
+    // Written when the assertions above were red — a red rule cannot signal the next
+    // breach of the same rule, so this one counted instead. They are green now and it
+    // still earns its place: it is the assertion that moves when a DOC-08 code is added
+    // to the catalog, which is how the remaining 39 are meant to arrive, one route at a
+    // time. `sc.settings.*` and `sc.zones.*` arrived exactly that way in this batch.
     $catalog = doc08Codes();
 
-    expect(Permission::query()->count())->toBe(459)
-        ->and(PermissionCatalog::codes())->toHaveCount(129)
-        ->and(AccessMatrix::permissions())->toHaveCount(66)
-        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(43)
+    expect(Permission::query()->count())->toBe(133)
+        ->and(PermissionCatalog::codes())->toHaveCount(133)
+        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(39)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
-        ->toBe(['ad.billing.manage', 'sc.notify.view']);
+        ->toBe(DOC08_EXEMPT);
 })->group('security');
 
-it('lets a channel manager create a governorate with a permission DOC-08 does not define', function () {
-    // The exploit path, end to end, with a real token. `POST /api/v1/governorates` is
-    // published by Modules\Reference under `auth:platform,channel,warehouse,app` — four
-    // guards, one group — and gated only by `can:settings.create`. `settings.create` is
-    // an AccessMatrix name seeded on all five guards, and channel_manager holds the
-    // whole AccessMatrix vocabulary. So the channel guard satisfies a gate written for
-    // the platform guard, and a tenant user writes platform-owned reference data.
+it('seeds each catalog code exactly once, on the guard its system names', function () {
+    // The `web` guard is gone with AccessMatrix — it held 66 rows that no role carried
+    // and no route consulted. Nothing should be seeded on more than one guard now: the
+    // cross-guard reach of a single name is what made `settings.create` exploitable.
+    $duplicated = Permission::query()
+        ->selectRaw('name, count(*) as guards')
+        ->groupBy('name')
+        ->havingRaw('count(*) > 1')
+        ->pluck('name')
+        ->all();
+
+    expect($duplicated)->toBe([])
+        ->and(Permission::query()->where('guard_name', 'web')->count())->toBe(0);
+})->group('security');
+
+it('refuses a channel manager creating a governorate', function () {
+    // The former exploit path, end to end, with a real token. `POST /api/v1/governorates`
+    // is published by Modules\Reference under `auth:platform,channel,warehouse,app` —
+    // four guards, one group. It was gated on `can:settings.create`, an AccessMatrix name
+    // seeded on all five guards, so the channel guard satisfied a gate written for the
+    // platform and this test recorded 201 with the row written. The gate now names
+    // `ad.refs.create`, which exists on the platform guard alone.
+    //
+    // The group is deliberately still four guards. Splitting it would hide what is being
+    // measured: that the gate itself, not the route grouping, is what refuses the caller.
     $channel = SupplyChannel::factory()->create();
     $manager = ChannelUser::factory()->forChannel($channel)->create();
     $manager->assignRole('channel_manager');
 
-    expect($manager->can('settings.create'))->toBeTrue();
+    // Not `hasPermissionTo`, which throws PermissionDoesNotExist for a code absent from
+    // this guard. `can()` goes through the gate — the same path the middleware takes —
+    // and that swallowed exception is why the answer is 403 and not a 500.
+    expect($manager->can('ad.refs.create'))->toBeFalse();
 
     $token = $manager->createToken('vocabulary-probe', ['*'])->plainTextToken;
 
@@ -188,8 +233,10 @@ it('lets a channel manager create a governorate with a permission DOC-08 does no
         'code' => 'DRA',
     ], ['Authorization' => 'Bearer '.$token]);
 
-    // SHOULD BE: 403 insufficient_permission. Creating a governorate is `ad.refs.create`
-    // in DOC-08 — a platform code, which no channel role may hold.
-    // IS, recorded 2026-09-05: 201. The row is written.
-    expect($response->getStatusCode())->toBe(201);
+    // The holder is authenticated — this is 403, not 401, and not `wrong_guard`: the
+    // channel guard is one of the four this route accepts. It is the permission that
+    // fails, which is exactly the distinction the error code carries.
+    expect($response->getStatusCode())->toBe(403)
+        ->and($response->json('error.code'))->toBe('insufficient_permission')
+        ->and(Governorate::where('code', 'DRA')->exists())->toBeFalse();
 })->group('security');

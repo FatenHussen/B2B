@@ -9,7 +9,6 @@ use Modules\Access\Domain\Enums\RoleStatus;
 use Modules\Access\Domain\Models\AccessRole;
 use Modules\Access\Domain\Models\SodRule;
 use Modules\Access\Domain\PermissionCatalog;
-use Modules\Access\Domain\Support\AccessMatrix;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -45,20 +44,17 @@ class RolesPermissionsSeeder extends Seeder
         $registrar->forgetCachedPermissions();
         $registrar->setPermissionsTeamId(0);
 
+        // One vocabulary, one guard each. The interim AccessMatrix names used to be seeded
+        // here as well, on all four guards plus `web`, which took the table from 129 rows
+        // to 459 and let a channel manager satisfy a platform gate. They are gone, and so
+        // is the `web` guard: nothing authenticates against it and no role held its rows.
         foreach (PermissionCatalog::all() as $code => $row) {
             $this->permission($code, PermissionCatalog::guardForSystem($row['system']));
-        }
-
-        foreach (['platform', 'channel', 'warehouse', 'app', 'web'] as $guard) {
-            foreach (AccessMatrix::permissions() as $name) {
-                $this->permission($name, $guard);
-            }
         }
 
         $registrar->forgetCachedPermissions();
 
         $grants = PermissionCatalog::builtinGrants();
-        $legacy = AccessMatrix::roles();
 
         foreach (self::ROLE_SYSTEM as $key => $system) {
             $guard = PermissionCatalog::guardForSystem($system);
@@ -88,10 +84,7 @@ class RolesPermissionsSeeder extends Seeder
                 ])->save();
             }
 
-            $names = array_values(array_unique([
-                ...($grants[$key] ?? []),
-                ...($legacy[$key] ?? []),
-            ]));
+            $names = array_values(array_unique($grants[$key] ?? []));
             $permissions = [];
             foreach ($names as $name) {
                 $permissions[] = $this->permission($name, $guard);

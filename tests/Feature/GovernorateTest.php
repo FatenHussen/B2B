@@ -39,7 +39,7 @@ it('lets a platform admin create a governorate', function () {
     expect(Governorate::where('code', 'DAM')->exists())->toBeTrue();
 });
 
-it('blocks a role without settings permission from writing', function () {
+it('blocks a role without the reference-write permission', function () {
     $keeper = WarehouseUser::factory()->create();
     $keeper->assignRole('warehouse_keeper');
     Sanctum::actingAs($keeper, ['*'], 'warehouse');

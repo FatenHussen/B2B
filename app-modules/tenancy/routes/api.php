@@ -27,6 +27,9 @@ Route::middleware(['api', 'auth:platform', 'tenant', SubstituteBindings::class])
 Route::middleware(['api', 'auth:channel', 'tenant', SubstituteBindings::class])
     ->prefix('api/v1/channel')
     ->group(function () {
-        Route::get('/', [ChannelSettingsController::class, 'show'])->middleware('can:settings.view');
-        Route::put('/', [ChannelSettingsController::class, 'update'])->middleware('can:settings.update');
+        // `sc.settings.*` from DOC-08, replacing the interim `settings.*` names that were
+        // seeded on every guard at once. These two are the only exact one-to-one swaps in
+        // the batch; DOC-08 defines a third, `sc.settings.audit`, that no route uses yet.
+        Route::get('/', [ChannelSettingsController::class, 'show'])->middleware('can:sc.settings.view');
+        Route::put('/', [ChannelSettingsController::class, 'update'])->middleware('can:sc.settings.update');
     });

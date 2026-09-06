@@ -49,10 +49,11 @@ function channelManagerBearer(): array
 }
 
 it('blocks a channel manager from reading the admin roster even though they hold settings permissions', function () {
-    // The holder does carry `settings.view` — 66 interim AccessMatrix names are seeded
-    // on the channel guard and channel_manager holds all of them. It never matters here:
+    // The holder carries every channel code in the catalog, and none of it matters here:
     // `auth:platform` rejects a channel token before any gate runs. Since BE-C02 the
     // answer names the reason, 403 `wrong_guard`, instead of 401 `unauthenticated`.
+    // This route never depended on the permission vocabulary — it is `role:platform_admin`
+    // behind a single-guard prefix, which is why the vocabulary batch did not touch it.
     $this->getJson('/api/v1/admin/channels', channelManagerBearer())
         ->assertForbidden()
         ->assertJsonPath('error.code', 'wrong_guard');

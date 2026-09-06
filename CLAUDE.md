@@ -4,7 +4,7 @@ Read this before touching anything. It is the standard every pull request is jud
 
 ## What this repository is
 
-**A pure JSON API. Laravel 11, API-only.** It serves five clients that live in a separate repository:
+**A pure JSON API. Laravel 13, API-only.** It serves five clients that live in a separate repository:
 two Flutter apps and three Next.js dashboards.
 
 **There is no Blade, no view layer and no server-rendered page.** If you find yourself writing one, you
@@ -114,6 +114,24 @@ reach a client, and no endpoint ever returns HTML.
 | Events | past tense | `SubOrderConfirmed` |
 | Jobs and Actions | imperative verb | `GenerateDailySnapshot`, `SubmitOrder` |
 
+### Permission vocabulary — two intersecting sources
+
+DOC-08 and the API catalog **intersect; neither contains the other.**
+
+- DOC-08 (`docs/api/doc08.txt`) defines **170** permission codes. It is the source of a
+  permission **name**.
+- The API catalog (`docs/api/catalog/`) defines the routes. Some routes carry a permission
+  DOC-08 does not define — `sc.notify.view` on `EP-SC-092 GET /channel/notifications/log`
+  is a real endpoint whose permission the document has not caught up with.
+
+On a conflict: **the catalog is the source of the path, DOC-08 is the source of the
+permission name.** A permission that exists only in the catalog is a legitimate addition —
+record it in `PermissionCatalog` with a comment naming its endpoint, do not delete it and
+do not invent a DOC-08 entry for it.
+
+Never seed a permission that appears in neither source. Interim vocabularies invented in
+code are how a channel manager ends up able to create a governorate.
+
 ## Queues
 
 `critical` (OTP, handover, payments, outbox intake) · `default` (notifications, invoices, repricing) ·
@@ -133,8 +151,9 @@ composer deptrac                          # module boundaries
 ./vendor/bin/phpstan analyse              # Larastan level 6
 ./vendor/bin/pest                         # full suite
 ./vendor/bin/pint --test                  # formatting
-php artisan openapi:generate --check      # contract is current
-```
+php artisan openapi:generate --check      # NOT AVAILABLE YET — see BE-F06.
+                                          # Until it lands, state any response-shape
+                                          # change explicitly in the pull request.```
 
 All six must pass. A ticket is not done because the feature works.
 

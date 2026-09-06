@@ -140,6 +140,16 @@ final class PermissionCatalog
         'sc.retailers.credit' => ['name_ar' => 'سقف ائتمان التاجر', 'system' => 'channel', 'module' => 'retailers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.returns.decide' => ['name_ar' => 'قرار الإرجاع', 'system' => 'channel', 'module' => 'returns', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.returns.view' => ['name_ar' => 'طلبات الإرجاع', 'system' => 'channel', 'module' => 'returns', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // Added when a route needed them, per the standing rule for the DOC-08 codes this
+        // catalog does not yet carry. These four gate the channel-owned routes that used
+        // to run on `can:settings.*`: coverage rows in Modules\Reference and the channel's
+        // own settings in Modules\Tenancy. DOC-08 rates the two writes حساسة, a tier this
+        // catalog does not model; `ad.refs.create` and `ad.refs.update` carry the same
+        // rating and are recorded here as standard, so these follow them.
+        'sc.settings.update' => ['name_ar' => 'تعديل سياسات الطلب والتشغيل', 'system' => 'channel', 'module' => 'settings', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        'sc.settings.view' => ['name_ar' => 'عرض الإعدادات', 'system' => 'channel', 'module' => 'settings', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        'sc.zones.manage' => ['name_ar' => 'ضبط التغطية وأوقات التوصيل', 'system' => 'channel', 'module' => 'zones', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        'sc.zones.view' => ['name_ar' => 'عرض المناطق', 'system' => 'channel', 'module' => 'zones', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.handover.execute' => ['name_ar' => 'عهد بانتظار المندوب', 'system' => 'warehouse', 'module' => 'handover', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.handover.return_trip' => ['name_ar' => 'عودة المندوب', 'system' => 'warehouse', 'module' => 'handover', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.packing.execute' => ['name_ar' => 'تحقق التغليف', 'system' => 'warehouse', 'module' => 'packing', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
