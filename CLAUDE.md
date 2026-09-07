@@ -82,8 +82,19 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
    with actor, reason and time. An illegal transition throws and maps to 409.
 9. **Every write accepts `X-Idempotency-Key`.** Known and complete replays the stored response; known and
    in flight returns 409 `operation_in_progress`; new executes and stores for 24 hours.
-10. **Every channel-owned model carries `supply_channel_id`** with a composite index starting on it, and
-    `ChannelScope` applied automatically.
+10. **Every channel-owned model carries a channel column** with a composite index starting on it, and
+    `BelongsToChannel` applied automatically. Two column names are in use and both count:
+    `supply_channel_id` (sixteen models) and `channel_id` (the rest). The trait defaults to
+    `supply_channel_id`; a model on the other spelling declares
+    `protected string $channelColumn = 'channel_id';`.
+    `tests/Architecture/ChannelScopeTest.php` enforces this — a model whose table has either column
+    and which does not apply the trait fails the build, unless it is in that file's exemption list
+    with a written reason. Hand-written `->where(channel_column, Tenant::currentId())` in a query is
+    not isolation: it protects only the query that remembers it, and the next one written without it
+    leaks silently.
+    Unifying the two names into one column is a **separate, deliberately deferred ticket** — the
+    migration would rewrite a dozen tables plus every query and index naming them, which costs more
+    today than the inconsistency does.
 11. **A foreign channel id in a URL returns 404, not 403.** Existence is never disclosed.
 12. **Reference entities are never hard deleted.** Disabling is logical and audited.
 
