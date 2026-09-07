@@ -16,7 +16,7 @@ php artisan serve
 curl http://127.0.0.1:8000/api/v1/health
 ```
 
-Full steps (MySQL port, OTP log, seed users, Docker, warehouse device): **[docs/DocsLast/_shared/00-install-the-api.md](docs/DocsLast/_shared/00-install-the-api.md)**
+Full steps (MySQL port, OTP log, seed users, warehouse device): **[docs/DocsLast/_shared/00-install-the-api.md](docs/DocsLast/_shared/00-install-the-api.md)**
 
 Local platform login after seed: `admin@platform.sy` / `password`.  
 OTP codes (dev): `storage/logs/laravel.log` with `OTP_CHANNEL=log`.
@@ -37,3 +37,14 @@ OTP codes (dev): `storage/logs/laravel.log` with `OTP_CHANNEL=log`.
 | [docs/api/catalog/](docs/api/catalog/) | Binding API catalog |
 
 Requires PHP 8.3 and MySQL 8.
+
+## Docker is not used
+
+`docker-compose.yml` is a leftover from the initial commit and **is not how this project runs**.
+Its values contradict `.env`: it creates database `b2b` (the app expects `b2b_platform`) with password
+`root` (the app uses an empty password), and it defines Redis, Horizon, MinIO and Mailpit services that
+the current configuration does not use — `CACHE_STORE=database`, `QUEUE_CONNECTION=database`,
+`FILESYSTEM_DISK=local`, `MAIL_MAILER=log`.
+
+`docker compose up -d` also binds host port **3308** and collides with a local MySQL already serving
+the project. Run a local MySQL 8 on port 3308 instead. CI does the same and never invokes Compose.

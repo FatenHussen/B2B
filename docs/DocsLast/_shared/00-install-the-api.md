@@ -5,7 +5,7 @@ Do this before Flutter or Next.js. Every product uses `http://127.0.0.1:8000/api
 | | |
 |---|---|
 | PHP | 8.3+ (`mbstring`, `openssl`, `pdo_mysql`, `tokenizer`, `xml`, `curl`, `fileinfo`, `gd` or `imagick`) |
-| Database | MySQL 8 — this repo’s `.env.example` uses port **3308** (Docker Compose uses **3306**) |
+| Database | MySQL 8 on port **3308** (see `.env.example`). Docker is not used — see section 2. |
 | Catalog | `docs/api/catalog/*.php` |
 | Postman | `docs/api/b2b-api.postman_collection.json` |
 
@@ -54,7 +54,7 @@ curl http://127.0.0.1:8000/api/v1/health
 Expect `{ "data": { "status": "ok" }, "meta": { "server_time": "…" } }`.  
 Base path is `/api/v1` — never `/api/v1/auth/*`.
 
-**Docker:** `docker compose up -d` — nginx **8080**. Point clients at `http://127.0.0.1:8080/api/v1` and match Compose DB (`3306`, `root`/`root`, database `b2b`) or keep host MySQL on 3308.
+**Docker: not used.** `docker-compose.yml` is a leftover from the initial commit and does not match `.env` (it creates database `b2b`, password `root`; the app expects `b2b_platform` with an empty password). It also binds host port 3308 and collides with a local MySQL. Use a local MySQL 8 on 3308 — CI does the same and never invokes Compose.
 
 ## 3. Seeded logins
 
