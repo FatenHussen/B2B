@@ -31,8 +31,45 @@ unblocks_frontend: [AD-42, AD-49]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] The affected counts are computed live, never cached or estimated.
-- [ ] A contract test pins the 034 route so it cannot drift to 043.
+- [x] The affected counts are computed live, never cached or estimated.
+- [x] A contract test pins the 034 route so it cannot drift to 043.
+
+## Decision — the status vocabulary is translated, not unified, 2026-09-07
+
+`zones.status` stores `active` / **`inactive`**. EP-AD-034 sends
+`{"status": "disabled"}` and EP-AD-032 reads the field back, so the contract's second word
+is **`disabled`** — `RefStatus`'s spelling, not `ZoneStatus`'s.
+
+Unifying them means an `UPDATE zones SET status = 'disabled' WHERE status = 'inactive'`
+over every existing row. That is a data migration, so it is **deferred to its own ticket**
+and is not part of BE-R03.
+
+Until then the two vocabularies meet at the boundary and nowhere else:
+`ZoneStatus::fromContract()` on the way in, `toContract()` on the way out, both on the
+enum, with a contract test asserting the column still reads `inactive` while the API only
+ever says `disabled`. `fromContract()` returns null for `inactive`, so a request using the
+stored spelling is refused 422 rather than admitted through the back door.
+
+This did change a response shape — zones that read `inactive` now read `disabled`. AD-42
+and AD-49 are not built yet, which is why the contract was matched now rather than after
+they had been written against the wrong word.
+
+## Scope note — this ticket touched four modules
+
+The Working rules below say `app-modules/reference` only. The scope was explicitly widened
+to `core`, `identity` and `ordering` because `affected` needs three counts that Reference
+cannot compute: retailers and reps live in Identity, open orders in Ordering.
+
+A single `ZoneImpactCounter` contract was rejected — one implementation would have to read
+the tables of two modules, breaking rule 3 whichever module hosted it. Instead each count
+is declared in `Modules\Core\Contracts` and implemented by the module that owns the data:
+`RetailerDirectory::countInZone`, `RepDirectory::countInZone`,
+`OpenOrderCounter::countOpenInZone`. Each returns an int, never a model.
+
+`open_orders` is defined by negation — not `delivered`, `cancelled` or `rejected`
+(DOC-01 §4.6.3). `SubOrderStatus` has twelve cases; a positive list of nine would go stale
+the first time the lifecycle gained a state, silently under-reporting the impact of an
+irreversible decision.
 
 ## Frontend tickets waiting on this
 
