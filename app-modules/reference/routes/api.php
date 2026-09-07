@@ -29,12 +29,11 @@ Route::middleware(['api', 'auth:platform,channel,warehouse,app', 'tenant', Subst
         Route::get('governorates/{governorate}', [GovernorateController::class, 'show']);
         Route::post('governorates', [GovernorateController::class, 'store'])->middleware('can:ad.refs.create');
         Route::put('governorates/{governorate}', [GovernorateController::class, 'update'])->middleware('can:ad.refs.update');
-        // The gate says disable, the action deletes. DOC-08 defines no `ad.refs.delete`
-        // because CLAUDE.md rule 12 says a reference entity is never hard deleted, and
-        // `GovernorateController::destroy` hard deletes anyway. `ad.refs.disable` is the
-        // nearest true code and closes the guard hole today; reconciling the verb with
-        // the rule needs a `status` column this table does not have. Settled in BE-R02.
-        Route::delete('governorates/{governorate}', [GovernorateController::class, 'destroy'])->middleware('can:ad.refs.disable');
+        // EP-AD-043A, and the resolution of the mismatch this line used to carry: the
+        // gate said `ad.refs.disable` while the action hard deleted. There is no DELETE
+        // any more. Rule 12 and the catalog agree — "المحافظات لا تُحذف، تُعطَّل فقط" —
+        // and DOC-08 defines no `ad.refs.delete` to gate one with.
+        Route::patch('governorates/{governorate}/status', [GovernorateController::class, 'changeStatus'])->middleware('can:ad.refs.disable');
 
         Route::get('zones', [ZoneController::class, 'index']);
         Route::get('zones/{zone}', [ZoneController::class, 'show']);

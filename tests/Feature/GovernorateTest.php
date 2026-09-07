@@ -5,9 +5,13 @@ declare(strict_types=1);
 use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Identity\Domain\Models\AppUser;
+use Modules\Identity\Domain\Models\ChannelUser;
 use Modules\Identity\Domain\Models\PlatformUser;
 use Modules\Identity\Domain\Models\WarehouseUser;
+use Modules\Reference\Domain\Enums\RefStatus;
 use Modules\Reference\Domain\Models\Governorate;
+use Modules\Reference\Domain\Models\Zone;
+use Modules\Tenancy\Domain\Models\SupplyChannel;
 
 beforeEach(fn () => $this->seed(RolesPermissionsSeeder::class));
 
@@ -64,14 +68,90 @@ it('validates a unique code on update', function () {
         ->assertJsonPath('error.details.code', fn ($v) => is_array($v) && $v !== []);
 });
 
-it('deletes a governorate', function () {
+it('has no route that deletes a governorate', function () {
+    // This file used to hold `it('deletes a governorate')`, green, asserting the row was
+    // gone. It was guarding a breach of rule 12 — a reference entity is never hard
+    // deleted — and DOC-08 never defined an `ad.refs.delete` to gate one with. The route
+    // is withdrawn rather than made to 403, so nothing has to remember why it is there.
     $admin = PlatformUser::factory()->create();
     $admin->assignRole('platform_admin');
     Sanctum::actingAs($admin, ['*'], 'platform');
 
     $governorate = Governorate::factory()->create();
 
-    $this->deleteJson("/api/v1/governorates/{$governorate->id}")->assertNoContent();
+    // 405, not 404: `/api/v1/governorates/{id}` still exists for GET and PUT, so Laravel
+    // reports the method as unallowed rather than the path as missing. Either way there
+    // is no handler, and the row survives — which is the assertion that matters.
+    $this->deleteJson("/api/v1/governorates/{$governorate->id}")->assertStatus(405);
 
-    expect(Governorate::find($governorate->id))->toBeNull();
+    expect(Governorate::find($governorate->id))->not->toBeNull();
+});
+
+it('disables a governorate instead, and reports what it affects', function () {
+    $admin = PlatformUser::factory()->create();
+    $admin->assignRole('platform_admin');
+    Sanctum::actingAs($admin, ['*'], 'platform');
+
+    $governorate = Governorate::factory()->create();
+    Zone::factory()->count(3)->create(['governorate_id' => $governorate->id]);
+
+    $this->patchJson("/api/v1/governorates/{$governorate->id}/status", [
+        'status' => 'disabled',
+        'reason' => 'إعادة ترسيم إداري',
+    ])->assertOk()
+        ->assertJsonPath('data.status', 'disabled')
+        ->assertJsonPath('data.affected.zones', 3);
+
+    // Disabled, not gone. That is the whole point of the endpoint.
+    expect($governorate->refresh()->status)->toBe(RefStatus::Disabled);
+});
+
+it('refuses a status change with no reason', function () {
+    // BE-R02 acceptance criterion: an update without a reason is refused with 422. The
+    // catalog says the same on EP-AD-042A — every ref change carries a reason and is
+    // audited before and after.
+    $admin = PlatformUser::factory()->create();
+    $admin->assignRole('platform_admin');
+    Sanctum::actingAs($admin, ['*'], 'platform');
+
+    $governorate = Governorate::factory()->create();
+
+    $this->patchJson("/api/v1/governorates/{$governorate->id}/status", ['status' => 'disabled'])
+        ->assertStatus(422)
+        ->assertJsonPath('error.code', 'validation_failed');
+
+    expect($governorate->refresh()->status)->toBe(RefStatus::Active);
+});
+
+it('refuses a status the enum does not define', function () {
+    $admin = PlatformUser::factory()->create();
+    $admin->assignRole('platform_admin');
+    Sanctum::actingAs($admin, ['*'], 'platform');
+
+    $governorate = Governorate::factory()->create();
+
+    $this->patchJson("/api/v1/governorates/{$governorate->id}/status", [
+        'status' => 'inactive', // ZoneStatus has this case; RefStatus does not.
+        'reason' => 'خطأ مطبعي',
+    ])->assertStatus(422);
+
+    expect($governorate->refresh()->status)->toBe(RefStatus::Active);
+});
+
+it('never lets a channel manager disable a governorate', function () {
+    // `ad.refs.disable` is a platform code. The route group still admits four guards, so
+    // the gate is what refuses — the same boundary the vocabulary batch established.
+    $channel = SupplyChannel::factory()->create();
+    $manager = ChannelUser::factory()->forChannel($channel)->create();
+    $manager->assignRole('channel_manager');
+
+    $governorate = Governorate::factory()->create();
+    $token = $manager->createToken('disable-probe', ['*'])->plainTextToken;
+
+    $this->patchJson("/api/v1/governorates/{$governorate->id}/status", [
+        'status' => 'disabled',
+        'reason' => 'محاولة',
+    ], ['Authorization' => 'Bearer '.$token])->assertForbidden();
+
+    expect($governorate->refresh()->status)->toBe(RefStatus::Active);
 });

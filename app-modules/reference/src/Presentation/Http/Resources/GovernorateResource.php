@@ -16,11 +16,16 @@ class GovernorateResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // `status` and `order` are added here, not invented: EP-AD-030 lists both in its
+        // response shape. This widens the payload rather than changing it, so the AD-41
+        // client keeps reading every field it already reads.
         return [
             'id' => $this->id,
             'name_ar' => $this->name_ar,
             'name_en' => $this->name_en,
             'code' => $this->code,
+            'status' => $this->status->value,
+            'order' => $this->order,
         ];
     }
 }
