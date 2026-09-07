@@ -48,4 +48,14 @@ interface RetailerDirectory
      * the two display fields the readers actually read.
      */
     public function zoneId(int $retailerId): ?int;
+
+    /**
+     * How many retailer shops sit in a zone.
+     *
+     * For the impact count EP-AD-034 shows before a zone is disabled. It returns a number
+     * and never a model or a row: the caller renders a confirmation dialog and has no
+     * business reading `retailer_profiles`. Counting here rather than returning a list
+     * for the caller to measure is what keeps rule 3 intact.
+     */
+    public function countInZone(int $zoneId): int;
 }

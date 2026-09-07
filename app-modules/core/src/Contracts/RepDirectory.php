@@ -24,4 +24,16 @@ interface RepDirectory
     public function displayName(int $repUserId): ?string;
 
     public function phone(int $repUserId): ?string;
+
+    /**
+     * How many reps serve a zone.
+     *
+     * For the impact count EP-AD-034 shows before a zone is disabled. A rep serves many
+     * zones — the link is the `rep_profile_zones` pivot Identity owns, the same one
+     * {@see self::zoneIdsForUser()} reads — so this counts distinct rep profiles with a
+     * row for the zone, not rows in the pivot.
+     *
+     * Returns a number, never a model.
+     */
+    public function countInZone(int $zoneId): int;
 }
