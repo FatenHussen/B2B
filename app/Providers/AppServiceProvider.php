@@ -18,6 +18,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        app()->setLocale('en');
+
         Relation::enforceMorphMap([
             'platform_user' => PlatformUser::class,
             'channel_user' => ChannelUser::class,

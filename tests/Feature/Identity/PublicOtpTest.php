@@ -54,6 +54,18 @@ it('rejects a non-syrian phone with 422', function () {
     );
 });
 
+it('returns english validation messages even when Accept-Language is arabic', function () {
+    $response = $this->withHeaders(['Accept-Language' => 'ar'])
+        ->postJson('/api/v1/public/auth/request-otp', [
+            'phone' => '12345',
+            'purpose' => 'login',
+        ]);
+
+    CatalogAssert::error($response, 422, 'validation_failed');
+    expect($response->json('error.message'))->toContain('Syrian')
+        ->and($response->json('error.message'))->not->toContain('سوري');
+});
+
 it('returns a registration token when the phone has no completed profile', function () {
     $otp = requestOtp();
 
