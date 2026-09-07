@@ -73,6 +73,11 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
    outside `Presentation/Pdf/`.
 7. **Every amount is a `bigInteger` in the smallest currency unit wrapped in a `Money` value object.**
    `float` and `double` are forbidden on any money path. Rounding happens in `MoneyResource` only.
+   **An exchange rate is a `bigInteger` at a fixed scale of 10^6, defined once in `Money`.**
+   The scale is never a column. A per-row scale means rows with different scales in one
+   table, and the first conversion between two of them is a silent wrong answer with
+   nothing to compare against. `fx_rates.rate` carries no scale column for that reason —
+   settled at BE-R08.
 8. **`status` is `$guarded` and changes only through the lifecycle service.** Every transition is logged
    with actor, reason and time. An illegal transition throws and maps to 409.
 9. **Every write accepts `X-Idempotency-Key`.** Known and complete replays the stored response; known and

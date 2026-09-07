@@ -19,9 +19,26 @@ blocked_by: [BE-R08]
 
 ## Requirements
 
-1. rate is an integer; no float exists on this path.
+1. rate is an integer; no float exists on this path. Its scale is fixed at 10^6 in `Money`
+   and is never a column — see CLAUDE.md rule 7. `fx_rates` already exists with `rate` as
+   a `bigInteger` and no scale column.
 2. Setting is_display_currency atomically clears the previous display currency.
 3. A rate change never reprices an existing order (BR-AD-19) — orders freeze their currency and rate.
+4. Add `is_display_currency` as a **new column**. Do not rename `is_base` into it.
+
+## Decision — is_base is not is_display_currency, recorded 2026-09-07
+
+They are different facts and the API exposes only one of them.
+
+- **`is_display_currency`** is what the catalog names in every currency response, and
+  requirement 2 makes it switchable through an endpoint.
+- **`is_base`** is the unit every stored `bigInteger` amount is denominated in under rule 7.
+  It appears in no contract, and is read internally by
+  `EloquentReferenceDirectory::baseCurrencyId()`.
+
+Renaming one into the other would hand this ticket's atomic-switch endpoint the power to
+change what every stored amount means, with no data migration — the whole ledger silently
+reinterpreted. So: two columns, and `is_base` is not writable through the API.
 
 ## Acceptance criteria
 
