@@ -39,10 +39,11 @@ Route::middleware(['api', 'auth:platform,channel,warehouse,app', 'tenant', Subst
         Route::get('zones/{zone}', [ZoneController::class, 'show']);
         Route::post('zones', [ZoneController::class, 'store'])->middleware('can:ad.refs.create');
         Route::put('zones/{zone}', [ZoneController::class, 'update'])->middleware('can:ad.refs.update');
-        // Same mismatch as governorates, one step closer to resolvable: `zones` already
-        // carries a `status` column cast to ZoneStatus, so this route could become a
-        // real disable without a migration. It is still a hard delete today. BE-R03.
-        Route::delete('zones/{zone}', [ZoneController::class, 'destroy'])->middleware('can:ad.refs.disable');
+        // EP-AD-034 — and note the number: the zone status route sits outside the 043
+        // family that governorates and activity types use. BE-R03 calls that a documented
+        // contract exception, and a test pins it so it cannot quietly drift to 043.
+        // DELETE is withdrawn, as for governorates: rule 12, and no `ad.refs.delete`.
+        Route::patch('zones/{zone}/status', [ZoneController::class, 'changeStatus'])->middleware('can:ad.refs.disable');
     });
 
 /*
