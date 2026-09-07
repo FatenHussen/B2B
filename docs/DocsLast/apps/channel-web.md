@@ -1,7 +1,7 @@
 # Channel dashboard (Next.js)
 
-Everything needed to build the supplier's dashboard. Self-contained: you should not need
-another file except the shared contract and the React kit.
+**This is the only file you need.** Backend setup, the React package, the HTTP contract and
+every endpoint — all of it is here. No other document is required to build this dashboard.
 
 | | |
 |---|---|
@@ -10,8 +10,6 @@ another file except the shared contract and the React kit.
 | Guard | `channel` (Sanctum) |
 | `X-Client` | `channel-web` *(sent for logs; the server ignores it)* |
 | Seed account | phone **`+963900000001`**, OTP from the log — channel `demo-channel` |
-| Shared kit | [../02-react-client.md](../02-react-client.md) |
-| Contract | [../01-http-contract.md](../01-http-contract.md) |
 
 Verified against `php artisan route:list` and the controller/action source on
 **2026-09-07**. Where the API catalog disagrees with this page, the code wins.
@@ -19,33 +17,462 @@ Verified against `php artisan route:list` and the controller/action source on
 **47 endpoints are live** — the largest surface in the platform, and the most complete.
 Catalog, pricing, offers, inventory, orders and returns all work end to end.
 
----
+### Contents
 
-## 1. At a glance
-
-```
-Base URL   http://127.0.0.1:8000/api/v1
-Auth       Authorization: Bearer {token}
-Writes     X-Idempotency-Key on every POST/PUT/PATCH/DELETE except the two OTP calls
-Money      integer minor units everywhere EXCEPT channel zones (§3.8) — read that section
-Times      ISO-8601 Asia/Damascus, already converted
-Tenant     resolved from your own membership — see below
-```
-
-⚠️ **`X-Channel-Id` does nothing for you.** `ResolveTenant` honours that header **only for
-`platform_admin`**. A channel user's tenant comes from their own `supply_channel_id` or
-default membership, and the header is silently ignored — not an error, just no effect.
-
-`verify-otp` returns a `channels[]` array, so a user *can* belong to several. But **there
-is no way to switch between them** from this dashboard today. If `channels.length > 1`,
-show the default one and say so; do not build a switcher that cannot work.
-
-Every list is scoped to your channel automatically. A foreign id returns **404, never
-403** — existence is never disclosed.
+| § | |
+|---|---|
+| 1 | Running the backend |
+| 2 | The React package — working code |
+| 3 | A token in two minutes |
+| 4 | Endpoint reference |
+| 5 | The HTTP contract — envelope, errors, money |
+| 6 | What to build, in order |
+| 7 | Not built — do not mock |
+| 8 | Gotchas |
 
 ---
 
-## 2. A token in two minutes
+## 1. Running the backend
+
+You need the API running locally before the dashboard can do anything.
+
+### 1.1 Requirements
+
+| | Version | Note |
+|---|---|---|
+| PHP | 8.3+ | with `pdo_mysql`, `redis`, `bcmath`, `intl` |
+| MySQL | 8.0 | **port 3308**, not 3306 |
+| Redis | 7 | queues and Horizon |
+| Composer | 2.x | |
+| Node | 20+ | for this dashboard |
+
+**Docker is not the supported path.** `docker-compose.yml` exists but the decided local
+setup is native PHP + MySQL + Redis. If you use containers anyway, publish MySQL on 3308.
+
+### 1.2 Install
+
+```bash
+git clone <repo> b2b-api && cd b2b-api
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+
+```sql
+CREATE DATABASE b2b_platform      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE b2b_platform_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+```bash
+php artisan migrate --seed
+php artisan serve            # http://127.0.0.1:8000
+curl -s http://127.0.0.1:8000/api/v1/health
+# {"data":{"status":"ok",...},"meta":{"server_time":"...+03:00"}}
+```
+
+⚠️ **Port 3308 is deliberate** — it keeps this project clear of any MySQL already on 3306.
+If yours listens on 3306, set `DB_PORT=3306` in your own `.env`; never edit `.env.example`.
+
+⚠️ **Never run `php artisan migrate --env=testing`, and never `migrate:fresh` before a test
+run.** Pest migrates `b2b_platform_test` itself; passing `--env=testing` by hand has been
+observed to rebuild the *development* database and destroy your seed data.
+
+### 1.3 Your account
+
+The seeder creates a channel manager bound to the demo channel:
+
+| | |
+|---|---|
+| Phone | **`+963900000001`** |
+| Channel | `demo-channel` (id `1`) |
+| Role | `channel_manager` |
+
+Login is passwordless — an OTP is sent to that phone. Locally no WhatsApp is sent: the code
+is written to the log.
+
+```bash
+tail -f storage/logs/laravel.log | grep OTP
+# [OTP] channel_login via whatsapp for +963900000001: 481923
+```
+
+| Setting | Default |
+|---|---|
+| `otp.ttl` | **300 s** |
+| `otp.length` | **6** |
+| `otp.max_attempts` | **5** |
+| `otp.resend_cooldown` | **60 s** |
+
+Rate limits per hour: **3 per phone**, 10 per device, 30 per IP.
+
+⚠️ There is **no channel resend endpoint** — if the code expires, request a new one.
+
+### 1.4 CORS and the dev origin
+
+`config/cors.php` sets `supports_credentials: true` and reads allowed origins from
+`CORS_ALLOWED_ORIGINS` (default `http://localhost:3000`). A credentialed request needs an
+explicit origin — never `*`. Add your dev port:
+
+```dotenv
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002
+```
+
+### 1.5 Queues
+
+`php artisan horizon` supervises `critical`, `default`, `media`, `reports`.
+
+Three things on this dashboard are asynchronous and need a worker: **catalog import**,
+**catalog export** and a **scheduled price list**. Each returns a `job_id` (or nothing at
+all) and there is **no endpoint to poll it** — so without Horizon running they queue
+silently and never complete.
+
+---
+
+## 2. The React package
+
+One shared TypeScript package, `packages/b2b-api-client` (`@b2b/api-client`), used by all
+three dashboards. **No dashboard ships its own `fetch` wrapper or an ad-hoc
+`Authorization` header.**
+
+This section is working code, not description.
+
+### 2.1 Stack (locked)
+
+| Concern | Choice |
+|---|---|
+| Framework | Next.js 15 App Router |
+| UI | React 19 |
+| Language | TypeScript 5, `strict: true` — no `any` in `lib/` |
+| CSS | Tailwind, `<html lang="ar" dir="rtl">` |
+| Server state | TanStack Query v5 |
+| Token | `sessionStorage` Bearer |
+| HTTP | `fetch`, **inside this package only** |
+
+No Redux, no Axios, no NextAuth. Authenticated calls happen in Client Components —
+`middleware.ts` cannot read `sessionStorage`, so do not try to gate routes there.
+
+Use logical CSS properties (`ms-*`, `ps-*`, `text-start`) so RTL works. Phone, OTP and PIN
+inputs get `dir="ltr"` and `inputMode="numeric"`.
+
+```bash
+npx create-next-app@15 apps/channel-web --typescript --app --tailwind --eslint --src-dir --use-npm
+```
+
+```dotenv
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
+NEXT_PUBLIC_X_CLIENT=channel-web
+```
+
+Dev port for this dashboard: **3001**.
+
+```
+packages/b2b-api-client/src/
+  index.ts
+  envelope.ts      types for data/meta/error
+  api-error.ts     ApiError + the code union
+  storage.ts       token, per guard
+  idempotency.ts   key store bound to a user intent
+  client.ts        the single fetch
+  can.ts           permission helper
+  resources/       one file per surface
+```
+
+### 2.2 `envelope.ts`
+
+```ts
+export interface Meta {
+  server_time: string;
+  page?: number; per_page?: number; total?: number; last_page?: number;
+  next_cursor?: string | null; prev_cursor?: string | null; has_more?: boolean;
+}
+
+export interface Ok<T>  { data: T; meta: Meta }
+export interface Fail {
+  error: { code: string; message: string; permission?: string; details?: Record<string, string[]> };
+}
+
+export type Envelope<T> = Ok<T> | Fail;
+export const isFail = <T>(e: Envelope<T>): e is Fail =>
+  typeof e === 'object' && e !== null && 'error' in e;
+```
+
+### 2.3 `api-error.ts`
+
+```ts
+export type ErrorCode =
+  | 'idempotency_key_required'
+  | 'unauthenticated' | 'token_revoked'
+  | 'wrong_guard' | 'insufficient_permission'
+  | 'requires_2fa' | 'requires_password_confirm' | 'sod_violation'
+  | 'not_found'
+  | 'illegal_transition' | 'operation_in_progress'
+  | 'stale_version' | 'idempotency_key_conflict'
+  | 'validation_failed' | 'ref_in_use'
+  | 'plan_limit_exceeded' | 'upgrade_required'
+  | 'rate_limited' | 'maintenance_mode'
+  | 'otp_invalid';
+
+export class ApiError extends Error {
+  constructor(
+    readonly code: ErrorCode | string,
+    message: string,
+    readonly status: number,
+    readonly permission?: string,
+    readonly details?: Record<string, string[]>,
+  ) { super(message); this.name = 'ApiError'; }
+
+  /** The token is worthless. Drop it and re-authenticate. */
+  get isAuthLoss() { return this.code === 'unauthenticated' || this.code === 'token_revoked'; }
+
+  /** A live token from the WRONG guard. Re-login will NOT help — it is a routing bug. */
+  get isWrongGuard() { return this.code === 'wrong_guard'; }
+
+  /** Retrying the identical request may succeed. */
+  get isRetryable() { return this.code === 'operation_in_progress'; }
+
+  fieldErrors(): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(this.details ?? {})) if (v?.[0]) out[k] = v[0];
+    return out;
+  }
+}
+```
+
+### 2.4 `storage.ts` — key the token by guard
+
+One browser profile may hold two dashboards open at once. Sharing a storage key is how you
+manufacture a `wrong_guard`.
+
+```ts
+export type Guard = 'platform' | 'channel' | 'warehouse';
+
+const key = (g: Guard) => `b2b.${g}.token`;
+
+export const tokenStore = {
+  get:   (g: Guard) => (typeof window === 'undefined' ? null : sessionStorage.getItem(key(g))),
+  set:   (g: Guard, t: string) => sessionStorage.setItem(key(g), t),
+  clear: (g: Guard) => sessionStorage.removeItem(key(g)),
+};
+```
+
+This dashboard uses `tokenStore.get('channel')`.
+
+### 2.5 `idempotency.ts` — a key per intent, not per request
+
+Every write needs `X-Idempotency-Key`. The key belongs to a **user intent** — one press of
+Confirm — not to an HTTP attempt.
+
+```ts
+const keys = new Map<string, string>();
+
+/** Stable key for one intent. Same intentId in, same key out. */
+export function keyFor(intentId: string): string {
+  let k = keys.get(intentId);
+  if (!k) { k = crypto.randomUUID(); keys.set(intentId, k); }
+  return k;
+}
+
+/** Call ONLY after the intent finally succeeded, or the user abandoned it. */
+export function releaseKey(intentId: string): void { keys.delete(intentId); }
+```
+
+Bind it to the button, not to the request:
+
+```tsx
+'use client';
+import { useRef, useState } from 'react';
+import { keyFor, releaseKey, ApiError } from '@b2b/api-client';
+
+export function ConfirmButton({ id }: { id: number }) {
+  const intentId = useRef(`suborder.confirm.${id}.${Date.now()}`).current;
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function onClick() {
+    setBusy(true); setErr(null);
+    try {
+      // Press as often as the user likes: same intentId -> same key -> replay, never a double write.
+      await doTheWrite(id, keyFor(intentId));
+      releaseKey(intentId);
+    } catch (e) {
+      if (e instanceof ApiError && e.isRetryable) setErr('Still processing — press again.');
+      else if (e instanceof ApiError) setErr(e.message);
+      // Key deliberately NOT released: pressing again must reuse it.
+    } finally { setBusy(false); }
+  }
+
+  return (<><button onClick={onClick} disabled={busy}>Confirm</button>
+           {err && <p role="alert">{err}</p>}</>);
+}
+```
+
+⚠️ Never generate the key inside `client.ts`. A key minted per request turns one confirm
+into N writes when the network is bad — the exact failure idempotency exists to prevent.
+
+### 2.6 `client.ts`
+
+```ts
+import { Envelope, isFail, Meta } from './envelope';
+import { ApiError } from './api-error';
+import { Guard, tokenStore } from './storage';
+
+const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!;
+const WRITE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+export interface Options {
+  method?: string;
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  /** Required on writes. Get it from keyFor(intentId) — never crypto.randomUUID() here. */
+  idempotencyKey?: string;
+  /** Set only for the login calls, which must not carry a key. */
+  noIdempotency?: boolean;
+  signal?: AbortSignal;
+}
+
+export function makeClient(guard: Guard) {
+  return async function request<T>(path: string, opts: Options = {}): Promise<{ data: T; meta: Meta }> {
+    const method = opts.method ?? 'GET';
+    const url = new URL(BASE + path);
+
+    for (const [k, v] of Object.entries(opts.query ?? {})) {
+      if (v !== undefined) url.searchParams.set(k, String(v));
+    }
+
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+      'Accept-Language': 'ar',
+    };
+
+    const token = tokenStore.get(guard);
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+
+    if (WRITE.has(method) && !opts.noIdempotency) {
+      if (!opts.idempotencyKey) {
+        // Fail loudly here rather than let the server answer 400.
+        throw new Error(`${method} ${path} needs an idempotencyKey (see idempotency.ts)`);
+      }
+      headers['X-Idempotency-Key'] = opts.idempotencyKey;
+    }
+
+    const res = await fetch(url, {
+      method, headers, signal: opts.signal,
+      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+    });
+
+    if (res.status === 204) return { data: undefined as T, meta: { server_time: '' } };
+
+    const json = (await res.json()) as Envelope<T>;
+
+    if (!res.ok || isFail(json)) {
+      const e = isFail(json)
+        ? json.error
+        : { code: 'unknown', message: res.statusText, permission: undefined, details: undefined };
+      throw new ApiError(e.code, e.message, res.status, e.permission, e.details);
+    }
+    return json;
+  };
+}
+```
+
+**Why `idempotencyKey` is required rather than defaulted:** a default would be silently
+wrong on every retry. A thrown error in development is cheaper than duplicate writes in
+production.
+
+### 2.7 Reacting to errors, once
+
+```tsx
+'use client';
+import { QueryClient } from '@tanstack/react-query';
+import { ApiError } from '@b2b/api-client';
+
+const qc = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (count, err) =>
+        err instanceof ApiError
+          ? !err.isAuthLoss && !err.isWrongGuard && err.status !== 403 && err.status !== 404 && count < 2
+          : count < 2,
+    },
+    mutations: { retry: false },      // retries are the user's decision — same key, their press
+  },
+});
+```
+
+```ts
+function onApiError(e: ApiError, router: AppRouterInstance) {
+  if (e.isAuthLoss)   { tokenStore.clear('channel'); router.replace('/login'); return; }
+  if (e.isWrongGuard) { console.error('Wrong guard — this dashboard called another guard\'s path', e); return; }
+  if (e.code === 'insufficient_permission') { /* hide the control; e.permission names it */ return; }
+  if (e.code === 'illegal_transition') { /* refetch — the order moved on */ return; }
+  if (e.code === 'insufficient_stock')  { /* show the shortfall; do not retry blindly */ return; }
+}
+```
+
+⚠️ `wrong_guard` must **not** clear the token. It means this dashboard called a path
+belonging to another guard; logging out hides the bug and the user re-authenticates into
+the same failure.
+
+### 2.8 `can.ts` — gate every control
+
+Permissions arrive from `verify-otp` (§3). Every control is gated on the list, never on a
+role name.
+
+```ts
+export function makeCan(permissions: readonly string[]) {
+  const set = new Set(permissions);
+  return (code: string) => set.has(code);
+}
+```
+
+```tsx
+{can('sc.orders.confirm') && <ConfirmButton id={id} />}
+```
+
+Hiding a control is not security — the server checks again — but it is the difference
+between a usable dashboard and one that answers 403 on every click.
+
+This guard uses **28 distinct `sc.*` permissions** — see the tables in §4. A user with
+`sc.catalog.view` but not `sc.catalog.create` must not see an Add Product button at all.
+
+### 2.9 A resource module
+
+```ts
+// resources/sub-orders.ts
+import { makeClient } from '../client';
+const api = makeClient('channel');
+
+export interface SubOrderRow { id: number; sub_order_no: string; status: string; zone_id: number | null; total: number }
+
+export const listSubOrders = (q: { page?: number; per_page?: number; 'filter[status]'?: string }) =>
+  api<SubOrderRow[]>('/channel/sub-orders', { query: q });
+
+export const confirmSubOrder = (id: number, idempotencyKey: string) =>
+  api<{ status: string; picking_list_id: number | null }>(`/channel/sub-orders/${id}/confirm`, {
+    method: 'POST', idempotencyKey,
+  });
+```
+
+Login is the one place `noIdempotency` is correct — see §3.
+
+### 2.10 Money
+
+```ts
+export const formatMoney = (amount: number, decimals = 0) =>
+  new Intl.NumberFormat('ar-SY', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    .format(decimals === 0 ? amount : amount / 10 ** decimals);
+```
+
+Integers in the smallest unit. SYP has **0 decimals**, so the integer is the number you
+display. Never `/ 100` by reflex.
+
+⚠️ **One exception on this guard:** `/channel/zones` returns `delivery_fee` and
+`min_order_value` as **decimal strings** (`"12.50"`), not integers. Do not run them through
+`formatMoney`. See §4.8.
+
+---
+
+## 3. A token in two minutes
 
 ```bash
 # 1. request an OTP (no auth, NO idempotency key)
@@ -84,16 +511,16 @@ mobile OTP. Hardcode the known values: TTL **300 s**, cooldown **60 s**, **5** a
 
 ---
 
-## 3. Endpoint reference
+## 4. Endpoint reference
 
 `Stability`: **stable** = registered at its contract path · **moving** = registered
-elsewhere, will move · **missing** = catalogued, no route (§5).
+elsewhere, will move · **missing** = catalogued, no route (§7).
 
 📌 Five channel routes are live but appear in **no catalog entry at all** — the settings
 pair and the three zone routes. They are marked `stable*`. They are real and callable; the
 catalog has not caught up, exactly as `CLAUDE.md` describes for `sc.notify.view`.
 
-### 3.1 Auth and settings
+### 4.1 Auth and settings
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
@@ -117,7 +544,7 @@ explicitly.
 `settings`. ⚠️ `slug` and `status` are **not** editable here — only the platform can change
 them.
 
-### 3.2 Catalog
+### 4.2 Catalog
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
@@ -241,7 +668,7 @@ identical — the `job_id` is never returned**, so a real import is unobservable
 UI. Warn the user before they run it.
 ⚠️ `type` is validated then ignored.
 
-### 3.3 Pricing
+### 4.3 Pricing
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
@@ -302,10 +729,10 @@ Filters: `filter[product_id]`, `filter[user_id]`, `filter[date]`.
 📌 **Setting this matters:** with no limit row a rep's cap is **0**, and every discount they
 attempt is rejected. If reps report "discount always fails", this is why.
 ⚠️ `max_cash_hold` is stored but **unenforceable today** — the rep wallet endpoints do not
-exist (see [rep.md §5](./rep.md#5-not-built--do-not-mock)).
+exist (see [rep.md §7](./rep.md#7-not-built--do-not-mock)).
 Errors: `422 validation_failed` keyed on **`id`** when the rep is not in your channel.
 
-### 3.4 Offers
+### 4.4 Offers
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
@@ -353,7 +780,7 @@ promotion sold nothing.
 `{"status":"stopped"}`. ⚠️ No state guard — stopping a draft or an already-stopped offer
 succeeds.
 
-### 3.5 Inventory
+### 4.5 Inventory
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
@@ -398,7 +825,7 @@ variant_id?, point}]}` → `{ "updated": 5 }`.
 ⚠️ **Not transactional** — items before a failing index are already saved. The 422 names
 the failing index (`items.{i}.…`); re-send the remainder.
 
-### 3.6 Sub-orders — the operational core
+### 4.6 Sub-orders — the operational core
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
@@ -501,7 +928,7 @@ persisted. Also 409 once the handover is confirmed.
 📌 The action is called *schedule* but the resulting status is **`postponed`**. Label the
 button accordingly. `reason` is not persisted.
 
-### 3.7 Returns
+### 4.7 Returns
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
@@ -518,7 +945,7 @@ on `status === "pending"` yourself.
 📌 An approved return then goes to the warehouse to be sorted — see
 [warehouse-web.md](./warehouse-web.md).
 
-### 3.8 Zones — ⚠️ money is a string here
+### 4.8 Zones — ⚠️ money is a string here
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
@@ -549,7 +976,153 @@ null. Read it defensively.
 
 ---
 
-## 4. What to build, in order
+## 5. The HTTP contract
+
+Everything in this section applies to every call above. It is the same contract the other
+four clients obey, restated here so you never need another file.
+
+### 5.1 The envelope
+
+Success carries `data` and always `meta.server_time`:
+
+```jsonc
+{ "data": { }, "meta": { "server_time": "2026-09-07T12:00:00+03:00" } }
+```
+
+A paginated list:
+
+```jsonc
+{ "data": [ ],
+  "meta": { "server_time": "…", "page": 1, "per_page": 25, "total": 412, "last_page": 17 } }
+```
+
+An error — note it has **no `data` and no `meta`**:
+
+```jsonc
+{ "error": { "code": "insufficient_permission", "message": "…",
+             "permission": "sc.orders.confirm", "details": { } } }
+```
+
+`permission` appears only on a 403 from the permission middleware. `204` responses have an
+**empty body** — do not parse an envelope from them.
+
+**Bind your UI to `data`. Branch on `error.code`, never on `error.message`** — the message
+is localised for display and will change.
+
+### 5.2 Headers
+
+Only three custom headers are read by the server. Send the rest for your own logs.
+
+| Header | When | Value | Read by the server? |
+|---|---|---|---|
+| `Accept` | always | `application/json` | yes |
+| `Accept-Language` | always | `ar` \| `en` | **yes** — anything else falls back to `ar` |
+| `Authorization` | after login | `Bearer {token}` | yes |
+| `X-Idempotency-Key` | every write | UUID per user intent | **yes** |
+| `X-Channel-Id` | — | channel id | **yes, but **ignored for you** — see below** |
+| `X-Client` | always | `channel-web` | **no** — ignored today |
+| `X-App-Version` | always | semver | **no** — ignored today |
+
+⚠️ **`X-Channel-Id` does nothing for a channel user.** `ResolveTenant` honours it only for
+`platform_admin`. Your tenant comes from your own membership, and the header is silently
+ignored — not an error, just no effect. A user in several channels **cannot switch**.
+
+⚠️ `X-Client` and `X-App-Version` are read by **no** middleware.
+
+### 5.3 Idempotency
+
+`EnsureIdempotency` is appended to the whole `api` group, so **every** `POST`, `PUT`,
+`PATCH` and `DELETE` needs `X-Idempotency-Key`. A missing header fails before your
+controller is reached with `400 idempotency_key_required`.
+
+The key is hashed from **method + path + body**:
+
+| You do | Server does |
+|---|---|
+| Same key, same body, previous call finished 2xx | Replays the stored response, adds `Idempotent-Replayed: true` |
+| Same key, **different body** | `409 idempotency_key_conflict` |
+| Same key, first call still running | `409 operation_in_progress` |
+
+So a key belongs to a **user intent**, not an HTTP attempt. Keep it in form state, not in
+the fetch wrapper (§2.5).
+
+Stored responses live **24 hours**. Only 2xx are stored — a failed write releases its key
+immediately, so the user can correct the form and resubmit under the same key.
+
+**Exempt paths — for this dashboard, exactly two:**
+
+```
+channel/auth/request-otp
+channel/auth/verify-otp
+```
+
+Omit the header on those. Send it everywhere else, including logout.
+
+📌 Several writes here are **not transactional** — `transfers`, `reorder-points` and
+`assign` can leave partial state behind a 409/422. Re-fetch after any error rather than
+assuming a rollback.
+
+### 5.4 The error catalogue
+
+| HTTP | `error.code` | What the dashboard does |
+|---|---|---|
+| 400 | `idempotency_key_required` | Your bug — you omitted the header |
+| 401 | `unauthenticated` | No usable token → login |
+| 401 | `token_revoked` | Token deleted or expired → drop it, login |
+| 403 | `wrong_guard` | A live token from another guard — **do not** re-login |
+| 403 | `insufficient_permission` | `error.permission` names the missing grant → hide the control |
+| 409 | `insufficient_stock` | Reservation failed. Show the shortfall; do not retry blindly |
+| 404 | `not_found` | Missing **or not yours** — render as missing, never "forbidden" |
+| 409 | `illegal_transition` | The entity is not in a state that allows this. Refetch and re-render |
+| 409 | `operation_in_progress` | Wait, retry the **same** key |
+| 409 | `stale_version` | Someone wrote first → refetch, show a conflict, do not clobber |
+| 409 | `idempotency_key_conflict` | Same key, different body — your bug |
+| 422 | `validation_failed` | Map `details.{field}` onto inputs |
+| 422 | `ref_in_use` | A reference is used elsewhere; disable instead of deleting |
+| 423 | `plan_limit_exceeded` | Banner, stop the spinner, do not retry |
+| 429 | `rate_limited` | Back off |
+| 503 | `maintenance_mode` | Maintenance screen |
+
+On `422` the **first** message is flattened into `error.message`, so you can show something
+useful without walking `details`. A raw Laravel validation payload never reaches you, and
+no endpoint returns HTML.
+
+### 5.5 Timestamps
+
+Every timestamp is ISO-8601 in **`Asia/Damascus`** (`+03:00`), already converted. Do not
+apply an offset on the client. Prefer `meta.server_time` over the browser clock for
+anything the server will judge.
+
+⚠️ **One exception:** `created_at` on `GET /channel` (your own channel profile) is emitted
+in **UTC**, not Damascus. Handle it explicitly. See §4.1.
+
+### 5.6 Money
+
+**Every amount is an integer in the smallest currency unit.** No floats anywhere.
+
+- **SYP has 0 decimals**, so the integer *is* the displayed number. Never `/ 100`.
+- Never compute a total locally and treat it as truth — re-read the server's total.
+- Rounding happens on the server. If your arithmetic disagrees, yours is wrong.
+
+⚠️ **One exception on this guard:** `/channel/zones` returns `delivery_fee` and
+`min_order_value` as **decimal strings** (`"12.50"`). Everything else is an integer. See §4.8.
+
+### 5.7 Lists
+
+| Param | Default | Notes |
+|---|---|---|
+| `page` | 1 | |
+| `per_page` | **25** | **hard max 100 — a larger value is silently clamped**, not rejected |
+| `filter[x]` | — | bracket syntax, e.g. `filter[status]=pending` |
+
+⚠️ **Never send `sort`** on any list here — no `allowedSorts` is declared anywhere on this
+guard and Spatie throws. Order is `-created_at`.
+
+⚠️ `GET /channel/return-requests` is a **plain array**: unpaginated, unfiltered, growing
+unbounded. Paginate it client-side.
+
+---
+## 6. What to build, in order
 
 | # | Screen | Endpoints | Notes |
 |---|---|---|---|
@@ -574,13 +1147,13 @@ null. Read it defensively.
 | 19 | Returns inbox | `return-requests`, `decide` | gate on `status === pending` yourself |
 | 20 | Offers | `offers`, `POST`, `stop` | require a reward product; **no analytics** |
 
-Do not build the offer analytics screen (§3.4) or anything in §5.
+Do not build the offer analytics screen (§4.4) or anything in §5.
 
 ---
 
-## 5. Not built — do not mock
+## 7. Not built — do not mock
 
-**`GET /channel/offers/{id}/performance` is live but returns hardcoded zeros** (§3.4).
+**`GET /channel/offers/{id}/performance` is live but returns hardcoded zeros** (§4.4).
 That is worse than missing: it looks like data. Do not chart it.
 
 Also absent from this guard, in the catalog with no route:
@@ -591,14 +1164,14 @@ Also absent from this guard, in the catalog with no route:
 | Job status for import/export/schedule | three endpoints hand you a `job_id` with nothing to poll |
 | Channel finance — invoices, statements, settlements | SP-13; nothing on this guard |
 | Channel reporting and dashboards | SP-17; the largest missing block (63 endpoints) |
-| Rep wallet oversight | `max_cash_hold` is settable but unenforceable — see [rep.md §5](./rep.md#5-not-built--do-not-mock) |
+| Rep wallet oversight | `max_cash_hold` is settable but unenforceable — see [rep.md §7](./rep.md#7-not-built--do-not-mock) |
 
 Every one of these 404s today. Keep a route shell if you like, but disable submit and
 never invent numbers — a fabricated sales figure is worse than an empty screen.
 
 ---
 
-## 6. Gotchas
+## 8. Gotchas
 
 | # | Where | Watch out |
 |---|---|---|

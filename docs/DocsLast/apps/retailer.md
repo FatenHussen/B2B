@@ -1,7 +1,7 @@
 # Retailer app (Flutter)
 
-Everything needed to build the shop-owner app. Self-contained: you should not need
-another file except the shared contract and the Dart kit.
+**This is the only file you need.** Backend setup, the Dart package, the HTTP contract and
+every endpoint — all of it is here. No other document is required to build this app.
 
 | | |
 |---|---|
@@ -10,32 +10,429 @@ another file except the shared contract and the Dart kit.
 | Guard | `app` (Sanctum bearer) |
 | Kind gate | `RequireAppKind:retailer` on every `/app/retailer/*` route |
 | `X-Client` | `retailer-android` / `retailer-ios` *(sent for logs; the server ignores it)* |
-| Seed account | **none** — create one with an OTP for any Syrian number (§2) |
-| Shared kit | [../03-flutter-client.md](../03-flutter-client.md) |
-| Contract | [../01-http-contract.md](../01-http-contract.md) |
+| Seed account | **none** — create one with an OTP for any Syrian number (§3) |
 
 Verified against `php artisan route:list` and the controller/action source on
 **2026-09-07**. Where the API catalog disagrees with this page, the code wins.
 
-**26 endpoints are live for this app.** Everything about *goods* — browse, cart, submit,
+**37 endpoints are reachable from this app** — 28 under `/app/retailer`, 5 shared `/app/*`,
+the 3 public OTP calls and `/health`. Everything about *goods* — browse, cart, submit,
 track, receive, return — is built. Everything about *money*, *offline sync* and
-*engagement* is not (§5).
+*engagement* is not (§7).
+
+### Contents
+
+| § | |
+|---|---|
+| 1 | Running the backend |
+| 2 | The Flutter package — working code |
+| 3 | A token in two minutes, and the trap that costs a week |
+| 4 | Endpoint reference |
+| 5 | The HTTP contract — envelope, errors, money |
+| 6 | What to build, in order |
+| 7 | Not built — do not mock |
+| 8 | Gotchas |
 
 ---
 
-## 1. At a glance
+## 1. Running the backend
 
+You need the API running locally before the app can do anything.
+
+### 1.1 Requirements
+
+| | Version | Note |
+|---|---|---|
+| PHP | 8.3+ | with `pdo_mysql`, `redis`, `bcmath`, `intl` |
+| MySQL | 8.0 | **port 3308**, not 3306 |
+| Redis | 7 | queues |
+| Composer | 2.x | |
+
+**Docker is not the supported path.** `docker-compose.yml` exists but the decided local
+setup is native PHP + MySQL + Redis. If you use containers anyway, publish MySQL on 3308.
+
+### 1.2 Install
+
+```bash
+git clone <repo> b2b-api && cd b2b-api
+composer install
+cp .env.example .env
+php artisan key:generate
 ```
-Base URL   http://10.0.2.2:8000/api/v1     (Android emulator; a device needs your LAN IP)
-Auth       Authorization: Bearer {token}
-Writes     X-Idempotency-Key on every POST/PATCH/DELETE except the three OTP calls
-Money      integer, minor units, SYP renders with 0 decimals
-Times      ISO-8601 Asia/Damascus, already converted
+
+```sql
+CREATE DATABASE b2b_platform      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE b2b_platform_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
+
+```bash
+php artisan migrate --seed
+php artisan serve            # http://127.0.0.1:8000
+curl -s http://127.0.0.1:8000/api/v1/health
+# {"data":{"status":"ok",...},"meta":{"server_time":"...+03:00"}}
+```
+
+⚠️ **Port 3308 is deliberate** — it keeps this project clear of any MySQL already on 3306.
+If yours listens on 3306, set `DB_PORT=3306` in your own `.env`; never edit `.env.example`.
+
+⚠️ **Never run `php artisan migrate --env=testing`, and never `migrate:fresh` before a test
+run.** Pest migrates `b2b_platform_test` itself; passing `--env=testing` by hand has been
+observed to rebuild the *development* database and destroy your seed data.
+
+### 1.3 The seeder creates no app user
+
+`database/seeders/DatabaseSeeder.php` creates a platform admin, a channel manager and one
+supply channel — **and no `app` user at all.** Your retailer account is created by verifying
+an OTP for any Syrian phone number (§3). Do not look for seeded mobile credentials.
+
+### 1.4 OTP codes are written to the log
+
+No WhatsApp message is sent locally. `config/otp.php` defaults `OTP_CHANNEL=log`:
+
+```bash
+tail -f storage/logs/laravel.log | grep OTP
+# [OTP] register via whatsapp for +963933000000: 481923
+```
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `otp.ttl` | **300 s** | code lifetime |
+| `otp.length` | **6** | digits — `code` is validated `size:6` |
+| `otp.max_attempts` | **5** | wrong codes before the OTP dies |
+| `otp.resend_cooldown` | **60 s** | before a resend is accepted |
+
+Rate limits per hour: **3 per phone**, 10 per `X-Device-Id`, 30 per IP. Three per phone is
+easy to burn while testing — switch numbers rather than wait.
+
+### 1.5 Queues
+
+`php artisan horizon` supervises `critical`, `default`, `media`, `reports`. You rarely need
+it for this app: nothing the retailer calls is asynchronous.
 
 ---
 
-## 2. A token in two minutes — and the trap that costs a week
+## 2. The Flutter package
+
+One shared Dart package, `packages/b2b_api`. No screen builds a `Dio` call by hand.
+
+The rep app uses the identical package — only the paths differ, and the server enforces
+that with `RequireAppKind`.
+
+### 2.1 Stack
+
+| Concern | Choice |
+|---|---|
+| HTTP | `dio` |
+| Storage | `flutter_secure_storage` (token), `shared_preferences` (rest) |
+| Ids | `uuid` |
+| State | your choice — the package is state-agnostic |
+
+```yaml
+dependencies:
+  dio: ^5.4.0
+  flutter_secure_storage: ^9.0.0
+  uuid: ^4.3.0
+```
+
+The API is Arabic-first: `Accept-Language: ar` unless the user chose otherwise, and every
+screen is RTL.
+
+```
+packages/b2b_api/lib/
+  b2b_api.dart          exports
+  src/
+    envelope.dart       Ok / Meta parsing
+    api_error.dart      ApiError + codes
+    token_store.dart    secure token + abilities
+    idempotency.dart    key store bound to a user intent
+    client.dart         the single Dio
+    resources/          one file per surface
+```
+
+### 2.2 `envelope.dart`
+
+```dart
+class Meta {
+  final String serverTime;
+  final int? page, perPage, total, lastPage;
+  final String? nextCursor, prevCursor;
+  final bool? hasMore;
+
+  const Meta({required this.serverTime, this.page, this.perPage, this.total,
+              this.lastPage, this.nextCursor, this.prevCursor, this.hasMore});
+
+  factory Meta.fromJson(Map<String, dynamic> j) => Meta(
+        serverTime: j['server_time'] as String? ?? '',
+        page: j['page'] as int?,
+        perPage: j['per_page'] as int?,
+        total: j['total'] as int?,
+        lastPage: j['last_page'] as int?,
+        nextCursor: j['next_cursor'] as String?,
+        prevCursor: j['prev_cursor'] as String?,
+        hasMore: j['has_more'] as bool?,
+      );
+}
+
+class Ok<T> {
+  final T data;
+  final Meta meta;
+  const Ok(this.data, this.meta);
+}
+```
+
+### 2.3 `api_error.dart`
+
+```dart
+class ApiError implements Exception {
+  final String code;
+  final String message;
+  final int status;
+  final String? permission;
+  final Map<String, dynamic>? details;
+
+  const ApiError(this.code, this.message, this.status, {this.permission, this.details});
+
+  /// Token is worthless — clear it and return to the OTP screen.
+  bool get isAuthLoss => code == 'unauthenticated' || code == 'token_revoked';
+
+  /// A live token belonging to ANOTHER guard. Re-login does not fix it.
+  bool get isWrongGuard => code == 'wrong_guard';
+
+  /// The same request may be retried with the SAME idempotency key.
+  bool get isRetryable => code == 'operation_in_progress';
+
+  /// Field -> first message, for form binding.
+  Map<String, String> fieldErrors() {
+    final out = <String, String>{};
+    details?.forEach((k, v) {
+      if (v is List && v.isNotEmpty) out[k] = v.first.toString();
+    });
+    return out;
+  }
+
+  @override
+  String toString() => 'ApiError($code, $status): $message';
+}
+```
+
+### 2.4 `token_store.dart` — store the abilities, not just the token
+
+A freshly verified OTP for an unregistered user returns a token whose only ability is
+`registration`. Every other call 403s until you re-verify (§3), so persist that fact.
+
+```dart
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class TokenStore {
+  static const _s = FlutterSecureStorage();
+  static const _kToken = 'b2b.app.token';
+  static const _kRegistrationOnly = 'b2b.app.registration_only';
+
+  Future<String?> read() => _s.read(key: _kToken);
+
+  /// [registrationOnly] must be true when the API said profile_completed == false.
+  Future<void> save(String token, {required bool registrationOnly}) async {
+    await _s.write(key: _kToken, value: token);
+    await _s.write(key: _kRegistrationOnly, value: registrationOnly.toString());
+  }
+
+  /// True when this token can ONLY reach the two register routes.
+  Future<bool> isRegistrationOnly() async =>
+      (await _s.read(key: _kRegistrationOnly)) == 'true';
+
+  Future<void> clear() async {
+    await _s.delete(key: _kToken);
+    await _s.delete(key: _kRegistrationOnly);
+  }
+}
+```
+
+### 2.5 `idempotency.dart` — a key per intent, not per request
+
+Every write needs `X-Idempotency-Key`. The key belongs to a **user intent** — one tap of
+Submit — not to an HTTP attempt. This matters more on mobile than anywhere else: a request
+that times out on a train has very often already been executed.
+
+```dart
+import 'package:uuid/uuid.dart';
+
+class IdempotencyKeys {
+  static const _uuid = Uuid();
+  final _keys = <String, String>{};
+
+  /// Same intentId in, same key out — while the intent is unresolved.
+  String forIntent(String intentId) => _keys.putIfAbsent(intentId, _uuid.v4);
+
+  /// Call ONLY after the intent succeeded, or the user abandoned it.
+  void release(String intentId) => _keys.remove(intentId);
+}
+```
+
+Bind it to the button:
+
+```dart
+class _SubmitCartButtonState extends State<SubmitCartButton> {
+  late final String _intentId = 'cart.submit.${widget.cartId}';
+  bool _busy = false;
+
+  Future<void> _submit() async {
+    setState(() => _busy = true);
+    try {
+      // Tap ten times on a bad connection: one order.
+      await api.submitCart(idempotencyKey: keys.forIntent(_intentId));
+      keys.release(_intentId);
+    } on ApiError catch (e) {
+      if (e.isRetryable) {
+        _toast('Still processing — try again.');   // same key on the next tap
+      } else {
+        _toast(e.message);
+      }
+      // Deliberately NOT released.
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+}
+```
+
+⚠️ Never mint the key inside the Dio interceptor. A key per request turns one submit into
+several orders — the exact failure the header exists to prevent.
+
+⚠️ Persist unresolved keys if you want retry-after-restart. An in-memory map loses the key
+when the app is killed mid-submit, and the retry then creates a second order.
+
+### 2.6 `client.dart`
+
+```dart
+import 'package:dio/dio.dart';
+
+const _writeMethods = {'POST', 'PUT', 'PATCH', 'DELETE'};
+
+/// Paths that must NOT carry an idempotency key (config/core.php: idempotency_exempt).
+const _exempt = {
+  '/public/auth/request-otp',
+  '/public/auth/verify-otp',
+  '/public/auth/resend-otp',
+};
+
+class B2bApi {
+  final Dio _dio;
+  final TokenStore _tokens;
+
+  B2bApi({required String baseUrl, required TokenStore tokens, required String deviceId})
+      : _tokens = tokens,
+        _dio = Dio(BaseOptions(
+          baseUrl: baseUrl,                       // http://10.0.2.2:8000/api/v1 on the emulator
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 30),
+          headers: {'Accept': 'application/json', 'Accept-Language': 'ar'},
+          validateStatus: (_) => true,            // we read the envelope ourselves
+        )) {
+    _dio.interceptors.add(InterceptorsWrapper(onRequest: (o, h) async {
+      final token = await _tokens.read();
+      if (token != null) o.headers['Authorization'] = 'Bearer $token';
+      o.headers['X-Device-Id'] = deviceId;        // stable per install; OTP rate limiting uses it
+      h.next(o);
+    }));
+  }
+
+  Future<Ok<T>> request<T>(
+    String path, {
+    String method = 'GET',
+    Object? body,
+    Map<String, dynamic>? query,
+    String? idempotencyKey,
+  }) async {
+    final headers = <String, dynamic>{};
+
+    if (_writeMethods.contains(method) && !_exempt.contains(path)) {
+      if (idempotencyKey == null) {
+        // Fail here, loudly, rather than let the server answer 400.
+        throw StateError('$method $path requires an idempotencyKey');
+      }
+      headers['X-Idempotency-Key'] = idempotencyKey;
+    }
+
+    final res = await _dio.request<dynamic>(
+      path,
+      data: body,
+      queryParameters: query,
+      options: Options(method: method, headers: headers),
+    );
+
+    if (res.statusCode == 204) {
+      return Ok<T>(null as T, const Meta(serverTime: ''));
+    }
+
+    final json = res.data as Map<String, dynamic>;
+
+    if (json.containsKey('error')) {
+      final e = json['error'] as Map<String, dynamic>;
+      throw ApiError(
+        e['code'] as String? ?? 'unknown',
+        e['message'] as String? ?? '',
+        res.statusCode ?? 0,
+        permission: e['permission'] as String?,
+        details: e['details'] as Map<String, dynamic>?,
+      );
+    }
+
+    return Ok<T>(json['data'] as T, Meta.fromJson(json['meta'] as Map<String, dynamic>? ?? {}));
+  }
+}
+```
+
+📌 `10.0.2.2` is the Android emulator's alias for the host machine. A physical device needs
+your LAN address; `localhost` reaches the phone itself and will always time out.
+
+### 2.7 Handling errors once
+
+```dart
+Future<void> onApiError(ApiError e) async {
+  if (e.isAuthLoss) {
+    await tokens.clear();
+    router.go('/otp');
+    return;
+  }
+  if (e.code == 'insufficient_permission') {
+    // On this guard the usual cause is a registration-only token, NOT a missing grant.
+    if (await tokens.isRegistrationOnly()) { router.go('/register'); return; }
+  }
+  if (e.code == 'rate_limited') { /* back off — OTP is 3/phone/hour */ return; }
+  if (e.code == 'not_found')    { /* gone or not yours — never say "forbidden" */ return; }
+  if (e.code == 'upgrade_required') { /* force-update screen */ return; }
+  showToast(e.message);
+}
+```
+
+⚠️ `not_found` also means "not yours". The API never discloses that a resource exists but
+belongs to someone else — render it as missing, never as a permission problem.
+
+### 2.8 Money
+
+```dart
+String formatMoney(int amount, {int decimals = 0}) {
+  if (decimals == 0) return NumberFormat.decimalPattern('ar').format(amount);
+  return NumberFormat.decimalPattern('ar').format(amount / pow(10, decimals));
+}
+```
+
+Integers in the smallest unit. **SYP has 0 decimals**, so the integer is the number you
+show. Never `/ 100` by reflex, and never total a cart locally for display — re-read the
+server's total after every mutation.
+
+### 2.9 Offline
+
+There is **no sync endpoint** — `/app/sync/*` all 404 (§7). An offline outbox has nowhere
+to drain. Build **online-first**: cache reads and queue writes locally if you like, but
+never ship a UI that promises deferred delivery.
+
+📌 The retailer app has **no** `client_op_id` mechanism. The idempotency header is your only
+replay protection. (One rep endpoint has one; nothing here does.)
+
+---
+
+## 3. A token in two minutes — and the trap that costs a week
 
 ### ⚠️ Read this before writing the login screen
 
@@ -65,7 +462,7 @@ request-otp → verify-otp  (token: registration-only)
 
 Branch on `profile_completed` in the verify response, never on "do I have a token".
 Persist that flag with the token — see `TokenStore` in the
-[Flutter kit](../03-flutter-client.md#5-token_storedart).
+§2.4.
 
 Symptom if you get this wrong: login appears to work, then **every** product call returns
 403, and clearing storage and logging in again reproduces it exactly.
@@ -131,12 +528,12 @@ before you ship.
 
 ---
 
-## 3. Endpoint reference
+## 4. Endpoint reference
 
 `Stability`: **stable** = registered at its contract path · **moving** = registered
-elsewhere, will move · **missing** = catalogued, no route (§5).
+elsewhere, will move · **missing** = catalogued, no route (§7).
 
-### 3.1 Auth and session
+### 4.1 Auth and session
 
 | EP-ID | Method | Path | Stability | Notes |
 |---|---|---|---|---|
@@ -191,7 +588,7 @@ Remember: this does **not** upgrade your token (§2).
 `feature_flags` comes from config and both flags are `false`; honour them (both features
 are unbuilt anyway).
 
-### 3.2 Catalog
+### 4.2 Catalog
 
 | EP-ID | Method | Path | Stability |
 |---|---|---|---|
@@ -228,7 +625,7 @@ for `sc.notify.view`.
 `pending_sync`, `banner`, every `quick_actions[].count`, all three `stats`, and
 `dynamic_sliders` are literal `0`/`null`/`[]` in the source. They are not "currently
 empty"; nothing computes them. Show nothing rather than a zero that looks real —
-especially `total_debt`, since the whole finance surface is unbuilt (§5).
+especially `total_debt`, since the whole finance surface is unbuilt (§7).
 
 `categories` and `offers_slider`/`brands_slider` **are** real.
 
@@ -300,7 +697,7 @@ categories[], sliders}`. ⚠️ **No `id` key**, and `sliders` is always
 `{product_id, note?}` → `{id}`; `DELETE /{id}` returns **200** `{success:true}`, not 204.
 A product outside your catalog → `422` with `details.product_id`.
 
-### 3.3 Cart
+### 4.3 Cart
 
 | EP-ID | Method | Path | Stability |
 |---|---|---|---|
@@ -375,7 +772,7 @@ note back if you want to keep it.
 Errors: `422 validation_failed` (empty cart), `409 offer_no_longer_valid` (an offer died
 during submit; suppressed when `offline_created: true`).
 
-### 3.4 Orders, receipts, returns
+### 4.4 Orders, receipts, returns
 
 | EP-ID | Method | Path | Stability |
 |---|---|---|---|
@@ -466,7 +863,7 @@ possible**); `label` is identical to `key` — **you must localise stage names y
             "receipt_no": "…", "ask_payment": true } }
 ```
 
-⚠️ `ask_payment` is hardcoded `true` — but **there is no payments endpoint** (§5), so it
+⚠️ `ask_payment` is hardcoded `true` — but **there is no payments endpoint** (§7), so it
 cannot lead anywhere yet. Do not open a payment screen.
 ⚠️ `409 illegal_transition` until the rep has confirmed the warehouse handover — that is
 `delivery.no_handover`, not a bug in your request.
@@ -480,7 +877,7 @@ only.
 ⚠️ The rating attaches to that rep's **most recent delivered delivery globally**, not
 necessarily one of yours. Offer it only right after your own delivery.
 
-### 3.5 Pricing and offers (shared with the rep app)
+### 4.5 Pricing and offers (shared with the rep app)
 
 | EP-ID | Method | Path | Stability |
 |---|---|---|---|
@@ -525,7 +922,137 @@ name, no image; resolve them yourself. `remaining_qty` is `null` for uncapped of
 
 ---
 
-## 4. What to build, in order
+## 5. The HTTP contract
+
+Everything in this section applies to every call above. It is the same contract the other
+four clients obey, restated here so you never need another file.
+
+### 5.1 The envelope
+
+Success carries `data` and always `meta.server_time`:
+
+```jsonc
+{ "data": { }, "meta": { "server_time": "2026-09-07T12:00:00+03:00" } }
+```
+
+A paginated list:
+
+```jsonc
+{ "data": [ ],
+  "meta": { "server_time": "…", "page": 1, "per_page": 25, "total": 412, "last_page": 17 } }
+```
+
+An error — note it has **no `data` and no `meta`**:
+
+```jsonc
+{ "error": { "code": "validation_failed", "message": "…", "details": { "phone": ["…"] } } }
+```
+
+`204` responses have an **empty body** — do not parse an envelope from them.
+
+**Bind your UI to `data`. Branch on `error.code`, never on `error.message`** — the message
+is localised for display and will change.
+
+### 5.2 Headers
+
+Only three custom headers are read by the server. Send the rest for your own logs.
+
+| Header | When | Value | Read by the server? |
+|---|---|---|---|
+| `Accept` | always | `application/json` | yes |
+| `Accept-Language` | always | `ar` \| `en` | **yes** — anything else falls back to `ar` |
+| `Authorization` | after login | `Bearer {token}` | yes |
+| `X-Idempotency-Key` | every write | UUID per user intent | **yes** |
+| `X-Device-Id` | always | stable per install | **yes** — OTP rate limiting |
+| `X-Client` | always | `retailer-android` | **no** — ignored today |
+| `X-App-Version` | always | semver | **no** — ignored today |
+
+⚠️ `X-Client` and `X-App-Version` are read by **no** middleware. Nothing varies by them, so
+`426 upgrade_required` cannot currently be triggered by version — do not build a
+force-update flow on them yet.
+
+### 5.3 Idempotency
+
+`EnsureIdempotency` is appended to the whole `api` group, so **every** `POST`, `PUT`,
+`PATCH` and `DELETE` needs `X-Idempotency-Key`. A missing header fails before your
+controller is reached with `400 idempotency_key_required`.
+
+The key is hashed from **method + path + body**:
+
+| You do | Server does |
+|---|---|
+| Same key, same body, previous call finished 2xx | Replays the stored response, adds `Idempotent-Replayed: true` |
+| Same key, **different body** | `409 idempotency_key_conflict` |
+| Same key, first call still running | `409 operation_in_progress` |
+
+Stored responses live **24 hours**. Only 2xx are stored — a failed write releases its key
+immediately, so the user can fix a validation error and resubmit under the same key.
+
+**Exempt paths — for this app, exactly three:**
+
+```
+public/auth/request-otp
+public/auth/verify-otp
+public/auth/resend-otp
+```
+
+Omit the header on those. Send it everywhere else, including logout.
+
+### 5.4 The error catalogue
+
+| HTTP | `error.code` | What the app does |
+|---|---|---|
+| 400 | `idempotency_key_required` | Your bug — you omitted the header |
+| 401 | `unauthenticated` | No usable token → OTP screen |
+| 401 | `token_revoked` | Token deleted or expired → drop it, OTP screen |
+| 401 | `otp_invalid` | Wrong/expired code → clear the field, **never** auto-resend |
+| 403 | `wrong_guard` | A live token from another guard — **do not** re-login |
+| 403 | `insufficient_permission` | Usually a **registration-only token** on this guard (§3), or the wrong app kind |
+| 403 | `profile_incomplete` | Registration not finished → register screen |
+| 404 | `not_found` | Missing **or not yours** — render as missing, never "forbidden" |
+| 409 | `illegal_transition` | The order is not in a state that allows this. Refetch |
+| 409 | `operation_in_progress` | Wait, retry the **same** key |
+| 409 | `offer_no_longer_valid` | An offer died during submit |
+| 409 | `idempotency_key_conflict` | Same key, different body — your bug |
+| 422 | `validation_failed` | Map `details.{field}` onto inputs |
+| 422 | `product_not_available` | Product outside your catalog; `details.product_id` |
+| 423 | `plan_limit_exceeded` | Stop the spinner; do not retry |
+| 429 | `rate_limited` | Back off — OTP is 3/phone/hour |
+| 503 | `maintenance_mode` | Maintenance screen |
+
+On `422` the **first** message is flattened into `error.message`, so you can show something
+useful without walking `details`. A raw Laravel validation payload never reaches you, and
+no endpoint returns HTML.
+
+### 5.5 Timestamps
+
+Every timestamp is ISO-8601 in **`Asia/Damascus`** (`+03:00`), already converted. Do not
+apply an offset on the client. Prefer `meta.server_time` over the device clock for
+anything the server will judge — expiries, cooldowns, ordering.
+
+### 5.6 Money
+
+**Every amount is an integer in the smallest currency unit.** No floats anywhere.
+
+- **SYP has 0 decimals**, so the integer *is* the displayed number. Never `/ 100`.
+- Never compute a total locally and treat it as truth — re-read the server's total after
+  every cart mutation.
+- Where the server sends a preformatted label (`price.label`), render the label.
+
+### 5.7 Lists
+
+| Param | Default | Notes |
+|---|---|---|
+| `page` | 1 | |
+| `per_page` | **25** | **hard max 100 — a larger value is silently clamped**, not rejected |
+| `filter[x]` | — | bracket syntax |
+
+⚠️ **Never send `sort`** on this app's lists — no `allowedSorts` is declared and Spatie
+throws. Two endpoints return plain unpaginated arrays: `categories` and `return-requests`.
+
+---
+
+## 6. What to build, in order
 
 Each step depends only on live endpoints.
 
@@ -550,7 +1077,7 @@ Do not build a debts chip, a loyalty header, a notifications inbox or an offline
 
 ---
 
-## 5. Not built — do not mock
+## 7. Not built — do not mock
 
 Every path below **returns 404 today**. There is no stub and no feature flag. Wire nothing
 to them, and do not fake the data "until the API is ready": a fake balance in a shop app
@@ -612,7 +1139,7 @@ See §2 — registration reference data comes post-token or bundled.
 
 ---
 
-## 6. Gotchas
+## 8. Gotchas
 
 | # | Where | Watch out |
 |---|---|---|
