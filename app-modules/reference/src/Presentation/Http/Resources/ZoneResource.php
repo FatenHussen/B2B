@@ -21,7 +21,10 @@ class ZoneResource extends JsonResource
             'governorate_id' => $this->governorate_id,
             'name' => $this->name,
             'polygon' => $this->polygon,
-            'status' => $this->status?->value,
+            // `toContract()`, not `->value`: the column stores `inactive` and the contract
+            // says `disabled`. The translation lives here and in the status request, and
+            // nowhere else — see ZoneStatus.
+            'status' => $this->status?->toContract(),
         ];
     }
 }

@@ -21,11 +21,19 @@ class Zone extends Model
     /** @use HasFactory<ZoneFactory> */
     use HasFactory;
 
+    /**
+     * `status` is absent under rule 8, as on Governorate. It moves only through
+     * EP-AD-034, which demands a reason and reports what the change affects. Leaving it
+     * fillable would let PUT /zones/{id} disable a zone as a side effect of a rename,
+     * with no reason recorded and no impact shown — and EP-AD-042B's body does not carry
+     * `status` in the first place.
+     */
     protected $fillable = [
         'governorate_id',
         'name',
+        'district',
         'polygon',
-        'status',
+        'order',
     ];
 
     protected $attributes = [
