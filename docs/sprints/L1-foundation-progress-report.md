@@ -219,6 +219,7 @@ php artisan access:verify
 
 ## 9. ملاحظة تشغيل محلي
 
-- `.env`: `DB_PORT=3308`. Docker Compose الافتراضي يعرّض MySQL على **3306** وهو غير مستخدم حالياً.
+- `.env`: `DB_PORT=3308`. لا Docker: حُذف `docker-compose.yml` و`docker/` في 2026-09-07، والحيثيات في `docs/backlog/L1/BE-F01.md`. شغّل MySQL 8 محلياً على 3308.
+- قاعدة الاختبار `b2b_platform_test` مسمّاة في `phpunit.xml` وحده، ولا يوجد `.env.testing` — فـ `artisan --env=testing` يرتدّ إلى `.env` ويصيب قاعدة التطوير. `RefreshDatabase` وحدها تُهاجر قاعدة الاختبار.
 - خدمة Windows `mysql` متوقفة يدوياً؛ التشغيل عبر `C:\xampp\mysql\bin\mysqld.exe` مع `my.ini` (المنفذ 3308).
 - لا تضع حراس `platform|channel|warehouse|app` داخل `sanctum.guard`.

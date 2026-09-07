@@ -18,7 +18,7 @@ The client tickets live in the separate frontend repository.
 
 ## Do these five before anything else
 
-1. `BE-F01` repository, Docker and the four environments
+1. `BE-F01` repository and the three environments
 2. `BE-F02` module scaffold with Composer path repositories
 3. `BE-F03` Deptrac dependency rules in CI
 4. `BE-F04` Pest architecture tests

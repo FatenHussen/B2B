@@ -1,6 +1,6 @@
 ---
 id: BE-F01
-title: Repository, Docker and the four environments
+title: Repository and the three environments
 layer: L1
 side: Backend
 module: —
@@ -15,12 +15,21 @@ events: []
 blocked_by: []
 ---
 
-# BE-F01 — Repository, Docker and the four environments
+# BE-F01 — Repository and the three environments
 
 ## Requirements
 
-1. Provision local Docker, test, staging (production-identical) and production environments.
-2. Laravel 11 skeleton with app/ kept deliberately thin: Kernel, Providers and Console only.
+1. Provision three environments. There are three, not four, and none of them is Docker:
+   - **Local** — a MySQL 8 running on the host on port **3308**, database `b2b_platform`,
+     user `root` with an empty password. Redis optional; the defaults that make it optional
+     are `CACHE_STORE=file`, `QUEUE_CONNECTION=database`, `FILESYSTEM_DISK=local`,
+     `MAIL_MAILER=log`. On Windows, Horizon needs `pcntl`, so use `queue:work` instead.
+   - **Test** — `b2b_platform_test` on the same host MySQL, port 3308, named only in
+     `phpunit.xml`. There is no `.env.testing`, so `artisan --env=testing` falls back to
+     `.env` and targets the *local* database; only Pest migrates the test database.
+     In CI this is a GitHub Actions `services:` MySQL container published on 3308.
+   - **Production** — a VPS, provisioned per `docs/deploy/`. Not container-based.
+2. Laravel 13 skeleton with app/ kept deliberately thin: Kernel, Providers and Console only.
 3. Coding standards: Pint for formatting, Rector for upgrades, Larastan at level 6.
 4. All business logic lives under app-modules/, never under app/.
 
@@ -28,9 +37,35 @@ blocked_by: []
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] A merge to main deploys automatically to the test environment.
+- [ ] The five gates in CLAUDE.md run on every pull request and on every push to main.
 - [ ] Larastan level 6, Pint and Rector all pass with zero findings.
 - [ ] app/ contains no controller, model or service.
+
+## Decision — Docker, settled 2026-09-07
+
+**Docker is not used, and the files that implied otherwise have been deleted:**
+`docker-compose.yml` and `docker/nginx.conf`.
+
+Four sources disagreed. The evidence settled it rather than the wording:
+
+- `.github/workflows/ci.yml` runs PHP directly on `ubuntu-latest` with a GitHub Actions
+  `services:` MySQL. It never invokes Compose.
+- No Makefile, no `scripts/`, and no `composer.json` script referenced Docker. `composer dev`
+  runs `artisan serve` on the host.
+- The compose file contradicted `.env` on the two values that matter: database `b2b` against
+  the expected `b2b_platform`, and password `root` against the empty password in use. It could
+  not have produced a working environment for this application.
+- It bound host port 3308, colliding with the local MySQL that actually serves the project.
+- Production is a VPS — see `docs/deploy/` — not a container host.
+
+Requirement 1 previously read "local Docker, test, staging (production-identical) and
+production". That was aspiration, never built: no staging environment exists and no pipeline
+deploys to one. It has been rewritten to describe what is real. Reinstating staging is a
+scope decision, not a documentation fix.
+
+Two documents already stated the conclusion in prose — `README.md` §"Docker is not used" and
+`docs/DocsLast/_shared/00-install-the-api.md` §2 — while the files sat in the tree
+contradicting them. Those sections are now accurate rather than pre-emptive.
 
 ## Working rules
 

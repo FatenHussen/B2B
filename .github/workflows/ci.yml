@@ -15,7 +15,9 @@ jobs:
           MYSQL_DATABASE: b2b_platform_test
           MYSQL_ROOT_PASSWORD: root
         ports:
-          # Host port 3308 everywhere: .env, .env.example, phpunit.xml and docker-compose agree.
+          # Host port 3308 everywhere: .env, .env.example and phpunit.xml agree. This is a
+          # GitHub Actions service container, not Compose — the project runs no Docker of
+          # its own; see docs/backlog/L1/BE-F01.md.
           - 3308:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"

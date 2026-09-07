@@ -114,7 +114,9 @@ app-modules/{name}/
 
 ## 1. SP-00 — إغلاق الأساس
 
-الموجود ويعمل: غلاف، Money، Idempotency (اختياري)، Audit، Tenant trait، 22 حزمة، Deptrac، CI، Docker Compose هيكلي، `GET /api/v1/health`.
+الموجود ويعمل: غلاف، Money، Idempotency (اختياري)، Audit، Tenant trait، 22 حزمة، Deptrac، CI، `GET /api/v1/health`.
+
+> Docker Compose كان مذكوراً هنا ضمن «الموجود ويعمل». لم يكن يعمل: قيمه تخالف `.env`، ولا CI ولا أي script يستدعيه. حُذف الملفّان في 2026-09-07 — القرار وحيثياته في `docs/backlog/L1/BE-F01.md`.
 
 يُغلق في هذا السبرنت (بدون منتج جديد):
 
