@@ -8,6 +8,7 @@ Super-admin console. Port **3000**. Largest L1 surface.
 | Guard | `platform` |
 | `X-Client` | `platform-web` |
 | Kit | [`../../_shared/react-client.md`](../../_shared/react-client.md) |
+| API reference | [`api-reference.md`](./api-reference.md) — all 41 live admin endpoints |
 | Seed | `admin@platform.sy` / `password` |
 
 | Sprint | File | Ships |
