@@ -25,6 +25,11 @@ final class EloquentRetailerDirectory implements RetailerDirectory
         ];
     }
 
+    public function countInZone(int $zoneId): int
+    {
+        return RetailerProfile::query()->where('zone_id', $zoneId)->count();
+    }
+
     public function exists(int $retailerId): bool
     {
         return RetailerProfile::query()->whereKey($retailerId)->exists();

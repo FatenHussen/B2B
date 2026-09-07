@@ -11,6 +11,20 @@ use Modules\Identity\Domain\Models\RepProfile;
 
 final class EloquentRepDirectory implements RepDirectory
 {
+    /**
+     * Distinct rep profiles serving this zone.
+     *
+     * A rep serves many zones through the `rep_profile_zones` pivot, so this counts
+     * profiles with at least one row for the zone — `whereHas`, not a join, which would
+     * count pivot rows and inflate the number for any rep listed twice.
+     */
+    public function countInZone(int $zoneId): int
+    {
+        return RepProfile::query()
+            ->whereHas('zones', fn ($q) => $q->where('zone_id', $zoneId))
+            ->count();
+    }
+
     public function exists(int $repUserId): bool
     {
         return AppUser::query()
