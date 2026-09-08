@@ -21,6 +21,9 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // `code` is dropped by 2026_09_08_100000 in favour of `iso`. This seed keeps
+        // writing it because at this point in the migration history it is the only
+        // column that exists; the later migration copies it across before dropping it.
         DB::table('currencies')->insert([
             'code' => 'SYP',
             'name' => 'الليرة السورية',

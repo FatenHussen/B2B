@@ -93,15 +93,20 @@ final class EloquentReferenceDirectory implements ReferenceDirectory
 
     public function currencyCode(int $currencyId): ?string
     {
-        $code = Currency::query()->whereKey($currencyId)->value('code');
+        // `iso`, not `code`: BE-R08 retired the duplicate column. The contract name for
+        // this value is `iso` everywhere the catalog mentions it.
+        $code = Currency::query()->whereKey($currencyId)->value('iso');
 
         return is_string($code) ? $code : null;
     }
 
     public function defaultCurrencyId(): ?int
     {
+        // `is_base`, not `is_display_currency`. This answers "what unit are stored amounts
+        // in", which is rule 7's question, and it must not follow whichever currency the
+        // platform happens to be displaying.
         $id = Currency::query()->where('is_base', true)->value('id')
-            ?? Currency::query()->where('code', 'SYP')->value('id');
+            ?? Currency::query()->where('iso', 'SYP')->value('id');
 
         return $id !== null ? (int) $id : null;
     }

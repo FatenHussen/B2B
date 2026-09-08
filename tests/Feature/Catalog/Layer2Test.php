@@ -61,12 +61,14 @@ function layer2Refs(): array
         'default_factor' => 1,
         'status' => RefStatus::Active,
     ]);
-    $currency = Currency::query()->where('code', 'SYP')->first()
+    // `iso`, not `code`: BE-R08 retired the duplicate column. `is_base` is no longer
+    // fillable either — it is never writable through the API and the seeded SYP row
+    // already carries it — so the fallback only has to create the row, not own the ledger.
+    $currency = Currency::query()->where('iso', 'SYP')->first()
         ?? Currency::query()->create([
-            'code' => 'SYP',
+            'iso' => 'SYP',
             'name' => 'SYP',
-            'is_base' => true,
-            'status' => RefStatus::Active,
+            'decimals' => 0,
         ]);
 
     return compact('gov', 'zone12', 'zone13', 'activity', 'root', 'unit', 'currency');

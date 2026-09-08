@@ -3,6 +3,7 @@
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 use Modules\Reference\Presentation\Http\Controllers\ChannelZoneController;
+use Modules\Reference\Presentation\Http\Controllers\CurrencyController;
 use Modules\Reference\Presentation\Http\Controllers\GovernorateController;
 use Modules\Reference\Presentation\Http\Controllers\ZoneController;
 
@@ -34,6 +35,17 @@ Route::middleware(['api', 'auth:platform,channel,warehouse,app', 'tenant', Subst
         // any more. Rule 12 and the catalog agree — "المحافظات لا تُحذف، تُعطَّل فقط" —
         // and DOC-08 defines no `ad.refs.delete` to gate one with.
         Route::patch('governorates/{governorate}/status', [GovernorateController::class, 'changeStatus'])->middleware('can:ad.refs.disable');
+
+        // BE-R08. Reads stay open to all four guards like the other shared reference
+        // data — every client needs to know a currency's `decimals` to render money —
+        // while writes take `ad.refs.currency`, not the general `ad.refs.*` family.
+        // DOC-08 marks that code critical, and requirement 2 names the split explicitly.
+        Route::get('currencies', [CurrencyController::class, 'index']);
+        Route::get('currencies/{currency}', [CurrencyController::class, 'show']);
+        Route::post('currencies', [CurrencyController::class, 'store'])->middleware('can:ad.refs.currency');
+        Route::put('currencies/{currency}', [CurrencyController::class, 'update'])->middleware('can:ad.refs.currency');
+        // Disable, not delete — rule 12, and DOC-08 defines no `ad.refs.delete`.
+        Route::patch('currencies/{currency}/status', [CurrencyController::class, 'changeStatus'])->middleware('can:ad.refs.currency');
 
         Route::get('zones', [ZoneController::class, 'index']);
         Route::get('zones/{zone}', [ZoneController::class, 'show']);

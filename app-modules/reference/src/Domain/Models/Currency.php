@@ -10,17 +10,23 @@ use Modules\Reference\Domain\Enums\RefStatus;
 class Currency extends Model
 {
     /**
-     * `iso` and `code` both hold the ISO 4217 code and both are unique. `iso` is the
-     * contract — every catalog response names it — and `code` is being retired in BE-R08.
-     * Until then both are fillable, because a row written through `code` alone would
-     * leave `iso` null and the API would answer with a currency that has no ISO code.
+     * `code` is gone as of BE-R08; `iso` is the only ISO 4217 column and the one the
+     * catalog names in every currency response.
+     *
+     * Two fields are deliberately absent. `status` moves only through EP-AD-043F under
+     * rule 8, like every other reference entity. And `is_base` is never writable through
+     * the API at all: it is the unit every stored `bigInteger` amount is denominated in
+     * under rule 7, it appears in no contract, and letting a request change it would
+     * reinterpret the whole ledger with no data migration. `is_display_currency` is the
+     * switchable one, and it is not the same fact.
      */
-    protected $fillable = ['code', 'iso', 'name', 'symbol', 'decimals', 'is_base', 'status'];
+    protected $fillable = ['iso', 'name', 'symbol', 'decimals', 'is_display_currency'];
 
     protected function casts(): array
     {
         return [
             'is_base' => 'boolean',
+            'is_display_currency' => 'boolean',
             'decimals' => 'integer',
             'status' => RefStatus::class,
         ];
