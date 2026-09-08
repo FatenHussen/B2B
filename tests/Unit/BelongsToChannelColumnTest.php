@@ -20,9 +20,15 @@ declare(strict_types=1);
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Modules\Catalog\Domain\Models\Brand;
 use Modules\Core\Domain\Exceptions\MissingChannelScopeException;
 use Modules\Core\Support\Concerns\BelongsToChannel;
 use Modules\Core\Support\Tenant;
+use Modules\Identity\Domain\Models\ChannelUserChannel;
+use Modules\Identity\Domain\Models\RepProfile;
+use Modules\Identity\Domain\Models\WarehouseDevice;
+use Modules\Ordering\Domain\Models\SubOrder;
+use Modules\Returns\Domain\Models\ReturnRequest;
 
 /** The sixteen-model default: declares nothing. */
 class DefaultColumnFixture extends Model
@@ -50,9 +56,32 @@ class ChannelIdColumnFixture extends Model
     protected string $channelColumn = 'channel_id';
 }
 
+/** Relaxed: filters when a tenant is set, tolerates its absence. */
+class RelaxedColumnFixture extends Model
+{
+    use BelongsToChannel;
+
+    protected $table = 'scope_relaxed_fixtures';
+
+    public $timestamps = false;
+
+    protected $guarded = [];
+
+    protected string $channelColumn = 'channel_id';
+
+    protected bool $channelScopeOptional = true;
+}
+
 beforeEach(function () {
     Schema::dropIfExists('scope_default_fixtures');
     Schema::dropIfExists('scope_channel_id_fixtures');
+    Schema::dropIfExists('scope_relaxed_fixtures');
+
+    Schema::create('scope_relaxed_fixtures', function (Blueprint $table) {
+        $table->id();
+        $table->unsignedBigInteger('channel_id')->index();
+        $table->string('label');
+    });
 
     Schema::create('scope_default_fixtures', function (Blueprint $table) {
         $table->id();
@@ -79,12 +108,19 @@ beforeEach(function () {
         ['channel_id' => 1, 'label' => 'a-2'],
         ['channel_id' => 2, 'label' => 'b-1'],
     ]);
+
+    RelaxedColumnFixture::withoutGlobalScope('channel')->insert([
+        ['channel_id' => 1, 'label' => 'a-1'],
+        ['channel_id' => 1, 'label' => 'a-2'],
+        ['channel_id' => 2, 'label' => 'b-1'],
+    ]);
 });
 
 afterEach(function () {
     Tenant::forget();
     Schema::dropIfExists('scope_default_fixtures');
     Schema::dropIfExists('scope_channel_id_fixtures');
+    Schema::dropIfExists('scope_relaxed_fixtures');
 });
 
 it('defaults to supply_channel_id when the model declares nothing', function () {
@@ -145,4 +181,50 @@ it('throws for either column when no tenant is set', function () {
 it('sees every channel inside Tenant::withoutScope, on either column', function () {
     expect(Tenant::withoutScope(fn () => DefaultColumnFixture::count()))->toBe(3)
         ->and(Tenant::withoutScope(fn () => ChannelIdColumnFixture::count()))->toBe(3);
+})->group('tenancy');
+
+it('lets a relaxed model answer with no tenant set', function () {
+    // The whole point of $channelScopeOptional: a table read to *decide* the tenant
+    // cannot demand one. A strict model throws here — asserted above.
+    expect(RelaxedColumnFixture::count())->toBe(3);
+})->group('tenancy');
+
+it('still isolates a relaxed model once a tenant is set', function () {
+    // Relaxed is not unscoped, and this is the assertion that keeps it honest. If the
+    // absence check ever widens into "skip the filter", these numbers become 3 and 3.
+    Tenant::set(1);
+    expect(RelaxedColumnFixture::count())->toBe(2);
+
+    Tenant::set(2);
+    expect(RelaxedColumnFixture::count())->toBe(1);
+})->group('tenancy');
+
+it('reports which mode each fixture is in', function () {
+    expect((new DefaultColumnFixture)->channelScopeOptional())->toBeFalse()
+        ->and((new ChannelIdColumnFixture)->channelScopeOptional())->toBeFalse()
+        ->and((new RelaxedColumnFixture)->channelScopeOptional())->toBeTrue();
+})->group('tenancy');
+
+it('puts the three real relaxed models in relaxed mode and nothing else', function () {
+    // Pinned like the exemption list: relaxing a model is a decision that must be made
+    // out loud, not a property someone adds to quieten a failing test.
+    $relaxed = [];
+    foreach ([
+        ChannelUserChannel::class,
+        RepProfile::class,
+        WarehouseDevice::class,
+        SubOrder::class,
+        ReturnRequest::class,
+        Brand::class,
+    ] as $model) {
+        if ((new $model)->channelScopeOptional()) {
+            $relaxed[] = $model;
+        }
+    }
+
+    expect($relaxed)->toBe([
+        ChannelUserChannel::class,
+        RepProfile::class,
+        WarehouseDevice::class,
+    ]);
 })->group('tenancy');

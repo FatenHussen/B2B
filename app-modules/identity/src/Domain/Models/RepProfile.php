@@ -7,6 +7,7 @@ namespace Modules\Identity\Domain\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Support\Concerns\BelongsToChannel;
 use Modules\Identity\Domain\Enums\ProfileStatus;
 
 /**
@@ -19,6 +20,21 @@ use Modules\Identity\Domain\Enums\ProfileStatus;
  */
 class RepProfile extends Model
 {
+    use BelongsToChannel;
+
+    /**
+     * This table names its channel `channel_id`, not `supply_channel_id`.
+     *
+     * Relaxed: read by RegisterRep and by every RepDirectory lookup, both keyed on
+     * `app_user_id` and both called before the caller belongs to a channel. During
+     * registration the rep is choosing a channel, so there is nothing to scope by yet.
+     *
+     * Relaxed is not unscoped: with a tenant set the filter applies in full.
+     */
+    protected string $channelColumn = 'channel_id';
+
+    protected bool $channelScopeOptional = true;
+
     protected $fillable = [
         'app_user_id',
         'channel_id',

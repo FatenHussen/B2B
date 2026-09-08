@@ -21,11 +21,14 @@ declare(strict_types=1);
  * violating the rule so much as sitting outside its wording. This test takes both names,
  * which is the rule as it is now stated.
  *
- * Note for whoever applies the trait to a `channel_id` model: `BelongsToChannel`
- * currently hardcodes `supply_channel_id` in both its global scope and its `creating`
- * hook. Applying it as-is to a `channel_id` table produces a query against a column that
- * does not exist. The trait has to learn the second name first — that is the fix ticket,
- * not this one. This file only reports.
+ * **Two modes, one trait.** Strict is the default: no tenant means a programming error and
+ * `MissingChannelScopeException` says so where it happens. A model declaring
+ * `$channelScopeOptional = true` is relaxed — it still filters whenever a tenant is set,
+ * and tolerates only its absence. That is for tables read in order to *decide* which
+ * channel a caller belongs to, before any tenant exists.
+ *
+ * Relaxed counts as scoped here, and should: it filters when there is something to filter
+ * by, where an exemption filters never.
  */
 
 use Illuminate\Support\Facades\DB;
@@ -61,27 +64,12 @@ const CHANNEL_SCOPE_EXEMPT = [
     // common stops reading as an exception.
     'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
 
-    // The next three are identity-resolution tables: they are read *to decide* which
-    // channel a request belongs to, before any tenant exists. Scoping them does not
-    // narrow a query, it throws MissingChannelScopeException during login — which is
-    // what happened when the trait was applied to all ten at once and twenty tests
-    // failed on it.
-    //
-    // ChannelUserChannel is the sharpest case and the reason this group exists at all:
-    // `ResolveTenant` calls `ChannelUser::defaultChannelId()`, which queries this table
-    // to find the tenant. A scope that needs the tenant to read the table that supplies
-    // the tenant cannot terminate. Its own isolation comes from `channel_user_id` — a
-    // membership row is reachable only through the user who owns it.
-    'Modules\Identity\Domain\Models\ChannelUserChannel',
-
-    // Read by RegisterRep and by every RepDirectory lookup, both keyed on app_user_id
-    // and both called before the caller belongs to a channel. Registration is the plain
-    // case: the rep is choosing a channel, so there is nothing to scope by yet.
-    'Modules\Identity\Domain\Models\RepProfile',
-
-    // Warehouse device login reads the device to discover its channel. Same shape:
-    // the row is the answer to "which tenant is this", not something inside one.
-    'Modules\Identity\Domain\Models\WarehouseDevice',
+    // ChannelUserChannel, RepProfile and WarehouseDevice were listed here and are not
+    // any more: they now carry the trait in relaxed mode
+    // ($channelScopeOptional = true), which filters whenever a tenant is set and
+    // tolerates only its absence. That is strictly better than exemption, which filtered
+    // never — so the list is for models that must not be scoped at all, not for models
+    // that cannot always be.
 ];
 
 /**
@@ -225,9 +213,6 @@ it('exempts nothing without a written reason', function () {
     expect(CHANNEL_SCOPE_EXEMPT)->toBe([
         'Modules\Core\Domain\Models\AuditLog',
         'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
-        'Modules\Identity\Domain\Models\ChannelUserChannel',
-        'Modules\Identity\Domain\Models\RepProfile',
-        'Modules\Identity\Domain\Models\WarehouseDevice',
     ]);
 })->group('arch');
 

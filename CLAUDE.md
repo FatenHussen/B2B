@@ -83,18 +83,41 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
 9. **Every write accepts `X-Idempotency-Key`.** Known and complete replays the stored response; known and
    in flight returns 409 `operation_in_progress`; new executes and stores for 24 hours.
 10. **Every channel-owned model carries a channel column** with a composite index starting on it, and
-    `BelongsToChannel` applied automatically. Two column names are in use and both count:
-    `supply_channel_id` (sixteen models) and `channel_id` (the rest). The trait defaults to
-    `supply_channel_id`; a model on the other spelling declares
-    `protected string $channelColumn = 'channel_id';`.
-    `tests/Architecture/ChannelScopeTest.php` enforces this — a model whose table has either column
-    and which does not apply the trait fails the build, unless it is in that file's exemption list
-    with a written reason. Hand-written `->where(channel_column, Tenant::currentId())` in a query is
-    not isolation: it protects only the query that remembers it, and the next one written without it
-    leaks silently.
-    Unifying the two names into one column is a **separate, deliberately deferred ticket** — the
-    migration would rewrite a dozen tables plus every query and index naming them, which costs more
-    today than the inconsistency does.
+    `BelongsToChannel` applied automatically. Hand-written
+    `->where(channel_column, Tenant::currentId())` in a query is **not** isolation: it protects only
+    the query that remembers it, and the next one written without it leaks silently.
+
+    **Two column names**, both counting: `supply_channel_id` (sixteen models) and `channel_id` (the
+    rest). The trait defaults to the first; a model on the other declares
+    `protected string $channelColumn = 'channel_id';`. Unifying them is a **separate, deliberately
+    deferred ticket** — the migration would rewrite a dozen tables plus every query and index naming
+    them, which costs more today than the inconsistency does.
+
+    **Two modes.** *Strict* is the default: with no tenant set the query throws
+    `MissingChannelScopeException`, because that is a programming error and the exception says so
+    where it happens. *Relaxed* — `protected bool $channelScopeOptional = true;` — still filters
+    whenever a tenant is set and tolerates only its absence. It is for tables read in order to
+    **decide** which channel a caller belongs to, before any tenant exists: `ChannelUserChannel`
+    (`ResolveTenant` reads it to find the tenant, so a scope demanding the tenant to read it could
+    not terminate), `RepProfile` (registration — the rep is still choosing a channel) and
+    `WarehouseDevice` (device login reads the device to discover its channel). A table that decides
+    identity cannot be isolated by it. Relaxed is not unscoped, and is always preferred to an
+    exemption, which filters never.
+
+    **Two exemptions**, both cross-channel by design: `AuditLog`, read from the platform back office
+    across every channel — scoping it would hide exactly the activity an audit log exists to show —
+    and `ChannelZoneLookup`, a read-only view of `channel_zone` whose `$fillable` is empty, so every
+    write goes through Reference's scoped `ChannelZone`.
+
+    **`acrossChannels()` is written at the call site with the reason beside it, never as a habit.**
+    Two places use it today: `EloquentOpenOrderCounter` (the EP-AD-034 impact count is cross-channel
+    by design and its caller has no tenant) and `EloquentWarehouseDirectory` (every method
+    establishes which channel a warehouse belongs to). An escape hatch that appears three times in
+    one file stops being read as an exception and starts being copied where it does not belong.
+
+    `tests/Architecture/ChannelScopeTest.php` enforces all of this: a model whose table has either
+    column and does not apply the trait fails the build unless it is in that file's exemption list
+    with a written reason, and the list itself is pinned so it cannot grow silently.
 11. **A foreign channel id in a URL returns 404, not 403.** Existence is never disclosed.
 12. **Reference entities are never hard deleted.** Disabling is logical and audited.
 

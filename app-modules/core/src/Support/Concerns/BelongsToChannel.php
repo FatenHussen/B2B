@@ -42,6 +42,30 @@ trait BelongsToChannel
             : 'supply_channel_id';
     }
 
+    /**
+     * Whether this model tolerates a query with no tenant set.
+     *
+     * Strict is the default and the one to reach for: no tenant means a programming
+     * error, and the exception says so at the point it happens instead of returning a
+     * silently empty result.
+     *
+     * A model declares `protected bool $channelScopeOptional = true;` when it is read in
+     * order to *decide* which channel a caller belongs to — before any tenant exists.
+     * `ChannelUserChannel` is the clearest: `ResolveTenant` calls
+     * `ChannelUser::defaultChannelId()`, which reads that table to find the tenant, so a
+     * scope demanding the tenant to read the table that supplies it cannot terminate.
+     *
+     * Relaxed is not unscoped. With a tenant set the filter applies exactly as it does in
+     * strict mode; only the absence of one is tolerated. That makes it strictly better
+     * than leaving such a model untraited, which is what these three were before.
+     */
+    public function channelScopeOptional(): bool
+    {
+        return property_exists($this, 'channelScopeOptional')
+            ? $this->channelScopeOptional
+            : false;
+    }
+
     protected static function bootBelongsToChannel(): void
     {
         static::addGlobalScope('channel', function (Builder $query) {
@@ -50,12 +74,18 @@ trait BelongsToChannel
             }
 
             $id = Tenant::currentId();
+            $model = $query->getModel();
 
             if ($id === null) {
-                throw MissingChannelScopeException::make($query->getModel()::class);
-            }
+                // Relaxed models pass through unfiltered rather than throwing; see
+                // channelScopeOptional(). Strict models — the default — treat a missing
+                // tenant as the programming error it is.
+                if ($model->channelScopeOptional()) {
+                    return;
+                }
 
-            $model = $query->getModel();
+                throw MissingChannelScopeException::make($model::class);
+            }
 
             $query->where(
                 $model->qualifyColumn($model->channelColumn()),
