@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php __TRACKED_VAR__/gen_postman.php)"
+    ]
+  }
+}

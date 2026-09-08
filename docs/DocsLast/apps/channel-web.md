@@ -1,4 +1,4 @@
-# Channel dashboard (Next.js)
+# Channel dashboard (React)
 
 **This is the only file you need.** Backend setup, the React package, the HTTP contract and
 every endpoint — all of it is here. No other document is required to build this dashboard.
@@ -113,8 +113,12 @@ Rate limits per hour: **3 per phone**, 10 per device, 30 per IP.
 explicit origin — never `*`. Add your dev port:
 
 ```dotenv
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002
+CORS_ALLOWED_ORIGINS=http://localhost:3001,http://127.0.0.1:3001
 ```
+
+⚠️ `localhost` and `127.0.0.1` are **different origins** to a browser. Vite prints
+whichever it bound to — list both, or the preflight fails with a CORS error that looks
+like an API outage.
 
 ### 1.5 Queues
 
@@ -139,30 +143,75 @@ This section is working code, not description.
 
 | Concern | Choice |
 |---|---|
-| Framework | Next.js 15 App Router |
-| UI | React 19 |
+| Build | **Vite 6** |
+| UI | **React 19 — plain SPA, no Next.js, no SSR** |
+| Routing | React Router v7 (`createBrowserRouter`) |
 | Language | TypeScript 5, `strict: true` — no `any` in `lib/` |
 | CSS | Tailwind, `<html lang="ar" dir="rtl">` |
 | Server state | TanStack Query v5 |
 | Token | `sessionStorage` Bearer |
 | HTTP | `fetch`, **inside this package only** |
 
-No Redux, no Axios, no NextAuth. Authenticated calls happen in Client Components —
-`middleware.ts` cannot read `sessionStorage`, so do not try to gate routes there.
+No Redux, no Axios, no NextAuth. **Every dashboard is a client-rendered SPA**: the whole
+app sits behind a login, so there is nothing to server-render and the token lives only in
+the browser.
 
 Use logical CSS properties (`ms-*`, `ps-*`, `text-start`) so RTL works. Phone, OTP and PIN
 inputs get `dir="ltr"` and `inputMode="numeric"`.
 
 ```bash
-npx create-next-app@15 apps/channel-web --typescript --app --tailwind --eslint --src-dir --use-npm
+npm create vite@latest apps/channel-web -- --template react-ts
+cd apps/channel-web && npm i react-router-dom @tanstack/react-query
+npm i -D tailwindcss @tailwindcss/vite
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: { port: 3001 },          // this dashboard's dev port
+});
 ```
 
 ```dotenv
-NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
-NEXT_PUBLIC_X_CLIENT=channel-web
+# .env — Vite only exposes variables prefixed VITE_
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+VITE_X_CLIENT=channel-web
 ```
 
+⚠️ **The prefix is `VITE_`, not `NEXT_PUBLIC_`**, and it is read as
+`import.meta.env.VITE_*` — `process.env` does not exist in the browser bundle.
+
 Dev port for this dashboard: **3001**.
+
+### 2.1.1 Guarding routes
+
+There is no `middleware.ts` and no server layer. Gate routes in the router itself:
+
+```tsx
+// routes.tsx
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { tokenStore } from '@b2b/api-client';
+
+function RequireAuth() {
+  return tokenStore.get('channel') ? <Outlet /> : <Navigate to="/login" replace />;
+}
+
+export const router = createBrowserRouter([
+  { path: '/login', element: <LoginPage /> },
+  { element: <RequireAuth />, children: [
+      { path: '/', element: <SubOrdersPage /> },
+      { path: '/products', element: <ProductsPage /> },
+  ]},
+]);
+```
+
+📌 This is a **convenience redirect, not security** — the token check happens on the
+server on every request. Its job is to avoid rendering a page that will only 401.
 
 ```
 packages/b2b-api-client/src/
@@ -278,7 +327,6 @@ export function releaseKey(intentId: string): void { keys.delete(intentId); }
 Bind it to the button, not to the request:
 
 ```tsx
-'use client';
 import { useRef, useState } from 'react';
 import { keyFor, releaseKey, ApiError } from '@b2b/api-client';
 
@@ -315,7 +363,7 @@ import { Envelope, isFail, Meta } from './envelope';
 import { ApiError } from './api-error';
 import { Guard, tokenStore } from './storage';
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!;
+const BASE = import.meta.env.VITE_API_BASE_URL as string;
 const WRITE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 export interface Options {
@@ -382,7 +430,6 @@ production.
 ### 2.7 Reacting to errors, once
 
 ```tsx
-'use client';
 import { QueryClient } from '@tanstack/react-query';
 import { ApiError } from '@b2b/api-client';
 

@@ -1,7 +1,7 @@
 # Frontend documentation
 
 The API is a pure JSON API at `/api/v1` serving five clients: two Flutter apps and three
-Next.js dashboards.
+React dashboards.
 
 **One file per app. Open yours and nothing else.** Each file contains the backend setup,
 the client package with working code, the full HTTP contract, every endpoint, and a gotcha
@@ -12,9 +12,9 @@ point.
 |---|---|---|---|---|
 | Retailer | [apps/retailer.md](./apps/retailer.md) | `app` | Flutter, Android + iOS | none — OTP any number |
 | Field rep | [apps/rep.md](./apps/rep.md) | `app` | Flutter, Android + iOS | none — OTP any number |
-| Channel | [apps/channel-web.md](./apps/channel-web.md) | `channel` | Next.js, **3001** | `+963900000001` + OTP |
-| Warehouse | [apps/warehouse-web.md](./apps/warehouse-web.md) | `warehouse` | Next.js, **3002** | none — CLI device |
-| Platform | [apps/platform-web.md](./apps/platform-web.md) | `platform` | Next.js, **3000** | `admin@platform.sy` / `password` |
+| Channel | [apps/channel-web.md](./apps/channel-web.md) | `channel` | React + Vite, **3001** | `+963900000001` + OTP |
+| Warehouse | [apps/warehouse-web.md](./apps/warehouse-web.md) | `warehouse` | React + Vite, **3002** | none — CLI device |
+| Platform | [apps/platform-web.md](./apps/platform-web.md) | `platform` | React + Vite, **3000** | `admin@platform.sy` / `password` |
 
 Every file has the same eight sections:
 
