@@ -18,6 +18,7 @@ Every ticket carries a real endpoint identifier. **This layer is implementable n
 | [BE-C08](./BE-C08.md) | Core | SP-00 | 3 | Highest | Rate limiting |
 | [BE-C09](./BE-C09.md) | Core | SP-00 | 3 | High | List contract: pagination, filtering, sorting, search |
 | [BE-C10](./BE-C10.md) | Core | SP-00 | 3 | High | Background job contract |
+| [BE-C11](./BE-C11.md) | Core | SP-03 | 2 | Medium | Remove the manual channel filters made redundant by BelongsToChannel |
 | [BE-F01](./BE-F01.md) | — | SP-00 | 5 | Highest | Repository and the three environments |
 | [BE-F02](./BE-F02.md) | — | SP-00 | 5 | Highest | Module scaffold with Composer path repositories |
 | [BE-F03](./BE-F03.md) | — | SP-00 | 3 | Highest | Deptrac dependency rules in CI |
