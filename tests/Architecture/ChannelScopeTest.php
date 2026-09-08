@@ -60,6 +60,28 @@ const CHANNEL_SCOPE_EXEMPT = [
     // would mean `acrossChannels()` three times in one file, and an escape hatch that
     // common stops reading as an exception.
     'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
+
+    // The next three are identity-resolution tables: they are read *to decide* which
+    // channel a request belongs to, before any tenant exists. Scoping them does not
+    // narrow a query, it throws MissingChannelScopeException during login — which is
+    // what happened when the trait was applied to all ten at once and twenty tests
+    // failed on it.
+    //
+    // ChannelUserChannel is the sharpest case and the reason this group exists at all:
+    // `ResolveTenant` calls `ChannelUser::defaultChannelId()`, which queries this table
+    // to find the tenant. A scope that needs the tenant to read the table that supplies
+    // the tenant cannot terminate. Its own isolation comes from `channel_user_id` — a
+    // membership row is reachable only through the user who owns it.
+    'Modules\Identity\Domain\Models\ChannelUserChannel',
+
+    // Read by RegisterRep and by every RepDirectory lookup, both keyed on app_user_id
+    // and both called before the caller belongs to a channel. Registration is the plain
+    // case: the rep is choosing a channel, so there is nothing to scope by yet.
+    'Modules\Identity\Domain\Models\RepProfile',
+
+    // Warehouse device login reads the device to discover its channel. Same shape:
+    // the row is the answer to "which tenant is this", not something inside one.
+    'Modules\Identity\Domain\Models\WarehouseDevice',
 ];
 
 /**
@@ -203,6 +225,9 @@ it('exempts nothing without a written reason', function () {
     expect(CHANNEL_SCOPE_EXEMPT)->toBe([
         'Modules\Core\Domain\Models\AuditLog',
         'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
+        'Modules\Identity\Domain\Models\ChannelUserChannel',
+        'Modules\Identity\Domain\Models\RepProfile',
+        'Modules\Identity\Domain\Models\WarehouseDevice',
     ]);
 })->group('arch');
 

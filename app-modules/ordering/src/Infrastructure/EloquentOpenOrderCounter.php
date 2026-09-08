@@ -27,15 +27,23 @@ final class EloquentOpenOrderCounter implements OpenOrderCounter
     ];
 
     /**
-     * Deliberately unscoped by channel, and `SubOrder` carries no `ChannelScope` to
-     * remove. A zone is platform-owned reference data and EP-AD-034 is a platform
-     * endpoint: the admin disabling a zone needs every open order in it, across every
-     * channel. A per-tenant count here would understate the impact of an irreversible
-     * decision, which is the one thing this number exists to prevent.
+     * Deliberately unscoped by channel.
+     *
+     * A zone is platform-owned reference data and EP-AD-034 is a platform endpoint: the
+     * admin disabling a zone needs every open order in it, across every channel. A
+     * per-tenant count would understate the impact of an irreversible decision, which is
+     * the one thing this number exists to prevent — and the caller has no tenant at all,
+     * so the scope would not narrow the count but throw.
+     *
+     * `acrossChannels()` is the explicit opt-out, added when `SubOrder` gained
+     * `BelongsToChannel`. Before that the model was simply unprotected and this method
+     * happened to work; the escape hatch is now visible at the one call site that needs
+     * it, which is the point of making the default safe.
      */
     public function countOpenInZone(int $zoneId): int
     {
         return SubOrder::query()
+            ->acrossChannels()
             ->where('zone_id', $zoneId)
             ->whereNotIn('status', array_map(fn (SubOrderStatus $s) => $s->value, self::TERMINAL))
             ->count();
