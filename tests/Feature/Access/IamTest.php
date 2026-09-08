@@ -230,7 +230,12 @@ it('previews a role, starts a review, and decides dual-approval via the inbox', 
 });
 
 it('exposes every catalog code through SP-17', function () {
+    // `ad.billing.manage` was asserted here and has been removed: it was in neither
+    // DOC-08 nor the API catalog, and this assertion was one of the two things keeping
+    // it alive. `ad.billing.assign_plan` is the code the catalog actually gates
+    // EP-AD-055 on, so it is the one worth pinning.
     expect(count(PermissionCatalog::codes()))->toBeGreaterThanOrEqual(127)
         ->and(PermissionCatalog::exists('ad.iam.view_catalog'))->toBeTrue()
-        ->and(PermissionCatalog::exists('ad.billing.manage'))->toBeTrue();
+        ->and(PermissionCatalog::exists('ad.billing.assign_plan'))->toBeTrue()
+        ->and(PermissionCatalog::exists('ad.billing.manage'))->toBeFalse();
 });

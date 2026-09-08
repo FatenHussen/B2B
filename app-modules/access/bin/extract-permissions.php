@@ -48,15 +48,13 @@ foreach ($endpoints as $node) {
     }
 }
 
-$permissions['ad.billing.manage'] ??= [
-    'code' => 'ad.billing.manage',
-    'name_ar' => 'حدود الفوترة',
-    'system' => 'platform',
-    'module' => 'billing',
-    'severity' => 'standard',
-    'dual_approval' => false,
-    'delegatable' => true,
-];
+// `ad.billing.manage` was injected here and nowhere else. It appears in neither DOC-08
+// nor the API catalog, and no route uses it: the sprint spec assigned it to EP-AD-055,
+// which the catalog itself gates on `ad.billing.assign_plan`. Guarding a phantom in the
+// catalog while the generator kept recreating it was the wrong end to fix.
+//
+// `ad.channels.archive` below is different and stays: DOC-08 defines it, so it is a real
+// permission name that the catalog has not yet attached to an endpoint.
 $permissions['ad.channels.archive'] ??= [
     'code' => 'ad.channels.archive',
     'name_ar' => 'أرشفة قناة',

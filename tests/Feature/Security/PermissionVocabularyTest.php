@@ -15,19 +15,16 @@ declare(strict_types=1);
  * in AccessMatrix and on every guard at once, so a channel manager could create a
  * governorate. The last test here is that probe, now inverted.
  *
- * AccessMatrix is gone. One vocabulary remains and the assertions below hold, with two
- * named exemptions rather than a loosened rule:
+ * AccessMatrix is gone, and so are the two codes this file used to exempt. Every
+ * assertion below is now a genuinely empty list: nothing is seeded, held by a role, or
+ * writable through a name DOC-08 does not define.
  *
- *  - `sc.notify.view` — real. `EP-SC-092 GET /channel/notifications/log` carries it in
- *    the API catalog, the OpenAPI document and the Postman collection. DOC-08's text is
- *    what is behind here, not the code.
- *  - `ad.billing.manage` — a phantom with no route and no catalog entry. The sprint spec
- *    assigns it to EP-AD-055, which the catalog itself gates on `ad.billing.assign_plan`.
- *    It survives because `bin/extract-permissions.php` re-injects it on every generation
- *    and `IamTest` asserts it exists. Resolving that contradiction belongs to BE-T12.
- *
- * Naming them here is deliberate: a third stray code must fail this file, so the rule
- * stays "nothing outside DOC-08" plus a written exemption, not "mostly DOC-08".
+ * The exemptions were retired rather than maintained. `ad.billing.manage` was in neither
+ * DOC-08 nor the API catalog and survived only because `bin/extract-permissions.php`
+ * re-injected it on every generation, so the generator was fixed. `sc.notify.view`
+ * belonged to EP-SC-092, which is not built — a permission for a route that does not
+ * exist, against the rule this repository settled on: a code is added when a route needs
+ * it, never before.
  *
  * Hazards this file is shaped around, inherited from CrossGuardTest:
  *
@@ -60,10 +57,16 @@ const ROLE_GUARDS = [
 ];
 
 /**
- * The two codes this file permits outside DOC-08, each for a reason written in the
- * docblock above. Not a wildcard and not a count — the exact names, so a third one fails.
+ * Codes permitted outside DOC-08. Empty, and meant to stay that way.
+ *
+ * It held two. `ad.billing.manage` was a phantom — in neither DOC-08 nor the API catalog,
+ * kept alive only because `bin/extract-permissions.php` re-injected it on every
+ * generation; the generator was fixed rather than the exemption maintained.
+ * `sc.notify.view` belonged to EP-SC-092, an endpoint that is not built, so it was a
+ * permission for a route that does not exist — against the rule this repository settled
+ * on: a code is added when a route needs it, never before.
  */
-const DOC08_EXEMPT = ['ad.billing.manage', 'sc.notify.view'];
+const DOC08_EXEMPT = [];
 
 /**
  * The DOC-08 catalog as the document defines it, read from the document rather than
@@ -107,13 +110,10 @@ it('seeds no permission name that DOC-08 does not define', function () {
 
     // WAS, before the vocabulary batch: five lines, 332 rows — the whole 66-name
     // AccessMatrix vocabulary on each of `app`, `channel`, `platform`, `warehouse` and
-    // `web`, plus the two exemptions.
-    // IS: one row per exemption and nothing else. Every other seeded name is verbatim
-    // from DOC-08, on the single guard its `system` names.
-    expect($report)->toBe([
-        'channel: 1 rows — sc.notify.view',
-        'platform: 1 rows — ad.billing.manage',
-    ]);
+    // `web`. Then two lines, one per exemption.
+    // IS: nothing. Every seeded name is verbatim from DOC-08, on the single guard its
+    // `system` names.
+    expect($report)->toBe([]);
 })->group('security');
 
 it('gives no role a permission that DOC-08 does not define', function () {
@@ -133,12 +133,8 @@ it('gives no role a permission that DOC-08 does not define', function () {
 
     // WAS: six of the eight roles, each carrying the full 66-name interim vocabulary or
     // a slice of it — channel_manager held 67 names of 110 that DOC-08 never defined.
-    // IS: only the two roles that receive a whole system's codes, and only because each
-    // system contains one exemption. The six other roles are clean.
-    expect($report)->toBe([
-        'platform_admin (platform): 1 of 62 — ad.billing.manage',
-        'channel_manager (channel): 1 of 48 — sc.notify.view',
-    ]);
+    // IS: nothing. No role holds a name the document does not define.
+    expect($report)->toBe([]);
 })->group('security');
 
 it('names the roles that can write through a permission DOC-08 does not define', function () {
@@ -168,12 +164,9 @@ it('names the roles that can write through a permission DOC-08 does not define',
 
     // WAS: platform_admin 54, channel_manager 54, sales_manager 14, catalog_manager 10,
     // accountant 7, warehouse_keeper 7 — 146 grants to write through a name DOC-08 does
-    // not define, spread across every role but the two app ones.
-    // IS: one, the phantom. No channel, warehouse or app role can write through a name
-    // outside the document any more.
-    expect($report)->toBe([
-        'platform_admin (platform): 1 — ad.billing.manage',
-    ]);
+    // not define. Then one, the phantom.
+    // IS: none.
+    expect($report)->toBe([]);
 })->group('security');
 
 it('pins the shape of the catalog so the gap cannot widen unnoticed', function () {
@@ -184,8 +177,10 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // time. `sc.settings.*` and `sc.zones.*` arrived exactly that way in this batch.
     $catalog = doc08Codes();
 
-    expect(Permission::query()->count())->toBe(133)
-        ->and(PermissionCatalog::codes())->toHaveCount(133)
+    expect(Permission::query()->count())->toBe(131)
+        ->and(PermissionCatalog::codes())->toHaveCount(131)
+        // Still 39, not 41: the two codes removed were never in DOC-08, so dropping them
+        // shrinks the catalog without changing how much of the document is unseeded.
         ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(39)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
         ->toBe(DOC08_EXEMPT);
