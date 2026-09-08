@@ -177,11 +177,14 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // time. `sc.settings.*` and `sc.zones.*` arrived exactly that way in this batch.
     $catalog = doc08Codes();
 
-    expect(Permission::query()->count())->toBe(131)
-        ->and(PermissionCatalog::codes())->toHaveCount(131)
-        // Still 39, not 41: the two codes removed were never in DOC-08, so dropping them
-        // shrinks the catalog without changing how much of the document is unseeded.
-        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(39)
+    expect(Permission::query()->count())->toBe(130)
+        ->and(PermissionCatalog::codes())->toHaveCount(130)
+        // 40, up from 39. Removing `ad.billing.manage` and `sc.notify.view` did not move
+        // this number — neither was in DOC-08, so dropping them shrank the catalog
+        // without changing how much of the document is unseeded. Removing
+        // `ad.channels.archive` did move it: that one *is* in DOC-08, so it left the
+        // catalog and rejoined the unseeded set. It returns when an endpoint claims it.
+        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(40)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
         ->toBe(DOC08_EXEMPT);
 })->group('security');

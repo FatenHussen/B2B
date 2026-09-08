@@ -48,22 +48,16 @@ foreach ($endpoints as $node) {
     }
 }
 
-// `ad.billing.manage` was injected here and nowhere else. It appears in neither DOC-08
-// nor the API catalog, and no route uses it: the sprint spec assigned it to EP-AD-055,
-// which the catalog itself gates on `ad.billing.assign_plan`. Guarding a phantom in the
-// catalog while the generator kept recreating it was the wrong end to fix.
+// Two codes used to be injected here, and both are gone.
 //
-// `ad.channels.archive` below is different and stays: DOC-08 defines it, so it is a real
-// permission name that the catalog has not yet attached to an endpoint.
-$permissions['ad.channels.archive'] ??= [
-    'code' => 'ad.channels.archive',
-    'name_ar' => 'أرشفة قناة',
-    'system' => 'platform',
-    'module' => 'channels',
-    'severity' => 'critical',
-    'dual_approval' => false,
-    'delegatable' => false,
-];
+// `ad.billing.manage` appeared in neither DOC-08 nor the API catalog: the sprint spec
+// assigned it to EP-AD-055, which the catalog itself gates on `ad.billing.assign_plan`.
+//
+// `ad.channels.archive` is defined by DOC-08, so it is a real permission name — but no
+// endpoint carries it, and this generator builds from the catalog, which is why it had to
+// be injected by hand at all. Injecting a code the catalog does not produce is how a name
+// gets seeded before any route needs it, against the rule this repository settled on. It
+// comes back the day an endpoint claims it, from the catalog, like every other code here.
 
 ksort($permissions);
 

@@ -31,7 +31,6 @@ final class PermissionCatalog
         'ad.billing.plans' => ['name_ar' => 'الخطط', 'system' => 'platform', 'module' => 'billing', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'ad.billing.view' => ['name_ar' => 'الاشتراكات', 'system' => 'platform', 'module' => 'billing', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'ad.billing.waive' => ['name_ar' => 'إعفاء فاتورة منصة', 'system' => 'platform', 'module' => 'billing', 'severity' => 'critical', 'dual_approval' => true, 'delegatable' => false],
-        'ad.channels.archive' => ['name_ar' => 'أرشفة قناة', 'system' => 'platform', 'module' => 'channels', 'severity' => 'critical', 'dual_approval' => false, 'delegatable' => false],
         'ad.channels.create' => ['name_ar' => 'إنشاء قناة', 'system' => 'platform', 'module' => 'channels', 'severity' => 'critical', 'dual_approval' => false, 'delegatable' => false],
         'ad.channels.delete' => ['name_ar' => 'حذف قناة', 'system' => 'platform', 'module' => 'channels', 'severity' => 'critical', 'dual_approval' => true, 'delegatable' => false],
         'ad.channels.export' => ['name_ar' => 'تصدير بيانات القناة', 'system' => 'platform', 'module' => 'channels', 'severity' => 'critical', 'dual_approval' => false, 'delegatable' => false],
