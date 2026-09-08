@@ -33,6 +33,28 @@ Everything was verified against `php artisan route:list` and the controller sour
 **2026-09-07**. Nothing is written from the backlog or the API catalog. **Where a document
 and `route:list` disagree, `route:list` wins** and the document is the thing to fix.
 
+## Postman
+
+Import [`docs/api/b2b-api.live.postman_collection.json`](../api/b2b-api.live.postman_collection.json)
+— **178 requests, generated from `route:list`, so nothing in it 404s.** Start at the
+**📖 READ ME FIRST** folder: it holds a `/health` probe and explains which folder belongs to
+your role, what `MOVING` means, and how to regenerate.
+
+Folders mirror the five apps, with a sub-folder per role/module inside each. Headers, JSON
+bodies, EP-IDs, guards, permissions and error codes are filled in; login requests capture
+`{{token}}` automatically. Pair it with an environment from
+[`docs/api/environments/`](../api/environments/).
+
+⚠️ Every folder containing a write repeats one warning: Postman's `{{$guid}}` regenerates
+per send, which is right for testing and **wrong in a client** — your client needs one key
+per user intent, reused across retries.
+
+> **`b2b-api.postman_collection.json` was deleted.** It held 775 requests generated from
+> the catalog, and most of them return 404 because they were never built. A collection that
+> is mostly dead endpoints is worse than none: someone opens it, sends a request, gets a
+> 404, and cannot tell a missing feature from a broken server. What is planned lives in
+> `docs/api/b2b-api.catalog.json`; what works lives in the live collection.
+
 ---
 
 ## Readiness — who can start today

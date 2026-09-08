@@ -2,10 +2,57 @@
     "info": {
         "name": "B2B API — live routes only (178)",
         "_postman_id": "8f3c1d20-b2b0-4a51-9e77-live8f855179",
-        "description": "# B2B API — live routes only\n\nGenerated from `php artisan route:list`, **not** from the API catalog. Every request here\nis registered and callable today. Nothing in this collection 404s because it was never\nbuilt.\n\nVerified 2026-09-08 · 178 requests.\n\n> The older `b2b-api.postman_collection.json` holds 775 requests generated from the\n> catalog. Most of those are **not implemented** and return 404. Use this collection to\n> test what exists; use that one to see what is planned.\n\n## Setup — two minutes\n\n1. Import this collection **and** an environment from `docs/api/environments/`.\n2. Select the environment matching the client you are testing.\n3. `baseUrl` defaults to `http://127.0.0.1:8000` in those files — the collection variable\n   is `http://127.0.0.1:8000/api/v1`. If your environment sets `baseUrl` without `/api/v1`,\n   append it there, or delete the env's `baseUrl` so the collection value wins.\n4. Run a login request. **The token is captured automatically** into `{{token}}` by a test\n   script; every other request already sends `Authorization: Bearer {{token}}`.\n\n## Getting a token per guard\n\n| Guard | Request | Note |\n|---|---|---|\n| `app` (retailer / rep) | `00. Shared` → `01. Public OTP` → request-otp, then verify-otp | code is in `storage/logs/laravel.log` |\n| `channel` | `03. Channel dashboard` → `00. Auth` | seeded phone `+963900000001` |\n| `warehouse` | `04. Warehouse dashboard` → `00. Device login` | register a device first (CLI) |\n| `platform` | `05. Platform admin` → `00. Auth` | `admin@platform.sy` / `password` |\n\nOTP codes are written to the log, not sent:\n\n```bash\ntail -f storage/logs/laravel.log | grep OTP\n```\n\n`request-otp` saves `{{otp_id}}` automatically, so verify-otp works without copying.\n\n## Rules baked into every request\n\n- **`X-Idempotency-Key`** is set to `{{$guid}}` on every write **except** the 8 exempt\n  credential paths. Postman regenerates it per send — which is correct for testing, but\n  **wrong for a real client**, where the key must stay stable across retries of one intent.\n- **`Authorization: Bearer {{token}}`** is present on every guarded request.\n- **`Accept-Language`**, **`X-Client`**, **`X-App-Version`** come from the environment.\n  Note the server currently reads only `Accept-Language` — the other two are for logs.\n- **`X-Device-Id`** is sent on app, public and warehouse routes (OTP rate limiting uses it).\n\n## Folder structure\n\n```\n00. Shared — public & app       health, public OTP, app session, pricing, offers\n01. Retailer app                auth, catalog, cart, orders, receiving, returns\n02. Field rep app               duty/zones/customers, catalog, cart, assignments,\n                                warehouse pickup, delivery, returns\n03. Channel dashboard           auth, settings, zones, catalog, pricing, offers,\n                                inventory, sub-orders, returns\n04. Warehouse dashboard         device login, queues, picking, packing, handover,\n                                receiving, stocktake, return sorting\n05. Platform admin              auth, my account, IAM, audit, channels\n06. Reference (MOVING paths)    governorates & zones\n```\n\nEach request's **description** carries its EP-ID, guard, permission or role, whether an\nidempotency key is required, an example response, and its error codes.\n\n## Stability\n\nEvery request description names one of:\n\n| Value | Meaning |\n|---|---|\n| `stable` | registered at the path the catalog specifies |\n| `MOVING -> …` | registered, but at a temporary path — it will move |\n| `live, not in catalog` | callable, but the catalog has not caught up |\n\n⚠️ **15 requests are `MOVING`**: `/admin/channels` (→ `/platform/channels`),\n`/governorates` and `/zones` (→ `/platform/refs/*`). Anything built against them will need\nrework. They are grouped so you can see them at a glance.\n\n## Path variables\n\nRequests with `{{id}}`, `{{subOrderId}}`, `{{handoverId}}` etc. expect you to set those in\nthe environment or edit them inline. They are left as variables rather than hardcoded ids\nso a folder can be run in order.\n\n## What is NOT here\n\n180 catalogued endpoints have no route: all money (SP-13), all offline sync (SP-14),\ncontent and loyalty (SP-15), and every platform reference screen (SP-03). They are absent\nby design — see `docs/DocsLast/` for what that blocks per app.\n",
+        "description": "# B2B API — live routes only\n\nGenerated from `php artisan route:list`, **not** from the API catalog. Every request here\nis registered and callable today. Nothing in this collection 404s because it was never\nbuilt.\n\nVerified 2026-09-08 · 178 requests.\n\n> The older `b2b-api.postman_collection.json` holds 775 requests generated from the\n> catalog. Most of those are **not implemented** and return 404. Use this collection to\n> test what exists; use that one to see what is planned.\n\n## Setup — two minutes\n\n1. Import this collection **and** an environment from `docs/api/environments/`.\n2. Select the environment matching the client you are testing.\n3. `baseUrl` is the **host only** — `http://127.0.0.1:8000`, no `/api/v1`. Each request\n   carries `api/v1` in its own path, so the existing environment files work unchanged.\n4. Run a login request. **The token is captured automatically** into `{{token}}` by a test\n   script; every other request already sends `Authorization: Bearer {{token}}`.\n\n## Getting a token per guard\n\n| Guard | Request | Note |\n|---|---|---|\n| `app` (retailer / rep) | `00. Shared` → `01. Public OTP` → request-otp, then verify-otp | code is in `storage/logs/laravel.log` |\n| `channel` | `03. Channel dashboard` → `00. Auth` | seeded phone `+963900000001` |\n| `warehouse` | `04. Warehouse dashboard` → `00. Device login` | register a device first (CLI) |\n| `platform` | `05. Platform admin` → `00. Auth` | `admin@platform.sy` / `password` |\n\nOTP codes are written to the log, not sent:\n\n```bash\ntail -f storage/logs/laravel.log | grep OTP\n```\n\n`request-otp` saves `{{otp_id}}` automatically, so verify-otp works without copying.\n\n## Rules baked into every request\n\n- **`X-Idempotency-Key`** is set to `{{$guid}}` on every write **except** the 8 exempt\n  credential paths. Postman regenerates it per send — which is correct for testing, but\n  **wrong for a real client**, where the key must stay stable across retries of one intent.\n- **`Authorization: Bearer {{token}}`** is present on every guarded request.\n- **`Accept-Language`**, **`X-Client`**, **`X-App-Version`** come from the environment.\n  Note the server currently reads only `Accept-Language` — the other two are for logs.\n- **`X-Device-Id`** is sent on app, public and warehouse routes (OTP rate limiting uses it).\n\n## Folder structure\n\n```\n00. Shared — public & app       health, public OTP, app session, pricing, offers\n01. Retailer app                auth, catalog, cart, orders, receiving, returns\n02. Field rep app               duty/zones/customers, catalog, cart, assignments,\n                                warehouse pickup, delivery, returns\n03. Channel dashboard           auth, settings, zones, catalog, pricing, offers,\n                                inventory, sub-orders, returns\n04. Warehouse dashboard         device login, queues, picking, packing, handover,\n                                receiving, stocktake, return sorting\n05. Platform admin              auth, my account, IAM, audit, channels\n06. Reference (MOVING paths)    governorates & zones\n```\n\nEach request's **description** carries its EP-ID, guard, permission or role, whether an\nidempotency key is required, an example response, and its error codes.\n\n## Stability\n\nEvery request description names one of:\n\n| Value | Meaning |\n|---|---|\n| `stable` | registered at the path the catalog specifies |\n| `MOVING -> …` | registered, but at a temporary path — it will move |\n| `live, not in catalog` | callable, but the catalog has not caught up |\n\n⚠️ **15 requests are `MOVING`**: `/admin/channels` (→ `/platform/channels`),\n`/governorates` and `/zones` (→ `/platform/refs/*`). Anything built against them will need\nrework. They are grouped so you can see them at a glance.\n\n## Path variables\n\nRequests with `{{id}}`, `{{subOrderId}}`, `{{handoverId}}` etc. expect you to set those in\nthe environment or edit them inline. They are left as variables rather than hardcoded ids\nso a folder can be run in order.\n\n## Regenerating\n\n```bash\nphp artisan route:list --json > docs/api/.live-routes.json\nphp docs/api/generate-live-postman.php\n```\n\nRe-run after any sprint merge. The generator reads `route:list` for the routes and the\ncatalog only for example bodies and EP-IDs — so a newly built endpoint appears\nautomatically, and one that was never built never appears.\n\n## What is NOT here\n\n180 catalogued endpoints have no route: all money (SP-13), all offline sync (SP-14),\ncontent and loyalty (SP-15), and every platform reference screen (SP-03). They are absent\nby design — see `docs/DocsLast/` for what that blocks per app.\n",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
+        {
+            "name": "📖 READ ME FIRST",
+            "description": "# Start here\n\n**178 requests, every one of them live.** This collection is generated from\n`php artisan route:list`, not from the API catalog — so nothing here returns 404 because\nit was never built.\n\n## 1. Set up (two minutes)\n\n1. Import an environment from `docs/api/environments/` and select it.\n2. `baseUrl` is the **host only** (`http://127.0.0.1:8000`) — each request carries\n   `api/v1` in its own path.\n3. Send **`GET /health`** in this folder. You should get `data.status = \"ok\"`.\n4. Go to your app's folder and run its login request. **The token is captured\n   automatically** into `{{token}}`; every other request already sends it.\n\n## 2. Which folder is mine?\n\n| You build | Folder | Login request |\n|---|---|---|\n| Retailer app | `01. Retailer app` | `00. Shared` → `01. Public OTP` |\n| Field rep app | `02. Field rep app` | `00. Shared` → `01. Public OTP` |\n| Channel dashboard | `03. Channel dashboard` | its `00. Auth` |\n| Warehouse dashboard | `04. Warehouse dashboard` | its `00. Device login` |\n| Platform admin | `05. Platform admin` | its `00. Auth` |\n\nInside each app folder the sub-folders are the roles/modules of that app.\n\nOTP codes are not sent anywhere locally — read them from the log:\n\n```bash\ntail -f storage/logs/laravel.log | grep OTP\n```\n\n`request-otp` saves `{{otp_id}}` for you, so `verify-otp` works without copying.\n\n## 3. What `MOVING` means\n\nEvery request description names a stability:\n\n| Value | Meaning | What to do |\n|---|---|---|\n| `stable` | registered at the path the catalog specifies | build on it |\n| `MOVING -> …` | registered, but at a temporary path — **it will move** | build, but keep the base path behind **one constant** |\n| `live, not in catalog` | callable; the catalog has not caught up | use it, expect the shape to be confirmed |\n\n**15 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can\nsee them at a glance:\n\n| Live now | Will become |\n|---|---|\n| `/admin/channels…` | `/platform/channels…` |\n| `/governorates…` | `/platform/refs/governorates…` |\n| `/zones…` | `/platform/refs/zones…` |\n\nAnyone who scatters a `MOVING` path through feature code redoes that work when it moves.\n\n## 4. ⚠️ The idempotency key here is not what your client should do\n\nEvery write folder repeats this, because it is the single easiest thing to copy wrongly:\n`{{$guid}}` regenerates on **every send**. Your client must instead use **one key per user\nintent**, reused on every retry. See §2.5 of your app's file in `docs/DocsLast/`.\n\n## 5. Regenerating after a merge\n\n```bash\nphp artisan route:list --json > docs/api/.live-routes.json\nphp docs/api/generate-live-postman.php\n```\n\nThe generator reads `route:list` for the routes and the catalog only for example bodies and\nEP-IDs. A newly built endpoint appears automatically; one that was never built never\nappears.\n\n## 6. What is deliberately absent\n\n180 catalogued endpoints have no route: all money (SP-13), all offline sync (SP-14),\ncontent and loyalty (SP-15), and every platform reference screen (SP-03). They are not in\nthis collection because they do not exist. See `docs/DocsLast/` for what that blocks.",
+            "item": [
+                {
+                    "name": "GET /health — check the API is up",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "health"
+                            ]
+                        },
+                        "description": "Unguarded reachability probe. Expect `data.status = \"ok\"`.\n\nIf this fails, nothing else in the collection will work — check that\n`php artisan serve` is running and that `baseUrl` points at it."
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('API is up', () => pm.response.to.have.status(200));",
+                                    "pm.test('envelope looks right', () => {",
+                                    "  const j = pm.response.json();",
+                                    "  pm.expect(j).to.have.property('data');",
+                                    "  pm.expect(j.meta).to.have.property('server_time');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
         {
             "name": "00. Shared — public & app — 9",
             "item": [
@@ -249,7 +296,8 @@
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "02. App session (2)",
@@ -354,7 +402,7 @@
                                 "description": "**EP-CM-005** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | خروج التطبيق |\n\nClient must wipe local data (REQ-CM-056).\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -364,7 +412,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "03. Pricing (1)",
@@ -433,7 +482,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "04. Offers (2)",
@@ -632,7 +682,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "01. Catalog (10)",
@@ -689,16 +740,7 @@
                                         "{{id}}"
                                     ]
                                 },
-                                "description": "**EP-RT-070C** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | حذف ناقص |\n\nDOC-12A TB-RT-031.\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```",
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n  \n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
-                                        }
-                                    }
-                                }
+                                "description": "**EP-RT-070C** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | حذف ناقص |\n\nDOC-12A TB-RT-031.\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```"
                             },
                             "response": []
                         },
@@ -1182,7 +1224,7 @@
                                 "description": "**EP-RT-014** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | مفضلة |\n\n**Example response `data`:**\n```json\n{\n    \"is_favorite\": true\n}\n```",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -1256,7 +1298,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "02. Cart (6)",
@@ -1314,16 +1357,7 @@
                                         "{{id}}"
                                     ]
                                 },
-                                "description": "**EP-RT-023** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | حذف بند |\n\nRemoving a line that belongs to an offer removes the whole offer (BR-08).\n\n**Example response `data`:**\n```json\n{\n    \"sections\": [\n        {\n            \"supply_channel_ref\": \"ch_a1\",\n            \"temp_order_no\": \"T-481-03\",\n            \"note\": null,\n            \"lines\": [\n                {\n                    \"id\": 11,\n                    \"product_id\": 880,\n                    \"name\": \"زيت دوار الشمس 1 لتر\",\n                    \"qty\": 4,\n                    \"unit_price\": 12000,\n                    \"line_total\": 48000\n                }\n            ],\n            \"subtotal\": 48000,\n            \"discount\": 0,\n            \"total\": 48000\n        }\n    ],\n    \"summary\": {\n        \"grand_total\": 48000,\n        \"total_discount\": 0,\n        \"final_total\": 48000,\n        \"estimated_delivery\": \"2026-03-02\"\n    },\n    \"applied_offers\": []\n}\n```",
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n  \n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
-                                        }
-                                    }
-                                }
+                                "description": "**EP-RT-023** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | حذف بند |\n\nRemoving a line that belongs to an offer removes the whole offer (BR-08).\n\n**Example response `data`:**\n```json\n{\n    \"sections\": [\n        {\n            \"supply_channel_ref\": \"ch_a1\",\n            \"temp_order_no\": \"T-481-03\",\n            \"note\": null,\n            \"lines\": [\n                {\n                    \"id\": 11,\n                    \"product_id\": 880,\n                    \"name\": \"زيت دوار الشمس 1 لتر\",\n                    \"qty\": 4,\n                    \"unit_price\": 12000,\n                    \"line_total\": 48000\n                }\n            ],\n            \"subtotal\": 48000,\n            \"discount\": 0,\n            \"total\": 48000\n        }\n    ],\n    \"summary\": {\n        \"grand_total\": 48000,\n        \"total_discount\": 0,\n        \"final_total\": 48000,\n        \"estimated_delivery\": \"2026-03-02\"\n    },\n    \"applied_offers\": []\n}\n```"
                             },
                             "response": []
                         },
@@ -1636,7 +1670,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "03. Orders (5)",
@@ -1949,7 +1984,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "04. Receiving & rating (4)",
@@ -2201,7 +2237,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "05. Returns (2)",
@@ -2349,7 +2386,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 }
             ]
         },
@@ -2423,7 +2461,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "01. Duty, zones & customers (5)",
@@ -2745,7 +2784,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "02. Catalog (1)",
@@ -3028,7 +3068,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "04. Assignments (4)",
@@ -3190,7 +3231,7 @@
                                 "description": "**EP-RP-031** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | قبول الإسناد |\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"accepted\"\n}\n```",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -3266,7 +3307,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "05. Warehouse pickup (2)",
@@ -3391,7 +3433,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "06. Delivery (7)",
@@ -3828,7 +3871,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "07. Returns (1)",
@@ -3897,7 +3941,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 }
             ]
         },
@@ -4038,7 +4083,8 @@
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "01. Channel settings (2)",
@@ -4132,7 +4178,7 @@
                                 "description": "**no EP-ID** · Stability: `live, not in catalog`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.settings.update` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"name\": \"Demo Channel\",\n    \"legal_name\": \"Demo Channel LLC\",\n    \"tax_number\": \"1234567\",\n    \"phone\": \"+963911000000\",\n    \"email\": \"ops@demo.sy\",\n    \"settings\": {}\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -4142,7 +4188,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "02. Zone coverage (3)",
@@ -4194,16 +4241,7 @@
                                         "{{channelZone}}"
                                     ]
                                 },
-                                "description": "**no EP-ID** · Stability: `live, not in catalog`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.zones.view,sc.zones.manage` |\n| Idempotency | required |",
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n  \n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
-                                        }
-                                    }
-                                }
+                                "description": "**no EP-ID** · Stability: `live, not in catalog`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.zones.view,sc.zones.manage` |\n| Idempotency | required |"
                             },
                             "response": []
                         },
@@ -4298,7 +4336,7 @@
                                 "description": "**no EP-ID** · Stability: `live, not in catalog`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.zones.view,sc.zones.manage` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"zone_id\": 1,\n    \"delivery_days\": [\n        \"sun\",\n        \"mon\",\n        \"tue\"\n    ],\n    \"delivery_fee\": \"12.50\",\n    \"min_order_value\": \"0.00\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -4308,7 +4346,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "03. Catalog (13)",
@@ -5094,7 +5133,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "04. Pricing (6)",
@@ -5479,7 +5519,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "05. Offers (4)",
@@ -5717,7 +5758,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "06. Inventory (5)",
@@ -6042,7 +6084,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "07. Sub-orders (10)",
@@ -6472,7 +6515,7 @@
                                 "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -6665,7 +6708,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "08. Returns (2)",
@@ -6810,7 +6854,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 }
             ]
         },
@@ -6891,7 +6936,8 @@
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "01. Queues (1)",
@@ -7049,7 +7095,7 @@
                                 "description": "**EP-WH-015** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | required |\n| Name | إنهاء الالتقاط |\n\nMoves to packing queue. Retailer status becomes processing.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"to_pack\"\n}\n```",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -7256,7 +7302,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "03. Packing (2)",
@@ -7391,7 +7438,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "04. Handover (3)",
@@ -7571,7 +7619,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "05. Receiving (2)",
@@ -7704,7 +7753,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "06. Stocktake (4)",
@@ -7957,7 +8007,7 @@
                                 "description": "**EP-WH-023C** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.stocktake.execute` |\n| Idempotency | required |\n| Name | تسليم الجرد |\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"pending_approval\"\n}\n```",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -7967,7 +8017,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "07. Return sorting (1)",
@@ -8037,7 +8088,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 }
             ]
         },
@@ -8095,16 +8147,7 @@
                                         "{{id}}"
                                     ]
                                 },
-                                "description": "**EP-AD-007** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Idempotency | required |\n| Name | إنهاء جلسة |\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```\n\n**Errors:** `401` token_revoked",
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n  \n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
-                                        }
-                                    }
-                                }
+                                "description": "**EP-AD-007** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Idempotency | required |\n| Name | إنهاء جلسة |\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```\n\n**Errors:** `401` token_revoked"
                             },
                             "response": []
                         },
@@ -8439,7 +8482,7 @@
                                 "description": "**EP-AD-003** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Idempotency | required |\n| Name | تسجيل الخروج |\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -8449,7 +8492,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "01. My account (9)",
@@ -8502,16 +8546,7 @@
                                         "{{id}}"
                                     ]
                                 },
-                                "description": "**EP-AD-159I** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Idempotency | required |\n| Name | إبطال رمز API |\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```",
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n  \n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
-                                        }
-                                    }
-                                }
+                                "description": "**EP-AD-159I** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Idempotency | required |\n| Name | إبطال رمز API |\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```"
                             },
                             "response": []
                         },
@@ -8756,7 +8791,7 @@
                                 "description": "**EP-AD-159D** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Idempotency | required |\n| Name | بدء تفعيل التحقق بخطوتين |\n\nBR-AD-03: إلزامي لمدير المنصة ولمن يملك انتحال الجلسة.\n\n**Example response `data`:**\n```json\n{\n    \"secret\": \"otpauth://totp/...\",\n    \"qr_svg\": \"<svg/>\"\n}\n```",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -8945,7 +8980,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "02. IAM (18)",
@@ -9000,7 +9036,7 @@
                                 "description": "**EP-AD-017** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Permission | `ad.iam.role_assign` |\n| Idempotency | required |\n| Name | سحب دور |\n\n**Example response `data`:**\n```json\n{\n    \"success\": true\n}\n```",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"user_id\": 10,\n    \"role_id\": 4,\n    \"reason\": \"انتقال لقناة أخرى\"\n}",
+                                    "raw": "{\n    \"user_id\": 9,\n    \"role_id\": 3,\n    \"reason\": \"Left the team\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10015,7 +10051,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "03. Audit (2)",
@@ -10164,7 +10201,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
                     "name": "04. Channels (MOVING path) (5)",
@@ -10216,16 +10254,7 @@
                                         "{{supplyChannel}}"
                                     ]
                                 },
-                                "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Role | `platform_admin` |\n| Idempotency | required |",
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n  \n}",
-                                    "options": {
-                                        "raw": {
-                                            "language": "json"
-                                        }
-                                    }
-                                }
+                                "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Role | `platform_admin` |\n| Idempotency | required |"
                             },
                             "response": []
                         },
@@ -10363,7 +10392,7 @@
                                 "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Role | `platform_admin` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"name\": \"Acme Distribution\",\n    \"slug\": \"acme-dist\",\n    \"legal_name\": \"Acme LLC\",\n    \"tax_number\": \"7654321\",\n    \"phone\": \"+963911000001\",\n    \"email\": \"ops@acme.sy\",\n    \"status\": \"active\",\n    \"settings\": {}\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10423,7 +10452,7 @@
                                 "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Role | `platform_admin` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"name\": \"Acme Distribution (renamed)\",\n    \"status\": \"active\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10433,7 +10462,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 }
             ]
         },
@@ -10659,7 +10689,7 @@
                                 "description": "**no EP-ID** · Stability: `MOVING -> /platform/refs/governorates`\n\n| | |\n|---|---|\n| Guard | `platform,channel,warehouse,app` |\n| Permission | `ad.refs.disable` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"status\": \"disabled\",\n    \"reason\": \"Merged into another governorate\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10719,7 +10749,7 @@
                                 "description": "**no EP-ID** · Stability: `MOVING -> /platform/refs/zones`\n\n| | |\n|---|---|\n| Guard | `platform,channel,warehouse,app` |\n| Permission | `ad.refs.disable` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"status\": \"disabled\",\n    \"reason\": \"No coverage this quarter\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10777,7 +10807,7 @@
                                 "description": "**no EP-ID** · Stability: `MOVING -> /platform/refs/governorates`\n\n| | |\n|---|---|\n| Guard | `platform,channel,warehouse,app` |\n| Permission | `ad.refs.create` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"name_ar\": \"ريف دمشق\",\n    \"name_en\": \"Rif Dimashq\",\n    \"code\": \"RDI\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10835,7 +10865,7 @@
                                 "description": "**no EP-ID** · Stability: `MOVING -> /platform/refs/zones`\n\n| | |\n|---|---|\n| Guard | `platform,channel,warehouse,app` |\n| Permission | `ad.refs.create` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"governorate_id\": 1,\n    \"name\": \"المزة\",\n    \"district\": \"المزة 86\",\n    \"polygon\": null,\n    \"order\": 1\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10894,7 +10924,7 @@
                                 "description": "**no EP-ID** · Stability: `MOVING -> /platform/refs/governorates`\n\n| | |\n|---|---|\n| Guard | `platform,channel,warehouse,app` |\n| Permission | `ad.refs.update` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"name_ar\": \"ريف دمشق\",\n    \"name_en\": \"Rif Dimashq\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10953,7 +10983,7 @@
                                 "description": "**no EP-ID** · Stability: `MOVING -> /platform/refs/zones`\n\n| | |\n|---|---|\n| Guard | `platform,channel,warehouse,app` |\n| Permission | `ad.refs.update` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \n}",
+                                    "raw": "{\n    \"name\": \"المزة\",\n    \"district\": \"المزة 86\",\n    \"order\": 2,\n    \"reason\": \"Boundary correction\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10963,7 +10993,8 @@
                             },
                             "response": []
                         }
-                    ]
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 }
             ]
         }
@@ -10971,7 +11002,7 @@
     "variable": [
         {
             "key": "baseUrl",
-            "value": "http://127.0.0.1:8000/api/v1"
+            "value": "http://127.0.0.1:8000"
         }
     ]
 }
