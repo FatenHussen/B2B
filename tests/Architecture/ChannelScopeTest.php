@@ -52,12 +52,14 @@ const CHANNEL_SCOPE_EXEMPT = [
     // may read it.
     'Modules\Core\Domain\Models\AuditLog',
 
-    // The second model on `channel_zone`, which Reference already owns and scopes through
-    // `ChannelZone`. Tenancy reads coverage from the platform side, where the whole point
-    // is to see every channel's coverage of a zone. Two models on one table is its own
-    // problem — one of them is a back door onto a scoped table — and which of the two
-    // survives is an open decision, not something this exemption settles.
-    'Modules\Tenancy\Domain\Models\ChannelCoverage',
+    // The second model on `channel_zone`, and read-only by construction — `$fillable` is
+    // empty, so every write goes through Reference's `ChannelZone`, which is scoped.
+    // Its three callers in EloquentChannelDirectory either name the channel as an
+    // argument (asked during registration, before the caller belongs to any channel) or
+    // ask which channels cover a zone, which is cross-channel by definition. Scoping it
+    // would mean `acrossChannels()` three times in one file, and an escape hatch that
+    // common stops reading as an exception.
+    'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
 ];
 
 /**
@@ -200,7 +202,7 @@ it('exempts nothing without a written reason', function () {
     // has to say why out loud.
     expect(CHANNEL_SCOPE_EXEMPT)->toBe([
         'Modules\Core\Domain\Models\AuditLog',
-        'Modules\Tenancy\Domain\Models\ChannelCoverage',
+        'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
     ]);
 })->group('arch');
 

@@ -6,6 +6,7 @@ use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\RetailerProductFavorite;
+use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Enums\ProfileStatus;
 use Modules\Identity\Domain\Enums\UserStatus;
 use Modules\Identity\Domain\Models\AppUser;
@@ -17,12 +18,12 @@ use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Identity\Domain\Models\RetailerProfileCategory;
 use Modules\Reference\Domain\Enums\RefStatus;
 use Modules\Reference\Domain\Models\ActivityType;
+use Modules\Reference\Domain\Models\ChannelZone;
 use Modules\Reference\Domain\Models\Currency;
 use Modules\Reference\Domain\Models\Governorate;
 use Modules\Reference\Domain\Models\RootCategory;
 use Modules\Reference\Domain\Models\SaleUnit;
 use Modules\Reference\Domain\Models\Zone;
-use Modules\Tenancy\Domain\Models\ChannelCoverage;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 use Tests\Support\CatalogAssert;
 
@@ -73,10 +74,9 @@ function layer2Refs(): array
 
 function layer2Cover(SupplyChannel $channel, Zone $zone): void
 {
-    ChannelCoverage::query()->create([
-        'supply_channel_id' => $channel->id,
-        'zone_id' => $zone->id,
-    ]);
+    // Through ChannelZone, the channel's own write path — ChannelZoneLookup is read
+    // only now. Tenant::as supplies the channel the scope stamps onto the row.
+    Tenant::as($channel->id, fn () => ChannelZone::query()->create(['zone_id' => $zone->id]));
 }
 
 function layer2Retailer(array $refs, Zone $zone): AppUser

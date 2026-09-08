@@ -3,17 +3,18 @@
 declare(strict_types=1);
 
 use Modules\Core\Contracts\OtpChannel;
+use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Enums\ProfileStatus;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\ValueObjects\PhoneNumber;
 use Modules\Identity\Infrastructure\Otp\FakeOtpChannel;
 use Modules\Reference\Domain\Enums\RefStatus;
 use Modules\Reference\Domain\Models\ActivityType;
+use Modules\Reference\Domain\Models\ChannelZone;
 use Modules\Reference\Domain\Models\Equipment;
 use Modules\Reference\Domain\Models\Governorate;
 use Modules\Reference\Domain\Models\RootCategory;
 use Modules\Reference\Domain\Models\Zone;
-use Modules\Tenancy\Domain\Models\ChannelCoverage;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 use Tests\Support\CatalogAssert;
 
@@ -113,10 +114,7 @@ it('rejects a retailer zone outside the governorate', function () {
 it('registers a rep inside channel coverage', function () {
     $refs = seedRetailerRefs();
     $channel = SupplyChannel::factory()->create(['name' => 'شركة النور', 'status' => 'active']);
-    ChannelCoverage::query()->create([
-        'supply_channel_id' => $channel->id,
-        'zone_id' => $refs['zone']->id,
-    ]);
+    Tenant::as($channel->id, fn () => ChannelZone::query()->create(['zone_id' => $refs['zone']->id]));
 
     $token = registrationToken('+963966000000');
 
@@ -152,10 +150,7 @@ it('rejects a rep zone outside channel coverage', function () {
 it('rejects a rep on a non-active channel', function () {
     $refs = seedRetailerRefs();
     $channel = SupplyChannel::factory()->suspended()->create();
-    ChannelCoverage::query()->create([
-        'supply_channel_id' => $channel->id,
-        'zone_id' => $refs['zone']->id,
-    ]);
+    Tenant::as($channel->id, fn () => ChannelZone::query()->create(['zone_id' => $refs['zone']->id]));
 
     $token = registrationToken('+963966000002');
 
