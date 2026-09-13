@@ -278,19 +278,26 @@ foreach ($routes as $rt) {
             'response' => [],
         ];
 
-        // auto-capture tokens on the login calls
+        // auto-capture tokens on the login calls. Saved to the active environment, or to
+        // the collection when none is selected — with "No environment" pm.environment.set
+        // silently drops the value and verify-otp then replays a stale otp_id.
         $capture = null;
         if (str_ends_with($path, '/auth/verify-otp') || str_ends_with($path, '/auth/login')
             || str_ends_with($path, '/auth/device-login') || str_ends_with($path, '/2fa/verify')) {
             $capture = <<<'JS'
 const j = pm.response.json();
 const d = j.data || {};
-if (d.token) { pm.environment.set('token', d.token); console.log('token saved'); }
-if (d.otp_id) { pm.environment.set('otp_id', d.otp_id); }
-if (d.challenge_token) { pm.environment.set('challenge_token', d.challenge_token); }
+const store = pm.environment.name ? pm.environment : pm.collectionVariables;
+if (d.token) { store.set('token', d.token); console.log('token saved'); }
+if (d.otp_id) { store.set('otp_id', d.otp_id); }
+if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }
 JS;
         } elseif (str_ends_with($path, '/auth/request-otp')) {
-            $capture = "const j = pm.response.json();\nif (j.data && j.data.otp_id) { pm.environment.set('otp_id', j.data.otp_id); console.log('otp_id saved'); }";
+            $capture = <<<'JS'
+const j = pm.response.json();
+const store = pm.environment.name ? pm.environment : pm.collectionVariables;
+if (j.data && j.data.otp_id) { store.set('otp_id', j.data.otp_id); console.log('otp_id saved'); }
+JS;
         }
         if ($capture !== null) {
             $req['event'] = [[
@@ -385,13 +392,16 @@ it was never built.
 
 Inside each app folder the sub-folders are the roles/modules of that app.
 
-OTP codes are not sent anywhere locally — read them from the log:
+**OTP is switched off during development** (`OTP_BYPASS=true` on the API): send any
+6-character `code` — `000000` — to `verify-otp`. No cooldown, no rate limit. When it is
+switched back on, codes are not sent anywhere locally — read them from the log:
 
 ```bash
 tail -f storage/logs/laravel.log | grep OTP
 ```
 
-`request-otp` saves `{{otp_id}}` for you, so `verify-otp` works without copying.
+`request-otp` saves `{{otp_id}}` for you, so `verify-otp` works without copying. Every
+`otp_id` is single-use and lives 5 minutes — `otp_expired` means request a new one.
 
 ## 3. What `MOVING` means
 

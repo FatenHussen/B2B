@@ -8,7 +8,7 @@
     "item": [
         {
             "name": "📖 READ ME FIRST",
-            "description": "# Start here\n\n**183 requests, every one of them live.** This collection is generated from\n`php artisan route:list`, not from the API catalog — so nothing here returns 404 because\nit was never built.\n\n## 1. Set up (two minutes)\n\n1. Import an environment from `docs/api/environments/` and select it.\n2. `baseUrl` is the **host only** (`http://127.0.0.1:8000`) — each request carries\n   `api/v1` in its own path.\n3. Send **`GET /health`** in this folder. You should get `data.status = \"ok\"`.\n4. Go to your app's folder and run its login request. **The token is captured\n   automatically** into `{{token}}`; every other request already sends it.\n\n## 2. Which folder is mine?\n\n| You build | Folder | Login request |\n|---|---|---|\n| Retailer app | `01. Retailer app` | `00. Shared` → `01. Public OTP` |\n| Field rep app | `02. Field rep app` | `00. Shared` → `01. Public OTP` |\n| Channel dashboard | `03. Channel dashboard` | its `00. Auth` |\n| Warehouse dashboard | `04. Warehouse dashboard` | its `00. Device login` |\n| Platform admin | `05. Platform admin` | its `00. Auth` |\n\nInside each app folder the sub-folders are the roles/modules of that app.\n\nOTP codes are not sent anywhere locally — read them from the log:\n\n```bash\ntail -f storage/logs/laravel.log | grep OTP\n```\n\n`request-otp` saves `{{otp_id}}` for you, so `verify-otp` works without copying.\n\n## 3. What `MOVING` means\n\nEvery request description names a stability:\n\n| Value | Meaning | What to do |\n|---|---|---|\n| `stable` | registered at the path the catalog specifies | build on it |\n| `MOVING -> …` | registered, but at a temporary path — **it will move** | build, but keep the base path behind **one constant** |\n| `live, not in catalog` | callable; the catalog has not caught up | use it, expect the shape to be confirmed |\n\n**20 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can\nsee them at a glance:\n\n| Live now | Will become |\n|---|---|\n| `/admin/channels…` | `/platform/channels…` |\n| `/governorates…` | `/platform/refs/governorates…` |\n| `/zones…` | `/platform/refs/zones…` |\n| `/currencies…` | `/platform/refs/currencies…` |\n\nAnyone who scatters a `MOVING` path through feature code redoes that work when it moves.\n\n## 4. ⚠️ The idempotency key here is not what your client should do\n\nEvery write folder repeats this, because it is the single easiest thing to copy wrongly:\n`{{$guid}}` regenerates on **every send**. Your client must instead use **one key per user\nintent**, reused on every retry. See §2.5 of your app's file in `docs/DocsLast/`.\n\n## 5. Regenerating after a merge\n\n```bash\nphp artisan route:list --json > docs/api/.live-routes.json\nphp docs/api/generate-live-postman.php\n```\n\nThe generator reads `route:list` for the routes and the catalog only for example bodies and\nEP-IDs. A newly built endpoint appears automatically; one that was never built never\nappears.\n\n## 6. What is deliberately absent\n\n180 catalogued endpoints have no route: all money (SP-13), all offline sync (SP-14),\ncontent and loyalty (SP-15), and every platform reference screen (SP-03). They are not in\nthis collection because they do not exist. See `docs/DocsLast/` for what that blocks.",
+            "description": "# Start here\n\n**183 requests, every one of them live.** This collection is generated from\n`php artisan route:list`, not from the API catalog — so nothing here returns 404 because\nit was never built.\n\n## 1. Set up (two minutes)\n\n1. Import an environment from `docs/api/environments/` and select it.\n2. `baseUrl` is the **host only** (`http://127.0.0.1:8000`) — each request carries\n   `api/v1` in its own path.\n3. Send **`GET /health`** in this folder. You should get `data.status = \"ok\"`.\n4. Go to your app's folder and run its login request. **The token is captured\n   automatically** into `{{token}}`; every other request already sends it.\n\n## 2. Which folder is mine?\n\n| You build | Folder | Login request |\n|---|---|---|\n| Retailer app | `01. Retailer app` | `00. Shared` → `01. Public OTP` |\n| Field rep app | `02. Field rep app` | `00. Shared` → `01. Public OTP` |\n| Channel dashboard | `03. Channel dashboard` | its `00. Auth` |\n| Warehouse dashboard | `04. Warehouse dashboard` | its `00. Device login` |\n| Platform admin | `05. Platform admin` | its `00. Auth` |\n\nInside each app folder the sub-folders are the roles/modules of that app.\n\n**OTP is switched off during development** (`OTP_BYPASS=true` on the API): send any\n6-character `code` — `000000` — to `verify-otp`. No cooldown, no rate limit. When it is\nswitched back on, codes are not sent anywhere locally — read them from the log:\n\n```bash\ntail -f storage/logs/laravel.log | grep OTP\n```\n\n`request-otp` saves `{{otp_id}}` for you, so `verify-otp` works without copying. Every\n`otp_id` is single-use and lives 5 minutes — `otp_expired` means request a new one.\n\n## 3. What `MOVING` means\n\nEvery request description names a stability:\n\n| Value | Meaning | What to do |\n|---|---|---|\n| `stable` | registered at the path the catalog specifies | build on it |\n| `MOVING -> …` | registered, but at a temporary path — **it will move** | build, but keep the base path behind **one constant** |\n| `live, not in catalog` | callable; the catalog has not caught up | use it, expect the shape to be confirmed |\n\n**20 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can\nsee them at a glance:\n\n| Live now | Will become |\n|---|---|\n| `/admin/channels…` | `/platform/channels…` |\n| `/governorates…` | `/platform/refs/governorates…` |\n| `/zones…` | `/platform/refs/zones…` |\n| `/currencies…` | `/platform/refs/currencies…` |\n\nAnyone who scatters a `MOVING` path through feature code redoes that work when it moves.\n\n## 4. ⚠️ The idempotency key here is not what your client should do\n\nEvery write folder repeats this, because it is the single easiest thing to copy wrongly:\n`{{$guid}}` regenerates on **every send**. Your client must instead use **one key per user\nintent**, reused on every retry. See §2.5 of your app's file in `docs/DocsLast/`.\n\n## 5. Regenerating after a merge\n\n```bash\nphp artisan route:list --json > docs/api/.live-routes.json\nphp docs/api/generate-live-postman.php\n```\n\nThe generator reads `route:list` for the routes and the catalog only for example bodies and\nEP-IDs. A newly built endpoint appears automatically; one that was never built never\nappears.\n\n## 6. What is deliberately absent\n\n180 catalogued endpoints have no route: all money (SP-13), all offline sync (SP-14),\ncontent and loyalty (SP-15), and every platform reference screen (SP-03). They are not in\nthis collection because they do not exist. See `docs/DocsLast/` for what that blocks.",
             "item": [
                 {
                     "name": "GET /health — check the API is up",
@@ -163,7 +163,8 @@
                                         "type": "text/javascript",
                                         "exec": [
                                             "const j = pm.response.json();",
-                                            "if (j.data && j.data.otp_id) { pm.environment.set('otp_id', j.data.otp_id); console.log('otp_id saved'); }"
+                                            "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                            "if (j.data && j.data.otp_id) { store.set('otp_id', j.data.otp_id); console.log('otp_id saved'); }"
                                         ]
                                     }
                                 }
@@ -288,9 +289,10 @@
                                         "exec": [
                                             "const j = pm.response.json();",
                                             "const d = j.data || {};",
-                                            "if (d.token) { pm.environment.set('token', d.token); console.log('token saved'); }",
-                                            "if (d.otp_id) { pm.environment.set('otp_id', d.otp_id); }",
-                                            "if (d.challenge_token) { pm.environment.set('challenge_token', d.challenge_token); }"
+                                            "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                            "if (d.token) { store.set('token', d.token); console.log('token saved'); }",
+                                            "if (d.otp_id) { store.set('otp_id', d.otp_id); }",
+                                            "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }"
                                         ]
                                     }
                                 }
@@ -4010,7 +4012,8 @@
                                         "type": "text/javascript",
                                         "exec": [
                                             "const j = pm.response.json();",
-                                            "if (j.data && j.data.otp_id) { pm.environment.set('otp_id', j.data.otp_id); console.log('otp_id saved'); }"
+                                            "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                            "if (j.data && j.data.otp_id) { store.set('otp_id', j.data.otp_id); console.log('otp_id saved'); }"
                                         ]
                                     }
                                 }
@@ -4075,9 +4078,10 @@
                                         "exec": [
                                             "const j = pm.response.json();",
                                             "const d = j.data || {};",
-                                            "if (d.token) { pm.environment.set('token', d.token); console.log('token saved'); }",
-                                            "if (d.otp_id) { pm.environment.set('otp_id', d.otp_id); }",
-                                            "if (d.challenge_token) { pm.environment.set('challenge_token', d.challenge_token); }"
+                                            "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                            "if (d.token) { store.set('token', d.token); console.log('token saved'); }",
+                                            "if (d.otp_id) { store.set('otp_id', d.otp_id); }",
+                                            "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }"
                                         ]
                                     }
                                 }
@@ -6928,9 +6932,10 @@
                                         "exec": [
                                             "const j = pm.response.json();",
                                             "const d = j.data || {};",
-                                            "if (d.token) { pm.environment.set('token', d.token); console.log('token saved'); }",
-                                            "if (d.otp_id) { pm.environment.set('otp_id', d.otp_id); }",
-                                            "if (d.challenge_token) { pm.environment.set('challenge_token', d.challenge_token); }"
+                                            "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                            "if (d.token) { store.set('token', d.token); console.log('token saved'); }",
+                                            "if (d.otp_id) { store.set('otp_id', d.otp_id); }",
+                                            "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }"
                                         ]
                                     }
                                 }
@@ -8297,9 +8302,10 @@
                                         "exec": [
                                             "const j = pm.response.json();",
                                             "const d = j.data || {};",
-                                            "if (d.token) { pm.environment.set('token', d.token); console.log('token saved'); }",
-                                            "if (d.otp_id) { pm.environment.set('otp_id', d.otp_id); }",
-                                            "if (d.challenge_token) { pm.environment.set('challenge_token', d.challenge_token); }"
+                                            "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                            "if (d.token) { store.set('token', d.token); console.log('token saved'); }",
+                                            "if (d.otp_id) { store.set('otp_id', d.otp_id); }",
+                                            "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }"
                                         ]
                                     }
                                 }
@@ -8424,9 +8430,10 @@
                                         "exec": [
                                             "const j = pm.response.json();",
                                             "const d = j.data || {};",
-                                            "if (d.token) { pm.environment.set('token', d.token); console.log('token saved'); }",
-                                            "if (d.otp_id) { pm.environment.set('otp_id', d.otp_id); }",
-                                            "if (d.challenge_token) { pm.environment.set('challenge_token', d.challenge_token); }"
+                                            "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                            "if (d.token) { store.set('token', d.token); console.log('token saved'); }",
+                                            "if (d.otp_id) { store.set('otp_id', d.otp_id); }",
+                                            "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }"
                                         ]
                                     }
                                 }
