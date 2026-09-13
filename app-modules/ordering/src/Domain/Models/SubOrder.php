@@ -35,6 +35,11 @@ class SubOrder extends Model
         'rep_id',
         'scheduled_at',
         'credit_check',
+        // Frozen at creation, never recomputed: BR-AD-19 says a later FX rate must not
+        // reprice an order that already exists. Distinct from BE2-PRC05's unit-price
+        // freeze, which pins the price against a price list rather than the rate.
+        'currency_code',
+        'fx_rate',
     ];
 
     protected function casts(): array
@@ -44,6 +49,7 @@ class SubOrder extends Model
             'source' => OrderSource::class,
             'credit_check' => 'array',
             'scheduled_at' => 'datetime',
+            'fx_rate' => 'integer',
         ];
     }
 

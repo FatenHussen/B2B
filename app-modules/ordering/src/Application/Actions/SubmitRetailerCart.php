@@ -9,6 +9,7 @@ use Modules\Core\Contracts\CreditGuard;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Domain\Events\CartSubmitted;
 use Modules\Core\Domain\Exceptions\DomainException;
+use Modules\Core\Domain\ValueObjects\Money;
 use Modules\Ordering\Application\Support\CartAssembler;
 use Modules\Ordering\Domain\Enums\CartStatus;
 use Modules\Ordering\Domain\Enums\OrderSource;
@@ -125,6 +126,14 @@ final class SubmitRetailerCart
                     'discount' => $discount,
                     'total' => $subtotal,
                     'scheduled_at' => $section->scheduled_at,
+                    // Frozen here and never recomputed — BR-AD-19. The amounts above are
+                    // already in this currency's minor units, so the rate recorded is the
+                    // identity: nothing was converted. It stops being the identity the day
+                    // a channel prices in a currency other than the base one, and the
+                    // point of writing it now is that the order keeps whatever rate it was
+                    // priced at, whatever `fx_rates` says later.
+                    'currency_code' => $order->currency,
+                    'fx_rate' => Money::FX_UNIT,
                 ]);
                 $sub->forceFill(['sub_order_no' => 'SO-'.$sub->id])->save();
 

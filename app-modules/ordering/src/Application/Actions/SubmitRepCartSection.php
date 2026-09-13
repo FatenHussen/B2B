@@ -9,6 +9,7 @@ use Modules\Core\Contracts\RepCommercialLimits;
 use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Domain\Exceptions\DomainException;
+use Modules\Core\Domain\ValueObjects\Money;
 use Modules\Ordering\Application\Support\CartAssembler;
 use Modules\Ordering\Domain\Enums\CartStatus;
 use Modules\Ordering\Domain\Enums\OrderSource;
@@ -89,6 +90,10 @@ final class SubmitRepCartSection
                 'subtotal' => $subtotal + $discount,
                 'discount' => $discount + $extra,
                 'total' => $total,
+                // Frozen here and never recomputed — BR-AD-19. See SubmitRetailerCart for
+                // why the identity rate is the right value today.
+                'currency_code' => $order->currency,
+                'fx_rate' => Money::FX_UNIT,
             ]);
             $sub->forceFill(['sub_order_no' => 'SO-'.$sub->id])->save();
 
