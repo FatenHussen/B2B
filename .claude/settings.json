@@ -3,7 +3,9 @@
     "allow": [
       "Bash(php __TRACKED_VAR__/gen_postman.php)",
       "Bash(cp __TRACKED_VAR__/gen_postman.php docs/api/generate-live-postman.php)",
-      "Bash(cp __TRACKED_VAR__/coll_desc.md docs/api/live-collection.description.md)"
+      "Bash(cp __TRACKED_VAR__/coll_desc.md docs/api/live-collection.description.md)",
+      "Bash(wmic process *)",
+      "Bash(git log *)"
     ]
   }
 }

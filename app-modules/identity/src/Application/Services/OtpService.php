@@ -28,15 +28,18 @@ final class OtpService
         OtpChannelUsed $prefer = OtpChannelUsed::Whatsapp,
     ): OtpDispatch {
         $phone = PhoneNumber::make($phone)->value;
-        $this->assertRateLimits($phone, $ip, $deviceId);
-
         $cooldown = (int) config('otp.resend_cooldown', 60);
-        $recent = $this->latestLive($phone, $purpose);
 
-        if ($recent !== null && ! $recent->isExpired()) {
-            $elapsed = (int) $recent->created_at->diffInSeconds(now());
-            if ($elapsed < $cooldown) {
-                throw OtpException::cooldown($cooldown - $elapsed);
+        if (! $this->bypassed()) {
+            $this->assertRateLimits($phone, $ip, $deviceId);
+
+            $recent = $this->latestLive($phone, $purpose);
+
+            if ($recent !== null && ! $recent->isExpired()) {
+                $elapsed = (int) $recent->created_at->diffInSeconds(now());
+                if ($elapsed < $cooldown) {
+                    throw OtpException::cooldown($cooldown - $elapsed);
+                }
             }
         }
 
@@ -78,12 +81,15 @@ final class OtpService
             throw OtpException::notFound();
         }
 
-        $this->assertRateLimits($otp->phone, $otp->ip, $otp->device_id);
-
         $cooldown = (int) config('otp.resend_cooldown', 60);
-        $elapsed = (int) $otp->created_at->diffInSeconds(now());
-        if ($elapsed < $cooldown) {
-            throw OtpException::cooldown($cooldown - $elapsed);
+
+        if (! $this->bypassed()) {
+            $this->assertRateLimits($otp->phone, $otp->ip, $otp->device_id);
+
+            $elapsed = (int) $otp->created_at->diffInSeconds(now());
+            if ($elapsed < $cooldown) {
+                throw OtpException::cooldown($cooldown - $elapsed);
+            }
         }
 
         $code = $this->generateCode();
@@ -116,6 +122,12 @@ final class OtpService
             throw OtpException::expired();
         }
 
+        if ($this->bypassed()) {
+            $otp->update(['consumed_at' => now()]);
+
+            return $otp->refresh();
+        }
+
         if ($otp->attempts >= (int) config('otp.max_attempts', 5)) {
             throw OtpException::tooManyAttempts();
         }
@@ -131,8 +143,22 @@ final class OtpService
         return $otp->refresh();
     }
 
+    /**
+     * `otp.bypass` turns verification off for development. It never applies in
+     * production: a login that accepts every code is not a login, and an env file
+     * copied from staging must not be able to switch it on.
+     */
+    private function bypassed(): bool
+    {
+        return (bool) config('otp.bypass', false) && ! app()->isProduction();
+    }
+
     private function send(string $phone, string $code, OtpPurpose $purpose, OtpChannelUsed $prefer): OtpChannelUsed
     {
+        if ($this->bypassed()) {
+            return $prefer;
+        }
+
         try {
             $this->channel->send($phone, $code, $purpose->value, $prefer->value);
 

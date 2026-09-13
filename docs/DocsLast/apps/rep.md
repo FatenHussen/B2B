@@ -90,9 +90,19 @@ channel must **cover the zones** you request. With only `demo-channel` seeded, t
 `supply_channel_id: 1` — and the zones must be within its coverage or registration fails
 validation on `zone_ids`.
 
-### 1.4 OTP codes are written to the log
+### 1.4 OTP is switched off during development
 
-No WhatsApp message is sent locally. `config/otp.php` defaults `OTP_CHANNEL=log`:
+`OTP_BYPASS=true` in the API `.env` turns verification off **until release**. The flow does
+not change — call `request-otp`, take the `otp_id`, call `verify-otp` — but any
+6-character `code` (send `000000`) verifies, no code is sent, and the resend cooldown and
+the per-phone rate limit are skipped. Build the real OTP screen anyway: the switch goes back
+to `false` before release and the flow below is what runs then.
+
+The switch is ignored when `APP_ENV=production`; if a shared server does not accept
+`000000`, that is why.
+
+With `OTP_BYPASS=false`, no WhatsApp message is sent locally. `config/otp.php` defaults
+`OTP_CHANNEL=log`:
 
 ```bash
 tail -f storage/logs/laravel.log | grep OTP

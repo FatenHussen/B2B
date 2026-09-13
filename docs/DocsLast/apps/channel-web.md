@@ -87,8 +87,15 @@ The seeder creates a channel manager bound to the demo channel:
 | Channel | `demo-channel` (id `1`) |
 | Role | `channel_manager` |
 
-Login is passwordless — an OTP is sent to that phone. Locally no WhatsApp is sent: the code
-is written to the log.
+Login is passwordless — an OTP is sent to that phone.
+
+**During development OTP is switched off**: `OTP_BYPASS=true` in the API `.env`. The flow
+does not change — `request-otp`, take the `otp_id`, `verify-otp` — but any 6-character
+`code` (send `000000`) verifies, no code is sent, and the cooldown and per-phone rate limit
+are skipped. Build the real OTP screen anyway: the switch goes back to `false` before
+release. It is ignored when `APP_ENV=production`.
+
+With `OTP_BYPASS=false`, locally no WhatsApp is sent: the code is written to the log.
 
 ```bash
 tail -f storage/logs/laravel.log | grep OTP

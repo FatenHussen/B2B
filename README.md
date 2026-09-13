@@ -19,7 +19,9 @@ curl http://127.0.0.1:8000/api/v1/health
 Full steps (MySQL port, OTP log, seed users, warehouse device): **[docs/DocsLast/_shared/00-install-the-api.md](docs/DocsLast/_shared/00-install-the-api.md)**
 
 Local platform login after seed: `admin@platform.sy` / `password`.  
-OTP codes (dev): `storage/logs/laravel.log` with `OTP_CHANNEL=log`.
+OTP (dev): switched off with `OTP_BYPASS=true` — any 6-character code verifies, no cooldown, no rate limit;
+ignored under `APP_ENV=production`. Set it back to `false` at release. With it off, codes go to
+`storage/logs/laravel.log` (`OTP_CHANNEL=log`).
 
 ## Frontend briefs
 
