@@ -11,6 +11,29 @@ use InvalidArgumentException;
  */
 final class Money
 {
+    /**
+     * The scale of every exchange rate, everywhere. A rate of 1.0 is `1_000_000`.
+     *
+     * Fixed here rather than stored per row, and that is the whole point. A `scale`
+     * column would let two rows on the same currency pair carry different scales, and
+     * the first conversion between them would be wrong by a factor of ten with nothing
+     * in the data to reveal it — no exception, no mismatch, just a number that is off.
+     * One constant means a rate read from any row means the same thing.
+     *
+     * Six decimal places is the resolution: enough for a thin-margin pair without
+     * exceeding what a bigInteger holds once multiplied into an amount.
+     *
+     * This is not the money scale. `Money::$scale` is how many minor units a *currency*
+     * has — 0 for SYP, 2 for USD — and it comes from `currencies.decimals`. The two are
+     * unrelated and must not be substituted for each other.
+     */
+    public const FX_SCALE = 6;
+
+    /**
+     * 10 ** FX_SCALE, precomputed. The denominator of every rate.
+     */
+    public const FX_UNIT = 1_000_000;
+
     private function __construct(
         public readonly int $minor,
         public readonly string $currency,
