@@ -103,6 +103,8 @@ function place(string $path, string $mw): array
     // ---------- Reference routes at the v1 root (moving)
     if (str_starts_with($path, '/governorates') || str_starts_with($path, '/zones'))
         return ['06. Reference (MOVING paths)', '01. Governorates & zones'];
+    if (str_starts_with($path, '/currencies'))
+        return ['06. Reference (MOVING paths)', '02. Currencies'];
 
     return ['99. Unclassified', 'misc'];
 }
@@ -184,6 +186,15 @@ foreach ($routes as $rt) {
             ],
             'PUT /zones/{}' => ['name' => 'المزة', 'district' => 'المزة 86', 'order' => 2, 'reason' => 'Boundary correction'],
             'PATCH /zones/{}/status' => ['status' => 'disabled', 'reason' => 'No coverage this quarter'],
+            'POST /currencies' => [
+                'iso' => 'EUR', 'name' => 'Euro', 'symbol' => '€',
+                'decimals' => 2, 'is_display_currency' => false,
+            ],
+            'PUT /currencies/{}' => [
+                'name' => 'Euro', 'symbol' => '€', 'decimals' => 2,
+                'is_display_currency' => false, 'reason' => 'Symbol corrected',
+            ],
+            'PATCH /currencies/{}/status' => ['status' => 'disabled', 'reason' => 'No longer quoted'],
             // A DELETE that carries a body — fetch/axios must be configured to send it.
             'DELETE /platform/iam/assignments' => ['user_id' => 9, 'role_id' => 3, 'reason' => 'Left the team'],
         ];
@@ -225,6 +236,7 @@ foreach ($routes as $rt) {
         if (str_starts_with($path, '/admin/channels')) $stability = 'MOVING -> /platform/channels';
         if (str_starts_with($path, '/governorates'))   $stability = 'MOVING -> /platform/refs/governorates';
         if (str_starts_with($path, '/zones'))          $stability = 'MOVING -> /platform/refs/zones';
+    if (str_starts_with($path, '/currencies'))     $stability = 'MOVING -> /platform/refs/currencies';
 
         $desc = [];
         $desc[] = '**' . ($e['code'] ?? 'no EP-ID') . '** · Stability: `' . $stability . '`';
@@ -348,7 +360,7 @@ foreach ($tree as $app => $subs) {
 $readme = <<<'MD'
 # Start here
 
-**178 requests, every one of them live.** This collection is generated from
+**183 requests, every one of them live.** This collection is generated from
 `php artisan route:list`, not from the API catalog — so nothing here returns 404 because
 it was never built.
 
@@ -391,7 +403,7 @@ Every request description names a stability:
 | `MOVING -> …` | registered, but at a temporary path — **it will move** | build, but keep the base path behind **one constant** |
 | `live, not in catalog` | callable; the catalog has not caught up | use it, expect the shape to be confirmed |
 
-**15 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can
+**20 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can
 see them at a glance:
 
 | Live now | Will become |
@@ -399,6 +411,7 @@ see them at a glance:
 | `/admin/channels…` | `/platform/channels…` |
 | `/governorates…` | `/platform/refs/governorates…` |
 | `/zones…` | `/platform/refs/zones…` |
+| `/currencies…` | `/platform/refs/currencies…` |
 
 Anyone who scatters a `MOVING` path through feature code redoes that work when it moves.
 
