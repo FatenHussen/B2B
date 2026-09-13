@@ -81,6 +81,7 @@ Every ticket carries a real endpoint identifier. **This layer is implementable n
 | [BE-R07](./BE-R07.md) | Reference | SP-03 | 2 | Low | Equipment |
 | [BE-R08](./BE-R08.md) | Reference | SP-03 | 3 | High | Currencies and decimals |
 | [BE-R09](./BE-R09.md) | Reference | SP-03 | 5 | High | FX rates |
+| [BE-O14](./BE-O14.md) | Ordering | SP-04 | 1 | Medium | Keep the unit-price freeze separate from the FX-rate freeze |
 | [BE-R10](./BE-R10.md) | Reference | SP-03 | 5 | Highest | Public references endpoint |
 | [BE-R11](./BE-R11.md) | Reference | SP-03 | 5 | Medium | Reference import with dry run |
 | [BE-R12](./BE-R12.md) | Reference | SP-03 | 2 | High | Mandatory reason on reference mutations |
