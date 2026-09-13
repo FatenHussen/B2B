@@ -27,7 +27,19 @@ final class ShowRetailerOrder
     public function __invoke(object $user, int $id): array
     {
         $ctx = $this->shopping->for($user);
-        $sub = SubOrder::query()->with(['lines', 'events'])->where('retailer_id', $ctx['retailer_id'])->find($id);
+        // `acrossChannels()` with the reason, per rule 10. A retailer buys from several
+        // channels and reads their own orders across all of them; the `/app/retailer/*`
+        // group sets no tenant, so the channel scope would throw rather than filter. The
+        // isolation that matters here is `retailer_id` — a retailer sees their own orders
+        // and no one else's, which is the line below and is not a channel question.
+        //
+        // Before SubOrder carried BelongsToChannel this worked by accident. It broke
+        // silently when the scope landed because no test touched this route.
+        $sub = SubOrder::query()
+            ->acrossChannels()
+            ->with(['lines', 'events'])
+            ->where('retailer_id', $ctx['retailer_id'])
+            ->find($id);
         if ($sub === null) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }

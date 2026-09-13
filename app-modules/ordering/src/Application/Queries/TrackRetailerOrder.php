@@ -23,7 +23,10 @@ final class TrackRetailerOrder
     public function __invoke(object $user, int $id): array
     {
         $ctx = $this->shopping->for($user);
-        $sub = SubOrder::query()->with('events')->where('retailer_id', $ctx['retailer_id'])->find($id);
+        // acrossChannels(), per rule 10: `/app/retailer/*` sets no tenant, and a
+        // retailer tracks their own order whichever channel fulfils it. `retailer_id`
+        // below is the isolation that matters.
+        $sub = SubOrder::query()->acrossChannels()->with('events')->where('retailer_id', $ctx['retailer_id'])->find($id);
         if ($sub === null) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }

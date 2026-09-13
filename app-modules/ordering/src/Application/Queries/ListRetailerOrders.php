@@ -26,7 +26,9 @@ final class ListRetailerOrders
         $perPage = min((int) $request->input('per_page', 25), 100);
         $status = $request->input('filter.status', 'all');
 
-        $query = SubOrder::query()->where('retailer_id', $ctx['retailer_id']);
+        // acrossChannels(), per rule 10: `/app/retailer/*` sets no tenant, and a
+        // retailer's order list spans every channel they buy from.
+        $query = SubOrder::query()->acrossChannels()->where('retailer_id', $ctx['retailer_id']);
 
         if ($status && $status !== 'all') {
             $query->where(function ($q) use ($status): void {

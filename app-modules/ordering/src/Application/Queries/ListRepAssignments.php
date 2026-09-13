@@ -30,7 +30,9 @@ final class ListRepAssignments
             ->where('status', AssignmentStatus::Pending)
             ->pluck('sub_order_id');
 
-        return SubOrder::query()->whereIn('id', $ids)->where('status', SubOrderStatus::Assigned)->get()
+        // acrossChannels(), per rule 10: `/app/rep/*` sets no tenant. The ids were
+        // already restricted to this rep's assignments before this query runs.
+        return SubOrder::query()->acrossChannels()->whereIn('id', $ids)->where('status', SubOrderStatus::Assigned)->get()
             ->map(function (SubOrder $row) {
                 $shop = $this->retailers->find((int) $row->retailer_id);
 

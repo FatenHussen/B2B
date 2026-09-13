@@ -28,7 +28,9 @@ final class ReorderSubOrder
     public function __invoke(object $user, int $id): array
     {
         $ctx = $this->shopping->for($user);
-        $sub = SubOrder::query()->with('lines')->whereKey($id)->where('retailer_id', $ctx['retailer_id'])->first();
+        // acrossChannels(), per rule 10: `/app/retailer/*` sets no tenant. `retailer_id`
+        // below is the isolation.
+        $sub = SubOrder::query()->acrossChannels()->with('lines')->whereKey($id)->where('retailer_id', $ctx['retailer_id'])->first();
         if ($sub === null) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }

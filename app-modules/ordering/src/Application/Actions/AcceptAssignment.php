@@ -21,7 +21,9 @@ final class AcceptAssignment
      */
     public function __invoke(object $user, int $id): array
     {
-        $sub = SubOrder::query()->whereKey($id)->where('rep_id', $user->getAuthIdentifier())->first();
+        // acrossChannels(), per rule 10: `/app/rep/*` sets no tenant. `rep_id` below is
+        // the isolation — a rep acts only on what is assigned to them.
+        $sub = SubOrder::query()->acrossChannels()->whereKey($id)->where('rep_id', $user->getAuthIdentifier())->first();
         if ($sub === null) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }
