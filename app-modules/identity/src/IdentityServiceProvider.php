@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Identity;
 
+use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
 use Modules\Core\Contracts\OtpChannel;
 use Modules\Core\Contracts\RepDirectory;
@@ -19,6 +20,7 @@ use Modules\Identity\Infrastructure\IdentityRepSellingContext;
 use Modules\Identity\Infrastructure\IdentityRetailerShoppingContext;
 use Modules\Identity\Infrastructure\Otp\FakeOtpChannel;
 use Modules\Identity\Infrastructure\Otp\LogOtpChannel;
+use Modules\Identity\Presentation\Http\Middleware\EnsureRetailerProfileActive;
 
 class IdentityServiceProvider extends ServiceProvider
 {
@@ -47,5 +49,21 @@ class IdentityServiceProvider extends ServiceProvider
                 RegisterWarehouseDeviceCommand::class,
             ]);
         }
+
+        // Append after auth on every app route so pending_review is enforced without
+        // each operational module naming the middleware (BE-I06).
+        $this->app->booted(function (): void {
+            foreach ($this->app['router']->getRoutes() as $route) {
+                if (! $route instanceof Route) {
+                    continue;
+                }
+
+                if (! str_starts_with($route->uri(), 'api/v1/app/')) {
+                    continue;
+                }
+
+                $route->middleware(EnsureRetailerProfileActive::class);
+            }
+        });
     }
 }

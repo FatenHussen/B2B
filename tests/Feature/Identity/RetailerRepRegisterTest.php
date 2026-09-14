@@ -183,3 +183,58 @@ it('bootstraps the app session and logs out', function () {
     // the client needs to tell "your session ended" from "you never had one".
     CatalogAssert::error($this->getJson('/api/v1/app/session', $auth), 401, 'token_revoked');
 });
+
+it('the retailer cannot reach any operational surface while pending_review', function () {
+    $refs = seedRetailerRefs();
+    $token = registrationToken('+963933000010');
+
+    $registered = $this->postJson('/api/v1/app/retailer/register', [
+        'owner_name' => 'أبو خالد',
+        'shop_name' => 'بقالية النور',
+        'activity_type_id' => $refs['activity']->id,
+        'category_ids' => [$refs['category']->id],
+        'equipment_ids' => [$refs['equipment']->id],
+        'governorate_id' => $refs['governorate']->id,
+        'zone_id' => $refs['zone']->id,
+        'address' => 'المزة',
+    ], ['Authorization' => "Bearer {$token}"])->assertCreated();
+
+    $fullToken = (string) $registered->json('data.token');
+    $auth = ['Authorization' => "Bearer {$fullToken}"];
+
+    // Session stays reachable so the client can show the waiting state.
+    $this->getJson('/api/v1/app/session', $auth)->assertOk();
+
+    $this->getJson('/api/v1/app/retailer/home', $auth)
+        ->assertForbidden()
+        ->assertJsonPath('error.code', 'insufficient_permission');
+
+    $this->getJson('/api/v1/app/retailer/products', $auth)
+        ->assertForbidden()
+        ->assertJsonPath('error.code', 'insufficient_permission');
+});
+
+it('re-submitting with the same idempotency key does not create a second profile', function () {
+    $refs = seedRetailerRefs();
+    $token = registrationToken('+963933000011');
+    $key = 'retailer-reg-'.uniqid();
+    $body = [
+        'owner_name' => 'أبو خالد',
+        'shop_name' => 'بقالية النور',
+        'activity_type_id' => $refs['activity']->id,
+        'category_ids' => [$refs['category']->id],
+        'equipment_ids' => [$refs['equipment']->id],
+        'governorate_id' => $refs['governorate']->id,
+        'zone_id' => $refs['zone']->id,
+        'address' => 'المزة',
+    ];
+    $headers = ['Authorization' => "Bearer {$token}", 'X-Idempotency-Key' => $key];
+
+    $first = $this->postJson('/api/v1/app/retailer/register', $body, $headers)->assertCreated();
+    $second = $this->postJson('/api/v1/app/retailer/register', $body, $headers)
+        ->assertCreated()
+        ->assertHeader('Idempotent-Replayed', 'true');
+
+    expect($second->json('data.retailer.id'))->toBe($first->json('data.retailer.id'))
+        ->and(AppUser::query()->where('phone', '+963933000011')->count())->toBe(1);
+});

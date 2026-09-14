@@ -24,4 +24,5 @@ return [
     'profile_incomplete' => 'Complete your profile first.',
     'zone_not_found' => 'Zone was not found.',
     'zone_not_covered' => 'This zone is outside your coverage.',
+    'retailer_pending_review' => 'Your retailer profile is pending review.',
 ];

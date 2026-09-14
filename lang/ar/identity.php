@@ -24,4 +24,5 @@ return [
     'profile_incomplete' => 'أكمل ملفك أولاً.',
     'zone_not_found' => 'المنطقة غير موجودة.',
     'zone_not_covered' => 'هذه المنطقة خارج تغطيتك.',
+    'retailer_pending_review' => 'ملف التاجر قيد المراجعة.',
 ];
