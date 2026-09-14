@@ -9,16 +9,13 @@ use Modules\Access\Domain\Enums\AccessChangeType;
 use Modules\Access\Domain\Enums\TempGrantStatus;
 use Modules\Access\Domain\Models\AccessChangeRequest;
 use Modules\Access\Domain\Models\TempGrant;
-use Modules\Access\Infrastructure\GuardUserLocator;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Domain\Exceptions\DomainException;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 final class ApproveTempGrant
 {
     public function __construct(
-        private readonly GuardUserLocator $users,
         private readonly RecordsAudit $audit,
     ) {}
 
@@ -56,14 +53,10 @@ final class ApproveTempGrant
         $grant->approver_id = $actorId;
         $grant->save();
 
-        $user = $this->users->find(
-            $this->guardFromMorph($grant->grantee_type),
-            (int) $grant->grantee_id,
-        );
-        if ($user !== null && method_exists($user, 'givePermissionTo')) {
-            $guard = method_exists($user, 'getDefaultGuardName') ? $user->getDefaultGuardName() : 'channel';
-            $user->givePermissionTo(Permission::findOrCreate($grant->permission, $guard));
-        }
+        // Do not givePermissionTo. A Spatie direct grant is permanent: Gate::before
+        // answers true for it, Gate::after never runs, and an expired temp_grants row
+        // keeps conferring forever. Access comes only from Gate::after + isLive()
+        // (AccessServiceProvider) — expiry is a clock check, no cleanup job required.
 
         $this->closeRequest($grant, $actorId, AccessChangeStatus::Approved, $data['reason']);
 
@@ -89,16 +82,5 @@ final class ApproveTempGrant
                 'approver_id' => $actorId,
                 'reason' => $reason,
             ]);
-    }
-
-    private function guardFromMorph(string $alias): string
-    {
-        return match ($alias) {
-            'platform_user' => 'platform',
-            'channel_user' => 'channel',
-            'warehouse_user' => 'warehouse',
-            'app_user' => 'app',
-            default => 'channel',
-        };
     }
 }
