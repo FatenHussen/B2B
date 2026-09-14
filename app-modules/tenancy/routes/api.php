@@ -16,11 +16,16 @@ Route::middleware(['api', 'auth:platform', 'tenant', SubstituteBindings::class])
     ->group(function () {
         Route::middleware('role:platform_admin')->group(function () {
             Route::get('/', [SupplyChannelController::class, 'index']);
-            Route::post('/', [SupplyChannelController::class, 'store']);
             Route::get('{supplyChannel}', [SupplyChannelController::class, 'show']);
             Route::put('{supplyChannel}', [SupplyChannelController::class, 'update']);
             Route::delete('{supplyChannel}', [SupplyChannelController::class, 'destroy']);
         });
+
+        // EP-AD-051 (BE-T04). Catalog permission, not the role the siblings use, so a 403
+        // carries `error.permission`. On `/admin/channels` beside them, and MOVING to
+        // `/platform/channels` with them.
+        Route::post('/', [SupplyChannelController::class, 'store'])
+            ->middleware('permission:ad.channels.create');
 
         // EP-AD-054 (BE-T13). On `/admin/channels` beside its five siblings, and MOVING
         // to `/platform/channels/{id}/transition` with them: one route on the catalog

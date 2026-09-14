@@ -4,6 +4,7 @@ namespace Modules\Tenancy\Presentation\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Modules\Core\Http\ApiController;
+use Modules\Tenancy\Application\Actions\CreateChannel;
 use Modules\Tenancy\Application\Actions\TransitionChannel;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
@@ -27,11 +28,16 @@ class SupplyChannelController extends ApiController
         return $this->ok(new SupplyChannelResource($supplyChannel));
     }
 
-    public function store(StoreSupplyChannelRequest $request): JsonResponse
+    /**
+     * EP-AD-051. Answers `id`, `status` and `provisioning_job_id` — under 500ms, still
+     * in `provisioning`. Does not wait for `active` (BE-T05).
+     */
+    public function store(StoreSupplyChannelRequest $request, CreateChannel $action): JsonResponse
     {
-        $channel = SupplyChannel::create($request->validated());
-
-        return $this->created(new SupplyChannelResource($channel));
+        return $this->created($action(
+            $request->validated(),
+            $request->user(),
+        ));
     }
 
     public function update(UpdateSupplyChannelRequest $request, SupplyChannel $supplyChannel): JsonResponse

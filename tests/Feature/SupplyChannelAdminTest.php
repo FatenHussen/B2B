@@ -2,13 +2,29 @@
 
 declare(strict_types=1);
 
+/**
+ * Admin roster and cross-guard checks for `/admin/channels`. Create-shape and
+ * EP-AD-051 acceptance criteria live in ChannelCreateRouteTest (BE-T04).
+ */
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Identity\Domain\Models\ChannelUser;
 use Modules\Identity\Domain\Models\PlatformUser;
+use Modules\Reference\Domain\Enums\RefStatus;
+use Modules\Reference\Domain\Models\Governorate;
+use Modules\Reference\Domain\Models\Zone;
+use Modules\Tenancy\Application\Jobs\ProvisionChannel;
+use Modules\Tenancy\Database\Seeders\ChannelPlanSeeder;
+use Modules\Tenancy\Domain\Models\ChannelPlan;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 
-beforeEach(fn () => $this->seed(RolesPermissionsSeeder::class));
+beforeEach(function () {
+    $this->seed(RolesPermissionsSeeder::class);
+    $this->seed(ChannelPlanSeeder::class);
+});
 
 it('lets a platform admin list every channel', function () {
     SupplyChannel::factory()->count(3)->create();
@@ -21,14 +37,47 @@ it('lets a platform admin list every channel', function () {
 });
 
 it('lets a platform admin create a channel', function () {
+    // Full EP-AD-051 body — ChannelCreateRouteTest owns the acceptance criteria; this
+    // only proves the admin role still reaches the route after the permission gate moved
+    // create off `role:platform_admin`.
+    Queue::fake([ProvisionChannel::class]);
+
     $admin = PlatformUser::factory()->create();
     $admin->assignRole('platform_admin');
     Sanctum::actingAs($admin, ['*'], 'platform');
 
+    $governorate = Governorate::factory()->create();
+    $zone = Zone::factory()->create(['governorate_id' => $governorate->id]);
+    $activityTypeId = (int) DB::table('activity_types')->insertGetId([
+        'name' => 'بقالة', 'order' => 0, 'status' => RefStatus::Active->value,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
     $this->postJson('/api/v1/admin/channels', [
         'name' => 'Fresh Foods',
         'slug' => 'fresh-foods',
-    ])->assertCreated()->assertJsonPath('data.slug', 'fresh-foods');
+        'legal_form' => 'llc',
+        'cr_number' => 'C999',
+        'documents' => [],
+        'governorate_ids' => [$governorate->id],
+        'zone_ids' => [$zone->id],
+        'activity_type_ids' => [$activityTypeId],
+        'logo' => null,
+        'plan_id' => ChannelPlan::query()->where('key', 'growth')->value('id'),
+        'billing_cycle' => 'yearly',
+        'trial_days' => 14,
+        'limits' => [
+            'users' => 25, 'warehouses' => 2, 'reps' => 20, 'skus' => 5000, 'storage_mb' => 2048,
+        ],
+        'custom_discount' => 0,
+        'manager' => [
+            'name' => 'Manager', 'phone' => '+963944000001',
+            'email' => 'm@fresh.sy', 'invite_via' => 'whatsapp',
+        ],
+    ])->assertCreated()
+        ->assertJsonPath('data.status', 'provisioning');
+
+    expect(SupplyChannel::query()->where('slug', 'fresh-foods')->exists())->toBeTrue();
 });
 
 /**
