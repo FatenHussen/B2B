@@ -16,10 +16,16 @@ Route::middleware(['api', 'auth:platform', 'tenant', SubstituteBindings::class])
     ->group(function () {
         Route::middleware('role:platform_admin')->group(function () {
             Route::get('/', [SupplyChannelController::class, 'index']);
-            Route::get('{supplyChannel}', [SupplyChannelController::class, 'show']);
-            Route::put('{supplyChannel}', [SupplyChannelController::class, 'update']);
             Route::delete('{supplyChannel}', [SupplyChannelController::class, 'destroy']);
         });
+
+        // EP-AD-052 (BE-T06). Catalog permission, not the admin role.
+        Route::get('{supplyChannel}', [SupplyChannelController::class, 'show'])
+            ->middleware('permission:ad.channels.view');
+
+        // EP-AD-062 (BE-T06). Same permission name as retry-provisioning; reason is required.
+        Route::put('{supplyChannel}', [SupplyChannelController::class, 'update'])
+            ->middleware('permission:ad.channels.update');
 
         // EP-AD-051 (BE-T04). Catalog permission, not the role the siblings use, so a 403
         // carries `error.permission`. On `/admin/channels` beside them, and MOVING to

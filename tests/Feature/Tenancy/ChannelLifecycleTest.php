@@ -136,8 +136,8 @@ it('omits archived from allowed_next while the channel is active', function () {
 
     $allowed = $this->getJson("/api/v1/admin/channels/{$channel->id}")
         ->assertOk()
-        ->assertJsonPath('data.status', 'active')
-        ->json('data.allowed_next');
+        ->assertJsonPath('data.channel.status', 'active')
+        ->json('data.channel.allowed_next');
 
     expect($allowed)->toBe(['suspended'])
         ->and($allowed)->not->toContain('archived');
@@ -151,8 +151,8 @@ it('returns allowed_next on the channel resource', function (string $status, arr
 
     $this->getJson("/api/v1/admin/channels/{$channel->id}")
         ->assertOk()
-        ->assertJsonPath('data.status', $status)
-        ->assertJsonPath('data.allowed_next', $expected);
+        ->assertJsonPath('data.channel.status', $status)
+        ->assertJsonPath('data.channel.allowed_next', $expected);
 })->with([
     'provisioning' => ['provisioning', ['active']],
     'active' => ['active', ['suspended']],

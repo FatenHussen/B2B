@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Tenancy\Presentation\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Modules\Core\Http\ApiFormRequest;
 
+/**
+ * EP-AD-062 body. `reason` is required (BR-AD-11). `status` is prohibited (rule 8).
+ *
+ * `legal_form` stays free text (max 64): the catalog shows `llc` and names no other value.
+ */
 final class UpdateSupplyChannelRequest extends ApiFormRequest
 {
     /**
@@ -16,20 +20,13 @@ final class UpdateSupplyChannelRequest extends ApiFormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:191'],
-            'slug' => [
-                'sometimes', 'string', 'max:191', 'alpha_dash',
-                Rule::unique('supply_channels', 'slug')->ignore($this->route('supply_channel')),
-            ],
-            'legal_name' => ['nullable', 'string', 'max:191'],
-            'tax_number' => ['nullable', 'string', 'max:64'],
-            'phone' => ['nullable', 'string', 'max:32'],
-            'email' => ['nullable', 'email', 'max:191'],
-            // Rule 8: until BE-T01 this accepted `active|suspended`, so a rename could
-            // suspend a channel with no reason and no record. Status moves only through
-            // ChannelLifecycle — EP-AD-054, BE-T13. `prohibited` so a client still
-            // sending it is told, instead of receiving 200 for a status that did not move.
+            'legal_form' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'cr_number' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'activity_type_ids' => ['sometimes', 'array'],
+            'activity_type_ids.*' => ['integer', 'distinct', 'exists:activity_types,id'],
+            'internal_note' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'reason' => ['required', 'string', 'max:255'],
             'status' => ['prohibited'],
-            'settings' => ['nullable', 'array'],
         ];
     }
 }

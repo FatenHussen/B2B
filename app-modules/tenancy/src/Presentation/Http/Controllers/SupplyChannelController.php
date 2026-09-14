@@ -7,6 +7,8 @@ use Modules\Core\Http\ApiController;
 use Modules\Tenancy\Application\Actions\CreateChannel;
 use Modules\Tenancy\Application\Actions\RetryProvisioning;
 use Modules\Tenancy\Application\Actions\TransitionChannel;
+use Modules\Tenancy\Application\Actions\UpdateChannel;
+use Modules\Tenancy\Application\Queries\ShowChannel;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 use Modules\Tenancy\Presentation\Http\Requests\StoreSupplyChannelRequest;
@@ -24,9 +26,13 @@ class SupplyChannelController extends ApiController
         );
     }
 
-    public function show(SupplyChannel $supplyChannel): JsonResponse
+    /**
+     * EP-AD-052. Nested detail: channel (with allowed_next), plan, limits, coverage,
+     * genuine KPI zeros, timeline, notes. Manager is null until BE-T07.
+     */
+    public function show(SupplyChannel $supplyChannel, ShowChannel $query): JsonResponse
     {
-        return $this->ok(new SupplyChannelResource($supplyChannel));
+        return $this->ok($query($supplyChannel));
     }
 
     /**
@@ -41,11 +47,15 @@ class SupplyChannelController extends ApiController
         ));
     }
 
-    public function update(UpdateSupplyChannelRequest $request, SupplyChannel $supplyChannel): JsonResponse
+    /**
+     * EP-AD-062. Answers `{id}`. Reason is required and audited.
+     */
+    public function update(UpdateSupplyChannelRequest $request, SupplyChannel $supplyChannel, UpdateChannel $action): JsonResponse
     {
-        $supplyChannel->update($request->validated());
+        /** @var object $actor */
+        $actor = $request->user();
 
-        return $this->ok(new SupplyChannelResource($supplyChannel));
+        return $this->ok($action($supplyChannel, $request->validated(), $actor));
     }
 
     public function destroy(SupplyChannel $supplyChannel): JsonResponse
