@@ -5,7 +5,18 @@
       "Bash(cp __TRACKED_VAR__/gen_postman.php docs/api/generate-live-postman.php)",
       "Bash(cp __TRACKED_VAR__/coll_desc.md docs/api/live-collection.description.md)",
       "Bash(wmic process *)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(composer dump-autoload *)",
+      "Bash(./vendor/bin/pest tests/Feature/Reference/ReferenceSeederTest.php)",
+      "PowerShell(./vendor/bin/pest tests/Feature/Tenancy/ChannelLifecycleTest.php tests/Architecture/ChannelStatusWriterTest.php --compact 2>&1)",
+      "Bash(composer update *)",
+      "Bash(grep -c \"Reference\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Database\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\Seeders\" vendor/composer/autoload_psr4.php)",
+      "PowerShell(./vendor/bin/pest tests/Feature/Tenancy/ChannelLifecycleTest.php tests/Architecture/ChannelStatusWriterTest.php tests/Architecture/ChannelScopeTest.php --compact 2>&1)",
+      "Bash(./vendor/bin/pint --test app-modules/reference/database/seeders/ReferenceSeeder.php database/seeders/DatabaseSeeder.php tests/Feature/Reference/ReferenceSeederTest.php docs/api/generate-live-postman.php)",
+      "Bash(echo \"grep-exit=$?\")",
+      "PowerShell(./vendor/bin/pint --test 2>&1)",
+      "PowerShell(./vendor/bin/phpstan analyse --no-progress --memory-limit=1G 2>&1)",
+      "Bash(./vendor/bin/pint --test docs/api/generate-live-postman.php)"
     ]
   }
 }

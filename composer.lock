@@ -515,7 +515,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/reference",
-                "reference": "0916595208ac666a3a9e32a826df6e10a93450f0"
+                "reference": "d80a9216b73e4afb3dd9a79dfb2ca343fa65fa13"
             },
             "require": {
                 "b2b/core": "*",
@@ -532,7 +532,8 @@
             "autoload": {
                 "psr-4": {
                     "Modules\\Reference\\": "src/",
-                    "Modules\\Reference\\Database\\Factories\\": "database/factories/"
+                    "Modules\\Reference\\Database\\Factories\\": "database/factories/",
+                    "Modules\\Reference\\Database\\Seeders\\": "database/seeders/"
                 }
             },
             "description": "B2B Reference — governorates, zones, channel coverage",
