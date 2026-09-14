@@ -204,7 +204,14 @@ foreach ($routes as $rt) {
             ],
             // No `status` on update since BE-T01: the field is prohibited (422) and a
             // channel changes status only through the transition route below.
-            'PUT /admin/channels/{}' => ['name' => 'Acme Distribution (renamed)'],
+            'PUT /admin/channels/{}' => [
+                'name' => 'شركة النور للتوزيع',
+                'legal_form' => 'llc',
+                'cr_number' => 'C12345',
+                'activity_type_ids' => [3, 4],
+                'internal_note' => 'تحديث السجل',
+                'reason' => 'تصحيح الاسم التجاري',
+            ],
             // EP-AD-054 (BE-T13), on the moving prefix — the catalog body, verbatim.
             'POST /admin/channels/{}/transition' => ['to_status' => 'suspended', 'reason' => 'تأخر سداد فاتورة المنصة'],
             // EP-AD-053 (BE-T05) — empty body, catalog path is /platform/channels.

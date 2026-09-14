@@ -10346,7 +10346,7 @@
                                         "{{supplyChannel}}"
                                     ]
                                 },
-                                "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Role | `platform_admin` |\n| Idempotency | n/a (read) |"
+                                "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Permission | `ad.channels.view` |\n| Idempotency | n/a (read) |"
                             },
                             "response": []
                         },
@@ -10578,10 +10578,10 @@
                                         "{{supplyChannel}}"
                                     ]
                                 },
-                                "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Role | `platform_admin` |\n| Idempotency | required |",
+                                "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Permission | `ad.channels.update` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"name\": \"Acme Distribution (renamed)\"\n}",
+                                    "raw": "{\n    \"name\": \"شركة النور للتوزيع\",\n    \"legal_form\": \"llc\",\n    \"cr_number\": \"C12345\",\n    \"activity_type_ids\": [\n        3,\n        4\n    ],\n    \"internal_note\": \"تحديث السجل\",\n    \"reason\": \"تصحيح الاسم التجاري\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
