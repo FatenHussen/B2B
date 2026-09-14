@@ -9,26 +9,26 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Modules\Tenancy\Application\Actions\RunProvisioning;
 
 /**
- * BE-T04 dispatches this empty. BE-T05 fills it.
+ * BE-T05. Dispatched empty by BE-T04; this ticket fills the body.
  *
- * A false `running` state is rejected, and an orphan loop waiting for someone to finish
- * it is worse. The `provisioning → active` transition stays in BE-T05 where it belongs.
- *
- * `$publicId` is the `channel_provision_jobs.public_id` EP-AD-051 returns as
- * `provisioning_job_id` and EP-AD-053 retries.
+ * `$tries = 1`: a failure is recorded on the row and retried through EP-AD-053,
+ * which copies completed_steps, rather than by Horizon duplicating a step.
  */
 final class ProvisionChannel implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 1;
+
     public function __construct(
         public readonly string $publicId,
     ) {}
 
-    public function handle(): void
+    public function handle(RunProvisioning $run): void
     {
-        // Intentionally empty until BE-T05.
+        $run($this->publicId);
     }
 }

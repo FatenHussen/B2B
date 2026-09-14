@@ -27,6 +27,10 @@ Route::middleware(['api', 'auth:platform', 'tenant', SubstituteBindings::class])
         Route::post('/', [SupplyChannelController::class, 'store'])
             ->middleware('permission:ad.channels.create');
 
+        // EP-AD-053 (BE-T05). Catalog permission is ad.channels.update ("إعادة التجهيز").
+        Route::post('{supplyChannel}/retry-provisioning', [SupplyChannelController::class, 'retryProvisioning'])
+            ->middleware('permission:ad.channels.update');
+
         // EP-AD-054 (BE-T13). On `/admin/channels` beside its five siblings, and MOVING
         // to `/platform/channels/{id}/transition` with them: one route on the catalog
         // prefix while five sit on the temporary one would split the single constant

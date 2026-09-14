@@ -24,7 +24,7 @@ class ChannelProvisionJob extends Model
 
     protected string $channelColumn = 'channel_id';
 
-    protected $fillable = ['public_id', 'channel_id', 'status', 'payload', 'error', 'attempts', 'started_at', 'finished_at'];
+    protected $fillable = ['public_id', 'channel_id', 'status', 'payload', 'completed_steps', 'error', 'attempts', 'started_at', 'finished_at'];
 
     /**
      * @return array<string, string>
@@ -33,6 +33,7 @@ class ChannelProvisionJob extends Model
     {
         return [
             'payload' => 'array',
+            'completed_steps' => 'array',
             'attempts' => 'integer',
             'started_at' => 'datetime',
             'finished_at' => 'datetime',

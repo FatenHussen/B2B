@@ -100,6 +100,7 @@ final class CreateChannel
                 'channel_id' => $channel->id,
                 'status' => 'queued',
                 'payload' => $data,
+                'completed_steps' => [],
             ]);
 
             return $channel;

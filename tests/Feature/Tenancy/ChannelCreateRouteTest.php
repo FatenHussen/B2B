@@ -181,9 +181,9 @@ it('persists limits as whole numbers and keeps the manager in the job payload', 
     });
 });
 
-it('dispatches an empty ProvisionChannel and does not move the channel to active', function () {
-    // Decision (b): BE-T04 dispatches an empty job; BE-T05 fills it. Sync handle would
-    // still leave status at provisioning because the job body is empty.
+it('dispatches ProvisionChannel and does not wait for active', function () {
+    // The job body is BE-T05. Create still returns provisioning; Queue::fake keeps
+    // the worker from running in this test.
     Queue::fake([ProvisionChannel::class]);
     actingAsCreateAdmin();
 

@@ -5,6 +5,7 @@ namespace Modules\Tenancy\Presentation\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Modules\Core\Http\ApiController;
 use Modules\Tenancy\Application\Actions\CreateChannel;
+use Modules\Tenancy\Application\Actions\RetryProvisioning;
 use Modules\Tenancy\Application\Actions\TransitionChannel;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
@@ -52,6 +53,14 @@ class SupplyChannelController extends ApiController
         $supplyChannel->delete();
 
         return $this->noContent();
+    }
+
+    /**
+     * EP-AD-053. Returns `{job_id}` and is safe to call repeatedly.
+     */
+    public function retryProvisioning(SupplyChannel $supplyChannel, RetryProvisioning $action): JsonResponse
+    {
+        return $this->ok($action($supplyChannel));
     }
 
     /**
