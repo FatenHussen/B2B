@@ -77,7 +77,7 @@ Every endpoint table carries a `Stability` column:
 |---|---:|---|---|---|
 | **Retailer** | 37 | all stable | **Yes — fully** | money, sync, loyalty |
 | **Field rep** | 33 | all stable | **Yes — fully** | wallet + cash collection, sync |
-| **Channel** | 47 | 42 stable · 5 uncatalogued | **Yes — fully** | offer analytics is a **hardcoded stub**; finance, reporting |
+| **Channel** | 47 (+3 shared reference reads) | 39 stable · 5 uncatalogued · **3 broken (500)** | **Yes — except the orders queue and the two inventory lists** | `GET sub-orders`, `inventory/levels`, `inventory/movements` answer 500 (re-verified 2026-09-14, no ticket); offer analytics is a **hardcoded stub**; finance, reporting |
 | **Warehouse** | 19 | all stable | **Yes — fully** | reject/damage at QC; needs a **2nd device** to approve a stocktake |
 | **Platform** | 41 | 36 stable · **5 moving** | **Partly** | **SP-03 and SP-04: 0 of 47 contract paths live** |
 

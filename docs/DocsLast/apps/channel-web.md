@@ -11,11 +11,27 @@ every endpoint — all of it is here. No other document is required to build thi
 | `X-Client` | `channel-web` *(sent for logs; the server ignores it)* |
 | Seed account | phone **`+963900000001`**, OTP from the log — channel `demo-channel` |
 
-Verified against `php artisan route:list` and the controller/action source on
-**2026-09-07**. Where the API catalog disagrees with this page, the code wins.
+Verified against `php artisan route:list`, the controller/action source and a real-token
+probe of every `GET` on this guard on **2026-09-14**. Where the API catalog disagrees with
+this page, the code wins.
 
-**47 endpoints are live** — the largest surface in the platform, and the most complete.
-Catalog, pricing, offers, inventory, orders and returns all work end to end.
+**47 channel endpoints are live**, plus **three shared reference reads** (governorates, zones,
+currencies) this dashboard needs for its pickers — §4.0. Catalog, pricing, offers, orders
+and returns work end to end. **Three reads return 500 today** — §4.5 and §4.6.
+
+### What changed since 2026-09-07
+
+| | Where |
+|---|---|
+| ⚠️ **`GET /channel/sub-orders`, `GET /channel/inventory/levels` and `GET /channel/inventory/movements` return HTTP 500** — every call, every caller, no filter needed. Not new code; found on 2026-09-07 and confirmed again today. No fix ticket exists yet. The orders queue and the two inventory lists cannot be built until it lands | §4.5, §4.6 |
+| **A staging API exists**: `https://api.sentraxsy.com`, seed account present, OTP bypass on, CORS already allows `localhost:3001`. You do not have to run PHP locally | §1.0 |
+| `Accept-Language` is now **ignored** — every message comes back in English | §5.2 |
+| `sort` on a list does **not** throw; it is silently ignored *and* cancels the default order | §5.7 |
+| `GET /channel` gained `allowed_next` — meaningless on this guard, ignore it | §4.1 |
+| `GET /governorates`, `GET /zones`, `GET /currencies` are readable with a channel token | §4.0 |
+| `Idempotent-Replayed` cannot be read from a browser — CORS exposes no headers | §5.3 |
+| `verify-otp` / `request-otp` error codes are listed: `otp_invalid`, `otp_expired`, `rate_limited` | §3 |
+| Seed manager's `permissions` list is **47** codes; the routes gate on 30 of them | §2.8 |
 
 ### Contents
 
@@ -34,9 +50,40 @@ Catalog, pricing, offers, inventory, orders and returns all work end to end.
 
 ## 1. Running the backend
 
-You need the API running locally before the dashboard can do anything.
+You need an API to talk to. There are two: the staging server, which needs nothing
+installed, and a local copy.
 
-### 1.1 Requirements
+### 1.0 Staging — start here
+
+| | |
+|---|---|
+| Base URL | **`https://api.sentraxsy.com/api/v1`** |
+| Health | `GET /health` → `{"data":{"status":"ok","env":"staging",…}}` |
+| Seed account | `+963900000001`, channel `demo-channel` — same as local |
+| OTP | **bypass is on** — send `000000` as the code, nothing is sent anywhere |
+| CORS | `http://localhost:3000–3002` and `http://127.0.0.1:3000–3002` are allowed, credentials on |
+
+```dotenv
+VITE_API_BASE_URL=https://api.sentraxsy.com/api/v1
+```
+
+Verified 2026-09-14 by a preflight from `Origin: http://localhost:3001`.
+
+Three things to know about it:
+
+⚠️ **It lags the repository.** Deploys are by hand; on 2026-09-14 the server was several
+commits behind. Everything on this page is on the server *except* where a section says
+otherwise, but if a call disagrees with this page, check `git log` before filing a bug.
+⚠️ **Nothing serves the `exports` queue.** Catalog export (`GET /channel/catalog/export`)
+queues a job that no worker picks up, so it never completes there. Import and price-list
+scheduling go to `default`, which is served.
+⚠️ **It is shared.** Every developer logs into the same demo channel; the data you see is
+whatever the last person left. Do not build a test on the assumption that the catalog is
+empty.
+
+If staging is enough for you, skip to §2.
+
+### 1.1 Requirements — local copy
 
 | | Version | Note |
 |---|---|---|
@@ -129,12 +176,13 @@ like an API outage.
 
 ### 1.5 Queues
 
-`php artisan horizon` supervises `critical`, `default`, `media`, `reports`.
+`php artisan horizon` supervises the queues locally.
 
-Three things on this dashboard are asynchronous and need a worker: **catalog import**,
-**catalog export** and a **scheduled price list**. Each returns a `job_id` (or nothing at
-all) and there is **no endpoint to poll it** — so without Horizon running they queue
-silently and never complete.
+Three things on this dashboard are asynchronous and need a worker: **catalog import**
+(queue `default`), **catalog export** (queue **`exports`**) and a **scheduled price list**
+(`default`). Each returns a `job_id` (or nothing at all) and there is **no endpoint to poll
+it** — so without a worker they queue silently and never complete. On staging only
+`default` is served (§1.0).
 
 ---
 
@@ -395,6 +443,8 @@ export function makeClient(guard: Guard) {
 
     const headers: Record<string, string> = {
       Accept: 'application/json',
+      // Ignored by the server today — every message comes back in English (§5.2).
+      // Keep sending it: the fallback is a temporary switch, not the contract.
       'Accept-Language': 'ar',
     };
 
@@ -417,6 +467,8 @@ export function makeClient(guard: Guard) {
 
     if (res.status === 204) return { data: undefined as T, meta: { server_time: '' } };
 
+    // A 500 is NOT in the envelope: it is Laravel's own `{"message":"Server Error"}`
+    // (§5.4). `res.json()` still parses it; `isFail` is false; we fall to `unknown`.
     const json = (await res.json()) as Envelope<T>;
 
     if (!res.ok || isFail(json)) {
@@ -454,12 +506,15 @@ const qc = new QueryClient({
 ```
 
 ```ts
-function onApiError(e: ApiError, router: AppRouterInstance) {
-  if (e.isAuthLoss)   { tokenStore.clear('channel'); router.replace('/login'); return; }
+import type { NavigateFunction } from 'react-router-dom';   // from useNavigate()
+
+function onApiError(e: ApiError, navigate: NavigateFunction) {
+  if (e.isAuthLoss)   { tokenStore.clear('channel'); navigate('/login', { replace: true }); return; }
   if (e.isWrongGuard) { console.error('Wrong guard — this dashboard called another guard\'s path', e); return; }
   if (e.code === 'insufficient_permission') { /* hide the control; e.permission names it */ return; }
   if (e.code === 'illegal_transition') { /* refetch — the order moved on */ return; }
   if (e.code === 'insufficient_stock')  { /* show the shortfall; do not retry blindly */ return; }
+  if (e.status === 500) { /* a known-broken read (§4.5, §4.6) or a real outage — say so, never retry in a loop */ return; }
 }
 ```
 
@@ -486,8 +541,20 @@ export function makeCan(permissions: readonly string[]) {
 Hiding a control is not security — the server checks again — but it is the difference
 between a usable dashboard and one that answers 403 on every click.
 
-This guard uses **28 distinct `sc.*` permissions** — see the tables in §4. A user with
-`sc.catalog.view` but not `sc.catalog.create` must not see an Add Product button at all.
+The routes on this guard gate on **30 distinct `sc.*` permissions** — see the tables in §4.
+The seed `channel_manager` receives **47** at login: every `sc.*` code seeded, including
+17 (`sc.finance.*` ×5, `sc.reports.*` ×3, `sc.content.*` ×3, `sc.notify.*` ×2,
+`sc.loyalty.manage`, `sc.dashboard.view`, `sc.reps.settle`, `sc.retailers.credit`) whose
+routes do not exist yet. Holding a permission is not evidence that its screen can be
+built — §7 is.
+
+Four built-in channel roles exist: `channel_manager` (everything), `sales_manager`
+(orders, reps, pricing, promotions), `catalog_manager` (catalog, pricing, offers,
+content), `accountant` (finance, returns). Only the manager is seeded. Gate on the codes,
+never on these names — a real channel will edit them.
+
+A user with `sc.catalog.view` but not `sc.catalog.create` must not see an Add Product
+button at all.
 
 ### 2.9 A resource module
 
@@ -559,7 +626,21 @@ mobile OTP. Hardcode the known values: TTL **300 s**, cooldown **60 s**, **5** a
 ⚠️ **There is no channel resend endpoint.** If the code expires, request a new one.
 ⚠️ A phone with no `ChannelUser` row, or one with no membership, returns
 **`403 insufficient_permission`** — not 404.
-📌 Rate limits are per hour: **3/phone**, 10/device, 30/IP. Easy to burn while testing.
+📌 Rate limits are per hour: **3/phone**, 10/device, 30/IP. Easy to burn while testing
+(skipped entirely while the bypass is on).
+
+What the two calls can answer with:
+
+| Call | HTTP | `error.code` | Meaning |
+|---|---|---|---|
+| `request-otp` | 429 | `rate_limited` | cooldown (60 s since the last code) **or** an hourly limit hit — same code for both; the message says which |
+| `verify-otp` | 401 | `otp_invalid` | wrong code, **or** an unknown `otp_id`, **or** the 6th attempt onward — one code for all three |
+| `verify-otp` | 401 | `otp_expired` | more than 300 s old, or already consumed (a second verify of the same `otp_id` lands here) |
+| `verify-otp` | 403 | `insufficient_permission` | code fine, phone has no channel membership |
+
+⚠️ `otp_invalid` and `otp_expired` are **401**, but they are not `isAuthLoss` — there is no
+token to drop. Keep the user on the OTP screen; on `otp_expired` send them back to the
+phone step.
 
 `permissions` is the only source for `can()`. Every control below is gated on it.
 
@@ -572,7 +653,67 @@ elsewhere, will move · **missing** = catalogued, no route (§7).
 
 📌 Five channel routes are live but appear in **no catalog entry at all** — the settings
 pair and the three zone routes. They are marked `stable*`. They are real and callable; the
-catalog has not caught up, exactly as `CLAUDE.md` describes for `sc.notify.view`.
+catalog has not caught up.
+
+⚠️ Three routes are marked **broken**: registered, gated, and answering **500** to every
+call (§4.5, §4.6). Treat them as `missing` until a fix lands.
+
+### 4.0 Shared reference reads — not under `/channel`, but yours to read
+
+| EP-ID | Method | Path | Stability | Permission |
+|---|---|---|---|---|
+| EP-AD-030 | GET | `/governorates` | moving | — |
+| — | GET | `/governorates/{id}` | moving* | — |
+| EP-AD-032 | GET | `/zones` | moving | — |
+| — | GET | `/zones/{id}` | moving* | — |
+| EP-AD-039A | GET | `/currencies` | moving | — |
+| — | GET | `/currencies/{id}` | moving* | — |
+
+`moving*` — the three single-row reads have no catalog entry at all; the lists do. You
+will not need them: the lists are small and unpaginated, so cache and index those.
+
+These sit at `/api/v1/governorates`, `/api/v1/zones`, `/api/v1/currencies` — **no guard
+prefix** — and accept a token from any of the four guards. Reads are deliberately open:
+your zone-coverage screen needs a zone to pick, `filter[zone_id]` needs a name to show,
+and money cannot be rendered without a currency's `decimals`. The `POST`/`PUT`/`PATCH`
+siblings are platform-only (`ad.refs.*`) and answer **403 `insufficient_permission`** to
+you — do not draw them.
+
+`moving` because the catalog wants them under `/platform/refs/…` for the platform and a
+public snapshot (`GET /public/refs`, EP-PB-001, not built) for everyone else. Keep the
+three base paths behind **one constant each**.
+
+**`GET /governorates`** — plain array, ordered by `name_ar`, no params, no pagination:
+
+```jsonc
+{ "data": [ { "id": 1, "name_ar": "دمشق", "name_en": "Damascus", "code": "DI",
+              "status": "active", "order": 1 } ] }
+```
+
+**`GET /zones`** — plain array, ordered by `name`, optional `?governorate_id=`:
+
+```jsonc
+{ "data": [ { "id": 4, "governorate_id": 1, "name": "المزة", "polygon": null,
+              "status": "active" } ] }   // status: active | disabled
+```
+
+⚠️ **Both lists include disabled rows.** Filter `status === 'active'` in every picker.
+`POST /channel/zones` validates only that the id exists — it will happily cover a disabled
+zone (§4.8).
+
+**`GET /currencies`** — plain array, ordered by `iso`:
+
+```jsonc
+{ "data": [ { "id": 1, "iso": "SYP", "name": "الليرة السورية", "symbol": "ل.س",
+              "decimals": 0, "is_display_currency": true, "status": "active" } ] }
+```
+
+📌 `decimals` is the number your money formatter needs (§2.10): SYP is **0**. Load this
+list once at startup and key it by `id` — `pricing.currency_id` on a product (§4.2) points
+here. Exactly one row has `is_display_currency: true`.
+
+The seed ships **14 governorates and 77 zones**; staging has the same set, minus whatever
+the platform has disabled since.
 
 ### 4.1 Auth and settings
 
@@ -588,15 +729,25 @@ catalog has not caught up, exactly as `CLAUDE.md` describes for `sc.notify.view`
 ```jsonc
 { "data": { "id": 1, "name": "…", "slug": "demo-channel",
             "legal_name": null, "tax_number": null, "phone": null, "email": null,
-            "status": "active", "settings": {},
+            "status": "active",                 // provisioning | active | suspended | archived
+            "allowed_next": ["suspended"],      // ⚠️ new — ignore it, see below
+            "settings": {},
             "created_at": "2026-09-01T10:00:00+00:00" } }
 ```
 
 ⚠️ `created_at` here is **UTC**, unlike every other timestamp on this guard. Handle it
 explicitly.
+⚠️ **`allowed_next` is not for you.** It lists the states the *platform* may move this
+channel to next (`POST /admin/channels/{id}/transition`, a platform route). No channel
+route changes `status`, so on this dashboard the key is informational at best — do not
+render buttons from it. Show `status` as a badge and nothing more.
+📌 Nothing on this guard is blocked by `status` today: a `suspended` channel's users still
+log in and every route still answers. Suspension is not enforced anywhere yet — the
+first enforcement point is ticketed for the retailer's cart (BE-O16), not for this
+dashboard. Do not build a "your channel is suspended" wall — you cannot observe one.
 **`PUT`** accepts `name` (`sometimes`), `legal_name`, `tax_number`, `phone`, `email`,
 `settings`. ⚠️ `slug` and `status` are **not** editable here — only the platform can change
-them.
+them. The response is the same shape as `GET`, `allowed_next` included.
 
 ### 4.2 Catalog
 
@@ -625,8 +776,10 @@ them.
 them, or fetch per row.
 Filters: `filter[brand_id]`, `filter[category_id]`, `filter[status]`, `filter[zone_id]`,
 `filter[search]` (name/SKU/barcode). `per_page` default 25, max 100.
-⚠️ **Never send `sort`** — no `allowedSorts` is declared, so any `sort` throws a Spatie
-error. This applies to *every* list on this guard. Order is `-created_at`.
+⚠️ **Never send `sort`.** No list on this guard declares `allowedSorts`, and the query
+builder's rule for that case is: a `sort` param is **not applied and not rejected — it
+silently cancels the default order** instead. `?sort=id` answers 200 with rows in
+whatever order MySQL feels like. Order is `-created_at` only while you send nothing.
 
 **`POST /channel/products`** → **201** `{ "id": 12, "sku": "SKU-1" }`.
 **`PUT /channel/products/{id}`** → 200 `{ "id": 12 }` — ⚠️ **`sku` is omitted on update**.
@@ -838,11 +991,22 @@ succeeds.
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
-| EP-SC-060 | GET | `/channel/inventory/levels` | stable | `sc.inventory.view` |
-| EP-SC-061 | GET | `/channel/inventory/movements` | stable | `sc.inventory.view` |
+| EP-SC-060 | GET | `/channel/inventory/levels` | **broken — 500** | `sc.inventory.view` |
+| EP-SC-061 | GET | `/channel/inventory/movements` | **broken — 500** | `sc.inventory.view` |
 | EP-SC-062 | POST | `/channel/inventory/adjust` | stable | `sc.inventory.adjust` |
 | EP-SC-063 | POST | `/channel/inventory/transfers` | stable | `sc.inventory.transfer` |
 | EP-SC-064 | PUT | `/channel/inventory/reorder-points` | stable | `sc.inventory.reorder` |
+
+⚠️ **Both reads return HTTP 500 on every call**, with or without filters, for every user.
+Confirmed with a real token on 2026-09-14. The cause is one line in each query class
+(`allowedFilters([...])` passed an array where the installed query-builder wants
+spread arguments — a `TypeError` before the query runs). The three writes below work; you
+just cannot see their effect through the API afterwards. **There is no fix ticket yet**
+— ask the backend for one before starting the inventory screens, and build the two lists
+last. The body of the 500 is Laravel's `{"message":"Server Error"}`, not the envelope.
+
+The shapes below are what the code *will* return once the one line is fixed; they are read
+from the mapper, not observed.
 
 **`GET /channel/inventory/levels`** — paginated.
 
@@ -883,7 +1047,7 @@ the failing index (`items.{i}.…`); re-send the remainder.
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
-| EP-SC-070 | GET | `/channel/sub-orders` | stable | `sc.orders.view` |
+| EP-SC-070 | GET | `/channel/sub-orders` | **broken — 500** | `sc.orders.view` |
 | EP-SC-071 | GET | `/channel/sub-orders/{id}` | stable | `sc.orders.view` |
 | EP-SC-072 | POST | `/channel/sub-orders/{id}/confirm` | stable | `sc.orders.confirm` |
 | EP-SC-073 | POST | `/channel/sub-orders/bulk-confirm` | stable | `sc.orders.confirm` |
@@ -894,7 +1058,15 @@ the failing index (`items.{i}.…`); re-send the remainder.
 | EP-SC-078 | POST | `/channel/sub-orders/{id}/reassign` | stable | `sc.orders.reassign` |
 | EP-SC-079 | POST | `/channel/sub-orders/{id}/schedule` | stable | `sc.orders.schedule` |
 
-**`GET /channel/sub-orders`** — paginated `{id, sub_order_no, status, zone_id, total}`.
+**`GET /channel/sub-orders`** — ⚠️ **returns HTTP 500 on every call today.** Same cause as
+the two inventory lists (§4.5): one `allowedFilters([...])` line, a `TypeError` before the
+query runs, no filter needed to trigger it. Found 2026-09-07, confirmed with a real token
+2026-09-14, **no fix ticket yet.** The whole orders queue hangs on this one line — raise it
+with the backend on day one. Everything else in this section works: the detail, and every
+action, can be exercised on an id you obtained some other way (a retailer's order number,
+the warehouse, a bulk-confirm response).
+
+When it is fixed it returns paginated `{id, sub_order_no, status, zone_id, total}`.
 ⚠️ No retailer name and no `created_at` in the row.
 Filters: `filter[status]`, `filter[zone_id]`, `filter[retailer_id]`, `filter[rep_id]`,
 `filter[source]`, and `filter[waiting_over_minutes]` (an SLA filter: orders older than N
@@ -1023,6 +1195,11 @@ through your integer formatter, and do not `parseInt` them.
 → **201**.
 📌 It is an **upsert keyed on `zone_id`** — posting an existing zone **updates** it and
 still returns 201. There is no PUT.
+⚠️ "Must exist" is all it checks: a zone the platform has **disabled** is accepted without
+complaint. Feed the picker from `GET /zones` (§4.0) filtered to `status === 'active'`,
+and show a disabled zone that is already covered with a warning rather than hiding it.
+📌 `delivery_fee` / `min_order_value` are accepted as a number or a string; either way the
+server stores and returns a two-decimal **string**.
 **`DELETE /{id}`** → **204 with no body** — do not parse an envelope. Hard delete, no
 restore.
 ⚠️ `zone_name` uses `whenLoaded`, so in principle the key can be **absent** rather than
@@ -1070,12 +1247,16 @@ Only three custom headers are read by the server. Send the rest for your own log
 | Header | When | Value | Read by the server? |
 |---|---|---|---|
 | `Accept` | always | `application/json` | yes |
-| `Accept-Language` | always | `ar` \| `en` | **yes** — anything else falls back to `ar` |
+| `Accept-Language` | always | `ar` \| `en` | **no — ignored since 2026-09-07.** The locale is pinned to `en` for every request; every `error.message` and validation message is English. Keep sending `ar`: the pin is a temporary switch, and your UI strings are your own anyway |
 | `Authorization` | after login | `Bearer {token}` | yes |
 | `X-Idempotency-Key` | every write | UUID per user intent | **yes** |
 | `X-Channel-Id` | — | channel id | **yes, but **ignored for you** — see below** |
 | `X-Client` | always | `channel-web` | **no** — ignored today |
 | `X-App-Version` | always | semver | **no** — ignored today |
+
+⚠️ Because `Accept-Language` is ignored, **never show `error.message` to a user as-is** —
+it is English on an Arabic dashboard. Map `error.code` (and `details.{field}`) to your
+own strings; that was the rule anyway (§5.1).
 
 ⚠️ **`X-Channel-Id` does nothing for a channel user.** `ResolveTenant` honours it only for
 `platform_admin`. Your tenant comes from your own membership, and the header is silently
@@ -1096,6 +1277,11 @@ The key is hashed from **method + path + body**:
 | Same key, same body, previous call finished 2xx | Replays the stored response, adds `Idempotent-Replayed: true` |
 | Same key, **different body** | `409 idempotency_key_conflict` |
 | Same key, first call still running | `409 operation_in_progress` |
+
+⚠️ **You cannot see `Idempotent-Replayed` from a browser.** `config/cors.php` exposes no
+response headers, so `fetch` hides every non-safelisted one. A replay is indistinguishable
+from a first success on the client side — which is fine, because the body is identical.
+Do not write code that waits for that header.
 
 So a key belongs to a **user intent**, not an HTTP attempt. Keep it in form state, not in
 the fetch wrapper (§2.5).
@@ -1123,6 +1309,7 @@ assuming a rollback.
 | 400 | `idempotency_key_required` | Your bug — you omitted the header |
 | 401 | `unauthenticated` | No usable token → login |
 | 401 | `token_revoked` | Token deleted or expired → drop it, login |
+| 401 | `otp_invalid`, `otp_expired` | OTP screen only (§3). **Not** an auth loss — there is no token yet |
 | 403 | `wrong_guard` | A live token from another guard — **do not** re-login |
 | 403 | `insufficient_permission` | `error.permission` names the missing grant → hide the control |
 | 409 | `insufficient_stock` | Reservation failed. Show the shortfall; do not retry blindly |
@@ -1134,12 +1321,14 @@ assuming a rollback.
 | 422 | `validation_failed` | Map `details.{field}` onto inputs |
 | 422 | `ref_in_use` | A reference is used elsewhere; disable instead of deleting |
 | 423 | `plan_limit_exceeded` | Banner, stop the spinner, do not retry |
-| 429 | `rate_limited` | Back off |
+| 429 | `rate_limited` | Back off. Also the OTP cooldown (§3) |
 | 503 | `maintenance_mode` | Maintenance screen |
+| 409 / 4xx | `conflict`, `http_error` | A framework `abort()` with no domain code. Rare; treat by status |
+| **500** | *(no envelope)* | `{"message":"Server Error"}` — Laravel's own body, **no `error` key**. Three reads do this today (§4.5, §4.6). Show "something broke on the server", never retry in a loop |
 
 On `422` the **first** message is flattened into `error.message`, so you can show something
-useful without walking `details`. A raw Laravel validation payload never reaches you, and
-no endpoint returns HTML.
+useful without walking `details` — in English (§5.2). A raw Laravel validation payload
+never reaches you, and no endpoint returns HTML.
 
 ### 5.5 Timestamps
 
@@ -1169,39 +1358,46 @@ in **UTC**, not Damascus. Handle it explicitly. See §4.1.
 | `per_page` | **25** | **hard max 100 — a larger value is silently clamped**, not rejected |
 | `filter[x]` | — | bracket syntax, e.g. `filter[status]=pending` |
 
-⚠️ **Never send `sort`** on any list here — no `allowedSorts` is declared anywhere on this
-guard and Spatie throws. Order is `-created_at`.
+⚠️ **Never send `sort`** on any list here. No `allowedSorts` is declared anywhere on this
+guard, and in that state the query builder neither applies nor rejects a `sort` — it
+**silently drops the default order** (§4.2). A sorted-looking list that arrives in table
+order is this.
 
-⚠️ `GET /channel/return-requests` is a **plain array**: unpaginated, unfiltered, growing
-unbounded. Paginate it client-side.
+⚠️ `GET /channel/return-requests`, `GET /channel/zones`, `GET /channel/categories/tree` and
+the three reference lists (§4.0) are **plain arrays**: unpaginated, unfiltered. Only
+`return-requests` grows unbounded; paginate that one client-side.
 
 ---
 ## 6. What to build, in order
 
 | # | Screen | Endpoints | Notes |
 |---|---|---|---|
-| 1 | Login (phone → OTP) | `auth/request-otp`, `auth/verify-otp` | no resend endpoint; 60 s timer is client-side |
+| 1 | Login (phone → OTP) | `auth/request-otp`, `auth/verify-otp` | no resend endpoint; 60 s timer is client-side; `000000` on staging |
 | 2 | App shell + nav | `permissions` from login | every item behind `can()` |
-| 3 | Channel settings | `GET`/`PUT /channel` | `created_at` is UTC |
-| 4 | Zone coverage | `/channel/zones` | ⚠️ money is a string here |
-| 5 | Categories tree | `categories/tree`, `categories`, `reorder` | depth ≤ 5; reorder is all-or-nothing |
-| 6 | Brands | `brands` | |
-| 7 | Products list + editor | `products`, `POST`, `PUT` | `PUT` is a full replace; never send `sort` |
-| 8 | Variants | `variants/generate` | ignore `stock`/`price` in the response |
-| 9 | Bulk actions | `products/bulk` | reconcile `affected_count` |
-| 10 | Import / export | `catalog/import`, `export` | dry-run first; no job status |
-| 11 | Pricing lists + bulk | `price-lists*`, `bulk-update` | reconcile `affected_count` |
-| 12 | Price change log | `pricing/change-log` | resolve user/product names yourself |
-| 13 | Rep discount caps | `reps/{id}/discount-cap` | without this, rep discounts always fail |
-| 14 | **Orders queue** | `sub-orders`, `{id}`, confirm/reject | drive buttons from `allowed_actions` |
-| 15 | Bulk confirm | `bulk-confirm` | render `confirmed` **and** `failed` |
-| 16 | Assign / reassign / schedule | the three POSTs | note the differing response keys |
-| 17 | Inventory levels + adjust | `inventory/*` | expect `409 insufficient_stock` |
-| 18 | Transfers, reorder points | `transfers`, `reorder-points` | non-transactional — re-fetch on error |
-| 19 | Returns inbox | `return-requests`, `decide` | gate on `status === pending` yourself |
-| 20 | Offers | `offers`, `POST`, `stop` | require a reward product; **no analytics** |
+| 3 | Reference cache | `/governorates`, `/zones`, `/currencies` | load once; filter `active`; `decimals` feeds the money formatter |
+| 4 | Channel settings | `GET`/`PUT /channel` | `created_at` is UTC; ignore `allowed_next` |
+| 5 | Zone coverage | `/channel/zones` + the zone picker from #3 | ⚠️ money is a string here |
+| 6 | Categories tree | `categories/tree`, `categories`, `reorder` | depth ≤ 5; reorder is all-or-nothing |
+| 7 | Brands | `brands` | |
+| 8 | Products list + editor | `products`, `POST`, `PUT` | `PUT` is a full replace; never send `sort` |
+| 9 | Variants | `variants/generate` | ignore `stock`/`price` in the response |
+| 10 | Bulk actions | `products/bulk` | reconcile `affected_count` |
+| 11 | Import / export | `catalog/import`, `export` | dry-run first; no job status; export never completes on staging |
+| 12 | Pricing lists + bulk | `price-lists*`, `bulk-update` | reconcile `affected_count` |
+| 13 | Price change log | `pricing/change-log` | resolve user/product names yourself |
+| 14 | Rep discount caps | `reps/{id}/discount-cap` | without this, rep discounts always fail |
+| 15 | **Order detail + actions** | `sub-orders/{id}`, confirm/reject/cancel/lines | drive buttons from `allowed_actions`; reach it by id until #16 works |
+| 16 | **Orders queue** | `sub-orders` | ⚠️ **500 today** — build the table against the shape, wire it when fixed |
+| 17 | Bulk confirm | `bulk-confirm` | render `confirmed` **and** `failed` |
+| 18 | Assign / reassign / schedule | the three POSTs | note the differing response keys |
+| 19 | Inventory adjust, transfers, reorder points | the three writes | expect `409 insufficient_stock`; non-transactional — re-fetch on error |
+| 20 | Inventory levels + movements | `inventory/levels`, `movements` | ⚠️ **500 today** — same story as #16 |
+| 21 | Returns inbox | `return-requests`, `decide` | gate on `status === pending` yourself |
+| 22 | Offers | `offers`, `POST`, `stop` | require a reward product; **no analytics** |
 
-Do not build the offer analytics screen (§4.4) or anything in §5.
+Do not build the offer analytics screen (§4.4) or anything in §7. For #16 and #20, a
+route shell with the table markup and an honest "unavailable" state is the right amount
+of work until the backend ships the fix.
 
 ---
 
@@ -1210,11 +1406,16 @@ Do not build the offer analytics screen (§4.4) or anything in §5.
 **`GET /channel/offers/{id}/performance` is live but returns hardcoded zeros** (§4.4).
 That is worse than missing: it looks like data. Do not chart it.
 
+**Three reads are live and answer 500** — `GET /channel/sub-orders`,
+`GET /channel/inventory/levels`, `GET /channel/inventory/movements` (§4.5, §4.6). Not
+missing, not stubbed: broken, with no ticket. Do not mock them either — the fix is one
+line and the real shape is documented; build against it and wait.
+
 Also absent from this guard, in the catalog with no route:
 
 | Area | Note |
 |---|---|
-| Channel notifications log (`sc.notify.view`, EP-SC-092) | the permission exists in the catalog but the route does not |
+| Channel notifications log (`sc.notify.view`, EP-SC-092) | catalogued; the route does not exist and the permission is no longer seeded |
 | Job status for import/export/schedule | three endpoints hand you a `job_id` with nothing to poll |
 | Channel finance — invoices, statements, settlements | SP-13; nothing on this guard |
 | Channel reporting and dashboards | SP-17; the largest missing block (63 endpoints) |
@@ -1232,8 +1433,8 @@ never invent numbers — a fabricated sales figure is worse than an empty screen
 | 1 | `X-Channel-Id` | Ignored for channel users — honoured only for `platform_admin`. Multi-channel users cannot switch |
 | 2 | `auth/request-otp` | Returns **only `otp_id`**. No `expires_in`/`resend_after`, and **no resend endpoint** |
 | 3 | Login failure | No membership → **403 `insufficient_permission`**, not 404 |
-| 4 | Every list | **Never send `sort`** — no `allowedSorts` anywhere; Spatie throws |
-| 5 | `GET /channel` | `created_at` is **UTC**; every other timestamp is Damascus |
+| 4 | Every list | **Never send `sort`** — no `allowedSorts` anywhere; the param is silently ignored **and drops the default order** |
+| 5 | `GET /channel` | `created_at` is **UTC**; every other timestamp is Damascus. `allowed_next` is platform-facing — ignore it |
 | 6 | `PUT /channel/products/{id}` | Full replace — `name_ar` and `sku` still required. Response omits `sku` |
 | 7 | Products | `channel_limit_exceeded` is **422** here, not 423, and is not in `ErrorCode` |
 | 8 | `products/bulk` | `delete_draft` skips non-drafts; `affected_count` may be lower than requested |
@@ -1259,3 +1460,10 @@ never invent numbers — a fabricated sales figure is worse than an empty screen
 | 28 | Inventory writes | `transfers` and `reorder-points` are **not transactional** — re-fetch after a 409/422 |
 | 29 | `not_found` | Also means "not yours". Never render "forbidden" |
 | 30 | Money | Integers in minor units everywhere **except** `/channel/zones` |
+| 31 | `sub-orders`, `inventory/levels`, `inventory/movements` | **HTTP 500 on every call today**, body is not the envelope, no fix ticket. Everything else on this guard works |
+| 32 | `Accept-Language` | **Ignored** — every message is English. Never show `error.message` raw on an Arabic screen |
+| 33 | `Idempotent-Replayed` | Invisible to `fetch` — CORS exposes no headers. Do not wait for it |
+| 34 | `/governorates`, `/zones`, `/currencies` | Readable with your token, no `/channel` prefix, **include disabled rows** — filter `status === 'active'` in pickers |
+| 35 | `POST /channel/zones` | Accepts a **disabled** zone; only existence is checked |
+| 36 | Staging | `https://api.sentraxsy.com` — OTP is `000000`, `exports` queue unserved, shared data, may lag `main` |
+| 37 | `verify-otp` | `otp_invalid` / `otp_expired` are **401 without a token** — stay on the OTP screen, do not "log out" |
