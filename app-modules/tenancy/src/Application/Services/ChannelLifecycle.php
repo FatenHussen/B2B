@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Tenancy\Application\Services;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Core\Domain\Events\ChannelStatusChanged;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Tenancy\Domain\ChannelStateMachine;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
@@ -18,6 +19,11 @@ use Modules\Tenancy\Domain\Models\SupplyChannel;
  * event beside it in the same transaction, so there is never a status without its
  * record or a record without its status. `tests/Architecture/ChannelStatusWriterTest`
  * keeps this the only file in Tenancy that assigns a status.
+ *
+ * It is also the only place `ChannelStatusChanged` is dispatched. Because it is the only
+ * writer, dispatching from here is the guarantee that every transition is announced —
+ * deferring the event would have meant either a second place that knows about it, or
+ * an announcement with no such guarantee.
  */
 final class ChannelLifecycle
 {
@@ -38,7 +44,12 @@ final class ChannelLifecycle
 
         $this->machine->assert($from, $to);
 
-        DB::transaction(function () use ($channel, $from, $to, $actor, $reason): void {
+        $actorId = method_exists($actor, 'getAuthIdentifier') ? (int) $actor->getAuthIdentifier() : null;
+        // One instant for the row and the event, so a listener reconciling against
+        // channel_events finds the row this event describes.
+        $at = now()->toImmutable();
+
+        DB::transaction(function () use ($channel, $from, $to, $actor, $actorId, $reason, $at): void {
             // Direct assignment, not update(): `status` is guarded, and mass assignment
             // would drop it silently and answer 200 having changed nothing (BE-R02).
             $channel->status = $to;
@@ -49,11 +60,23 @@ final class ChannelLifecycle
                 'from_status' => $from,
                 'to_status' => $to,
                 'actor_type' => $actor::class,
-                'actor_id' => method_exists($actor, 'getAuthIdentifier') ? $actor->getAuthIdentifier() : null,
+                'actor_id' => $actorId,
                 'reason' => $reason,
-                'at' => now(),
+                'at' => $at,
             ]);
         });
+
+        // After the transaction, not inside it: a synchronous listener must never act on
+        // a transition that is about to roll back.
+        event(new ChannelStatusChanged(
+            channelId: (int) $channel->id,
+            fromStatus: $from->value,
+            toStatus: $to->value,
+            actorType: $actor::class,
+            actorId: $actorId,
+            reason: $reason,
+            at: $at,
+        ));
 
         return $channel;
     }

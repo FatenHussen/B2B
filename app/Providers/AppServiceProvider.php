@@ -14,7 +14,18 @@ use Modules\Identity\Domain\Models\WarehouseUser;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        // Telescope is a dev dependency: absent after `composer install --no-dev`, and
+        // wanted only on a local machine even when present. Registering it here, behind
+        // both checks, is what lets the same bootstrap/providers.php boot in every
+        // environment. `laravel/telescope` is also in composer.json `dont-discover`, so
+        // package discovery cannot register it behind this guard's back.
+        if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
+            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
+            $this->app->register(TelescopeServiceProvider::class);
+        }
+    }
 
     public function boot(): void
     {
