@@ -10396,10 +10396,10 @@
                                         "channels"
                                     ]
                                 },
-                                "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Role | `platform_admin` |\n| Idempotency | required |",
+                                "description": "**no EP-ID** · Stability: `MOVING -> /platform/channels`\n\n| | |\n|---|---|\n| Guard | `platform` |\n| Permission | `ad.channels.create` |\n| Idempotency | required |",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"name\": \"Acme Distribution\",\n    \"slug\": \"acme-dist\",\n    \"legal_name\": \"Acme LLC\",\n    \"tax_number\": \"7654321\",\n    \"phone\": \"+963911000001\",\n    \"email\": \"ops@acme.sy\",\n    \"settings\": {}\n}",
+                                    "raw": "{\n    \"name\": \"شركة الشام\",\n    \"slug\": \"al-sham\",\n    \"legal_form\": \"llc\",\n    \"cr_number\": \"C12345\",\n    \"documents\": [],\n    \"governorate_ids\": [\n        1\n    ],\n    \"zone_ids\": [\n        12,\n        13\n    ],\n    \"activity_type_ids\": [\n        3,\n        4\n    ],\n    \"logo\": null,\n    \"internal_note\": \"شراكة تجريبية\",\n    \"plan_id\": 2,\n    \"billing_cycle\": \"yearly\",\n    \"trial_days\": 14,\n    \"limits\": {\n        \"users\": 25,\n        \"warehouses\": 2,\n        \"reps\": 20,\n        \"skus\": 5000,\n        \"storage_mb\": 2048\n    },\n    \"custom_discount\": 0,\n    \"manager\": {\n        \"name\": \"محمد علي\",\n        \"phone\": \"+963944000000\",\n        \"email\": \"manager@alsham.sy\",\n        \"invite_via\": \"whatsapp\"\n    }\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"

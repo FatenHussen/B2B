@@ -170,13 +170,39 @@ foreach ($routes as $rt) {
                 'tax_number' => '1234567', 'phone' => '+963911000000',
                 'email' => 'ops@demo.sy', 'settings' => new stdClass,
             ],
+            // EP-AD-051 (BE-T04), on the moving prefix — the catalog body, verbatim.
+            // `status` is prohibited (column default `provisioning`); manager + zones ride
+            // on the provision-job payload until BE-T05 materialises them.
             'POST /admin/channels' => [
-                'name' => 'Acme Distribution', 'slug' => 'acme-dist',
-                'legal_name' => 'Acme LLC', 'tax_number' => '7654321',
-                'phone' => '+963911000001', 'email' => 'ops@acme.sy',
-                'settings' => new stdClass,
+                'name' => 'شركة الشام',
+                'slug' => 'al-sham',
+                'legal_form' => 'llc',
+                'cr_number' => 'C12345',
+                'documents' => [],
+                'governorate_ids' => [1],
+                'zone_ids' => [12, 13],
+                'activity_type_ids' => [3, 4],
+                'logo' => null,
+                'internal_note' => 'شراكة تجريبية',
+                'plan_id' => 2,
+                'billing_cycle' => 'yearly',
+                'trial_days' => 14,
+                'limits' => [
+                    'users' => 25,
+                    'warehouses' => 2,
+                    'reps' => 20,
+                    'skus' => 5000,
+                    'storage_mb' => 2048,
+                ],
+                'custom_discount' => 0,
+                'manager' => [
+                    'name' => 'محمد علي',
+                    'phone' => '+963944000000',
+                    'email' => 'manager@alsham.sy',
+                    'invite_via' => 'whatsapp',
+                ],
             ],
-            // No `status` on create or update since BE-T01: the field is prohibited (422) and a
+            // No `status` on update since BE-T01: the field is prohibited (422) and a
             // channel changes status only through the transition route below.
             'PUT /admin/channels/{}' => ['name' => 'Acme Distribution (renamed)'],
             // EP-AD-054 (BE-T13), on the moving prefix — the catalog body, verbatim.
