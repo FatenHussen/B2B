@@ -243,18 +243,20 @@ it('stamps the event with the same instant it wrote to the trail', function () {
 it('drops status from mass assignment on the model', function () {
     // `status` is guarded. Neither create() nor update() may set it; the lifecycle is
     // the only writer. This pins Eloquent's behaviour for a guarded key so a future
-    // `$fillable` edit that re-admits it fails here rather than in production.
+    // `$fillable` edit that re-admits it fails here rather than in production. What a
+    // created row gets is the default — `provisioning` since BE-T04 — never the value
+    // the caller sent.
     $channel = SupplyChannel::create([
         'name' => 'شركة الاختبار',
         'slug' => 'test-guarded',
         'status' => 'suspended',
     ]);
 
-    expect($channel->fresh()->status)->toBe(ChannelStatus::Active);
+    expect($channel->fresh()->status)->toBe(ChannelStatus::Provisioning);
 
     $channel->update(['status' => 'archived']);
 
-    expect($channel->fresh()->status)->toBe(ChannelStatus::Active);
+    expect($channel->fresh()->status)->toBe(ChannelStatus::Provisioning);
 });
 
 it('rejects status on channel creation with 422', function () {

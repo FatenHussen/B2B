@@ -17,6 +17,14 @@ use Modules\Tenancy\Domain\Enums\ChannelStatus;
  * @property string|null $tax_number
  * @property string|null $phone
  * @property string|null $email
+ * @property string|null $legal_form
+ * @property string|null $cr_number
+ * @property int|null $logo_media_id
+ * @property int|null $plan_id
+ * @property string|null $billing_cycle
+ * @property Carbon|null $trial_ends_at
+ * @property int $custom_discount
+ * @property Carbon|null $provisioned_at
  * @property ChannelStatus $status
  * @property array<string, mixed>|null $settings
  * @property Carbon|null $created_at
@@ -39,6 +47,13 @@ class SupplyChannel extends Model
         'tax_number',
         'phone',
         'email',
+        'legal_form',
+        'cr_number',
+        'logo_media_id',
+        'plan_id',
+        'billing_cycle',
+        'trial_ends_at',
+        'custom_discount',
         'settings',
     ];
 
@@ -50,16 +65,14 @@ class SupplyChannel extends Model
     protected $guarded = ['status'];
 
     /**
-     * The database default is also `active`, but `SupplyChannel::create()` returns an
-     * instance that has not been reloaded, and a resource reading `->status->value` on
-     * that instance would 500. This makes the default the model's own.
-     *
-     * Still `active` rather than the catalog's `provisioning`: no provisioning job exists
-     * yet (BE-T04, BE-T05), and a channel created into `provisioning` today would have
-     * no way out of it. BE-T04 moves creation to `provisioning` when it adds the job.
+     * `provisioning`, the same as the column default (BE-T04). `SupplyChannel::create()`
+     * returns an instance that has not been reloaded, and a resource reading
+     * `->status->value` on it would 500 without this; and since `status` is guarded,
+     * nothing assigns one at creation — the default *is* the starting state. A channel
+     * leaves it only when provisioning finishes (BE-T05), through `ChannelLifecycle`.
      */
     protected $attributes = [
-        'status' => 'active',
+        'status' => 'provisioning',
     ];
 
     protected function casts(): array
@@ -67,6 +80,9 @@ class SupplyChannel extends Model
         return [
             'status' => ChannelStatus::class,
             'settings' => 'array',
+            'trial_ends_at' => 'datetime',
+            'custom_discount' => 'integer',
+            'provisioned_at' => 'datetime',
         ];
     }
 
