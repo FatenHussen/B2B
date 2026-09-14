@@ -8,7 +8,7 @@
     "packages": [
         {
             "name": "b2b/access",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/access",
@@ -40,7 +40,7 @@
         },
         {
             "name": "b2b/catalog",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/catalog",
@@ -71,7 +71,7 @@
         },
         {
             "name": "b2b/content",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/content",
@@ -102,7 +102,7 @@
         },
         {
             "name": "b2b/core",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/core",
@@ -137,7 +137,7 @@
         },
         {
             "name": "b2b/delivery",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/delivery",
@@ -168,7 +168,7 @@
         },
         {
             "name": "b2b/finance",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/finance",
@@ -199,7 +199,7 @@
         },
         {
             "name": "b2b/fulfillment",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/fulfillment",
@@ -230,7 +230,7 @@
         },
         {
             "name": "b2b/identity",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/identity",
@@ -263,7 +263,7 @@
         },
         {
             "name": "b2b/integration",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/integration",
@@ -294,7 +294,7 @@
         },
         {
             "name": "b2b/inventory",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/inventory",
@@ -325,7 +325,7 @@
         },
         {
             "name": "b2b/loyalty",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/loyalty",
@@ -356,7 +356,7 @@
         },
         {
             "name": "b2b/notification",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/notification",
@@ -387,7 +387,7 @@
         },
         {
             "name": "b2b/ordering",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/ordering",
@@ -418,7 +418,7 @@
         },
         {
             "name": "b2b/platform-billing",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/platform-billing",
@@ -449,7 +449,7 @@
         },
         {
             "name": "b2b/pricing",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/pricing",
@@ -480,7 +480,7 @@
         },
         {
             "name": "b2b/promotion",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/promotion",
@@ -511,7 +511,7 @@
         },
         {
             "name": "b2b/reference",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/reference",
@@ -544,7 +544,7 @@
         },
         {
             "name": "b2b/reporting",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/reporting",
@@ -575,7 +575,7 @@
         },
         {
             "name": "b2b/returns",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/returns",
@@ -606,7 +606,7 @@
         },
         {
             "name": "b2b/support",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/support",
@@ -637,7 +637,7 @@
         },
         {
             "name": "b2b/sync",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/sync",
@@ -668,11 +668,11 @@
         },
         {
             "name": "b2b/tenancy",
-            "version": "dev-main",
+            "version": "dev-work/be-t01",
             "dist": {
                 "type": "path",
                 "url": "app-modules/tenancy",
-                "reference": "83b07cf227aa8ade942bbe8878278feac5657165"
+                "reference": "83cd407f863e93d9272bc445e5a61f5009829550"
             },
             "require": {
                 "b2b/core": "*",
@@ -689,7 +689,8 @@
             "autoload": {
                 "psr-4": {
                     "Modules\\Tenancy\\": "src/",
-                    "Modules\\Tenancy\\Database\\Factories\\": "database/factories/"
+                    "Modules\\Tenancy\\Database\\Factories\\": "database/factories/",
+                    "Modules\\Tenancy\\Database\\Seeders\\": "database/seeders/"
                 }
             },
             "description": "B2B Tenancy — supply channels and channel scope",

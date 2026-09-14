@@ -57,5 +57,11 @@ class DatabaseSeeder extends Seeder
             ],
         );
         $platformAdmin->syncRoles(['platform_admin']);
+
+        // Working data for every dashboard screen. Never in production: the VPS runs
+        // `db:seed --force` for roles and reference rows only.
+        if (! app()->isProduction()) {
+            $this->call(DemoDataSeeder::class);
+        }
     }
 }

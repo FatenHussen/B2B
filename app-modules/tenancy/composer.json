@@ -9,7 +9,8 @@
     "autoload": {
         "psr-4": {
             "Modules\\Tenancy\\": "src/",
-            "Modules\\Tenancy\\Database\\Factories\\": "database/factories/"
+            "Modules\\Tenancy\\Database\\Factories\\": "database/factories/",
+            "Modules\\Tenancy\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "extra": {
