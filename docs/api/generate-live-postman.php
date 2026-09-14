@@ -174,9 +174,13 @@ foreach ($routes as $rt) {
                 'name' => 'Acme Distribution', 'slug' => 'acme-dist',
                 'legal_name' => 'Acme LLC', 'tax_number' => '7654321',
                 'phone' => '+963911000001', 'email' => 'ops@acme.sy',
-                'status' => 'active', 'settings' => new stdClass,
+                'settings' => new stdClass,
             ],
-            'PUT /admin/channels/{}' => ['name' => 'Acme Distribution (renamed)', 'status' => 'active'],
+            // No `status` on create or update since BE-T01: the field is prohibited (422) and a
+            // channel changes status only through the transition route below.
+            'PUT /admin/channels/{}' => ['name' => 'Acme Distribution (renamed)'],
+            // EP-AD-054 (BE-T13), on the moving prefix — the catalog body, verbatim.
+            'POST /admin/channels/{}/transition' => ['to_status' => 'suspended', 'reason' => 'تأخر سداد فاتورة المنصة'],
             'POST /governorates' => ['name_ar' => 'ريف دمشق', 'name_en' => 'Rif Dimashq', 'code' => 'RDI'],
             'PUT /governorates/{}' => ['name_ar' => 'ريف دمشق', 'name_en' => 'Rif Dimashq'],
             'PATCH /governorates/{}/status' => ['status' => 'disabled', 'reason' => 'Merged into another governorate'],
@@ -413,7 +417,7 @@ Every request description names a stability:
 | `MOVING -> …` | registered, but at a temporary path — **it will move** | build, but keep the base path behind **one constant** |
 | `live, not in catalog` | callable; the catalog has not caught up | use it, expect the shape to be confirmed |
 
-**20 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can
+**21 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can
 see them at a glance:
 
 | Live now | Will become |
