@@ -9,7 +9,8 @@
     "autoload": {
         "psr-4": {
             "Modules\\Reference\\": "src/",
-            "Modules\\Reference\\Database\\Factories\\": "database/factories/"
+            "Modules\\Reference\\Database\\Factories\\": "database/factories/",
+            "Modules\\Reference\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "extra": {

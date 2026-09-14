@@ -10,6 +10,7 @@ use Modules\Identity\Domain\Enums\UserStatus;
 use Modules\Identity\Domain\Models\ChannelUser;
 use Modules\Identity\Domain\Models\ChannelUserChannel;
 use Modules\Identity\Domain\Models\PlatformUser;
+use Modules\Reference\Database\Seeders\ReferenceSeeder;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 
 class DatabaseSeeder extends Seeder
@@ -17,6 +18,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RolesPermissionsSeeder::class);
+        $this->call(ReferenceSeeder::class);
 
         $channel = SupplyChannel::query()->firstOrCreate(
             ['slug' => 'demo-channel'],

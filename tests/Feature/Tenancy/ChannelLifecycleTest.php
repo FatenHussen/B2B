@@ -19,8 +19,10 @@ declare(strict_types=1);
  */
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
+use Modules\Core\Domain\Events\ChannelStatusChanged;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Identity\Domain\Models\PlatformUser;
 use Modules\Tenancy\Application\Services\ChannelLifecycle;
@@ -191,6 +193,49 @@ it('keeps one event per transition, in order', function () {
         ->all();
 
     expect($trail)->toBe(['provisioning→active', 'active→suspended', 'suspended→active']);
+});
+
+// ─── ChannelStatusChanged: once per transition that happened, never for one that did not ─
+
+it('dispatches ChannelStatusChanged exactly once for the transition', function (string $from, string $to) {
+    // From transition() and nowhere else — and transition() is the only writer, so
+    // "once per successful call" is the same statement as "once per status change".
+    Event::fake([ChannelStatusChanged::class]);
+    $channel = channelIn($from);
+    $actor = platformActor();
+
+    app(ChannelLifecycle::class)->transition($channel, ChannelStatus::from($to), $actor, 'سبب الانتقال');
+
+    Event::assertDispatchedTimes(ChannelStatusChanged::class, 1);
+    Event::assertDispatched(ChannelStatusChanged::class, fn (ChannelStatusChanged $e) => $e->channelId === $channel->id
+        && $e->fromStatus === $from
+        && $e->toStatus === $to
+        && $e->actorType === PlatformUser::class
+        && $e->actorId === $actor->id
+        && $e->reason === 'سبب الانتقال');
+})->with('allowed channel transitions');
+
+it('does not dispatch ChannelStatusChanged for a refused transition', function (string $from, string $to) {
+    Event::fake([ChannelStatusChanged::class]);
+    $channel = channelIn($from);
+
+    expect(fn () => app(ChannelLifecycle::class)->transition($channel, ChannelStatus::from($to), platformActor(), 'محاولة'))
+        ->toThrow(DomainException::class);
+
+    Event::assertNotDispatched(ChannelStatusChanged::class);
+})->with('forbidden channel transitions');
+
+it('stamps the event with the same instant it wrote to the trail', function () {
+    // One transition, one moment: a listener that reconciles against channel_events
+    // must find the row the event describes, not one a second earlier.
+    Event::fake([ChannelStatusChanged::class]);
+    $channel = channelIn('active');
+
+    app(ChannelLifecycle::class)->transition($channel, ChannelStatus::Suspended, platformActor(), 'إيقاف');
+
+    $row = ChannelEvent::query()->where('channel_id', $channel->id)->sole();
+
+    Event::assertDispatched(ChannelStatusChanged::class, fn (ChannelStatusChanged $e) => $e->at->format('Y-m-d H:i:s') === $row->at->format('Y-m-d H:i:s'));
 });
 
 // ─── rule 8: status moves through the service and nowhere else ──────────────────────
