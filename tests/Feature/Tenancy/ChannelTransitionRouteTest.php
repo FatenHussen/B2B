@@ -321,7 +321,7 @@ it('freezes a new order for a suspended channel even from a cart filled before t
     // at submission, so a cart filled before the suspension still becomes a sub-order.
     //
     // Closing it is one `ChannelDirectory::isActive()` per section in Ordering's two
-    // submit actions, which is outside BE-T13's working rules, and the catalog names no
-    // error code for the refusal (EP-RT-025 lists 423 credit_limit_exceeded and 409
-    // offer_no_longer_valid). Both are the owner's decisions; this stays red until made.
-})->todo(note: 'Ordering does not re-check channel status at submission; fix and error code awaiting a decision.');
+    // submit actions — Ordering's code, so Ordering's ticket: BE-O16. Fixing it from
+    // Tenancy would mean Tenancy knowing when a cart is submitted. This stays a todo
+    // until BE-O16 lands, and that ticket un-todos it as one of its own criteria.
+})->todo(note: 'BE-O16: Ordering does not re-check channel status at submission.');

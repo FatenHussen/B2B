@@ -32,6 +32,28 @@ _Write one test per criterion. Name the test after the criterion._
 - [ ] A transition absent from allowed_next returns 409 illegal_transition.
 - [ ] Existing orders continue to progress after suspension.
 
+## Status — delivered 2026-09-14, one requirement partially met
+
+Commits `0fc25cf` (route and tests), `37c1326` (Postman), `f9cd363` (events.md, BE4-NTF04).
+
+- Requirement 1 and both acceptance criteria are met and tested through the route
+  (`tests/Feature/Tenancy/ChannelTransitionRouteTest.php`): a transition absent from
+  `allowed_next` is 409 `illegal_transition`, and an order in flight is accepted by its
+  rep after the platform suspends the channel.
+- **Requirement 2 is partially met.** "Does not touch orders in flight" holds. "Freezes new
+  orders" holds only up to the cart: a suspended channel leaves the retailer's shopping
+  context at once (`ChannelDirectory::activeIdsCoveringZone()`), so nothing new can be
+  added for it — but a cart filled before the suspension still submits, because Ordering's
+  two submit actions never re-check the section's channel. **BE-O16 completes it.** The
+  gap is pinned by a `todo` test in the file above, named for that ticket, so it is not
+  mistaken for coverage.
+- The path is `/admin/channels`, MOVING to `/platform/channels` with its five siblings;
+  keep it behind the same constant (platform-web.md §4.5).
+- `ad.channels.archive` is enforced in the action for `to_status = archived` and is not
+  yet seeded — seeding it from the catalog needs a structured field beside EP-AD-054.
+- No listener on `ChannelStatusChanged`, by decision: the freeze is a synchronous read,
+  not an event consumer. See `docs/events.md` and BE4-NTF04.
+
 ## Frontend tickets waiting on this
 
 - AD-75
