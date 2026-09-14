@@ -74,8 +74,8 @@ Every request description names one of:
 | `MOVING -> …` | registered, but at a temporary path — it will move |
 | `live, not in catalog` | callable, but the catalog has not caught up |
 
-⚠️ **21 requests are `MOVING`**: `/admin/channels` (→ `/platform/channels`, six requests —
-the five channel CRUD routes and `POST …/{id}/transition`), `/governorates`, `/zones` and
+⚠️ **22 requests are `MOVING`**: `/admin/channels` (→ `/platform/channels`, seven requests —
+the five channel CRUD routes, `POST …/{id}/transition` and `POST …/{id}/retry-provisioning`), `/governorates`, `/zones` and
 `/currencies` (→ `/platform/refs/*`). Anything built against them will need rework. They are
 grouped so you can see them at a glance, and each is meant to sit behind one base-path
 constant in a client.

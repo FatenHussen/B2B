@@ -207,6 +207,8 @@ foreach ($routes as $rt) {
             'PUT /admin/channels/{}' => ['name' => 'Acme Distribution (renamed)'],
             // EP-AD-054 (BE-T13), on the moving prefix — the catalog body, verbatim.
             'POST /admin/channels/{}/transition' => ['to_status' => 'suspended', 'reason' => 'تأخر سداد فاتورة المنصة'],
+            // EP-AD-053 (BE-T05) — empty body, catalog path is /platform/channels.
+            'POST /admin/channels/{}/retry-provisioning' => new stdClass,
             'POST /governorates' => ['name_ar' => 'ريف دمشق', 'name_en' => 'Rif Dimashq', 'code' => 'RDI'],
             'PUT /governorates/{}' => ['name_ar' => 'ريف دمشق', 'name_en' => 'Rif Dimashq'],
             'PATCH /governorates/{}/status' => ['status' => 'disabled', 'reason' => 'Merged into another governorate'],
@@ -443,7 +445,7 @@ Every request description names a stability:
 | `MOVING -> …` | registered, but at a temporary path — **it will move** | build, but keep the base path behind **one constant** |
 | `live, not in catalog` | callable; the catalog has not caught up | use it, expect the shape to be confirmed |
 
-**21 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can
+**22 requests are `MOVING`** and are grouped in folders labelled `(MOVING path)` so you can
 see them at a glance:
 
 | Live now | Will become |
