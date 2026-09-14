@@ -6,6 +6,7 @@ use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\ChannelUser;
+use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 
 beforeEach(fn () => $this->seed(RolesPermissionsSeeder::class));
@@ -32,7 +33,7 @@ it('lets a channel manager update their own channel but not its slug or status',
     ])->assertOk()->assertJsonPath('data.name', 'Renamed');
 
     expect($channel->refresh()->slug)->toBe('original')
-        ->and($channel->status)->toBe('active');
+        ->and($channel->status)->toBe(ChannelStatus::Active);
 });
 
 it('never lets a channel manager reach another channel through this endpoint', function () {

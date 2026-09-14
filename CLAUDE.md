@@ -108,10 +108,13 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
     identity cannot be isolated by it. Relaxed is not unscoped, and is always preferred to an
     exemption, which filters never.
 
-    **Two exemptions**, both cross-channel by design: `AuditLog`, read from the platform back office
-    across every channel — scoping it would hide exactly the activity an audit log exists to show —
-    and `ChannelZoneLookup`, a read-only view of `channel_zone` whose `$fillable` is empty, so every
-    write goes through Reference's scoped `ChannelZone`.
+    **Three exemptions**, all cross-channel by design: `AuditLog`, read from the platform back office
+    across every channel — scoping it would hide exactly the activity an audit log exists to show;
+    `ChannelZoneLookup`, a read-only view of `channel_zone` whose `$fillable` is empty, so every
+    write goes through Reference's scoped `ChannelZone`; and `ChannelEvent`, the channel status
+    trail written by `ChannelLifecycle` from the back office and read on its timeline — the
+    platform's record *about* a channel, not data the channel owns, with `channel_id` a foreign key
+    to the tenant table exactly as on `AuditLog`.
 
     **`acrossChannels()` is written at the call site with the reason beside it, never as a habit.**
     Two places use it today: `EloquentOpenOrderCounter` (the EP-AD-034 impact count is cross-channel

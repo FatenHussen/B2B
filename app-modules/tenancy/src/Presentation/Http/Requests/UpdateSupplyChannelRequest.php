@@ -24,7 +24,11 @@ final class UpdateSupplyChannelRequest extends ApiFormRequest
             'tax_number' => ['nullable', 'string', 'max:64'],
             'phone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:191'],
-            'status' => ['sometimes', Rule::in(['active', 'suspended'])],
+            // Rule 8: until BE-T01 this accepted `active|suspended`, so a rename could
+            // suspend a channel with no reason and no record. Status moves only through
+            // ChannelLifecycle — EP-AD-054, BE-T13. `prohibited` so a client still
+            // sending it is told, instead of receiving 200 for a status that did not move.
+            'status' => ['prohibited'],
             'settings' => ['nullable', 'array'],
         ];
     }

@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\ChannelLimits;
 use Modules\Core\Contracts\WarehouseDirectory;
+use Modules\Tenancy\Domain\ChannelStateMachine;
 use Modules\Tenancy\Infrastructure\EloquentChannelDirectory;
 use Modules\Tenancy\Infrastructure\EloquentWarehouseDirectory;
 use Modules\Tenancy\Infrastructure\StubChannelLimits;
@@ -20,6 +21,7 @@ class TenancyServiceProvider extends ServiceProvider
         $this->app->singleton(ChannelDirectory::class, EloquentChannelDirectory::class);
         $this->app->singleton(WarehouseDirectory::class, EloquentWarehouseDirectory::class);
         $this->app->singleton(ChannelLimits::class, StubChannelLimits::class);
+        $this->app->singleton(ChannelStateMachine::class);
     }
 
     public function boot(): void

@@ -64,6 +64,15 @@ const CHANNEL_SCOPE_EXEMPT = [
     // common stops reading as an exception.
     'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
 
+    // The channel status trail (BE-T01): written by ChannelLifecycle from the platform
+    // back office, where no tenant is set, and read on the back-office timeline
+    // (EP-AD-052). It is the platform's record *about* a channel, not data the channel
+    // owns — `channel_id` is a foreign key to the tenant table, exactly as on AuditLog,
+    // and a tenant scope would hide the trail from the one audience that reads it.
+    // Relaxed mode was considered and rejected: that mode is for tables read to decide
+    // which channel a caller belongs to, and this table decides nothing.
+    'Modules\Tenancy\Domain\Models\ChannelEvent',
+
     // ChannelUserChannel, RepProfile and WarehouseDevice were listed here and are not
     // any more: they now carry the trait in relaxed mode
     // ($channelScopeOptional = true), which filters whenever a tenant is set and
@@ -213,6 +222,7 @@ it('exempts nothing without a written reason', function () {
     expect(CHANNEL_SCOPE_EXEMPT)->toBe([
         'Modules\Core\Domain\Models\AuditLog',
         'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
+        'Modules\Tenancy\Domain\Models\ChannelEvent',
     ]);
 })->group('arch');
 
