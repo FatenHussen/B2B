@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ba9d19495a6742534fd095b03dd406d7",
+    "content-hash": "f7a0b5ea5be47ae2b7dc1a6a9c72ec04",
     "packages": [
         {
             "name": "b2b/access",
@@ -515,7 +515,7 @@
             "dist": {
                 "type": "path",
                 "url": "app-modules/reference",
-                "reference": "d80a9216b73e4afb3dd9a79dfb2ca343fa65fa13"
+                "reference": "9001068d145024ee872569b7a1a36caad5e7eb5a"
             },
             "require": {
                 "b2b/core": "*",
