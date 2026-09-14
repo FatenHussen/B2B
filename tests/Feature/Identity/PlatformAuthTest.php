@@ -121,6 +121,68 @@ it('enables totp and reports recovery code count', function () {
         ->assertJsonPath('data.codes_remaining', 8);
 });
 
+it('recovery codes cannot be retrieved a second time by any route', function () {
+    // Confirm returns plaintext once. The later endpoint returns codes_remaining only.
+    $user = PlatformUser::factory()->create();
+    Sanctum::actingAs($user, ['*'], 'platform');
+
+    $enable = $this->postJson('/api/v1/platform/me/2fa/enable')->assertOk();
+    $confirm = $this->postJson('/api/v1/platform/me/2fa/confirm', [
+        'code' => totpNow((string) $user->refresh()->pending_two_factor_secret),
+    ])->assertOk();
+
+    expect($confirm->json('data.recovery_codes'))->toHaveCount(8);
+
+    $again = $this->getJson('/api/v1/platform/me/2fa/recovery-codes')->assertOk();
+
+    expect($again->json('data'))->toHaveKey('codes_remaining')
+        ->and($again->json('data'))->not->toHaveKey('recovery_codes')
+        ->and($again->json('data.codes_remaining'))->toBe(8)
+        ->and($enable->json('data'))->not->toHaveKey('recovery_codes');
+});
+
+it('a used recovery code cannot be reused', function () {
+    $user = PlatformUser::factory()->create([
+        'email' => 'recovery@platform.sy',
+        'password' => 'password',
+    ]);
+    $user->assignRole('platform_admin');
+    Sanctum::actingAs($user, ['*'], 'platform');
+
+    $this->postJson('/api/v1/platform/me/2fa/enable')->assertOk();
+    $confirm = $this->postJson('/api/v1/platform/me/2fa/confirm', [
+        'code' => totpNow((string) $user->refresh()->pending_two_factor_secret),
+    ])->assertOk();
+
+    $recoveryCode = (string) $confirm->json('data.recovery_codes.0');
+
+    $this->app['auth']->forgetGuards();
+
+    $challenge = $this->postJson('/api/v1/platform/auth/login', [
+        'email' => 'recovery@platform.sy',
+        'password' => 'password',
+    ])->assertOk();
+
+    $this->postJson('/api/v1/platform/auth/2fa/verify', [
+        'challenge_token' => $challenge->json('data.challenge_token'),
+        'code' => $recoveryCode,
+    ])->assertOk()->assertJsonPath('data.token', fn ($v) => is_string($v) && $v !== '');
+
+    expect($user->refresh()->two_factor_recovery_codes)->toHaveCount(7);
+
+    $challenge2 = $this->postJson('/api/v1/platform/auth/login', [
+        'email' => 'recovery@platform.sy',
+        'password' => 'password',
+    ])->assertOk();
+
+    $this->postJson('/api/v1/platform/auth/2fa/verify', [
+        'challenge_token' => $challenge2->json('data.challenge_token'),
+        'code' => $recoveryCode,
+    ])
+        ->assertStatus(401)
+        ->assertJsonPath('error.code', 'otp_invalid');
+});
+
 it('creates and deletes an api token after password confirm', function () {
     $user = PlatformUser::factory()->create(['password' => 'password']);
     Sanctum::actingAs($user, ['*'], 'platform');

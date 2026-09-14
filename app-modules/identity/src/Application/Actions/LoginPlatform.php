@@ -68,15 +68,32 @@ final class LoginPlatform
         $user = $challenge->user;
 
         $valid = Totp::verify((string) $user->two_factor_secret, $code);
-        $recovery = is_array($user->two_factor_recovery_codes) && in_array($code, $user->two_factor_recovery_codes, true);
+        $recoveryCodes = is_array($user->two_factor_recovery_codes) ? $user->two_factor_recovery_codes : [];
+        $matchedRecoveryIndex = null;
 
-        if (! $valid && ! $recovery) {
+        foreach ($recoveryCodes as $index => $stored) {
+            if (is_string($stored) && Hash::check($code, $stored)) {
+                $matchedRecoveryIndex = $index;
+                break;
+            }
+        }
+
+        if (! $valid && $matchedRecoveryIndex === null) {
             throw new DomainException(__('identity.invalid_2fa'), 'otp_invalid', 401);
+        }
+
+        if ($matchedRecoveryIndex !== null) {
+            // A used recovery code cannot be reused (BE-I15). Drop it before issuing
+            // the session so a replay of the same code fails.
+            unset($recoveryCodes[$matchedRecoveryIndex]);
+            $user->forceFill([
+                'two_factor_recovery_codes' => array_values($recoveryCodes),
+            ])->save();
         }
 
         $challenge->delete();
 
-        return $this->issueSession($user, $ip, $userAgent);
+        return $this->issueSession($user->fresh(), $ip, $userAgent);
     }
 
     /**
