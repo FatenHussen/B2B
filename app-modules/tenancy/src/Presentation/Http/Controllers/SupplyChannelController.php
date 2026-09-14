@@ -4,8 +4,11 @@ namespace Modules\Tenancy\Presentation\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Modules\Core\Http\ApiController;
+use Modules\Tenancy\Application\Actions\TransitionChannel;
+use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 use Modules\Tenancy\Presentation\Http\Requests\StoreSupplyChannelRequest;
+use Modules\Tenancy\Presentation\Http\Requests\TransitionChannelRequest;
 use Modules\Tenancy\Presentation\Http\Requests\UpdateSupplyChannelRequest;
 use Modules\Tenancy\Presentation\Http\Resources\SupplyChannelResource;
 
@@ -43,5 +46,22 @@ class SupplyChannelController extends ApiController
         $supplyChannel->delete();
 
         return $this->noContent();
+    }
+
+    /**
+     * EP-AD-054. Answers `status` and `allowed_next`, as the catalog's `r` says — the
+     * client draws its next buttons from this response.
+     */
+    public function transition(TransitionChannelRequest $request, SupplyChannel $supplyChannel, TransitionChannel $action): JsonResponse
+    {
+        /** @var object $actor */
+        $actor = $request->user();
+
+        return $this->ok($action(
+            $supplyChannel,
+            ChannelStatus::from((string) $request->validated('to_status')),
+            $actor,
+            (string) $request->validated('reason'),
+        ));
     }
 }

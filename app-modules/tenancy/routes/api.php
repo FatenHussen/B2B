@@ -21,6 +21,17 @@ Route::middleware(['api', 'auth:platform', 'tenant', SubstituteBindings::class])
             Route::put('{supplyChannel}', [SupplyChannelController::class, 'update']);
             Route::delete('{supplyChannel}', [SupplyChannelController::class, 'destroy']);
         });
+
+        // EP-AD-054 (BE-T13). On `/admin/channels` beside its five siblings, and MOVING
+        // to `/platform/channels/{id}/transition` with them: one route on the catalog
+        // prefix while five sit on the temporary one would split the single constant
+        // the frontend keeps them behind.
+        //
+        // Gated on the permission the catalog names, not the role the siblings use, so
+        // the 403 carries `error.permission`. `ad.channels.archive` is checked in the
+        // action, where the target is known.
+        Route::post('{supplyChannel}/transition', [SupplyChannelController::class, 'transition'])
+            ->middleware('permission:ad.channels.suspend');
     });
 
 // A channel manager reading and editing their own channel.
