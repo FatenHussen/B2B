@@ -19,13 +19,13 @@ final class ListChannelSubOrders
         $waiting = $request->input('filter.waiting_over_minutes');
 
         $builder = QueryBuilder::for(SubOrder::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('zone_id'),
                 AllowedFilter::exact('retailer_id'),
                 AllowedFilter::exact('rep_id'),
                 AllowedFilter::exact('source'),
-            ])
+            )
             ->where('channel_id', Tenant::currentId())
             ->defaultSort('-created_at');
 

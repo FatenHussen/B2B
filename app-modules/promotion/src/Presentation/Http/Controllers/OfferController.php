@@ -11,6 +11,7 @@ use Modules\Core\Http\ApiController;
 use Modules\Core\Support\MediaUrl;
 use Modules\Promotion\Application\Actions\CreateOffer;
 use Modules\Promotion\Application\Actions\StopOffer;
+use Modules\Promotion\Application\Queries\ShowOfferPerformance;
 use Modules\Promotion\Domain\Models\Offer;
 use Modules\Promotion\Infrastructure\EloquentOfferFeed;
 use Modules\Promotion\Presentation\Http\Requests\StopOfferRequest;
@@ -49,19 +50,9 @@ final class OfferController extends ApiController
         return $this->ok($action($request->user(), $id, $request->validated()));
     }
 
-    public function performance(int $id): JsonResponse
+    public function performance(ShowOfferPerformance $query, int $id): JsonResponse
     {
-        Offer::query()->findOrFail($id);
-
-        return $this->ok([
-            'applied_count' => 0,
-            'linked_sales' => 0,
-            'discount_given' => 0,
-            'net_margin' => 0,
-            'retailers_count' => 0,
-            'by_zone' => [],
-            'conversion_rate' => 0,
-        ]);
+        return $this->ok($query($id));
     }
 
     public function appIndex(Request $request, EloquentOfferFeed $feed, RetailerShoppingContext $shopping): JsonResponse

@@ -17,13 +17,14 @@ this page, the code wins.
 
 **47 channel endpoints are live**, plus **three shared reference reads** (governorates, zones,
 currencies) this dashboard needs for its pickers — §4.0. Catalog, pricing, offers, orders
-and returns work end to end. **Three reads return 500 today** — §4.5 and §4.6.
+and returns work end to end. Inbox and inventory lists were 500 until 2026-09-14; they
+return the envelope now.
 
 ### What changed since 2026-09-07
 
 | | Where |
 |---|---|
-| ⚠️ **`GET /channel/sub-orders`, `GET /channel/inventory/levels` and `GET /channel/inventory/movements` return HTTP 500** — every call, every caller, no filter needed. Not new code; found on 2026-09-07 and confirmed again today. No fix ticket exists yet. The orders queue and the two inventory lists cannot be built until it lands | §4.5, §4.6 |
+| **`GET /channel/sub-orders`, `GET /channel/inventory/levels` and `GET /channel/inventory/movements` are live** — the `allowedFilters([...])` TypeError is fixed. Build the orders queue and the two inventory lists | §4.5, §4.6 |
 | **A staging API exists**: `https://api.sentraxsy.com`, seed account present, OTP bypass on, CORS already allows `localhost:3001`. You do not have to run PHP locally | §1.0 |
 | `Accept-Language` is now **ignored** — every message comes back in English | §5.2 |
 | `sort` on a list does **not** throw; it is silently ignored *and* cancels the default order | §5.7 |
@@ -514,7 +515,7 @@ function onApiError(e: ApiError, navigate: NavigateFunction) {
   if (e.code === 'insufficient_permission') { /* hide the control; e.permission names it */ return; }
   if (e.code === 'illegal_transition') { /* refetch — the order moved on */ return; }
   if (e.code === 'insufficient_stock')  { /* show the shortfall; do not retry blindly */ return; }
-  if (e.status === 500) { /* a known-broken read (§4.5, §4.6) or a real outage — say so, never retry in a loop */ return; }
+  if (e.status === 500) { /* real outage — say so, never retry in a loop */ return; }
 }
 ```
 
@@ -655,8 +656,8 @@ elsewhere, will move · **missing** = catalogued, no route (§7).
 pair and the three zone routes. They are marked `stable*`. They are real and callable; the
 catalog has not caught up.
 
-⚠️ Three routes are marked **broken**: registered, gated, and answering **500** to every
-call (§4.5, §4.6). Treat them as `missing` until a fix lands.
+⚠️ Three routes were marked **broken** (inbox + inventory lists). They answer **200**
+with the envelope as of 2026-09-14. Treat them as `stable`.
 
 ### 4.0 Shared reference reads — not under `/channel`, but yours to read
 
@@ -972,16 +973,16 @@ offer group targeting.
 block `if isset($rewards['product_id'])`, so a pure percentage discount saves nothing and
 returns 201 as if it worked. Require a reward product in your form until this is fixed.
 
-**`GET /channel/offers/{id}/performance`** — ⚠️ **the entire response is a hardcoded stub**:
+**`GET /channel/offers/{id}/performance`** — `applied_count` is the redemption counter.
+The money keys are **not computed yet** (they need order lines; Promotion must not query
+Ordering). Until BE2-PRM05 lands they stay `0` / `[]`. **Do not chart `linked_sales`,
+`discount_given` or `net_margin`.** A zero here is "not built", not "sold nothing".
+A foreign id is **404 `not_found`**.
 
 ```jsonc
-{ "data": { "applied_count": 0, "linked_sales": 0, "discount_given": 0,
+{ "data": { "applied_count": 7, "linked_sales": 0, "discount_given": 0,
             "net_margin": 0, "retailers_count": 0, "by_zone": [], "conversion_rate": 0 } }
 ```
-
-Every number is literally `0` and `by_zone` is always `[]`, regardless of real redemptions.
-**Do not build the analytics screen.** Showing these as results would tell a supplier their
-promotion sold nothing.
 
 **`PATCH /channel/offers/{id}/stop`** — note **PATCH**. `{reason}` required →
 `{"status":"stopped"}`. ⚠️ No state guard — stopping a draft or an already-stopped offer
@@ -991,22 +992,17 @@ succeeds.
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
-| EP-SC-060 | GET | `/channel/inventory/levels` | **broken — 500** | `sc.inventory.view` |
-| EP-SC-061 | GET | `/channel/inventory/movements` | **broken — 500** | `sc.inventory.view` |
+| EP-SC-060 | GET | `/channel/inventory/levels` | stable | `sc.inventory.view` |
+| EP-SC-061 | GET | `/channel/inventory/movements` | stable | `sc.inventory.view` |
 | EP-SC-062 | POST | `/channel/inventory/adjust` | stable | `sc.inventory.adjust` |
 | EP-SC-063 | POST | `/channel/inventory/transfers` | stable | `sc.inventory.transfer` |
 | EP-SC-064 | PUT | `/channel/inventory/reorder-points` | stable | `sc.inventory.reorder` |
 
-⚠️ **Both reads return HTTP 500 on every call**, with or without filters, for every user.
-Confirmed with a real token on 2026-09-14. The cause is one line in each query class
-(`allowedFilters([...])` passed an array where the installed query-builder wants
-spread arguments — a `TypeError` before the query runs). The three writes below work; you
-just cannot see their effect through the API afterwards. **There is no fix ticket yet**
-— ask the backend for one before starting the inventory screens, and build the two lists
-last. The body of the 500 is Laravel's `{"message":"Server Error"}`, not the envelope.
+The three writes below execute immediately. Catalog `dual: true` on **adjust** is unmet
+— there is no Core hook for channel dual-approval yet (BE-C05 is IAM-shaped). Do not
+wait for a second confirmer on this path.
 
-The shapes below are what the code *will* return once the one line is fixed; they are read
-from the mapper, not observed.
+The shapes:
 
 **`GET /channel/inventory/levels`** — paginated.
 
@@ -1047,7 +1043,7 @@ the failing index (`items.{i}.…`); re-send the remainder.
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
-| EP-SC-070 | GET | `/channel/sub-orders` | **broken — 500** | `sc.orders.view` |
+| EP-SC-070 | GET | `/channel/sub-orders` | stable | `sc.orders.view` |
 | EP-SC-071 | GET | `/channel/sub-orders/{id}` | stable | `sc.orders.view` |
 | EP-SC-072 | POST | `/channel/sub-orders/{id}/confirm` | stable | `sc.orders.confirm` |
 | EP-SC-073 | POST | `/channel/sub-orders/bulk-confirm` | stable | `sc.orders.confirm` |
@@ -1058,15 +1054,7 @@ the failing index (`items.{i}.…`); re-send the remainder.
 | EP-SC-078 | POST | `/channel/sub-orders/{id}/reassign` | stable | `sc.orders.reassign` |
 | EP-SC-079 | POST | `/channel/sub-orders/{id}/schedule` | stable | `sc.orders.schedule` |
 
-**`GET /channel/sub-orders`** — ⚠️ **returns HTTP 500 on every call today.** Same cause as
-the two inventory lists (§4.5): one `allowedFilters([...])` line, a `TypeError` before the
-query runs, no filter needed to trigger it. Found 2026-09-07, confirmed with a real token
-2026-09-14, **no fix ticket yet.** The whole orders queue hangs on this one line — raise it
-with the backend on day one. Everything else in this section works: the detail, and every
-action, can be exercised on an id you obtained some other way (a retailer's order number,
-the warehouse, a bulk-confirm response).
-
-When it is fixed it returns paginated `{id, sub_order_no, status, zone_id, total}`.
+**`GET /channel/sub-orders`** — paginated `{id, sub_order_no, status, zone_id, total}`.
 ⚠️ No retailer name and no `created_at` in the row.
 Filters: `filter[status]`, `filter[zone_id]`, `filter[retailer_id]`, `filter[rep_id]`,
 `filter[source]`, and `filter[waiting_over_minutes]` (an SLA filter: orders older than N
@@ -1324,7 +1312,7 @@ assuming a rollback.
 | 429 | `rate_limited` | Back off. Also the OTP cooldown (§3) |
 | 503 | `maintenance_mode` | Maintenance screen |
 | 409 / 4xx | `conflict`, `http_error` | A framework `abort()` with no domain code. Rare; treat by status |
-| **500** | *(no envelope)* | `{"message":"Server Error"}` — Laravel's own body, **no `error` key**. Three reads do this today (§4.5, §4.6). Show "something broke on the server", never retry in a loop |
+| **500** | *(no envelope)* | `{"message":"Server Error"}` — Laravel's own body, **no `error` key**. Show "something broke on the server", never retry in a loop |
 
 On `422` the **first** message is flattened into `error.message`, so you can show something
 useful without walking `details` — in English (§5.2). A raw Laravel validation payload
@@ -1386,30 +1374,24 @@ the three reference lists (§4.0) are **plain arrays**: unpaginated, unfiltered.
 | 12 | Pricing lists + bulk | `price-lists*`, `bulk-update` | reconcile `affected_count` |
 | 13 | Price change log | `pricing/change-log` | resolve user/product names yourself |
 | 14 | Rep discount caps | `reps/{id}/discount-cap` | without this, rep discounts always fail |
-| 15 | **Order detail + actions** | `sub-orders/{id}`, confirm/reject/cancel/lines | drive buttons from `allowed_actions`; reach it by id until #16 works |
-| 16 | **Orders queue** | `sub-orders` | ⚠️ **500 today** — build the table against the shape, wire it when fixed |
+| 15 | **Order detail + actions** | `sub-orders/{id}`, confirm/reject/cancel/lines | drive buttons from `allowed_actions` |
+| 16 | **Orders queue** | `sub-orders` | paginated; never send `sort` |
 | 17 | Bulk confirm | `bulk-confirm` | render `confirmed` **and** `failed` |
 | 18 | Assign / reassign / schedule | the three POSTs | note the differing response keys |
-| 19 | Inventory adjust, transfers, reorder points | the three writes | expect `409 insufficient_stock`; non-transactional — re-fetch on error |
-| 20 | Inventory levels + movements | `inventory/levels`, `movements` | ⚠️ **500 today** — same story as #16 |
+| 19 | Inventory adjust, transfers, reorder points | the three writes | expect `409 insufficient_stock`; adjust has **no** dual-approval yet |
+| 20 | Inventory levels + movements | `inventory/levels`, `movements` | paginated; filters `warehouse_id`, `product_id` |
 | 21 | Returns inbox | `return-requests`, `decide` | gate on `status === pending` yourself |
 | 22 | Offers | `offers`, `POST`, `stop` | require a reward product; **no analytics** |
 
-Do not build the offer analytics screen (§4.4) or anything in §7. For #16 and #20, a
-route shell with the table markup and an honest "unavailable" state is the right amount
-of work until the backend ships the fix.
+Do not build the offer analytics screen (§4.4) or anything in §7. Inbox (#16) and
+inventory lists (#20) are wired — build the real tables.
 
 ---
 
 ## 7. Not built — do not mock
 
-**`GET /channel/offers/{id}/performance` is live but returns hardcoded zeros** (§4.4).
-That is worse than missing: it looks like data. Do not chart it.
-
-**Three reads are live and answer 500** — `GET /channel/sub-orders`,
-`GET /channel/inventory/levels`, `GET /channel/inventory/movements` (§4.5, §4.6). Not
-missing, not stubbed: broken, with no ticket. Do not mock them either — the fix is one
-line and the real shape is documented; build against it and wait.
+**`GET /channel/offers/{id}/performance`** returns a live `applied_count` and **zeros** for
+every money figure (§4.4). Do not chart sales or margin.
 
 Also absent from this guard, in the catalog with no route:
 
@@ -1460,7 +1442,7 @@ never invent numbers — a fabricated sales figure is worse than an empty screen
 | 28 | Inventory writes | `transfers` and `reorder-points` are **not transactional** — re-fetch after a 409/422 |
 | 29 | `not_found` | Also means "not yours". Never render "forbidden" |
 | 30 | Money | Integers in minor units everywhere **except** `/channel/zones` |
-| 31 | `sub-orders`, `inventory/levels`, `inventory/movements` | **HTTP 500 on every call today**, body is not the envelope, no fix ticket. Everything else on this guard works |
+| 31 | `inventory/adjust` | Catalog `dual: true` — **executes on the first request**. No Core dual-approval hook for this guard yet |
 | 32 | `Accept-Language` | **Ignored** — every message is English. Never show `error.message` raw on an Arabic screen |
 | 33 | `Idempotent-Replayed` | Invisible to `fetch` — CORS exposes no headers. Do not wait for it |
 | 34 | `/governorates`, `/zones`, `/currencies` | Readable with your token, no `/channel` prefix, **include disabled rows** — filter `status === 'active'` in pickers |

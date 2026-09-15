@@ -16,10 +16,10 @@ final class ListStockMovements
         $perPage = min((int) request('per_page', 25), 100);
 
         return QueryBuilder::for(StockMovement::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::exact('product_id'),
-            ])
+            )
             ->defaultSort('-id')
             ->paginate($perPage);
     }

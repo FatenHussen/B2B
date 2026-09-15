@@ -23,10 +23,10 @@ final class ListStockLevels
         $perPage = min((int) request('per_page', 25), 100);
 
         return QueryBuilder::for(StockBalance::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('warehouse_id'),
                 AllowedFilter::exact('product_id'),
-            ])
+            )
             ->defaultSort('id')
             ->paginate($perPage);
     }

@@ -44,6 +44,10 @@ final class AdjustStock
             $actor,
         );
 
+        // Catalog dual=true (EP-SC-051) is unmet: BE-C05's approval_requests live in
+        // Access for IAM, and Core exposes no mutation hook. Inventory cannot import
+        // Access models. The first request still executes. Documented for the FE handoff.
+
         $this->audit->record('inventory.adjust', $actor, 'stock_movement', $result['movement_id'], [
             'after' => $data,
         ], $channelId);
