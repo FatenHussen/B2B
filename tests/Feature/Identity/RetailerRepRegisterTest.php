@@ -212,6 +212,10 @@ it('the retailer cannot reach any operational surface while pending_review', fun
     $this->getJson('/api/v1/app/retailer/products', $auth)
         ->assertForbidden()
         ->assertJsonPath('error.code', 'insufficient_permission');
+
+    $this->postJson('/api/v1/app/auth/logout', [], $auth)
+        ->assertOk()
+        ->assertJsonPath('data.success', true);
 });
 
 it('re-submitting with the same idempotency key does not create a second profile', function () {

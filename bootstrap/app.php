@@ -16,6 +16,7 @@ use Modules\Core\Http\Middleware\EnsureIdempotency;
 use Modules\Core\Http\Middleware\ResolveTenant;
 use Modules\Core\Http\Middleware\SetAcceptLanguage;
 use Modules\Identity\Presentation\Http\Middleware\EnforceGuardTokenable;
+use Modules\Identity\Presentation\Http\Middleware\EnsureRetailerProfileActive;
 use Modules\Identity\Presentation\Http\Middleware\RequireAppKind;
 use Modules\Identity\Presentation\Http\Middleware\RequirePasswordConfirmation;
 use Spatie\Permission\Exceptions\UnauthorizedException;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'guard.tokenable' => EnforceGuardTokenable::class,
             'password.confirmed' => RequirePasswordConfirmation::class,
             'app.kind' => RequireAppKind::class,
+            'retailer.profile' => EnsureRetailerProfileActive::class,
         ]);
 
         $middleware->api(remove: [SubstituteBindings::class]);

@@ -20,7 +20,6 @@ use Modules\Identity\Infrastructure\IdentityRepSellingContext;
 use Modules\Identity\Infrastructure\IdentityRetailerShoppingContext;
 use Modules\Identity\Infrastructure\Otp\FakeOtpChannel;
 use Modules\Identity\Infrastructure\Otp\LogOtpChannel;
-use Modules\Identity\Presentation\Http\Middleware\EnsureRetailerProfileActive;
 
 class IdentityServiceProvider extends ServiceProvider
 {
@@ -62,7 +61,7 @@ class IdentityServiceProvider extends ServiceProvider
                     continue;
                 }
 
-                $route->middleware(EnsureRetailerProfileActive::class);
+                $route->middleware('retailer.profile');
             }
         });
     }
