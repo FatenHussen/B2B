@@ -40,6 +40,8 @@ final class EloquentWarehouseDirectory implements WarehouseDirectory
 
     public function channelId(int $warehouseId): ?int
     {
+        // acrossChannels(): this method establishes which channel a warehouse belongs to,
+        // so it cannot run under one (rule 10 names this file).
         $id = Warehouse::query()->acrossChannels()->whereKey($warehouseId)->value('channel_id');
 
         return $id !== null ? (int) $id : null;
@@ -48,6 +50,8 @@ final class EloquentWarehouseDirectory implements WarehouseDirectory
     public function belongsToChannel(int $warehouseId, int $channelId): bool
     {
         return Warehouse::query()
+            // acrossChannels(): asks whether a warehouse is on a named channel — the channel is
+            // the argument, not the tenant.
             ->acrossChannels()
             ->whereKey($warehouseId)
             ->where('channel_id', $channelId)
@@ -57,6 +61,8 @@ final class EloquentWarehouseDirectory implements WarehouseDirectory
     public function defaultIdForChannel(int $channelId): ?int
     {
         $id = Warehouse::query()
+            // acrossChannels(): the channel is the argument; called from provisioning, where no
+            // tenant is set.
             ->acrossChannels()
             ->where('channel_id', $channelId)
             ->where('status', WarehouseStatus::Active)

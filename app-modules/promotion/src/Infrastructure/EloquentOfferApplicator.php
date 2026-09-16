@@ -17,6 +17,9 @@ final class EloquentOfferApplicator implements OfferApplicator
         $now = now('Asia/Damascus');
         $productIds = array_map(fn (array $l) => (int) $l['product_id'], $quote['lines']);
 
+        // Lifted, per rule 10: applied for app callers with no tenant. The offers are
+        // narrowed to the quoted products' components below, and those products are already
+        // the caller's channels.
         $offers = Offer::withoutGlobalScope('channel')
             ->where('status', OfferStatus::Active)
             ->where(function ($q) use ($now): void {

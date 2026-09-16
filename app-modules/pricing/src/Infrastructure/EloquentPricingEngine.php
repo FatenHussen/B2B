@@ -158,6 +158,8 @@ final class EloquentPricingEngine implements PricingEngine
         $now = Carbon::now('Asia/Damascus');
 
         $apply = function (PriceListType $type, ?int $matchId) use (&$unit, &$rule, $productId, $channelId, $zoneId, $retailerId, $now): void {
+            // Lifted, per rule 10: the engine prices for app callers with no tenant, and
+            // `where('supply_channel_id', $channelId)` below is the channel the caller named.
             $query = PriceList::withoutGlobalScope('channel')
                 ->where('supply_channel_id', $channelId)
                 ->where('type', $type)

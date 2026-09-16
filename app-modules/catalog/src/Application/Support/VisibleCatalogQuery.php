@@ -27,6 +27,8 @@ final class VisibleCatalogQuery
                 ($shopping['category_ids'] ?? []) !== [],
                 fn (Builder $q) => $q->whereHas(
                     'category',
+                    // Lifted inside the relation constraint: a product's category is on the product's
+                    // own channel, and the product query is already the retailer's channels.
                     fn ($c) => $c->withoutGlobalScope('channel')
                         ->whereIn('root_category_id', $shopping['category_ids']),
                 ),

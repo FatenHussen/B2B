@@ -41,6 +41,8 @@ final class RetailerHome
             fn (array $row) => $ctx['category_ids'] === [] || in_array($row['id'], $ctx['category_ids'], true),
         ));
 
+        // Lifted, per rule 10: no tenant on /app/retailer/*; the retailer's channels are the
+        // filter on the next line.
         $brands = Brand::withoutGlobalScope('channel')
             ->whereIn('supply_channel_id', $channelIds === [] ? [0] : $channelIds)
             ->where('status', BrandStatus::Active)

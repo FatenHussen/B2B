@@ -33,6 +33,8 @@ final class ListRepProducts
             $channelIds = in_array($filter, $channelIds, true) ? [$filter] : [0];
         }
 
+        // Lifted, per rule 10: the rep app sets no tenant; `whereIn('supply_channel_id', …)`
+        // below is the rep's own channel, and the isolation.
         $base = Product::withoutGlobalScope('channel')
             ->whereIn('supply_channel_id', $channelIds === [] ? [0] : $channelIds)
             ->where('status', ProductStatus::Active)

@@ -28,6 +28,8 @@ final class RetailerBrands
         $ctx = $this->shopping->for($user);
         $channelIds = $ctx['channel_ids'] === [] ? [0] : $ctx['channel_ids'];
 
+        // Lifted, per rule 10: no tenant on /app/retailer/*; the retailer's channels are the
+        // filter on the next line.
         $base = Brand::withoutGlobalScope('channel')
             ->whereIn('supply_channel_id', $channelIds)
             ->where('status', BrandStatus::Active);

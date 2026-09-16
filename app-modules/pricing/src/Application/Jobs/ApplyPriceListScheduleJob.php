@@ -29,6 +29,8 @@ final class ApplyPriceListScheduleJob implements ShouldQueue
     public function handle(ProductPricingWriter $writer): void
     {
         $schedule = PriceListSchedule::query()->where('job_id', $this->jobId)->first();
+        // Lifted, per rule 10: a queued job runs with no tenant; the id names one row and
+        // came from the tenant that scheduled it.
         $list = PriceList::withoutGlobalScope('channel')->find($this->priceListId);
         if ($schedule === null || $list === null) {
             return;

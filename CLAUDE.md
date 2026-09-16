@@ -116,11 +116,30 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
     platform's record *about* a channel, not data the channel owns, with `channel_id` a foreign key
     to the tenant table exactly as on `AuditLog`.
 
-    **`acrossChannels()` is written at the call site with the reason beside it, never as a habit.**
-    Two places use it today: `EloquentOpenOrderCounter` (the EP-AD-034 impact count is cross-channel
-    by design and its caller has no tenant) and `EloquentWarehouseDirectory` (every method
-    establishes which channel a warehouse belongs to). An escape hatch that appears three times in
-    one file stops being read as an exception and starts being copied where it does not belong.
+    **The scope is lifted only with the reason written beside it, never as a habit — and both
+    spellings count.** `acrossChannels()` and the raw `withoutGlobalScope('channel')` it wraps are the
+    same escape; this rule once said "two places use it today" while the truth was twenty-three of
+    one spelling and fifteen of the other that nobody counted. As of BE-C12 there are **42 sites in
+    31 files**, every one with a comment saying why on the same line, within the six lines above, or
+    in the method's docblock. `tests/Architecture/ChannelScopeEscapeTest.php` pins the count per
+    file and fails on an escape with no reason within reach — a new site is a change to this
+    inventory, said out loud, not a discovery.
+
+    Two shapes are legitimate. **Site-level**, the SubOrder pattern: `acrossChannels()` on a direct
+    query with the *owner* filter beside it — `retailer_id`, `rep_id`, the owner's `cart_id` — on a
+    route that sets no tenant (`/app/*` sets none, and must not: a retailer buys from several
+    channels). **Relation-level**, where the child cannot belong to another owner or channel than
+    its parent: `Product::brand()` and `category()`, `Cart::sections()`, `CartLine::section()`,
+    `Order::sections()` and `subOrders()` lift the scope in the relation definition, with the reason
+    in its docblock, because the parent query has already constrained everything the relation can
+    load and an eager load that re-applied the child's strict scope threw on every `/app/*` route
+    (BE-C12). A channel column on such a child — `cart_sections.channel_id`, `sub_orders.channel_id`
+    — is the split key of a multi-channel cart or order, not an isolation boundary; ownership is.
+
+    What is never legitimate: an escape without an owner filter beside it on an app route.
+    `CancelSubOrder` had none on `/app/retailer/orders/{id}/cancel`; adding `acrossChannels()` there
+    would have turned a loud 500 into a silent leak, which is why the filter landed first, in its
+    own commit, proved before the scope was touched.
 
     `tests/Architecture/ChannelScopeTest.php` enforces all of this: a model whose table has either
     column and does not apply the trait fails the build unless it is in that file's exemption list

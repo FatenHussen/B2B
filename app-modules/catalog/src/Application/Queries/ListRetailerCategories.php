@@ -29,12 +29,16 @@ final class ListRetailerCategories
 
         if ($parentId === null && ($level === null || $level === 1)) {
             return array_map(function (array $c) use ($ctx): array {
+                // Lifted, per rule 10: no tenant on /app/retailer/*; the retailer's channels
+                // (`channel_ids`) are the filter on the next line.
                 $children = Category::withoutGlobalScope('channel')
                     ->whereIn('supply_channel_id', $ctx['channel_ids'] === [] ? [0] : $ctx['channel_ids'])
                     ->where('root_category_id', $c['id'])
                     ->whereNull('parent_id')
                     ->count();
                 $products = VisibleCatalogQuery::products($ctx)
+                    // Lifted inside the relation constraint: the products are already the retailer's
+                    // channels, and a product's category is on the product's own channel.
                     ->whereHas('category', fn ($q) => $q->withoutGlobalScope('channel')->where('root_category_id', $c['id']))
                     ->count();
 
@@ -51,6 +55,7 @@ final class ListRetailerCategories
             )));
         }
 
+        // Lifted, per rule 10: filtered to the retailer's channels on the next line.
         $query = Category::withoutGlobalScope('channel')
             ->whereIn('supply_channel_id', $ctx['channel_ids'] === [] ? [0] : $ctx['channel_ids']);
 
@@ -65,6 +70,8 @@ final class ListRetailerCategories
                 'id' => (int) $c->id,
                 'name' => (string) $c->name,
                 'image' => MediaUrl::of($c->image_media_id ? (int) $c->image_media_id : null),
+                // Lifted, per rule 10: the parent was filtered to the retailer's channels above, and
+                // its children are on the same channel by construction.
                 'children_count' => Category::withoutGlobalScope('channel')->where('parent_id', $c->id)->count(),
                 'products_count' => VisibleCatalogQuery::products($ctx)->where('category_id', $c->id)->count(),
             ];
