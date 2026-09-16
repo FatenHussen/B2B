@@ -5,22 +5,24 @@ declare(strict_types=1);
 /**
  * The phpstan baseline is a counted debt, and this is the counter (BE-F11).
  *
- * On 2026-09-16 the analyser gate passed for the first time — by baselining 372 findings
- * that configuration alone could not remove (relations without their related type,
- * arrays without a value type, unresolved templates, a few Pest residues). A baseline
+ * On 2026-09-16 the analyser gate passed for the first time — by baselining 585 findings
+ * that configuration alone could not remove: 213 relation declarations without their
+ * related type and the 173 bare-Model symptoms they cause (counted together on purpose,
+ * with no identifier ignored, so a fixed declaration takes its symptoms down with it),
+ * arrays without a value type, unresolved templates, a few Pest residues. A baseline
  * with no counter is a grave: findings get added to it and nobody notices. This pins the
  * sum of every `count:` in the file, exactly, the way ChannelScopeEscapeTest pins the
  * escape inventory. It rises — the build fails. It falls, in a pay-down commit — the pin
  * is lowered in the same commit, so the number is always known, never discovered.
  *
- * `<=` was considered and rejected: a ceiling that stays at 372 while the file shrinks to
- * 300 leaves seventy-two findings of silent headroom, which is the grave again.
+ * `<=` was considered and rejected: a ceiling that stays at 585 while the file shrinks
+ * leaves silent headroom, which is the grave again.
  */
 
 use Illuminate\Support\Facades\File;
 
 /** The baseline's sum, pinned. Lower it in the commit that pays findings down. */
-const PHPSTAN_BASELINE_FINDINGS = 372;
+const PHPSTAN_BASELINE_FINDINGS = 585;
 
 /**
  * @return array{sum: int, entries: int}

@@ -73,5 +73,9 @@ parameters:
             - app-modules/*/database
             - tests/phpstan
 
-    ignoreErrors:
-        - identifier: missingType.generics
+    # No identifier is ignored (BE-F11). `missingType.generics` was, and hiding the 213
+    # relation declarations without a related type is what turned each of them into a
+    # handful of "undefined property on Model" symptoms elsewhere — 173 of them. The
+    # baseline counts the cause and the symptoms together, so paying a declaration down
+    # takes its symptoms with it and the number only ever falls.
+    ignoreErrors: []

@@ -114,47 +114,57 @@ Taken 2026-09-16. (B) meant a red gate for weeks, and a red gate is exactly what
 produced this ticket: eleven commits that said "phpstan passed" while nobody ran it.
 (C) gives up static analysis in a financial system.
 
+**Before generating, the `missingType.generics` ignore was lifted** — on instruction, and
+against the first version of this section, which had kept it. The reason it had to go:
+the 213 relation declarations that rule names are the *cause* of 173 "undefined property
+on `Model`" symptoms; a baseline that froze the symptoms while hiding the cause would
+have sent the payer chasing `$product->media->x` site by site instead of fixing one
+`HasMany<Related, $this>` declaration. With the rule on, cause and symptoms are counted
+together and paying a declaration down takes its symptoms with it. One count, one rule,
+and the number only falls. Measured: 372 with the ignore, **585** without it.
+
 Delivered on `work/be-f11`:
 
-- `040fac9` — the configuration alone, 1184 → 372, no code touched.
-- `phpstan-baseline.neon` generated at **372 findings, 277 entries**, with the rules in
-  its header: the sum only falls; paid down one module per ticket; a new finding in new
-  code is fixed, never baselined; nothing in it is a runtime defect.
-- `tests/Architecture/PhpstanBaselineTest.php` pins the sum **exactly** (`372`) — a rise
+- `040fac9` — the configuration alone, 1184 → 372 with the ignore in place.
+- `phpstan-baseline.neon` generated at **585 findings, 490 entries**, no identifier
+  ignored, with the rules in its header: the sum only falls; paid down one module per
+  ticket; a new finding in new code is fixed, never baselined; nothing in it is a runtime
+  defect.
+- `tests/Architecture/PhpstanBaselineTest.php` pins the sum **exactly** (`585`) — a rise
   fails the build, a fall asks for the pin to be lowered in the same commit. A `<=`
-  ceiling was rejected: it leaves silent headroom, which is the grave again. The test
-  also fails if the baseline's include is dropped from `phpstan.neon`.
-- The gate passes: `./vendor/bin/phpstan analyse` exits 0, for the first time.
+  ceiling was rejected: it leaves silent headroom. The test also fails if the baseline's
+  include is dropped from `phpstan.neon`.
+- The gate passes: `./vendor/bin/phpstan analyse` exits 0.
 
-## The pay-down, per module
+## The pay-down, per module — highest symptoms-per-declaration first
 
-One small ticket per row, not one project. Each: fix the module's findings, regenerate
-the baseline, lower the pin, commit the three together and watch the sum fall.
+One small ticket per row, not one project. Each: fix the module's relation declarations
+(`HasMany<Related, $this>`, `BelongsTo<Related, $this>`, …), watch its symptoms fall
+with them, regenerate the baseline, lower the pin, commit together.
 
-| Module | Findings | Files | Dominant identifier |
-|---|---|---|---|
-| `ordering` | 105 | 30 | `property.notFound` (73) |
-| `tests` | 98 | 26 | `argument.templateType` (52) |
-| `fulfillment` | 45 | 14 | `property.notFound` (27) |
-| `catalog` | 34 | 17 | `property.notFound` (16) |
-| `delivery` | 26 | 7 | `property.notFound` (13) |
-| `promotion` | 23 | 5 | `property.notFound` (17) |
-| `identity` | 10 | 6 | `property.notFound` (4) |
-| `pricing` | 9 | 8 | `missingType.iterableValue` (6) |
-| `returns` | 8 | 4 | `missingType.iterableValue` (5) |
-| `tenancy` | 5 | 1 | `nullsafe.neverNull` (5) |
-| `access` | 3 | 3 | `method.notFound` (1) |
-| `core` | 3 | 3 | `missingType.iterableValue` (2) |
-| `inventory` | 3 | 3 | `missingType.iterableValue` (3) |
-| **total** | **372** | | |
+| Module | Baseline findings | Root declarations (`missingType.generics`) | Symptoms that fall with them (bare `Model`) | Symptoms per declaration |
+|---|---|---|---|---|
+| `ordering` | 121 | 16 | 83 | 5.2 |
+| `delivery` | 29 | 3 | 14 | 4.7 |
+| `fulfillment` | 52 | 7 | 28 | 4 |
+| `promotion` | 32 | 9 | 19 | 2.1 |
+| `returns` | 10 | 2 | 3 | 1.5 |
+| `catalog` | 59 | 25 | 19 | 0.8 |
+| `identity` | 30 | 20 | 6 | 0.3 |
+| `pricing` | 14 | 5 | 1 | 0.2 |
+| `core` | 113 | 110 | 0 | 0 |
+| `finance` | 1 | 1 | 0 | 0 |
+| `inventory` | 6 | 3 | 0 | 0 |
+| `reference` | 6 | 6 | 0 | 0 |
+| `tests` | 104 | 6 | 0 | 0 |
+| `access` | 3 | 0 | 0 | — |
+| `tenancy` | 5 | 0 | 0 | — |
+| **total** | **585** | **213** | **173** | |
 
-`property.notFound` on a bare `Illuminate\Database\Eloquent\Model` is one cause in
-every module that has it: relation methods declared as `HasMany` instead of
-`HasMany<Related, $this>`. The ignored `missingType.generics` rule hides 213 of those
-declarations; the first pay-down ticket in a module should turn that rule on for the
-module and let it point at them. `tests` is mostly `argument.templateType` on
-`expect(...)->and(...)` chains and the 31 Pest residues the configuration cannot express.
-
+`core`'s 110 are contract and support signatures (`Collection`, `Builder`, `Paginator`
+without a type argument) that cause no symptom of their own — last, not first. `tests` is
+`argument.templateType` on `expect(...)->and(...)` chains and the 31 Pest residues the
+configuration cannot express.
 ## Requirements
 
 1. **Configuration first, in one commit, before any code line moves:**
@@ -182,7 +192,7 @@ _Write one test per criterion. Name the test after the criterion._
       (Exits 0 on `work/be-f11` with the baseline; on `main` once merged.)
 - [x] The configuration commit alone takes the count from 1184 to under 450 with no
       code change, and the commit message records both numbers. (`040fac9`: 1184 → 372.)
-- [x] If (A): a pinned count that a later commit can only lower. (`PhpstanBaselineTest`, pinned at 372.)
+- [x] If (A): a pinned count that a later commit can only lower. (`PhpstanBaselineTest`, pinned at 585, no identifier ignored.)
 
 ## Working rules
 

@@ -241,10 +241,12 @@ composer deptrac                          # module boundaries
 **The Larastan gate runs against a baseline since 2026-09-16** (BE-F11). It had never
 passed before that date — 1184 findings, of which configuration alone accounted for 812:
 the analyser read no module migrations, typed `$this` in a Pest closure as Pest's call
-object, and read `casts()`'s declared return type instead of its body. What remained,
-**372 findings**, is baselined in `phpstan-baseline.neon` and pinned exactly by
-`tests/Architecture/PhpstanBaselineTest.php`: the number only falls, and a fall lowers
-the pin in the same commit. A new finding in new code is fixed, never added to the
+object, and read `casts()`'s declared return type instead of its body. What remained —
+372, or **585 with no identifier ignored**, which is how it is counted: the 213 relation
+declarations without a related type are the cause of 173 of the rest, and hiding a cause
+while freezing its symptoms is not a baseline — is in `phpstan-baseline.neon`, pinned
+exactly at 585 by `tests/Architecture/PhpstanBaselineTest.php`: the number only falls,
+and a fall lowers the pin in the same commit. A new finding in new code is fixed, never added to the
 baseline — the gate is green for new code and red for regressions. BE-F11 owns the
 pay-down, one module per ticket; its table is the work list.
 
