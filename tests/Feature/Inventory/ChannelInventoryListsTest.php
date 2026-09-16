@@ -191,4 +191,3 @@ it('writes reorder points in one transaction', function () {
 
     expect((int) DB::table('stock_reorder_points')->where('product_id', $row['product_id'])->value('point'))->toBe(50);
 });
-
