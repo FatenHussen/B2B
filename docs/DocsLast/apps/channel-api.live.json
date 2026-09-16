@@ -1,0 +1,2813 @@
+{
+    "info": {
+        "title": "Channel dashboard — live API only",
+        "generated_at": "2026-09-16",
+        "base_path": "/api/v1",
+        "guard": "channel",
+        "x_client": "channel-web",
+        "seed_phone": "+963900000001",
+        "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them.",
+        "counts": {
+            "live_endpoints": 77,
+            "matched_catalog": 69,
+            "live_without_catalog": 8,
+            "forbidden": 8
+        }
+    },
+    "headers": {
+        "Authorization": "Bearer {token} — required except POST /channel/auth/* and GET /health",
+        "Accept": "application/json",
+        "Accept-Language": "ignored — server messages are English; map error.code in the UI",
+        "X-Client": "channel-web",
+        "X-Idempotency-Key": "UUID per user intent on every write except OTP/login. request-otp is NOT idempotent.",
+        "X-Channel-Id": "do not send — ignored for channel users",
+        "Content-Type": "application/json"
+    },
+    "envelope": {
+        "success": {
+            "data": {},
+            "meta": {
+                "server_time": "..."
+            }
+        },
+        "list": {
+            "data": [],
+            "meta": {
+                "page": 1,
+                "per_page": 25,
+                "total": 0,
+                "last_page": 1
+            }
+        },
+        "error": {
+            "error": {
+                "code": "not_found",
+                "message": "...",
+                "details": {}
+            }
+        },
+        "money": "integer minor units except GET/POST /channel/zones (decimal strings)",
+        "sort": "never send sort — silently ignored and drops default order",
+        "not_found": "404 means missing OR not yours — never render forbidden"
+    },
+    "forbidden": [
+        {
+            "method": "GET",
+            "path": "/api/v1/channel/retailers",
+            "reason": "No retailer list / approval / 360"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/channel/reps",
+            "reason": "No rep list / CRUD"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/channel/warehouses",
+            "reason": "No warehouse list on this guard"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/channel/products/{id}",
+            "reason": "No product show"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/channel/offers/{id}",
+            "reason": "No offer show / PUT"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/channel/invoices/{id}",
+            "reason": "No invoice show / lines"
+        },
+        {
+            "method": "*",
+            "path": "/api/v1/channel/iam/*",
+            "reason": "Channel IAM not seeded"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/channel/media",
+            "reason": "No media upload on any guard"
+        }
+    ],
+    "people_writes_no_list": [
+        {
+            "method": "PUT",
+            "path": "/api/v1/channel/reps/{id}/discount-cap",
+            "permission": "sc.reps.update"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/channel/reps/{id}/settle",
+            "permission": "sc.reps.settle"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/channel/retailers/{id}/credit",
+            "permission": "sc.retailers.credit"
+        }
+    ],
+    "endpoints": [
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel",
+            "permission": "sc.settings.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Tenancy\\Presentation\\Http\\Controllers\\ChannelSettingsController@show",
+            "catalog": null,
+            "note": "Live route with no catalog row (stable*). Trust the controller, not the catalog."
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel",
+            "permission": "sc.settings.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Tenancy\\Presentation\\Http\\Controllers\\ChannelSettingsController@update",
+            "catalog": null,
+            "note": "Live route with no catalog row (stable*). Trust the controller, not the catalog."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/auth/request-otp",
+            "permission": null,
+            "guard": "channel",
+            "auth": false,
+            "write": true,
+            "idempotency": false,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelAuthController@requestOtp",
+            "catalog": {
+                "code": "EP-CH-001",
+                "name": "Channel request OTP",
+                "name_ar": "طلب رمز دخول القناة",
+                "permission": null,
+                "dual_approval": false,
+                "body": {
+                    "phone": "+963944000000"
+                },
+                "query": [],
+                "response": {
+                    "otp_id": "otp_ch_1"
+                },
+                "errors": {
+                    "429": "rate_limited"
+                }
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/auth/verify-otp",
+            "permission": null,
+            "guard": "channel",
+            "auth": false,
+            "write": true,
+            "idempotency": false,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelAuthController@verifyOtp",
+            "catalog": {
+                "code": "EP-CH-002",
+                "name": "Channel verify OTP",
+                "name_ar": "تحقق دخول القناة",
+                "permission": null,
+                "dual_approval": false,
+                "body": {
+                    "otp_id": "{{otp_id}}",
+                    "code": "482193"
+                },
+                "query": [],
+                "response": {
+                    "token": "20|channel_xxxxx",
+                    "channels": [
+                        {
+                            "id": 1,
+                            "name": "شركة النور"
+                        }
+                    ],
+                    "permissions": [
+                        "sc.dashboard.view",
+                        "sc.orders.view"
+                    ]
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/brands",
+            "permission": "sc.catalog.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@brands",
+            "catalog": {
+                "code": "EP-SC-010A",
+                "name": "List brands",
+                "name_ar": "العلامات",
+                "permission": "sc.catalog.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "",
+                    "filter[status]": "active"
+                },
+                "response": [
+                    {
+                        "id": 12,
+                        "name_ar": "نور",
+                        "name_en": "Nour",
+                        "status": "active"
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/brands",
+            "permission": "sc.catalog.create",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@storeBrand",
+            "catalog": {
+                "code": "EP-SC-010B",
+                "name": "Create brand",
+                "name_ar": "إنشاء علامة",
+                "permission": "sc.catalog.create",
+                "dual_approval": false,
+                "body": {
+                    "name_ar": "نور",
+                    "name_en": "Nour",
+                    "logo": "media_logo_1",
+                    "banner": "media_banner_1",
+                    "description": "منتجات غذائية",
+                    "activity_type_ids": [
+                        3
+                    ],
+                    "order": 1,
+                    "status": "active",
+                    "sliders": [
+                        {
+                            "name": "الأكثر مبيعاً",
+                            "source": "algorithm",
+                            "source_id": null,
+                            "count": 12,
+                            "order": 1
+                        }
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "id": 12
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/catalog/export",
+            "permission": "sc.catalog.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@export",
+            "catalog": {
+                "code": "EP-SC-020",
+                "name": "Export catalog",
+                "name_ar": "تصدير الكتالوج",
+                "permission": "sc.catalog.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "filter[status]": "active"
+                },
+                "response": {
+                    "job_id": "job_cat_exp_1"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/catalog/import",
+            "permission": "sc.catalog.import",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@import",
+            "catalog": {
+                "code": "EP-SC-019",
+                "name": "Import catalog",
+                "name_ar": "استيراد الكتالوج",
+                "permission": "sc.catalog.import",
+                "dual_approval": false,
+                "body": {
+                    "file": null,
+                    "type": "products",
+                    "dry_run": true
+                },
+                "query": [],
+                "response": {
+                    "preview": [],
+                    "errors": [
+                        {
+                            "row": 4,
+                            "message": "sku exists"
+                        }
+                    ],
+                    "duplicates": [
+                        "OIL-SUN-1L"
+                    ]
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/categories",
+            "permission": "sc.catalog.create",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@storeCategory",
+            "catalog": {
+                "code": "EP-SC-012",
+                "name": "Create category",
+                "name_ar": "إنشاء فئة",
+                "permission": "sc.catalog.create",
+                "dual_approval": false,
+                "body": {
+                    "name": "زيوت نباتية",
+                    "parent_id": 10,
+                    "image": null,
+                    "icon": "oil",
+                    "order": 1,
+                    "activity_type_ids": [
+                        3
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "id": 341
+                },
+                "errors": {
+                    "422": "validation_failed"
+                }
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/categories/reorder",
+            "permission": "sc.catalog.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@reorderCategories",
+            "catalog": {
+                "code": "EP-SC-013",
+                "name": "Reorder categories",
+                "name_ar": "إعادة ترتيب الفئات",
+                "permission": "sc.catalog.update",
+                "dual_approval": false,
+                "body": {
+                    "moves": [
+                        {
+                            "id": 341,
+                            "parent_id": 10,
+                            "order": 2
+                        }
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "updated": 1
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/categories/tree",
+            "permission": "sc.catalog.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@categoryTree",
+            "catalog": {
+                "code": "EP-SC-011",
+                "name": "Category tree",
+                "name_ar": "شجرة الفئات",
+                "permission": "sc.catalog.view",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": [
+                    {
+                        "id": 340,
+                        "name": "زيوت",
+                        "image": null,
+                        "icon": "oil",
+                        "parent_id": 10,
+                        "level": 2,
+                        "order": 1,
+                        "status": "active",
+                        "direct_products": 14,
+                        "total_products": 40,
+                        "children": []
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/content/banners",
+            "permission": "sc.content.banners",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Content\\Presentation\\Http\\Controllers\\ChannelContentController@banners",
+            "catalog": {
+                "code": "EP-SC-101A",
+                "name": "List banners",
+                "name_ar": "البنرات",
+                "permission": "sc.content.banners",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": ""
+                },
+                "response": [
+                    {
+                        "id": 9,
+                        "media_type": "image",
+                        "placements": [
+                            "home_top"
+                        ]
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/content/banners",
+            "permission": "sc.content.banners",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Content\\Presentation\\Http\\Controllers\\ChannelContentController@storeBanner",
+            "catalog": {
+                "code": "EP-SC-101B",
+                "name": "Create banner",
+                "name_ar": "إنشاء بنر",
+                "permission": "sc.content.banners",
+                "dual_approval": false,
+                "body": {
+                    "media_type": "image",
+                    "media_id": "media_banner_2",
+                    "link": {
+                        "type": "offer",
+                        "target": 44
+                    },
+                    "placements": [
+                        "home_top"
+                    ],
+                    "targeting": {
+                        "activity_type_ids": [
+                            3
+                        ],
+                        "zone_ids": [
+                            12
+                        ]
+                    },
+                    "starts_at": "2026-03-01T00:00:00+03:00",
+                    "ends_at": "2026-03-31T23:59:59+03:00",
+                    "order": 1,
+                    "weight": 10
+                },
+                "query": [],
+                "response": {
+                    "id": 9
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/content/banners/{id}/stats",
+            "permission": "sc.content.banners",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Content\\Presentation\\Http\\Controllers\\ChannelContentController@bannerStats",
+            "catalog": {
+                "code": "EP-SC-102",
+                "name": "Banner stats",
+                "name_ar": "إحصاء البنر",
+                "permission": "sc.content.banners",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": {
+                    "impressions": 12000,
+                    "clicks": 840,
+                    "ctr": 0.07
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/content/intro",
+            "permission": "sc.content.intro",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Content\\Presentation\\Http\\Controllers\\ChannelContentController@showIntro",
+            "catalog": {
+                "code": "EP-SC-100A",
+                "name": "Get intro screen",
+                "name_ar": "شاشة الانترو",
+                "permission": "sc.content.intro",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": {
+                    "enabled": true,
+                    "text": "مرحباً بتجار دمشق",
+                    "media_type": "video",
+                    "media_id": "media_intro",
+                    "duration": 8,
+                    "targeting": {
+                        "activity_type_ids": [
+                            3
+                        ],
+                        "zone_ids": [
+                            12
+                        ]
+                    }
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/content/intro",
+            "permission": "sc.content.intro",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Content\\Presentation\\Http\\Controllers\\ChannelContentController@updateIntro",
+            "catalog": {
+                "code": "EP-SC-100B",
+                "name": "Update intro screen",
+                "name_ar": "تحديث الانترو",
+                "permission": "sc.content.intro",
+                "dual_approval": false,
+                "body": {
+                    "enabled": true,
+                    "text": "مرحباً بتجار دمشق",
+                    "media_type": "video",
+                    "media_id": "media_intro",
+                    "duration": 8,
+                    "targeting": {
+                        "activity_type_ids": [
+                            3
+                        ],
+                        "zone_ids": [
+                            12
+                        ]
+                    }
+                },
+                "query": [],
+                "response": {
+                    "enabled": true
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/content/sliders",
+            "permission": "sc.content.sliders",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Content\\Presentation\\Http\\Controllers\\ChannelContentController@sliders",
+            "catalog": {
+                "code": "EP-SC-103A",
+                "name": "List sliders",
+                "name_ar": "الساليدرات",
+                "permission": "sc.content.sliders",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": [
+                    {
+                        "id": 4,
+                        "name": "الأكثر مبيعاً",
+                        "source": "algorithm",
+                        "algorithm": "best_selling"
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/content/sliders",
+            "permission": "sc.content.sliders",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Content\\Presentation\\Http\\Controllers\\ChannelContentController@storeSlider",
+            "catalog": {
+                "code": "EP-SC-103B",
+                "name": "Create slider",
+                "name_ar": "إنشاء ساليدر",
+                "permission": "sc.content.sliders",
+                "dual_approval": false,
+                "body": {
+                    "name": "الأكثر مبيعاً",
+                    "source": "algorithm",
+                    "source_ref": null,
+                    "algorithm": "best_selling",
+                    "placements": [
+                        "home"
+                    ],
+                    "items_count": 12,
+                    "show_all_button": true,
+                    "targeting": {
+                        "activity_type_ids": [
+                            3
+                        ]
+                    }
+                },
+                "query": [],
+                "response": {
+                    "id": 4
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/dashboard",
+            "permission": "sc.dashboard.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Reporting\\Presentation\\Http\\Controllers\\ChannelDashboardController@dashboard",
+            "catalog": {
+                "code": "EP-SC-120",
+                "name": "Channel dashboard",
+                "name_ar": "لوحة القناة",
+                "permission": "sc.dashboard.view",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": {
+                    "kpis": {
+                        "sales": 62000000,
+                        "orders_by_status": {
+                            "pending": 12,
+                            "confirmed": 40,
+                            "on_the_way": 9
+                        },
+                        "cash_collected": 18000000,
+                        "receivables": {
+                            "total": 42000000,
+                            "overdue": 6000000
+                        },
+                        "retailers": {
+                            "active": 420,
+                            "registered": 510,
+                            "new": 14
+                        },
+                        "avg_order_value": 38000,
+                        "avg_confirm_time": 11,
+                        "avg_delivery_time": 140,
+                        "fill_rate": 0.97
+                    },
+                    "alerts": [
+                        {
+                            "type": "waiting_orders",
+                            "count": 8,
+                            "action_url": "/orders?filter[waiting_over_minutes]=30"
+                        }
+                    ],
+                    "charts": {
+                        "daily_sales": [],
+                        "by_zone": [],
+                        "top_products": [],
+                        "top_retailers": [],
+                        "rep_performance": [],
+                        "heatmap": []
+                    }
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/finance/aging",
+            "permission": "sc.finance.aging",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Finance\\Presentation\\Http\\Controllers\\ChannelFinanceController@aging",
+            "catalog": {
+                "code": "EP-SC-085",
+                "name": "Receivables aging",
+                "name_ar": "أعمار الذمم",
+                "permission": "sc.finance.aging",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "group_by": "zone"
+                },
+                "response": {
+                    "group_by": "zone",
+                    "buckets": {
+                        "0_30": 12000000,
+                        "31_60": 4000000,
+                        "61_90": 1500000,
+                        "over_90": 200000
+                    }
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/inventory/adjust",
+            "permission": "sc.inventory.adjust",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Inventory\\Presentation\\Http\\Controllers\\ChannelInventoryController@adjust",
+            "catalog": {
+                "code": "EP-SC-051",
+                "name": "Adjust inventory",
+                "name_ar": "تسوية مخزون",
+                "permission": "sc.inventory.adjust",
+                "dual_approval": true,
+                "body": {
+                    "product_id": 880,
+                    "variant_id": null,
+                    "warehouse_id": 1,
+                    "qty_delta": -3,
+                    "reason": "تلف أثناء التخزين"
+                },
+                "query": [],
+                "response": {
+                    "movement_id": 7001,
+                    "available": 417
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/inventory/levels",
+            "permission": "sc.inventory.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Inventory\\Presentation\\Http\\Controllers\\ChannelInventoryController@levels",
+            "catalog": {
+                "code": "EP-SC-050",
+                "name": "Stock levels",
+                "name_ar": "أرصدة المخزون",
+                "permission": "sc.inventory.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "",
+                    "filter[warehouse_id]": "1",
+                    "filter[product_id]": "880"
+                },
+                "response": [
+                    {
+                        "product": {
+                            "id": 880,
+                            "name_ar": "زيت دوار الشمس 1 لتر"
+                        },
+                        "variant": null,
+                        "warehouse": {
+                            "id": 1,
+                            "name": "مستودع المزة"
+                        },
+                        "available": 420,
+                        "reserved": 30,
+                        "in_transit": 12,
+                        "damaged": 2
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/inventory/movements",
+            "permission": "sc.inventory.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Inventory\\Presentation\\Http\\Controllers\\ChannelInventoryController@movements",
+            "catalog": {
+                "code": "EP-SC-053",
+                "name": "Inventory movements",
+                "name_ar": "حركة المخزون",
+                "permission": "sc.inventory.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "",
+                    "filter[product_id]": "880",
+                    "filter[warehouse_id]": "1"
+                },
+                "response": [
+                    {
+                        "id": 7001,
+                        "at": "2026-03-01T09:00:00+03:00",
+                        "type": "adjust",
+                        "qty_before": 420,
+                        "qty_after": 417
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/inventory/reorder-points",
+            "permission": "sc.inventory.reorder",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Inventory\\Presentation\\Http\\Controllers\\ChannelInventoryController@reorderPoints",
+            "catalog": {
+                "code": "EP-SC-054",
+                "name": "Update reorder points",
+                "name_ar": "نقاط إعادة الطلب",
+                "permission": "sc.inventory.reorder",
+                "dual_approval": false,
+                "body": {
+                    "items": [
+                        {
+                            "product_id": 880,
+                            "warehouse_id": 1,
+                            "point": 50
+                        }
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "updated": 1
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/inventory/transfers",
+            "permission": "sc.inventory.transfer",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Inventory\\Presentation\\Http\\Controllers\\ChannelInventoryController@transfer",
+            "catalog": {
+                "code": "EP-SC-052",
+                "name": "Create transfer",
+                "name_ar": "تحويل مخزون",
+                "permission": "sc.inventory.transfer",
+                "dual_approval": false,
+                "body": {
+                    "from_warehouse_id": 1,
+                    "to_warehouse_id": 2,
+                    "lines": [
+                        {
+                            "product_id": 880,
+                            "variant_id": null,
+                            "qty": 20
+                        }
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "id": 55,
+                    "status": "sent"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/invoices",
+            "permission": "sc.finance.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Finance\\Presentation\\Http\\Controllers\\ChannelFinanceController@invoices",
+            "catalog": {
+                "code": "EP-SC-080",
+                "name": "List invoices",
+                "name_ar": "الفواتير",
+                "permission": "sc.finance.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "",
+                    "filter[status]": "open",
+                    "filter[retailer_id]": "481",
+                    "filter[rep_id]": "70",
+                    "filter[date]": "2026-03-01"
+                },
+                "response": [
+                    {
+                        "id": 501,
+                        "no": "INV-501",
+                        "total": 48000,
+                        "status": "open"
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/invoices/{id}/credit-note",
+            "permission": "sc.finance.credit_note",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Finance\\Presentation\\Http\\Controllers\\ChannelFinanceController@creditNote",
+            "catalog": {
+                "code": "EP-SC-081",
+                "name": "Issue credit note",
+                "name_ar": "إشعار دائن",
+                "permission": "sc.finance.credit_note",
+                "dual_approval": true,
+                "body": {
+                    "lines": [
+                        {
+                            "line_id": 1,
+                            "qty": 1,
+                            "amount": 12000
+                        }
+                    ],
+                    "reason": "فرق تسليم"
+                },
+                "query": [],
+                "response": {
+                    "credit_note_id": 88,
+                    "no": "CN-88"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/invoices/{id}/void",
+            "permission": "sc.finance.void_invoice",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Finance\\Presentation\\Http\\Controllers\\ChannelFinanceController@voidInvoice",
+            "catalog": {
+                "code": "EP-SC-082",
+                "name": "Void invoice",
+                "name_ar": "إلغاء فاتورة",
+                "permission": "sc.finance.void_invoice",
+                "dual_approval": true,
+                "body": {
+                    "reason": "إصدار مكرر بعد تعارض مزامنة"
+                },
+                "query": [],
+                "response": {
+                    "status": "void"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/loyalty/rewards",
+            "permission": "sc.loyalty.manage",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Loyalty\\Presentation\\Http\\Controllers\\ChannelLoyaltyController@rewards",
+            "catalog": {
+                "code": "EP-SC-111A",
+                "name": "List rewards",
+                "name_ar": "المكافآت",
+                "permission": "sc.loyalty.manage",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": ""
+                },
+                "response": [
+                    {
+                        "id": 3,
+                        "name": "كرتون زيت",
+                        "points_cost": 2000,
+                        "stock": 40
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/loyalty/rewards",
+            "permission": "sc.loyalty.manage",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Loyalty\\Presentation\\Http\\Controllers\\ChannelLoyaltyController@storeReward",
+            "catalog": {
+                "code": "EP-SC-111B",
+                "name": "Create reward",
+                "name_ar": "إنشاء مكافأة",
+                "permission": "sc.loyalty.manage",
+                "dual_approval": false,
+                "body": {
+                    "name": "كرتون زيت",
+                    "points_cost": 2000,
+                    "stock": 40,
+                    "expires_at": "2026-12-31"
+                },
+                "query": [],
+                "response": {
+                    "id": 3
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/loyalty/rules",
+            "permission": "sc.loyalty.manage",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Loyalty\\Presentation\\Http\\Controllers\\ChannelLoyaltyController@rules",
+            "catalog": {
+                "code": "EP-SC-110A",
+                "name": "Loyalty rules",
+                "name_ar": "قواعد النقاط",
+                "permission": "sc.loyalty.manage",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": {
+                    "retailer_rules": [
+                        {
+                            "event": "invoice_paid",
+                            "points_per_1000": 1
+                        }
+                    ],
+                    "rep_rules": [
+                        {
+                            "event": "delivery_completed",
+                            "points": 5
+                        }
+                    ],
+                    "tiers": [
+                        {
+                            "name": "silver",
+                            "threshold": 1000,
+                            "benefits": [
+                                "priority_support"
+                            ]
+                        }
+                    ]
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/loyalty/rules",
+            "permission": "sc.loyalty.manage",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Loyalty\\Presentation\\Http\\Controllers\\ChannelLoyaltyController@updateRules",
+            "catalog": {
+                "code": "EP-SC-110B",
+                "name": "Update loyalty rules",
+                "name_ar": "تحديث قواعد النقاط",
+                "permission": "sc.loyalty.manage",
+                "dual_approval": false,
+                "body": {
+                    "retailer_rules": [
+                        {
+                            "event": "invoice_paid",
+                            "points_per_1000": 1
+                        }
+                    ],
+                    "rep_rules": [
+                        {
+                            "event": "delivery_completed",
+                            "points": 5
+                        }
+                    ],
+                    "tiers": [
+                        {
+                            "name": "bronze",
+                            "threshold": 0,
+                            "benefits": []
+                        },
+                        {
+                            "name": "silver",
+                            "threshold": 1000,
+                            "benefits": [
+                                "priority_support"
+                            ]
+                        },
+                        {
+                            "name": "gold",
+                            "threshold": 5000,
+                            "benefits": [
+                                "extra_offer"
+                            ]
+                        }
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "updated": true
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/notifications",
+            "permission": "sc.notify.send",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Notification\\Presentation\\Http\\Controllers\\ChannelNotificationController@send",
+            "catalog": {
+                "code": "EP-SC-090",
+                "name": "Send notification",
+                "name_ar": "إرسال إشعار",
+                "permission": "sc.notify.send",
+                "dual_approval": false,
+                "body": {
+                    "title": "عرض جديد",
+                    "body": "اشترِ 10 واحصل على 1",
+                    "icon": "offer",
+                    "image": "media_id_9",
+                    "action": {
+                        "type": "offer",
+                        "target": 44
+                    },
+                    "targeting": {
+                        "type": "zone",
+                        "ids": [
+                            12
+                        ]
+                    },
+                    "channels": [
+                        "push",
+                        "in_app"
+                    ],
+                    "scheduled_at": null
+                },
+                "query": [],
+                "response": {
+                    "id": 800,
+                    "status": "queued"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/notifications/log",
+            "permission": "sc.notify.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Notification\\Presentation\\Http\\Controllers\\ChannelNotificationController@log",
+            "catalog": {
+                "code": "EP-SC-092",
+                "name": "Notification log",
+                "name_ar": "سجل الإشعارات",
+                "permission": "sc.notify.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": ""
+                },
+                "response": [
+                    {
+                        "at": "2026-03-01T09:12:00+03:00",
+                        "recipient": 481,
+                        "template": "order.confirmed",
+                        "status": "sent",
+                        "failure_reason": null
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/notifications/templates",
+            "permission": "sc.notify.templates",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Notification\\Presentation\\Http\\Controllers\\ChannelNotificationController@templates",
+            "catalog": {
+                "code": "EP-SC-091A",
+                "name": "List notification templates",
+                "name_ar": "قوالب الإشعارات",
+                "permission": "sc.notify.templates",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": [
+                    {
+                        "event_key": "order.confirmed",
+                        "title": "تم تأكيد طلبك",
+                        "enabled": true,
+                        "channels": [
+                            "push"
+                        ]
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/notifications/templates",
+            "permission": "sc.notify.templates",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Notification\\Presentation\\Http\\Controllers\\ChannelNotificationController@upsertTemplate",
+            "catalog": {
+                "code": "EP-SC-091B",
+                "name": "Upsert notification template",
+                "name_ar": "تحديث قالب إشعار",
+                "permission": "sc.notify.templates",
+                "dual_approval": false,
+                "body": {
+                    "event_key": "order.confirmed",
+                    "title": "تم تأكيد طلبك",
+                    "body": "الطلب {{sub_order_no}} قيد التجهيز",
+                    "enabled": true,
+                    "channels": [
+                        "push",
+                        "in_app"
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "event_key": "order.confirmed"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/offers",
+            "permission": "sc.offers.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Promotion\\Presentation\\Http\\Controllers\\OfferController@index",
+            "catalog": {
+                "code": "EP-SC-040A",
+                "name": "List offers",
+                "name_ar": "العروض",
+                "permission": "sc.offers.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "",
+                    "filter[status]": "active",
+                    "filter[type]": "buy_x_get_y"
+                },
+                "response": [
+                    {
+                        "id": 44,
+                        "name": "اشترِ 10 واحصل على 1",
+                        "type": "buy_x_get_y",
+                        "status": "active"
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/offers",
+            "permission": "sc.offers.create",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Promotion\\Presentation\\Http\\Controllers\\OfferController@store",
+            "catalog": {
+                "code": "EP-SC-040B",
+                "name": "Create offer",
+                "name_ar": "إنشاء عرض",
+                "permission": "sc.offers.create",
+                "dual_approval": false,
+                "body": {
+                    "name": "اشترِ 10 واحصل على 1",
+                    "type": "buy_x_get_y",
+                    "media": [
+                        "media_id_9"
+                    ],
+                    "description": "على زيت دوار الشمس",
+                    "components": [
+                        {
+                            "product_id": 880,
+                            "qty": 10
+                        }
+                    ],
+                    "rules": {
+                        "buy_qty": 10,
+                        "get_qty": 1
+                    },
+                    "rewards": {
+                        "product_id": 880,
+                        "qty": 1
+                    },
+                    "targeting": {
+                        "scope": "zones",
+                        "activity_type_ids": [
+                            3
+                        ],
+                        "zone_ids": [
+                            12
+                        ],
+                        "group_ids": [],
+                        "retailer_ids": []
+                    },
+                    "constraints": {
+                        "starts_at": "2026-03-01T00:00:00+03:00",
+                        "ends_at": "2026-03-31T23:59:59+03:00",
+                        "total_qty": 500,
+                        "per_retailer_max": 3,
+                        "per_order_max": 1,
+                        "min_invoice_value": 0,
+                        "min_items": 1
+                    },
+                    "stackable": false,
+                    "priority": 10,
+                    "status": "active"
+                },
+                "query": [],
+                "response": {
+                    "id": 44
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/offers/{id}/performance",
+            "permission": "sc.offers.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Promotion\\Presentation\\Http\\Controllers\\OfferController@performance",
+            "catalog": {
+                "code": "EP-SC-042",
+                "name": "Offer performance",
+                "name_ar": "أداء العرض",
+                "permission": "sc.offers.view",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": {
+                    "applied_count": 180,
+                    "linked_sales": 21000000,
+                    "discount_given": 1800000,
+                    "net_margin": 4200000,
+                    "retailers_count": 96,
+                    "by_zone": [
+                        {
+                            "zone_id": 12,
+                            "applied_count": 80
+                        }
+                    ],
+                    "conversion_rate": 0.22
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/channel/offers/{id}/stop",
+            "permission": "sc.offers.stop",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Promotion\\Presentation\\Http\\Controllers\\OfferController@stop",
+            "catalog": {
+                "code": "EP-SC-041",
+                "name": "Stop offer",
+                "name_ar": "إيقاف عرض",
+                "permission": "sc.offers.stop",
+                "dual_approval": false,
+                "body": {
+                    "reason": "نفاد الكمية المخصصة"
+                },
+                "query": [],
+                "response": {
+                    "status": "stopped"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/payments",
+            "permission": "sc.finance.payment",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Finance\\Presentation\\Http\\Controllers\\ChannelFinanceController@payment",
+            "catalog": {
+                "code": "EP-SC-083",
+                "name": "Record office payment",
+                "name_ar": "تسجيل دفعة مكتبية",
+                "permission": "sc.finance.payment",
+                "dual_approval": false,
+                "body": {
+                    "retailer_id": 481,
+                    "amount": 20000,
+                    "method": "cash",
+                    "invoice_id": 501
+                },
+                "query": [],
+                "response": {
+                    "payment_id": 301,
+                    "retailer_receivable": 28000
+                },
+                "errors": {
+                    "403": "sod_violation"
+                }
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/price-lists",
+            "permission": "sc.pricing.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Pricing\\Presentation\\Http\\Controllers\\PricingController@lists",
+            "catalog": {
+                "code": "EP-SC-030A",
+                "name": "List price lists",
+                "name_ar": "قوائم الأسعار",
+                "permission": "sc.pricing.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "",
+                    "filter[type]": "zone"
+                },
+                "response": [
+                    {
+                        "id": 3,
+                        "name": "المزة",
+                        "type": "zone",
+                        "status": "active"
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/price-lists",
+            "permission": "sc.pricing.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Pricing\\Presentation\\Http\\Controllers\\PricingController@storeList",
+            "catalog": {
+                "code": "EP-SC-030B",
+                "name": "Create price list",
+                "name_ar": "إنشاء قائمة أسعار",
+                "permission": "sc.pricing.update",
+                "dual_approval": false,
+                "body": {
+                    "name": "تجار المزة",
+                    "type": "zone",
+                    "zone_ids": [
+                        12
+                    ],
+                    "group_id": null,
+                    "retailer_id": null,
+                    "adjustment": {
+                        "mode": "percent",
+                        "value": -5
+                    },
+                    "effective_from": "2026-03-01T00:00:00+03:00",
+                    "effective_to": null,
+                    "reason": "تسعير منطقة"
+                },
+                "query": [],
+                "response": {
+                    "id": 3,
+                    "status": "active"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/price-lists/{id}/schedule",
+            "permission": "sc.pricing.schedule",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Pricing\\Presentation\\Http\\Controllers\\PricingController@schedule",
+            "catalog": {
+                "code": "EP-SC-032",
+                "name": "Schedule price list",
+                "name_ar": "جدولة قائمة أسعار",
+                "permission": "sc.pricing.schedule",
+                "dual_approval": false,
+                "body": {
+                    "effective_from": "2026-03-15T00:00:00+03:00",
+                    "changes": [
+                        {
+                            "product_id": 880,
+                            "base_price": 11800
+                        }
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "scheduled_job_id": "job_price_15"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/pricing/bulk-update",
+            "permission": "sc.pricing.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Pricing\\Presentation\\Http\\Controllers\\PricingController@bulk",
+            "catalog": {
+                "code": "EP-SC-033",
+                "name": "Bulk price update",
+                "name_ar": "تحديث أسعار جماعي",
+                "permission": "sc.pricing.update",
+                "dual_approval": false,
+                "body": {
+                    "product_ids": [
+                        880,
+                        881
+                    ],
+                    "mode": "percent",
+                    "value": 3,
+                    "reason": "ارتفاع تكلفة"
+                },
+                "query": [],
+                "response": {
+                    "affected_count": 2
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/pricing/change-log",
+            "permission": "sc.pricing.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Pricing\\Presentation\\Http\\Controllers\\PricingController@changeLog",
+            "catalog": {
+                "code": "EP-SC-034",
+                "name": "Pricing change log",
+                "name_ar": "سجل تغيير الأسعار",
+                "permission": "sc.pricing.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "",
+                    "filter[product_id]": "880",
+                    "filter[user_id]": "10",
+                    "filter[date]": "2026-03-01"
+                },
+                "response": [
+                    {
+                        "at": "2026-03-01T09:00:00+03:00",
+                        "user": 10,
+                        "product": 880,
+                        "before": 12000,
+                        "after": 11800,
+                        "reason": "تعديل"
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/products",
+            "permission": "sc.catalog.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@products",
+            "catalog": {
+                "code": "EP-SC-014",
+                "name": "List products",
+                "name_ar": "المنتجات",
+                "permission": "sc.catalog.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "زيت",
+                    "filter[brand_id]": "12",
+                    "filter[category_id]": "340",
+                    "filter[status]": "active",
+                    "filter[zone_id]": "12"
+                },
+                "response": [
+                    {
+                        "id": 880,
+                        "sku": "OIL-SUN-1L",
+                        "name_ar": "زيت دوار الشمس 1 لتر",
+                        "status": "active"
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/products",
+            "permission": "sc.catalog.create",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@storeProduct",
+            "catalog": {
+                "code": "EP-SC-015",
+                "name": "Create product",
+                "name_ar": "إنشاء منتج",
+                "permission": "sc.catalog.create",
+                "dual_approval": false,
+                "body": {
+                    "name_ar": "زيت دوار الشمس 1 لتر",
+                    "name_en": "Sunflower Oil 1L",
+                    "sku": "OIL-SUN-1L",
+                    "brand_id": 12,
+                    "category_id": 340,
+                    "model_no": "SUN-1000",
+                    "barcode": "6291000000000",
+                    "status": "active",
+                    "short_description": "زيت نباتي للطبخ",
+                    "long_description": "<p>زيت دوار الشمس</p>",
+                    "specs": [
+                        {
+                            "key": "الحجم",
+                            "value": "1 لتر"
+                        }
+                    ],
+                    "media": {
+                        "images": [
+                            "media_id_1"
+                        ],
+                        "primary": "media_id_1",
+                        "video": null
+                    },
+                    "sale_unit_id": 3,
+                    "unit_factors": [
+                        {
+                            "from_unit_id": 3,
+                            "to_unit_id": 5,
+                            "factor": 12
+                        }
+                    ],
+                    "min_order_qty": 1,
+                    "order_multiple": 1,
+                    "weight_gram": 950,
+                    "pricing": {
+                        "type": "tiered",
+                        "base_price": 12000,
+                        "currency_id": 1,
+                        "tiers": [
+                            {
+                                "from": 1,
+                                "to": 4,
+                                "price": 12000
+                            },
+                            {
+                                "from": 5,
+                                "to": 9,
+                                "price": 11500
+                            },
+                            {
+                                "from": 10,
+                                "to": null,
+                                "price": 11000
+                            }
+                        ]
+                    },
+                    "inventory": {
+                        "tracked": true,
+                        "reorder_point": 50,
+                        "allow_backorder": false
+                    },
+                    "availability": {
+                        "zone_ids": [
+                            12,
+                            13
+                        ],
+                        "activity_type_ids": [
+                            3,
+                            4
+                        ],
+                        "retailer_group_ids": [],
+                        "lead_time_days": 2
+                    },
+                    "marketing": {
+                        "tags": [
+                            "new"
+                        ],
+                        "sliders": [
+                            "best_selling"
+                        ],
+                        "priority": 10
+                    }
+                },
+                "query": [],
+                "response": {
+                    "id": 880,
+                    "sku": "OIL-SUN-1L"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/products/bulk",
+            "permission": "sc.catalog.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@bulk",
+            "catalog": {
+                "code": "EP-SC-018",
+                "name": "Bulk product action",
+                "name_ar": "إجراء جماعي على المنتجات",
+                "permission": "sc.catalog.update",
+                "dual_approval": false,
+                "body": {
+                    "product_ids": [
+                        880,
+                        881
+                    ],
+                    "action": "activate",
+                    "payload": []
+                },
+                "query": [],
+                "response": {
+                    "affected_count": 2
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/products/{id}",
+            "permission": "sc.catalog.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@updateProduct",
+            "catalog": {
+                "code": "EP-SC-016",
+                "name": "Update product",
+                "name_ar": "تحديث منتج",
+                "permission": "sc.catalog.update",
+                "dual_approval": false,
+                "body": {
+                    "name_ar": "زيت دوار الشمس 1 لتر",
+                    "name_en": "Sunflower Oil 1L",
+                    "sku": "OIL-SUN-1L",
+                    "brand_id": 12,
+                    "category_id": 340,
+                    "model_no": "SUN-1000",
+                    "barcode": "6291000000000",
+                    "status": "active",
+                    "short_description": "زيت نباتي للطبخ",
+                    "long_description": "<p>زيت دوار الشمس</p>",
+                    "specs": [
+                        {
+                            "key": "الحجم",
+                            "value": "1 لتر"
+                        }
+                    ],
+                    "media": {
+                        "images": [
+                            "media_id_1"
+                        ],
+                        "primary": "media_id_1",
+                        "video": null
+                    },
+                    "sale_unit_id": 3,
+                    "unit_factors": [
+                        {
+                            "from_unit_id": 3,
+                            "to_unit_id": 5,
+                            "factor": 12
+                        }
+                    ],
+                    "min_order_qty": 1,
+                    "order_multiple": 1,
+                    "weight_gram": 950,
+                    "pricing": {
+                        "type": "tiered",
+                        "base_price": 12000,
+                        "currency_id": 1,
+                        "tiers": [
+                            {
+                                "from": 1,
+                                "to": 4,
+                                "price": 12000
+                            },
+                            {
+                                "from": 5,
+                                "to": 9,
+                                "price": 11500
+                            },
+                            {
+                                "from": 10,
+                                "to": null,
+                                "price": 11000
+                            }
+                        ]
+                    },
+                    "inventory": {
+                        "tracked": true,
+                        "reorder_point": 50,
+                        "allow_backorder": false
+                    },
+                    "availability": {
+                        "zone_ids": [
+                            12,
+                            13
+                        ],
+                        "activity_type_ids": [
+                            3,
+                            4
+                        ],
+                        "retailer_group_ids": [],
+                        "lead_time_days": 2
+                    },
+                    "marketing": {
+                        "tags": [
+                            "new"
+                        ],
+                        "sliders": [
+                            "best_selling"
+                        ],
+                        "priority": 10
+                    }
+                },
+                "query": [],
+                "response": {
+                    "id": 880
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/products/{id}/pricing",
+            "permission": "sc.pricing.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Pricing\\Presentation\\Http\\Controllers\\PricingController@replaceProduct",
+            "catalog": {
+                "code": "EP-SC-031",
+                "name": "Update product pricing",
+                "name_ar": "تسعير منتج",
+                "permission": "sc.pricing.update",
+                "dual_approval": false,
+                "body": {
+                    "type": "tiered",
+                    "base_price": 12000,
+                    "tiers": [
+                        {
+                            "from": 1,
+                            "to": 4,
+                            "price": 12000
+                        },
+                        {
+                            "from": 5,
+                            "to": 9,
+                            "price": 11500
+                        },
+                        {
+                            "from": 10,
+                            "to": null,
+                            "price": 11000
+                        }
+                    ],
+                    "reason": "تعديل شرائح الجملة"
+                },
+                "query": [],
+                "response": {
+                    "price_change_log_id": 901
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/products/{id}/variants/generate",
+            "permission": "sc.catalog.variants",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Catalog\\Presentation\\Http\\Controllers\\ChannelCatalogController@generateVariants",
+            "catalog": {
+                "code": "EP-SC-017",
+                "name": "Generate variants",
+                "name_ar": "توليد التباينات",
+                "permission": "sc.catalog.variants",
+                "dual_approval": false,
+                "body": {
+                    "axes": [
+                        {
+                            "name": "الحجم",
+                            "values": [
+                                "1L",
+                                "2L"
+                            ]
+                        }
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "variants": [
+                        {
+                            "id": 1,
+                            "sku": "OIL-SUN-1L",
+                            "combination": {
+                                "الحجم": "1L"
+                            },
+                            "price": 12000,
+                            "stock": 80,
+                            "barcode": "6291000000000",
+                            "image": null
+                        }
+                    ]
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/reports/margins",
+            "permission": "sc.reports.margins",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Reporting\\Presentation\\Http\\Controllers\\ChannelDashboardController@margins",
+            "catalog": {
+                "code": "EP-SC-123",
+                "name": "Margin report",
+                "name_ar": "تقرير الهوامش",
+                "permission": "sc.reports.margins",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "date_from": "2026-02-01",
+                    "date_to": "2026-02-28"
+                },
+                "response": {
+                    "by_product": [],
+                    "by_zone": []
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/reports/{type}",
+            "permission": "sc.reports.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Reporting\\Presentation\\Http\\Controllers\\ChannelDashboardController@report",
+            "catalog": {
+                "code": "EP-SC-121",
+                "name": "Channel report",
+                "name_ar": "تقرير القناة",
+                "permission": "sc.reports.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "date_from": "2026-02-01",
+                    "date_to": "2026-02-28",
+                    "filter[zone_id]": "12"
+                },
+                "response": {
+                    "type": "sales",
+                    "rows": [],
+                    "totals": []
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/reports/{type}/export",
+            "permission": "sc.reports.export",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Reporting\\Presentation\\Http\\Controllers\\ChannelDashboardController@export",
+            "catalog": {
+                "code": "EP-SC-122",
+                "name": "Export report",
+                "name_ar": "تصدير تقرير",
+                "permission": "sc.reports.export",
+                "dual_approval": false,
+                "body": {
+                    "format": "xlsx",
+                    "filters": {
+                        "zone_id": 12,
+                        "date_from": "2026-02-01",
+                        "date_to": "2026-02-28"
+                    }
+                },
+                "query": [],
+                "response": {
+                    "job_id": "job_rep_exp_1"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/reps/{id}/discount-cap",
+            "permission": "sc.reps.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Pricing\\Presentation\\Http\\Controllers\\PricingController@discountCap",
+            "catalog": {
+                "code": "EP-SC-035",
+                "name": "Rep discount cap",
+                "name_ar": "سقف خصم المندوب",
+                "permission": "sc.reps.update",
+                "dual_approval": false,
+                "body": {
+                    "max_discount_percent": 5,
+                    "max_cash_hold": 5000000
+                },
+                "query": [],
+                "response": {
+                    "rep": {
+                        "id": 70,
+                        "max_discount_percent": 5,
+                        "max_cash_hold": 5000000
+                    }
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/reps/{id}/settle",
+            "permission": "sc.reps.settle",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Finance\\Presentation\\Http\\Controllers\\ChannelFinanceController@settle",
+            "catalog": {
+                "code": "EP-SC-084",
+                "name": "Settle rep wallet",
+                "name_ar": "تسوية عهدة المندوب",
+                "permission": "sc.reps.settle",
+                "dual_approval": false,
+                "body": {
+                    "amount": 1500000,
+                    "operation_no": "OP-7781"
+                },
+                "query": [],
+                "response": {
+                    "receipt_pdf_url": "https://files.example/settle-70.pdf",
+                    "new_balance": 250000
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/retailers/{id}/credit",
+            "permission": "sc.retailers.credit",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Finance\\Presentation\\Http\\Controllers\\ChannelFinanceController@credit",
+            "catalog": {
+                "code": "EP-SC-086",
+                "name": "Retailer credit limit",
+                "name_ar": "سقف ائتمان التاجر",
+                "permission": "sc.retailers.credit",
+                "dual_approval": false,
+                "body": {
+                    "credit_limit": 500000,
+                    "grace_days": 7,
+                    "on_exceed": "block"
+                },
+                "query": [],
+                "response": {
+                    "retailer_id": 481,
+                    "credit_limit": 500000,
+                    "on_exceed": "block"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/return-requests",
+            "permission": "sc.returns.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Returns\\Presentation\\Http\\Controllers\\ReturnsController@channelIndex",
+            "catalog": {
+                "code": "EP-SC-070",
+                "name": "List return requests",
+                "name_ar": "طلبات الإرجاع",
+                "permission": "sc.returns.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "-created_at",
+                    "search": "",
+                    "filter[type]": "return",
+                    "filter[status]": "pending",
+                    "filter[rep_id]": "70",
+                    "filter[zone_id]": "12"
+                },
+                "response": [
+                    {
+                        "id": 200,
+                        "request_no": "RR-200",
+                        "type": "return",
+                        "status": "pending"
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/return-requests/{id}/decide",
+            "permission": "sc.returns.decide",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Returns\\Presentation\\Http\\Controllers\\ReturnsController@decide",
+            "catalog": {
+                "code": "EP-SC-071",
+                "name": "Decide return request",
+                "name_ar": "قرار الإرجاع",
+                "permission": "sc.returns.decide",
+                "dual_approval": false,
+                "body": {
+                    "decision": "approve",
+                    "reason": "تلف ظاهر عند التسليم"
+                },
+                "query": [],
+                "response": {
+                    "status": "approved"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/sub-orders",
+            "permission": "sc.orders.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@index",
+            "catalog": {
+                "code": "EP-SC-060",
+                "name": "List sub-orders",
+                "name_ar": "الطلبات الفرعية",
+                "permission": "sc.orders.view",
+                "dual_approval": false,
+                "body": null,
+                "query": {
+                    "page": "1",
+                    "per_page": "25",
+                    "sort": "created_at",
+                    "search": "",
+                    "filter[status]": "pending",
+                    "filter[zone_id]": "12",
+                    "filter[retailer_id]": "481",
+                    "filter[rep_id]": "70",
+                    "filter[source]": "retailer_app",
+                    "filter[waiting_over_minutes]": "30"
+                },
+                "response": [
+                    {
+                        "id": 9001,
+                        "sub_order_no": "SO-9001",
+                        "status": "pending",
+                        "zone_id": 12,
+                        "total": 48000
+                    }
+                ],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/sub-orders/assign",
+            "permission": "sc.orders.assign",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@assign",
+            "catalog": {
+                "code": "EP-SC-066",
+                "name": "Assign to rep",
+                "name_ar": "إسناد لمندوب",
+                "permission": "sc.orders.assign",
+                "dual_approval": false,
+                "body": {
+                    "sub_order_ids": [
+                        9001
+                    ],
+                    "rep_id": 70,
+                    "mode": "manual"
+                },
+                "query": [],
+                "response": {
+                    "assigned": [
+                        9001
+                    ]
+                },
+                "errors": {
+                    "422": "validation_failed"
+                }
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/sub-orders/bulk-confirm",
+            "permission": "sc.orders.confirm",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@bulkConfirm",
+            "catalog": {
+                "code": "EP-SC-063",
+                "name": "Bulk confirm",
+                "name_ar": "تأكيد جماعي",
+                "permission": "sc.orders.confirm",
+                "dual_approval": false,
+                "body": {
+                    "ids": [
+                        9001,
+                        9002,
+                        9003
+                    ]
+                },
+                "query": [],
+                "response": {
+                    "confirmed": [
+                        9001,
+                        9002
+                    ],
+                    "failed": [
+                        {
+                            "id": 9003,
+                            "error": "credit_limit_exceeded"
+                        }
+                    ]
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/sub-orders/{id}",
+            "permission": "sc.orders.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@show",
+            "catalog": {
+                "code": "EP-SC-061",
+                "name": "Sub-order detail",
+                "name_ar": "تفاصيل طلب فرعي",
+                "permission": "sc.orders.view",
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": {
+                    "header": {
+                        "sub_order_no": "SO-9001",
+                        "status": "pending",
+                        "shop": "بقالية النور"
+                    },
+                    "lines": [
+                        {
+                            "id": 1,
+                            "product_id": 880,
+                            "qty": 4,
+                            "unit_price": 12000
+                        }
+                    ],
+                    "financials": {
+                        "subtotal": 48000,
+                        "discount": 0,
+                        "total": 48000
+                    },
+                    "note": null,
+                    "timeline": [
+                        {
+                            "stage": "pending",
+                            "at": "2026-03-01T09:10:00+03:00"
+                        }
+                    ],
+                    "allowed_actions": [
+                        "confirm",
+                        "reject",
+                        "edit_lines"
+                    ]
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/sub-orders/{id}/cancel",
+            "permission": "sc.orders.cancel",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@cancel",
+            "catalog": {
+                "code": "EP-SC-069",
+                "name": "Cancel sub-order",
+                "name_ar": "إلغاء طلب",
+                "permission": "sc.orders.cancel",
+                "dual_approval": false,
+                "body": {
+                    "reason": "طلب التاجر عبر الهاتف"
+                },
+                "query": [],
+                "response": {
+                    "status": "cancelled"
+                },
+                "errors": {
+                    "409": "illegal_transition"
+                }
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/sub-orders/{id}/confirm",
+            "permission": "sc.orders.confirm",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@confirm",
+            "catalog": {
+                "code": "EP-SC-062",
+                "name": "Confirm sub-order",
+                "name_ar": "تأكيد طلب",
+                "permission": "sc.orders.confirm",
+                "dual_approval": false,
+                "body": [],
+                "query": [],
+                "response": {
+                    "status": "confirmed",
+                    "picking_list_id": 301
+                },
+                "errors": {
+                    "409": "illegal_transition",
+                    "423": "credit_limit_exceeded"
+                }
+            }
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/channel/sub-orders/{id}/lines",
+            "permission": "sc.orders.edit_lines",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@editLines",
+            "catalog": {
+                "code": "EP-SC-065",
+                "name": "Edit sub-order lines",
+                "name_ar": "تعديل بنود الطلب",
+                "permission": "sc.orders.edit_lines",
+                "dual_approval": false,
+                "body": {
+                    "changes": [
+                        {
+                            "line_id": 1,
+                            "qty": 3,
+                            "removed": false
+                        }
+                    ],
+                    "reason": "نقص صنف"
+                },
+                "query": [],
+                "response": {
+                    "status": "confirmed",
+                    "total": 36000
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/sub-orders/{id}/reassign",
+            "permission": "sc.orders.reassign",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@reassign",
+            "catalog": {
+                "code": "EP-SC-067",
+                "name": "Reassign sub-order",
+                "name_ar": "إعادة إسناد",
+                "permission": "sc.orders.reassign",
+                "dual_approval": false,
+                "body": {
+                    "rep_id": 71,
+                    "reason": "المندوب خارج الخدمة"
+                },
+                "query": [],
+                "response": {
+                    "status": "assigned"
+                },
+                "errors": {
+                    "409": "illegal_transition"
+                }
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/sub-orders/{id}/reject",
+            "permission": "sc.orders.reject",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@reject",
+            "catalog": {
+                "code": "EP-SC-064",
+                "name": "Reject sub-order",
+                "name_ar": "رفض طلب",
+                "permission": "sc.orders.reject",
+                "dual_approval": false,
+                "body": {
+                    "reason": "خارج التغطية اليوم"
+                },
+                "query": [],
+                "response": {
+                    "status": "rejected"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/sub-orders/{id}/schedule",
+            "permission": "sc.orders.schedule",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Ordering\\Presentation\\Http\\Controllers\\ChannelSubOrderController@schedule",
+            "catalog": {
+                "code": "EP-SC-068",
+                "name": "Schedule sub-order",
+                "name_ar": "جدولة طلب",
+                "permission": "sc.orders.schedule",
+                "dual_approval": false,
+                "body": {
+                    "scheduled_at": "2026-03-02T10:00:00+03:00",
+                    "reason": "طلب التاجر"
+                },
+                "query": [],
+                "response": {
+                    "status": "postponed",
+                    "scheduled_at": "2026-03-02T10:00:00+03:00"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/zones",
+            "permission": "sc.zones.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Reference\\Presentation\\Http\\Controllers\\ChannelZoneController@index",
+            "catalog": null,
+            "note": "Live route with no catalog row (stable*). Trust the controller, not the catalog."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/zones",
+            "permission": "sc.zones.manage",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Reference\\Presentation\\Http\\Controllers\\ChannelZoneController@store",
+            "catalog": null,
+            "note": "Live route with no catalog row (stable*). Trust the controller, not the catalog."
+        },
+        {
+            "live": true,
+            "method": "DELETE",
+            "path": "/api/v1/channel/zones/{channelZone}",
+            "permission": "sc.zones.manage",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Reference\\Presentation\\Http\\Controllers\\ChannelZoneController@destroy",
+            "catalog": null,
+            "note": "Live route with no catalog row (stable*). Trust the controller, not the catalog."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/currencies",
+            "permission": null,
+            "guard": "any-authenticated",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Reference\\Presentation\\Http\\Controllers\\CurrencyController@index",
+            "catalog": null,
+            "note": "Live route with no catalog row (stable*). Trust the controller, not the catalog."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/governorates",
+            "permission": null,
+            "guard": "any-authenticated",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Reference\\Presentation\\Http\\Controllers\\GovernorateController@index",
+            "catalog": null,
+            "note": "Live route with no catalog row (stable*). Trust the controller, not the catalog."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/health",
+            "permission": null,
+            "guard": null,
+            "auth": false,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Core\\Http\\Controllers\\HealthController",
+            "catalog": {
+                "code": "EP-CORE-001",
+                "name": "Health check",
+                "name_ar": "فحص الصحة",
+                "permission": null,
+                "dual_approval": false,
+                "body": null,
+                "query": [],
+                "response": {
+                    "status": "ok"
+                },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/zones",
+            "permission": null,
+            "guard": "any-authenticated",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Reference\\Presentation\\Http\\Controllers\\ZoneController@index",
+            "catalog": null,
+            "note": "Live route with no catalog row (stable*). Trust the controller, not the catalog."
+        }
+    ]
+}
