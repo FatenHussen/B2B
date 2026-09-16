@@ -49,7 +49,10 @@ final class SubmitRepCartSection
         $retailerZoneId = (int) $this->retailers->zoneId($retailerId);
 
         $cart = $this->carts->activeFor($user);
+        // acrossChannels(), per rule 10 (BE-C12): the cart is the rep's own, `cart_id` is
+        // the isolation and `retailer_id` picks the customer's section within it.
         $section = CartSection::query()
+            ->acrossChannels()
             ->where('cart_id', $cart->id)
             ->where('retailer_id', $retailerId)
             ->first();

@@ -198,19 +198,18 @@ it('never tracks another retailer\'s order', function () {
 // ---------------------------------------------------------------- retailer: reorder
 
 it('reorders a retailer\'s own order with a real app token', function () {
+    // Was a todo until BE-C12: it answered 500 channel_scope_required, because after the
+    // acrossChannels() on SubOrder the next line reached CartSection — strict-scoped, no
+    // tenant on /app/* — and threw. The whole cart surface was broken the same way. The
+    // scope is now lifted on Cart::sections() and at the direct CartSection sites, with
+    // the owner (the cart) as the isolation; AppCartSurfaceTest covers the rest of it.
     $me = retailer('متجري');
     $id = subOrder($me['retailer_id'], 'delivered');
 
     $this->postJson("/api/v1/app/retailer/orders/{$id}/reorder", [], asToken($me['token']))
         ->assertOk()
         ->assertJsonStructure(['data' => ['cart']]);
-})->group('ordering', 'isolation')->todo(
-    note: 'Returns 500 channel_scope_required today. The acrossChannels() on SubOrder is '
-        .'reached, then CartSection — strict-scoped since cb5ac22 — throws on the next line. '
-        .'The whole /app/* cart surface (retailer cart, rep cart, reorder) is broken the same '
-        .'way; deciding how CartSection behaves with no tenant is one ticket, not a side '
-        .'effect of this one.',
-);
+})->group('ordering', 'isolation');
 
 it('never reorders another retailer\'s order', function () {
     // The owner check runs before the cart is touched, so this half is provable today even

@@ -41,7 +41,8 @@ final class ReorderSubOrder
             if ($channelId === null) {
                 continue;
             }
-            $section = CartSection::query()->firstOrCreate(
+            // acrossChannels(), per rule 10 (BE-C12): the cart is the owner's — `cart_id`.
+            $section = CartSection::query()->acrossChannels()->firstOrCreate(
                 ['cart_id' => $cart->id, 'channel_id' => $channelId, 'retailer_id' => null],
                 ['opaque_ref' => OpaqueChannelRef::make($channelId)],
             );

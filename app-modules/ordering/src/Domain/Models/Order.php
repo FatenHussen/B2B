@@ -30,13 +30,23 @@ class Order extends Model
         ];
     }
 
+    /**
+     * The channel scope is lifted on both relations, with the reason here (rule 10,
+     * BE-C12). An order belongs to one retailer and is split into one section and one
+     * sub-order per channel; a section or sub-order cannot belong to another retailer
+     * than its order. On `/app/retailer/*` there is no tenant and the order is reached
+     * through its owner. The one channel-side reader, `ShowChannelSubOrder`, filters the
+     * sections it loads by `channel_id` explicitly, so lifting the scope here widens
+     * nothing there.
+     */
     public function sections(): HasMany
     {
-        return $this->hasMany(OrderSection::class);
+        return $this->hasMany(OrderSection::class)->withoutGlobalScope('channel');
     }
 
+    /** See `sections()`. */
     public function subOrders(): HasMany
     {
-        return $this->hasMany(SubOrder::class);
+        return $this->hasMany(SubOrder::class)->withoutGlobalScope('channel');
     }
 }

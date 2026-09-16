@@ -31,8 +31,13 @@ class CartLine extends Model
         ];
     }
 
+    /**
+     * Lifted for the same reason as `Cart::sections()` (BE-C12): a line is reached
+     * through its cart's owner, and `whereHas('section', cart_id = …)` is the owner
+     * check itself. The section is the line's own section or nothing.
+     */
     public function section(): BelongsTo
     {
-        return $this->belongsTo(CartSection::class, 'section_id');
+        return $this->belongsTo(CartSection::class, 'section_id')->withoutGlobalScope('channel');
     }
 }

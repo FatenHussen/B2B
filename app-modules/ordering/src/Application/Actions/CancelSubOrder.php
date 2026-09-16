@@ -36,7 +36,10 @@ final class CancelSubOrder
         // the query, before anything is read (BE-C12): a foreign order is simply not found.
         $query = SubOrder::query();
         if ($retailer) {
-            $query->where('retailer_id', $this->shopping->for($actor)['retailer_id']);
+            // acrossChannels(), per rule 10 (BE-C12), only on the retailer path and only
+            // beside the owner filter that landed first (1bc4878). The channel path keeps
+            // its tenant scope untouched.
+            $query->acrossChannels()->where('retailer_id', $this->shopping->for($actor)['retailer_id']);
         }
         $sub = $query->find($id);
         if ($sub === null) {

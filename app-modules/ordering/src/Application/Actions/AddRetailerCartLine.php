@@ -39,7 +39,9 @@ final class AddRetailerCartLine
         }
 
         $cart = $this->carts->activeFor($user);
-        $section = CartSection::query()->firstOrCreate(
+        // acrossChannels(), per rule 10 (BE-C12): `/app/retailer/*` sets no tenant, and the
+        // cart is the owner's — `cart_id` is the isolation, `channel_id` the split key.
+        $section = CartSection::query()->acrossChannels()->firstOrCreate(
             ['cart_id' => $cart->id, 'channel_id' => $channelId, 'retailer_id' => null],
             ['opaque_ref' => OpaqueChannelRef::make($channelId)],
         );

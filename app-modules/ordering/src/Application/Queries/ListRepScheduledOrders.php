@@ -17,7 +17,10 @@ final class ListRepScheduledOrders
      */
     public function __invoke(object $user, ?string $date): array
     {
+        // acrossChannels(), per rule 10 (BE-C12): `/app/rep/*` sets no tenant; `rep_id`
+        // below is the isolation — a rep sees their own deliveries and no one else's.
         $query = SubOrder::query()
+            ->acrossChannels()
             ->where('rep_id', $user->getAuthIdentifier())
             ->where('status', SubOrderStatus::Postponed);
 

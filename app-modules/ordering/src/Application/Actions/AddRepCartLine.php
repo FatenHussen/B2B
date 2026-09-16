@@ -44,7 +44,9 @@ final class AddRepCartLine
         }
 
         $cart = $this->carts->activeFor($user);
-        $section = CartSection::query()->firstOrCreate(
+        // acrossChannels(), per rule 10 (BE-C12): `/app/rep/*` sets no tenant, and the cart
+        // is the rep's own — `cart_id` is the isolation.
+        $section = CartSection::query()->acrossChannels()->firstOrCreate(
             ['cart_id' => $cart->id, 'channel_id' => $channelId, 'retailer_id' => $retailerId],
             ['opaque_ref' => OpaqueChannelRef::make($channelId)],
         );

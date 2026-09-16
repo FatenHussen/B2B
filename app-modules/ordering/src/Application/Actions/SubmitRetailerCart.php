@@ -72,7 +72,10 @@ final class SubmitRetailerCart
 
         if (isset($data['sections'])) {
             foreach ($data['sections'] as $patch) {
+                // acrossChannels(), per rule 10 (BE-C12): the cart is the owner's, `cart_id`
+                // is the isolation.
                 CartSection::query()
+                    ->acrossChannels()
                     ->where('cart_id', $cart->id)
                     ->where('opaque_ref', $patch['ref'])
                     ->update([

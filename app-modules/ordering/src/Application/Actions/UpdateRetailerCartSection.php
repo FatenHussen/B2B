@@ -24,7 +24,9 @@ final class UpdateRetailerCartSection
     {
         $ctx = $this->shopping->for($user);
         $cart = $this->carts->activeFor($user);
-        $section = CartSection::query()->where('cart_id', $cart->id)->where('opaque_ref', $ref)->first();
+        // acrossChannels(), per rule 10 (BE-C12): no tenant on `/app/retailer/*`; `cart_id`
+        // is the owner's cart and therefore the isolation.
+        $section = CartSection::query()->acrossChannels()->where('cart_id', $cart->id)->where('opaque_ref', $ref)->first();
         if ($section === null) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }

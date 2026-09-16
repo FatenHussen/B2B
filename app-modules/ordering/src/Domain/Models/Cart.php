@@ -17,8 +17,16 @@ class Cart extends Model
         return ['status' => CartStatus::class];
     }
 
+    /**
+     * The channel scope is lifted on this relation, with the reason here (rule 10,
+     * BE-C12). A cart belongs to one app user — `owner_type`, `owner_id` — and is only ever
+     * reached through that owner (`CartAssembler::activeFor`). A section cannot belong to
+     * another owner than its cart, so ownership is the isolation; `channel_id` on a
+     * section is the split key of a multi-channel cart, not a boundary. `/app/*` sets no
+     * tenant, and must not: a retailer's cart holds several channels at once.
+     */
     public function sections(): HasMany
     {
-        return $this->hasMany(CartSection::class);
+        return $this->hasMany(CartSection::class)->withoutGlobalScope('channel');
     }
 }
