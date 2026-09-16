@@ -1,5 +1,9 @@
 includes:
     - vendor/larastan/larastan/extension.neon
+    # Pest's own analyser hints: HigherOrderTapProxy and Expectation are property bags,
+    # and the higher-order expectation chain has a type extension (BE-F11).
+    - vendor/pestphp/pest/extension.neon
+    - vendor/pestphp/pest/phpstan-pest-extension.neon
 
 parameters:
     # Per-project cache. The default is a directory in the system temp folder shared by
@@ -17,12 +21,55 @@ parameters:
     treatPhpDocTypesAsCertain: false
     checkModelProperties: false
 
+    # Every model here declares its casts in a `casts()` method. Larastan reads that
+    # method's body only when asked; by default it reads its declared return type,
+    # `array<string, string>`, learns nothing, and types an enum-cast column as string —
+    # "Cannot access property $value on string", "does not accept PickingStatus",
+    # "Cannot call method timezone() on string" (BE-F11).
+    parseModelCastsMethod: true
+
+    # Where Larastan learns a model's columns (BE-F11). This was empty, and the module
+    # migration folders below are excluded from *analysis* on purpose — they are still
+    # read here, which is a different thing: `excludePaths` decides what gets analysed,
+    # `databaseMigrationsPath` decides what the model-attribute extension reads. With it
+    # empty, every `$product->sku` was an undefined property: 495 findings.
+    databaseMigrationsPath:
+        - database/migrations
+        - app-modules/access/database/migrations
+        - app-modules/catalog/database/migrations
+        - app-modules/content/database/migrations
+        - app-modules/core/database/migrations
+        - app-modules/delivery/database/migrations
+        - app-modules/finance/database/migrations
+        - app-modules/fulfillment/database/migrations
+        - app-modules/identity/database/migrations
+        - app-modules/inventory/database/migrations
+        - app-modules/loyalty/database/migrations
+        - app-modules/notification/database/migrations
+        - app-modules/ordering/database/migrations
+        - app-modules/pricing/database/migrations
+        - app-modules/promotion/database/migrations
+        - app-modules/reference/database/migrations
+        - app-modules/reporting/database/migrations
+        - app-modules/returns/database/migrations
+        - app-modules/tenancy/database/migrations
+
+    # Who `$this` is inside a Pest closure: Tests\TestCase, not TestCall. See the stub.
+    stubFiles:
+        - tests/phpstan/pest-this.stub
+
+    # `expect(...)->not` is a magic property on the mixin class, which Pest's own
+    # extension.neon does not list (it names Pest\Expectation, the wrapper).
+    universalObjectCratesClasses:
+        - Pest\Mixins\Expectation
+
     excludePaths:
         analyseAndScan:
             - database/migrations
             - app-modules/*/vendor
             - app-modules/*/config
             - app-modules/*/database
+            - tests/phpstan
 
     ignoreErrors:
         - identifier: missingType.generics

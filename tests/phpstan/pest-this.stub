@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * BE-F11 — who `$this` is inside a Pest closure.
+ *
+ * Pest's own docblocks declare `@param-closure-this TestCall` on `it()`, `test()`,
+ * `beforeEach()` and `afterEach()`, and that is what the analyser believed: every
+ * `$this->postJson()` in every test was "an undefined method on TestCall" — 453 findings.
+ * At run time Pest binds the closure to `Tests\TestCase`, which is where those methods
+ * live; and `test()` called with no arguments returns a proxy that forwards to the same
+ * test case, which is what `test()->postJson()` in a helper relies on. This stub says
+ * both. It is loaded through `stubFiles` in phpstan.neon and never executed; only its
+ * docblocks matter, which is why the bodies are empty.
+ */
+
+namespace {
+    /**
+     * @param-closure-this \Tests\TestCase $closure
+     */
+    function it(string $description, ?\Closure $closure = null): mixed {}
+
+    /**
+     * @param-closure-this \Tests\TestCase $closure
+     * @return \Tests\TestCase
+     */
+    function test(?string $description = null, ?\Closure $closure = null): mixed {}
+
+    /**
+     * @param-closure-this \Tests\TestCase $closure
+     */
+    function beforeEach(?\Closure $closure = null): mixed {}
+
+    /**
+     * @param-closure-this \Tests\TestCase $closure
+     */
+    function afterEach(?\Closure $closure = null): mixed {}
+}
+
+namespace Tests {
+    /**
+     * Named here only so the stub validator — which resolves classes without the dev
+     * autoloader and so cannot see `Tests\` or anything under PHPUnit — accepts the
+     * functions above. A stubbed class contributes its docblock and nothing else; the
+     * methods and parents of `Tests\TestCase` still come from tests/TestCase.php.
+     */
+    class TestCase {}
+}
