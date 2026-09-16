@@ -80,6 +80,34 @@ true things it did not know.
 These are code, spread over Fulfillment (17 iterable alone), Ordering, Delivery,
 Catalog, Pricing, Returns — not one module's, and not one afternoon's.
 
+## Measured after the configuration commit (`040fac9`, 2026-09-16)
+
+Three causes, not two — the third surfaced while re-measuring:
+
+| Step | Findings |
+|---|---|
+| As is | 1184 |
+| + `databaseMigrationsPath` (root + 18 module dirs) | 890 |
+| + Pest's neon files + the `@param-closure-this Tests\TestCase` stub | 435 |
+| + `Pest\Mixins\Expectation` as an object crate | 422 |
+| + `parseModelCastsMethod: true` — Larastan was reading `casts()`'s declared return type, not its body, so every enum/datetime cast column was a `string` | **372** |
+
+No code line touched; 0 general errors. Below 200 was the expectation; 372 is the fact.
+
+**What the 372 are:**
+
+| Bucket | Count | What |
+|---|---|---|
+| Typing debt, no runtime effect | 322 | relation methods without generic return types — every related model is a bare `Illuminate\Database\Eloquent\Model`, so `$product->media->x` and `->first()->y` are "undefined" (the ignored `missingType.generics` rule hides **213** of exactly these declarations); `array` params/returns with no value type (86); unresolved template types (52); `Builder::allowedFilters` from spatie/query-builder macros; `LengthAwarePaginator::setCollection()` on the contract type |
+| Pest residue the config cannot express | 31 | `test()->postJson()` in helper functions (a stub `@return` cannot override Pest's native union return type); `arch()->expect()`; properties set on the test case in `beforeEach` (`$this->otp`, `$this->bearer`) |
+| To examine | 19 | all trace to the same bare-Model typing (a `Collection<Model>::map(fn (Product $p))`, a `->first()` passed where `PlatformUser` is expected); one wrong docblock (`CartAssembler::reprice()` returns ints, declared strings) |
+| Runtime defects found | **0** | — |
+
+**Is the gate passable today?** No. 372 remain, and they are docblocks and generics —
+roughly 340 sites across six modules — not configuration. Two honest routes: baseline
+now and shrink under a pinned count, or a docblock pass first. Either way the number to
+start from is 372, not 1184.
+
 ## Requirements
 
 1. **Configuration first, in one commit, before any code line moves:**
@@ -104,8 +132,8 @@ _Write one test per criterion. Name the test after the criterion._
 
 - [ ] `./vendor/bin/phpstan analyse` exits 0 on `main`, in CI, on the commit that closes
       this ticket — or the gate is no longer listed anywhere as one that must pass.
-- [ ] The configuration commit alone takes the count from 1184 to under 450 with no
-      code change, and the commit message records both numbers.
+- [x] The configuration commit alone takes the count from 1184 to under 450 with no
+      code change, and the commit message records both numbers. (`040fac9`: 1184 → 372.)
 - [ ] If (A): a pinned count that a later commit can only lower.
 
 ## Working rules
