@@ -49,6 +49,7 @@ final class RecordOfficePayment
                 'invoice_id' => $invoiceId,
                 'amount' => $amount,
                 'method' => (string) $data['method'],
+                'source' => 'office',
                 'receipt_no' => $this->receipts->reserve($channelId),
             ]);
 

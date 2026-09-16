@@ -6,6 +6,7 @@ namespace Modules\Promotion\Presentation\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Http\ApiController;
 use Modules\Core\Support\MediaUrl;
@@ -55,7 +56,7 @@ final class OfferController extends ApiController
         return $this->ok($query($id));
     }
 
-    public function appIndex(Request $request, EloquentOfferFeed $feed, RetailerShoppingContext $shopping): JsonResponse
+    public function appIndex(Request $request, EloquentOfferFeed $feed, RetailerShoppingContext $shopping, RepSellingContext $selling): JsonResponse
     {
         $zoneId = (int) $request->input('filter.zone_id', 0);
         $activityId = (int) $request->input('filter.activity_type_id', 0);
@@ -67,6 +68,11 @@ final class OfferController extends ApiController
             $zoneId = $zoneId ?: $ctx['zone_id'];
             $activityId = $activityId ?: $ctx['activity_type_id'];
             $channelIds = $ctx['channel_ids'];
+        } elseif ($selling->isRep($user)) {
+            $ctx = $selling->for($user);
+            $zoneId = $zoneId ?: (int) ($ctx['default_zone_id'] ?? 0);
+            $activityId = $activityId ?: (int) ($ctx['activity_type_id'] ?? 0);
+            $channelIds = $ctx['channel_ids'];
         }
 
         $page = $feed->matching($zoneId, $activityId, $channelIds)
@@ -75,7 +81,7 @@ final class OfferController extends ApiController
         return $this->paginated($page, fn (Offer $offer) => $feed->card($offer, $zoneId));
     }
 
-    public function appShow(Request $request, EloquentOfferFeed $feed, RetailerShoppingContext $shopping, int $id): JsonResponse
+    public function appShow(Request $request, EloquentOfferFeed $feed, RetailerShoppingContext $shopping, RepSellingContext $selling, int $id): JsonResponse
     {
         $user = $request->user();
         $zoneId = 0;
@@ -85,6 +91,11 @@ final class OfferController extends ApiController
             $ctx = $shopping->for($user);
             $zoneId = $ctx['zone_id'];
             $activityId = $ctx['activity_type_id'];
+            $channelIds = $ctx['channel_ids'];
+        } elseif ($selling->isRep($user)) {
+            $ctx = $selling->for($user);
+            $zoneId = (int) ($ctx['default_zone_id'] ?? 0);
+            $activityId = (int) ($ctx['activity_type_id'] ?? 0);
             $channelIds = $ctx['channel_ids'];
         }
 

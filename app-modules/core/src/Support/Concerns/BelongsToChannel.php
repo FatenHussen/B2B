@@ -100,6 +100,10 @@ trait BelongsToChannel
         });
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
     public function scopeAcrossChannels(Builder $query): Builder
     {
         return $query->withoutGlobalScope('channel');

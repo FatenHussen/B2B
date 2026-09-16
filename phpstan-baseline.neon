@@ -1,5 +1,7 @@
 # PHPStan baseline — BE-F11, generated 2026-09-16 at 585 findings (490 entries) with
-# the configuration in phpstan.neon and no code touched. No identifier is ignored: the
+# the configuration in phpstan.neon and no code touched. Paid down to 479 findings
+# (384 entries) when BelongsToChannel::scopeAcrossChannels gained Builder<static>
+# generics. No identifier is ignored: the
 # 213 relation declarations without a related type (`missingType.generics`) are counted
 # here beside the 173 "undefined property on Model" symptoms they cause, so fixing a
 # declaration takes its symptoms with it and the number only ever falls.
@@ -200,17 +202,7 @@ parameters:
 			count: 1
 			path: app-modules/catalog/src/Domain/Models/Brand.php
 
-		-
-			message: '#^Method Modules\\Catalog\\Domain\\Models\\Brand\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/catalog/src/Domain/Models/Brand.php
 
-		-
-			message: '#^Method Modules\\Catalog\\Domain\\Models\\Brand\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/catalog/src/Domain/Models/Brand.php
 
 		-
 			message: '#^Method Modules\\Catalog\\Domain\\Models\\Brand\:\:sliders\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -242,17 +234,7 @@ parameters:
 			count: 1
 			path: app-modules/catalog/src/Domain/Models/Category.php
 
-		-
-			message: '#^Method Modules\\Catalog\\Domain\\Models\\Category\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/catalog/src/Domain/Models/Category.php
 
-		-
-			message: '#^Method Modules\\Catalog\\Domain\\Models\\Category\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/catalog/src/Domain/Models/Category.php
 
 		-
 			message: '#^Method Modules\\Catalog\\Domain\\Models\\Product\:\:activityTypes\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -278,17 +260,7 @@ parameters:
 			count: 1
 			path: app-modules/catalog/src/Domain/Models/Product.php
 
-		-
-			message: '#^Method Modules\\Catalog\\Domain\\Models\\Product\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/catalog/src/Domain/Models/Product.php
 
-		-
-			message: '#^Method Modules\\Catalog\\Domain\\Models\\Product\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/catalog/src/Domain/Models/Product.php
 
 		-
 			message: '#^Method Modules\\Catalog\\Domain\\Models\\Product\:\:sliderTags\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -410,41 +382,11 @@ parameters:
 			count: 1
 			path: app-modules/catalog/src/Presentation/Http/Requests/StoreShortageRequest.php
 
-		-
-			message: '#^Method Modules\\Content\\Domain\\Models\\Banner\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/content/src/Domain/Models/Banner.php
 
-		-
-			message: '#^Method Modules\\Content\\Domain\\Models\\Banner\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/content/src/Domain/Models/Banner.php
 
-		-
-			message: '#^Method Modules\\Content\\Domain\\Models\\ChannelIntro\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/content/src/Domain/Models/ChannelIntro.php
 
-		-
-			message: '#^Method Modules\\Content\\Domain\\Models\\ChannelIntro\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/content/src/Domain/Models/ChannelIntro.php
 
-		-
-			message: '#^Method Modules\\Content\\Domain\\Models\\Slider\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/content/src/Domain/Models/Slider.php
 
-		-
-			message: '#^Method Modules\\Content\\Domain\\Models\\Slider\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/content/src/Domain/Models/Slider.php
 
 		-
 			message: '#^Method Modules\\Core\\Contracts\\OfferFeed\:\:sliderFor\(\) has parameter \$channelIds with no value type specified in iterable type array\.$#'
@@ -458,17 +400,7 @@ parameters:
 			count: 1
 			path: app-modules/core/src/Domain/Events/HandoverConfirmedByRep.php
 
-		-
-			message: '#^Method Modules\\Core\\Domain\\Models\\DualApprovalRequest\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/core/src/Domain/Models/DualApprovalRequest.php
 
-		-
-			message: '#^Method Modules\\Core\\Domain\\Models\\DualApprovalRequest\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/core/src/Domain/Models/DualApprovalRequest.php
 
 		-
 			message: '#^Method Modules\\Core\\Http\\ApiController\:\:paginated\(\) has parameter \$paginator with generic interface Illuminate\\Contracts\\Pagination\\CursorPaginator but does not specify its types\: TKey, TValue$#'
@@ -561,7 +493,7 @@ parameters:
 			path: app-modules/delivery/src/Application/DeliveryWorkspace.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, image\: null, name\: string, brand\: string\|null, variant\: null, qty\: int\<0, max\>, price\: int, status\: string\}, Closure\(Modules\\Delivery\\Domain\\Models\\DeliveryLine\)\: array\{id\: int, image\: null, name\: string, brand\: string\|null, variant\: null, qty\: int\<0, max\>, price\: int, status\: string\} given\.$#'
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, image\: null, name\: string, brand\: string\|null, variant\: null, qty\: int\<0, max\>, qty_delivered\: int\<0, max\>, price\: int, status\: string\}, Closure\(Modules\\Delivery\\Domain\\Models\\DeliveryLine\)\: array\{id\: int, image\: null, name\: string, brand\: string\|null, variant\: null, qty\: int\<0, max\>, qty_delivered\: int\<0, max\>, price\: int, status\: string\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app-modules/delivery/src/Application/DeliveryWorkspace.php
@@ -632,89 +564,19 @@ parameters:
 			count: 1
 			path: app-modules/finance/src/Application/Queries/ListInvoices.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\CreditNote\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/CreditNote.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\CreditNote\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/CreditNote.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\Invoice\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/Invoice.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\Invoice\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/Invoice.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\InvoiceLine\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/InvoiceLine.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\InvoiceLine\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/InvoiceLine.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\Payment\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/Payment.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\Payment\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/Payment.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\RetailerCreditLimit\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/RetailerCreditLimit.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\RetailerCreditLimit\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/RetailerCreditLimit.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\Settlement\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/Settlement.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\Settlement\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/Settlement.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\WalletTransaction\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/WalletTransaction.php
 
-		-
-			message: '#^Method Modules\\Finance\\Domain\\Models\\WalletTransaction\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/finance/src/Domain/Models/WalletTransaction.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$barcode\.$#'
@@ -842,17 +704,7 @@ parameters:
 			count: 1
 			path: app-modules/fulfillment/src/Domain/Models/PickingList.php
 
-		-
-			message: '#^Method Modules\\Fulfillment\\Domain\\Models\\PickingList\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/fulfillment/src/Domain/Models/PickingList.php
 
-		-
-			message: '#^Method Modules\\Fulfillment\\Domain\\Models\\PickingList\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/fulfillment/src/Domain/Models/PickingList.php
 
 		-
 			message: '#^Method Modules\\Fulfillment\\Domain\\Models\\Stocktake\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1022,17 +874,7 @@ parameters:
 			count: 1
 			path: app-modules/identity/src/Domain/Models/ChannelUser.php
 
-		-
-			message: '#^Method Modules\\Identity\\Domain\\Models\\ChannelUserChannel\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/identity/src/Domain/Models/ChannelUserChannel.php
 
-		-
-			message: '#^Method Modules\\Identity\\Domain\\Models\\ChannelUserChannel\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/identity/src/Domain/Models/ChannelUserChannel.php
 
 		-
 			message: '#^Method Modules\\Identity\\Domain\\Models\\ChannelUserChannel\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1058,17 +900,7 @@ parameters:
 			count: 1
 			path: app-modules/identity/src/Domain/Models/PlatformSession.php
 
-		-
-			message: '#^Method Modules\\Identity\\Domain\\Models\\RepProfile\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/identity/src/Domain/Models/RepProfile.php
 
-		-
-			message: '#^Method Modules\\Identity\\Domain\\Models\\RepProfile\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/identity/src/Domain/Models/RepProfile.php
 
 		-
 			message: '#^Method Modules\\Identity\\Domain\\Models\\RepProfile\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1130,17 +962,7 @@ parameters:
 			count: 1
 			path: app-modules/identity/src/Domain/Models/RetailerProfileEquipment.php
 
-		-
-			message: '#^Method Modules\\Identity\\Domain\\Models\\WarehouseDevice\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/identity/src/Domain/Models/WarehouseDevice.php
 
-		-
-			message: '#^Method Modules\\Identity\\Domain\\Models\\WarehouseDevice\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/identity/src/Domain/Models/WarehouseDevice.php
 
 		-
 			message: '#^Method Modules\\Identity\\Domain\\Models\\WarehouseDevice\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1166,53 +988,13 @@ parameters:
 			count: 1
 			path: app-modules/inventory/src/Application/Queries/ListStockMovements.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockBalance\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockBalance.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockBalance\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockBalance.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockMovement\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockMovement.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockMovement\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockMovement.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockReorderPoint\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockReorderPoint.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockReorderPoint\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockReorderPoint.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockReservation\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockReservation.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockReservation\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockReservation.php
 
 		-
 			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockTransfer\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1220,29 +1002,9 @@ parameters:
 			count: 1
 			path: app-modules/inventory/src/Domain/Models/StockTransfer.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockTransfer\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockTransfer.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockTransfer\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/StockTransfer.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\WarehouseLocation\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/WarehouseLocation.php
 
-		-
-			message: '#^Method Modules\\Inventory\\Domain\\Models\\WarehouseLocation\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/inventory/src/Domain/Models/WarehouseLocation.php
 
 		-
 			message: '#^Method Modules\\Inventory\\Presentation\\Http\\Requests\\AdjustStockRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
@@ -1262,65 +1024,15 @@ parameters:
 			count: 1
 			path: app-modules/inventory/src/Presentation/Http/Requests/UpsertReorderPointsRequest.php
 
-		-
-			message: '#^Method Modules\\Loyalty\\Domain\\Models\\LoyaltyReward\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/loyalty/src/Domain/Models/LoyaltyReward.php
 
-		-
-			message: '#^Method Modules\\Loyalty\\Domain\\Models\\LoyaltyReward\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/loyalty/src/Domain/Models/LoyaltyReward.php
 
-		-
-			message: '#^Method Modules\\Loyalty\\Domain\\Models\\LoyaltyRuleSet\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/loyalty/src/Domain/Models/LoyaltyRuleSet.php
 
-		-
-			message: '#^Method Modules\\Loyalty\\Domain\\Models\\LoyaltyRuleSet\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/loyalty/src/Domain/Models/LoyaltyRuleSet.php
 
-		-
-			message: '#^Method Modules\\Notification\\Domain\\Models\\ChannelNotification\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/notification/src/Domain/Models/ChannelNotification.php
 
-		-
-			message: '#^Method Modules\\Notification\\Domain\\Models\\ChannelNotification\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/notification/src/Domain/Models/ChannelNotification.php
 
-		-
-			message: '#^Method Modules\\Notification\\Domain\\Models\\NotificationDeliveryLog\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/notification/src/Domain/Models/NotificationDeliveryLog.php
 
-		-
-			message: '#^Method Modules\\Notification\\Domain\\Models\\NotificationDeliveryLog\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/notification/src/Domain/Models/NotificationDeliveryLog.php
 
-		-
-			message: '#^Method Modules\\Notification\\Domain\\Models\\NotificationTemplate\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/notification/src/Domain/Models/NotificationTemplate.php
 
-		-
-			message: '#^Method Modules\\Notification\\Domain\\Models\\NotificationTemplate\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/notification/src/Domain/Models/NotificationTemplate.php
 
 		-
 			message: '#^Property Modules\\Ordering\\Application\\Actions\\AddRepCartLine\:\:\$pricing is never read, only written\.$#'
@@ -1706,17 +1418,7 @@ parameters:
 			count: 1
 			path: app-modules/ordering/src/Domain/Models/CartSection.php
 
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\CartSection\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/CartSection.php
 
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\CartSection\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/CartSection.php
 
 		-
 			message: '#^Method Modules\\Ordering\\Domain\\Models\\Order\:\:sections\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1736,17 +1438,7 @@ parameters:
 			count: 1
 			path: app-modules/ordering/src/Domain/Models/OrderSection.php
 
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\OrderSection\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/OrderSection.php
 
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\OrderSection\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/OrderSection.php
 
 		-
 			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrder\:\:assignments\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1772,17 +1464,7 @@ parameters:
 			count: 1
 			path: app-modules/ordering/src/Domain/Models/SubOrder.php
 
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrder\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrder.php
 
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrder\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrder.php
 
 		-
 			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrderAssignment\:\:subOrder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1952,17 +1634,7 @@ parameters:
 			count: 1
 			path: app-modules/pricing/src/Application/Actions/QuotePrices.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\PriceChangeLog\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/PriceChangeLog.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\PriceChangeLog\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/PriceChangeLog.php
 
 		-
 			message: '#^Method Modules\\Pricing\\Domain\\Models\\PriceList\:\:items\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1976,17 +1648,7 @@ parameters:
 			count: 1
 			path: app-modules/pricing/src/Domain/Models/PriceList.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\PriceList\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/PriceList.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\PriceList\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/PriceList.php
 
 		-
 			message: '#^Method Modules\\Pricing\\Domain\\Models\\PriceList\:\:zones\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -2000,17 +1662,7 @@ parameters:
 			count: 1
 			path: app-modules/pricing/src/Domain/Models/PriceListSchedule.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\ProductBasePrice\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/ProductBasePrice.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\ProductBasePrice\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/ProductBasePrice.php
 
 		-
 			message: '#^Method Modules\\Pricing\\Domain\\Models\\ProductBasePrice\:\:tiers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -2018,29 +1670,9 @@ parameters:
 			count: 1
 			path: app-modules/pricing/src/Domain/Models/ProductBasePrice.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\ProductQtyTier\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/ProductQtyTier.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\ProductQtyTier\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/ProductQtyTier.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\RepCommercialLimit\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/RepCommercialLimit.php
 
-		-
-			message: '#^Method Modules\\Pricing\\Domain\\Models\\RepCommercialLimit\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/pricing/src/Domain/Models/RepCommercialLimit.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$override_price\.$#'
@@ -2132,17 +1764,7 @@ parameters:
 			count: 1
 			path: app-modules/promotion/src/Domain/Models/Offer.php
 
-		-
-			message: '#^Method Modules\\Promotion\\Domain\\Models\\Offer\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/promotion/src/Domain/Models/Offer.php
 
-		-
-			message: '#^Method Modules\\Promotion\\Domain\\Models\\Offer\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/promotion/src/Domain/Models/Offer.php
 
 		-
 			message: '#^Method Modules\\Promotion\\Domain\\Models\\Offer\:\:zones\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -2258,17 +1880,7 @@ parameters:
 			count: 1
 			path: app-modules/promotion/src/Presentation/Http/Requests/StoreOfferRequest.php
 
-		-
-			message: '#^Method Modules\\Reference\\Domain\\Models\\ChannelZone\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reference/src/Domain/Models/ChannelZone.php
 
-		-
-			message: '#^Method Modules\\Reference\\Domain\\Models\\ChannelZone\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reference/src/Domain/Models/ChannelZone.php
 
 		-
 			message: '#^Method Modules\\Reference\\Domain\\Models\\ChannelZone\:\:zone\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -2306,29 +1918,9 @@ parameters:
 			count: 1
 			path: app-modules/reference/src/Domain/Models/Zone.php
 
-		-
-			message: '#^Method Modules\\Reporting\\Domain\\Models\\DailySnapshot\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reporting/src/Domain/Models/DailySnapshot.php
 
-		-
-			message: '#^Method Modules\\Reporting\\Domain\\Models\\DailySnapshot\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reporting/src/Domain/Models/DailySnapshot.php
 
-		-
-			message: '#^Method Modules\\Reporting\\Domain\\Models\\ReportExport\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reporting/src/Domain/Models/ReportExport.php
 
-		-
-			message: '#^Method Modules\\Reporting\\Domain\\Models\\ReportExport\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reporting/src/Domain/Models/ReportExport.php
 
 		-
 			message: '#^Method Modules\\Returns\\Application\\Queries\\ListChannelReturnRequests\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
@@ -2372,17 +1964,7 @@ parameters:
 			count: 1
 			path: app-modules/returns/src/Domain/Models/ReturnRequest.php
 
-		-
-			message: '#^Method Modules\\Returns\\Domain\\Models\\ReturnRequest\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/returns/src/Domain/Models/ReturnRequest.php
 
-		-
-			message: '#^Method Modules\\Returns\\Domain\\Models\\ReturnRequest\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/returns/src/Domain/Models/ReturnRequest.php
 
 		-
 			message: '#^Method Modules\\Returns\\Presentation\\Http\\Requests\\CreateReturnRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
@@ -2432,89 +2014,19 @@ parameters:
 			count: 1
 			path: app-modules/tenancy/src/Application/Queries/ShowChannel.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelActivityType\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelActivityType.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelActivityType\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelActivityType.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelDocument\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelDocument.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelDocument\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelDocument.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelGovernorate\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelGovernorate.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelGovernorate\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelGovernorate.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelInternalNote\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelInternalNote.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelInternalNote\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelInternalNote.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelLimit\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelLimit.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelLimit\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelLimit.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelProvisionJob\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelProvisionJob.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\ChannelProvisionJob\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/ChannelProvisionJob.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\Warehouse\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/Warehouse.php
 
-		-
-			message: '#^Method Modules\\Tenancy\\Domain\\Models\\Warehouse\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/tenancy/src/Domain/Models/Warehouse.php
 
 		-
 			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:expect\(\)\.$#'
@@ -2900,41 +2412,11 @@ parameters:
 			count: 1
 			path: tests/Unit/BelongsToChannelColumnTest.php
 
-		-
-			message: '#^Method ChannelIdColumnFixture\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: tests/Unit/BelongsToChannelColumnTest.php
 
-		-
-			message: '#^Method ChannelIdColumnFixture\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: tests/Unit/BelongsToChannelColumnTest.php
 
-		-
-			message: '#^Method DefaultColumnFixture\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: tests/Unit/BelongsToChannelColumnTest.php
 
-		-
-			message: '#^Method DefaultColumnFixture\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: tests/Unit/BelongsToChannelColumnTest.php
 
-		-
-			message: '#^Method RelaxedColumnFixture\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: tests/Unit/BelongsToChannelColumnTest.php
 
-		-
-			message: '#^Method RelaxedColumnFixture\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: tests/Unit/BelongsToChannelColumnTest.php
 
 		-
 			message: '#^Unable to resolve the template type TAndValue in call to method Pest\\Expectation\<mixed\>\:\:and\(\)$#'
@@ -2948,14 +2430,4 @@ parameters:
 			count: 1
 			path: tests/Unit/BelongsToChannelColumnTest.php
 
-		-
-			message: '#^Method ChannelScopedFixture\:\:scopeAcrossChannels\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: tests/Unit/TenantIsolationTest.php
 
-		-
-			message: '#^Method ChannelScopedFixture\:\:scopeAcrossChannels\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: tests/Unit/TenantIsolationTest.php

@@ -11,7 +11,7 @@ use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\Tenant;
 use Modules\Finance\Application\Support\WalletLedger;
 
-final class SettleRepWallet
+final class RecordRepWithdrawal
 {
     public function __construct(
         private readonly RepDirectory $reps,
@@ -19,31 +19,29 @@ final class SettleRepWallet
     ) {}
 
     /**
-     * @param  array{amount: int, operation_no: string}  $data
-     * @return array{receipt_pdf_url: string, new_balance: int}
+     * @param  array{amount: int, operation_no: string, operated_at: string}  $data
+     * @return array{remaining_balance: int}
      */
-    public function __invoke(object $actor, int $repId, array $data): array
+    public function __invoke(object $user, array $data): array
     {
-        $channelId = (int) Tenant::currentId();
-        if (! $this->reps->belongsToChannel($repId, $channelId)) {
+        $repUserId = (int) $user->getAuthIdentifier();
+        $channelId = $this->reps->channelIdForUser($repUserId);
+        if ($channelId === null) {
             throw DomainException::of(ErrorCode::NotFound, __('finance.not_found'));
         }
 
-        return DB::transaction(function () use ($actor, $repId, $channelId, $data): array {
+        return Tenant::as($channelId, fn (): array => DB::transaction(function () use ($user, $repUserId, $channelId, $data): array {
             $result = $this->wallet->settle(
-                $actor,
-                $repId,
+                $user,
+                $repUserId,
                 $channelId,
                 (int) $data['amount'],
                 (string) $data['operation_no'],
-                null,
-                true,
+                (string) $data['operated_at'],
+                false,
             );
 
-            return [
-                'receipt_pdf_url' => (string) $result['settlement']->receipt_pdf_url,
-                'new_balance' => $result['new_balance'],
-            ];
-        });
+            return ['remaining_balance' => $result['new_balance']];
+        }));
     }
 }

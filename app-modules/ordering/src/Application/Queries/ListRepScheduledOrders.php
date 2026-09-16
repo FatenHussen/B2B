@@ -33,6 +33,7 @@ final class ListRepScheduledOrders
             $phone = $shop !== null ? $this->retailers->phone((int) $row->retailer_id) : null;
 
             return [
+                'id' => (int) $row->id,
                 'shop_logo' => null,
                 'shop' => $shop['shop_name'] ?? null,
                 'address' => $shop['address'] ?? null,

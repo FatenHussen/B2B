@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace Modules\Identity\Application\Queries;
 
 use Modules\Core\Contracts\AccessCatalog;
+use Modules\Core\Contracts\RepCommercialLimits;
+use Modules\Core\Contracts\RepDirectory;
+use Modules\Identity\Domain\Enums\AppUserKind;
 use Modules\Identity\Domain\Models\AppUser;
 
 final class AppSession
 {
-    public function __construct(private readonly AccessCatalog $access) {}
+    public function __construct(
+        private readonly AccessCatalog $access,
+        private readonly RepDirectory $reps,
+        private readonly RepCommercialLimits $limits,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -18,7 +25,7 @@ final class AppSession
     {
         $user->load(['retailerProfile', 'repProfile']);
 
-        return [
+        $payload = [
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -38,5 +45,15 @@ final class AppSession
                 'terms_version' => '2026-01',
             ],
         ];
+
+        if ($user->kind === AppUserKind::Rep) {
+            $channelId = $this->reps->channelIdForUser((int) $user->id);
+            $payload['commercial_limits'] = [
+                'max_discount_percent' => $channelId === null ? 0 : $this->limits->maxDiscountPercent($channelId, (int) $user->id),
+                'max_cash_hold' => $channelId === null ? 0 : $this->limits->maxCashHold($channelId, (int) $user->id),
+            ];
+        }
+
+        return $payload;
     }
 }

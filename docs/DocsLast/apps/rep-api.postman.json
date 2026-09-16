@@ -1,0 +1,2461 @@
+{
+    "info": {
+        "name": "B2B Field rep — live only",
+        "description": "# Field rep app — live routes only\n\nGenerated 2026-09-16 from `php artisan route:list`. Nothing here 404s because it was never built.\n\nImport `docs/api/environments/rep-android.postman_environment.json`.\n`baseUrl` is the **host only** (`http://127.0.0.1:8000`). Each request carries `api/v1` in its path.\n\nOTP on staging is `000000`. Local OTP is in `storage/logs/laravel.log` as `[OTP]`.\n\n⚠️ Postman's `{{$guid}}` regenerates per send. The Flutter client must reuse **one key per user intent**.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://127.0.0.1:8000"
+        },
+        {
+            "key": "token",
+            "value": ""
+        },
+        {
+            "key": "otp_id",
+            "value": ""
+        },
+        {
+            "key": "receipt_no",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "00. Health",
+            "item": [
+                {
+                    "name": "GET /health",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "health"
+                            ]
+                        },
+                        "description": "**EP-CORE-001** · live\n\n| | |\n|---|---|\n| Guard | `none` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | فحص الصحة |\n\nPublic liveness. No tenant, no auth.\n\n**Example `data`:**\n```json\n{\n    \"status\": \"ok\"\n}\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "01. Auth & registration",
+            "item": [
+                {
+                    "name": "POST /app/rep/register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "register"
+                            ]
+                        },
+                        "description": "**EP-RP-001** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | إكمال تسجيل المندوب |\n\n🟡 Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null. GET /public/refs is 404 — ids must be known.\n\nChannel must be active; zones must be inside its coverage (TB-RP-010).\n\n**Example `data`:**\n```json\n{\n    \"rep\": {\n        \"id\": 70,\n        \"name\": \"أحمد العلي\",\n        \"channel\": {\n            \"id\": 1,\n            \"name\": \"شركة النور\"\n        },\n        \"zones\": [\n            {\n                \"id\": 12,\n                \"name\": \"المزة\"\n            }\n        ],\n        \"status\": \"pending_review\"\n    },\n    \"token\": \"50|rep_xxxxx\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"أحمد العلي\",\n    \"supply_channel_id\": 1,\n    \"activity_type_id\": 3,\n    \"zone_ids\": [\n        12,\n        13\n    ],\n    \"note\": \"خبرة سنتين في المزة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const j = pm.response.json();",
+                                    "const d = j.data || {};",
+                                    "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                    "if (d.token) { store.set('token', d.token); console.log('registration token replaced'); }"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "POST /public/auth/request-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/request-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "request-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-001** · live\n\n| | |\n|---|---|\n| Guard | `none` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | **exempt** |\n| Name | طلب رمز واتساب |\n\npurpose: register|login. Rate: 3/hour per phone, 10/hour per device, 30/hour per IP (REQ-CM-055). Phone E.164 Syrian mobile.\n\n**Example `data`:**\n```json\n{\n    \"otp_id\": \"otp_9f2a71\",\n    \"channel_used\": \"whatsapp\",\n    \"expires_in\": 300,\n    \"resend_after\": 60\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"phone\": \"+963933000000\",\n    \"purpose\": \"login\",\n    \"client\": \"retailer-android\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const j = pm.response.json();",
+                                    "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                    "if (j.data && j.data.otp_id) { store.set('otp_id', j.data.otp_id); console.log('otp_id saved'); }"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "POST /public/auth/resend-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/resend-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "resend-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-003** · live\n\n| | |\n|---|---|\n| Guard | `none` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | **exempt** |\n| Name | إعادة إرسال الرمز |\n\nprefer_channel: whatsapp|sms. Falls back to SMS if WhatsApp fails.\n\n**Example `data`:**\n```json\n{\n    \"channel_used\": \"sms\",\n    \"resend_after\": 60\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"otp_id\": \"{{otp_id}}\",\n    \"prefer_channel\": \"sms\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "POST /public/auth/verify-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/verify-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "verify-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-002** · live\n\n| | |\n|---|---|\n| Guard | `none` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | **exempt** |\n| Name | تحقق رمز الدخول |\n\n5 attempts per otp_id. New user returns is_new_user=true without a full profile.\n\n**Example `data`:**\n```json\n{\n    \"token\": \"12|xxxxx\",\n    \"is_new_user\": false,\n    \"user_type\": \"retailer\",\n    \"profile_completed\": true,\n    \"user\": {\n        \"id\": 481,\n        \"name\": \"أبو خالد\",\n        \"phone\": \"+963933000000\",\n        \"shop_name\": \"بقالية النور\",\n        \"zone\": {\n            \"id\": 12,\n            \"name\": \"المزة\"\n        },\n        \"activity_type\": {\n            \"id\": 3,\n            \"name\": \"بقالة\"\n        },\n        \"points\": 1240,\n        \"tier\": \"silver\"\n    }\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"otp_id\": \"{{otp_id}}\",\n    \"code\": \"482193\",\n    \"device_id\": \"{{deviceId}}\",\n    \"device_name\": \"Redmi Note 13\",\n    \"platform\": \"android\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const j = pm.response.json();",
+                                    "const d = j.data || {};",
+                                    "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                    "if (d.token) { store.set('token', d.token); console.log('token saved'); }",
+                                    "if (d.otp_id) { store.set('otp_id', d.otp_id); }"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "02. Session & duty",
+            "item": [
+                {
+                    "name": "POST /app/auth/logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/auth/logout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "**EP-CM-005** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | خروج التطبيق |\n\nClient must wipe local data (REQ-CM-056).\n\n**Example `data`:**\n```json\n{\n    \"success\": true\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "PATCH /app/rep/status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "status"
+                            ]
+                        },
+                        "description": "**EP-RP-034** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | داخل/خارج الخدمة |\n\nTracking is enabled only while on duty (REQ-CM-054).\n\n**Example `data`:**\n```json\n{\n    \"on_duty\": true,\n    \"tracking_enabled\": true\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"on_duty\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/session",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/session",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "session"
+                            ]
+                        },
+                        "description": "**EP-CM-004** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | جلسة الإقلاع |\n\n🟡 Rep-only extra: commercial_limits. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them.\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081).\n\n**Example `data`:**\n```json\n{\n    \"user\": {\n        \"id\": 70,\n        \"name\": \"أحمد العلي\",\n        \"user_type\": \"rep\",\n        \"profile_completed\": true\n    },\n    \"permissions\": [\n        \"rp.delivery.accept\",\n        \"rp.delivery.deliver\",\n        \"rp.delivery.postpone\",\n        \"rp.delivery.return_request\",\n        \"rp.payment.collect\",\n        \"rp.payment.withdraw\",\n        \"rp.wallet.view\",\n        \"rp.warehouse.receive\"\n    ],\n    \"feature_flags\": {\n        \"offline_orders\": false,\n        \"loyalty\": false\n    },\n    \"sync_cursor\": \"\",\n    \"server_time\": \"2026-03-01T09:12:44+03:00\",\n    \"requires_legal_accept\": false,\n    \"legal\": {\n        \"privacy_version\": \"2026-03\",\n        \"terms_version\": \"2026-01\"\n    },\n    \"commercial_limits\": {\n        \"max_discount_percent\": 5,\n        \"max_cash_hold\": 0\n    }\n}\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "03. Field — zones & customers",
+            "item": [
+                {
+                    "name": "GET /app/rep/customers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/customers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "customers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[search]",
+                                    "value": "النور",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-070A** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | زبائن المندوب |\n\n🟡 Paginated. Search is filter[search]. id is RetailerProfile id — this is retailer_id everywhere else.\n\nDOC-12B TB-RP-053.\n\n**Example `data`:**\n```json\n[\n    {\n        \"id\": 481,\n        \"shop_name\": \"بقالية النور\",\n        \"zone_id\": 12,\n        \"is_active\": true\n    }\n]\n```"
+                    }
+                },
+                {
+                    "name": "POST /app/rep/customers",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/customers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "customers"
+                            ]
+                        },
+                        "description": "**EP-RP-070B** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | إضافة محل |\n\n🟡 client_op_id required; replay returns the same sourced-shop row. Returned id is NOT retailer_id — reload GET /customers.\n\nStored locally and synced with a unique client_op_id (TB-RP-053).\n\n**Example `data`:**\n```json\n{\n    \"id\": 490,\n    \"status\": \"pending_sync\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"shop_name\": \"ميني ماركت الشام\",\n    \"owner_name\": \"أبو سامر\",\n    \"phone\": \"+963988000000\",\n    \"zone_id\": 12,\n    \"activity_type_id\": 3,\n    \"lat\": 33.51,\n    \"lng\": 36.27,\n    \"client_op_id\": \"op_shop_local_1\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/rep/zones/{id}/shops",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/zones/{{id}}/shops",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "zones",
+                                "{{id}}",
+                                "shops"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "النور",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-020** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | محلات المنطقة |\n\n🟡 Paginated. Search is top-level `search`, not filter[search]. is_open is hardcoded true. last_order_at is always null. 403 zone_not_covered if the zone is not assigned.\n\nAvailable offline from the cached pull (TB-RP-020).\n\n**Example `data`:**\n```json\n[\n    {\n        \"id\": 481,\n        \"shop_name\": \"بقالية النور\",\n        \"address\": \"المزة فيلات شرقية\",\n        \"is_open\": true,\n        \"is_active\": true,\n        \"last_order_at\": \"2026-02-28T16:00:00+03:00\"\n    }\n]\n```"
+                    }
+                },
+                {
+                    "name": "POST /app/rep/zones",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/zones",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "zones"
+                            ]
+                        },
+                        "description": "**EP-RP-071** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | إضافة منطقة تغطية |\n\nDOC-12B TB-RP-055.\n\n**Example `data`:**\n```json\n{\n    \"status\": \"pending_approval\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"zone_id\": 14,\n    \"note\": \"طلب تغطية كفرسوسة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "04. Catalog, offers & quote",
+            "item": [
+                {
+                    "name": "GET /app/offers/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/offers/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "offers",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-APP-041** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | تفاصيل عرض |\n\nRe-validate via quote before submit (TB-RT-043).\n\n**Example `data`:**\n```json\n{\n    \"id\": 44,\n    \"images\": [],\n    \"long_description\": \"على زيت دوار الشمس\",\n    \"icons\": [\n        \"gift\"\n    ],\n    \"same_company_offers\": [],\n    \"same_company_products\": []\n}\n```"
+                    }
+                },
+                {
+                    "name": "GET /app/offers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/offers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "offers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[activity_type_id]",
+                                    "value": "3",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[zone_id]",
+                                    "value": "12",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-APP-040** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | العروض |\n\n🟡 Paginated. Empty list is valid when no offer matches the rep zone/activity/channel. company stays hidden.\n\ncompany (channel identity) stays hidden until an order is confirmed (REQ-IN-06).\n\n**Example `data`:**\n```json\n[\n    {\n        \"id\": 44,\n        \"image\": \"https://cdn.example/o/44.jpg\",\n        \"name\": \"اشترِ 10 واحصل على 1\",\n        \"company\": null,\n        \"rating\": 4.7,\n        \"components\": [\n            {\n                \"product_id\": 880,\n                \"qty\": 10\n            }\n        ],\n        \"price_before\": 120000,\n        \"discount\": 12000,\n        \"price_after\": 108000,\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"days_left\": 30,\n        \"remaining_qty\": 320,\n        \"sold_count\": 180\n    }\n]\n```"
+                    }
+                },
+                {
+                    "name": "POST /app/pricing/quote",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/pricing/quote",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "pricing",
+                                "quote"
+                            ]
+                        },
+                        "description": "**EP-APP-030** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | تسعير الخادم |\n\n🟡 Reps skip retailer visibility; still send the shop zone_id. Never send unit_price.\n\nSingle source of truth (REQ-IN-07). Precedence: retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices.\n\n**Example `data`:**\n```json\n{\n    \"lines\": [\n        {\n            \"product_id\": 880,\n            \"unit_price\": 11500,\n            \"applied_rule\": {\n                \"type\": \"qty_tier\",\n                \"id\": 3,\n                \"label\": \"شريحة 5–9\"\n            },\n            \"tier\": {\n                \"from\": 5,\n                \"to\": 9\n            },\n            \"discount\": 0,\n            \"line_total\": 69000\n        }\n    ],\n    \"subtotal\": 69000,\n    \"currency\": \"SYP\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"product_id\": 880,\n            \"variant_id\": 1,\n            \"qty\": 6\n        }\n    ],\n    \"zone_id\": 12\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/rep/products",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[search]",
+                                    "value": "زيت",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[category_id]",
+                                    "value": "340",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[brand_id]",
+                                    "value": "12",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[channel_id]",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "barcode",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "zone",
+                                    "value": "12",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-010** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | منتجات المندوب |\n\n🟡 Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Lines have no image/sku.\n\nUnion of all channels the rep belongs to, each SKU tagged with its channel (TB-RP-050).\n\n**Example `data`:**\n```json\n[\n    {\n        \"id\": 880,\n        \"name\": \"زيت دوار الشمس 1 لتر\",\n        \"channel\": {\n            \"id\": 1,\n            \"name\": \"شركة النور\"\n        },\n        \"price\": {\n            \"type\": \"tiered\",\n            \"value\": 12000,\n            \"label\": \"السعر حسب الكمية\"\n        },\n        \"availability\": \"in_stock\"\n    }\n]\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "05. Cart",
+            "item": [
+                {
+                    "name": "POST /app/rep/cart/lines",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/cart/lines",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "cart",
+                                "lines"
+                            ]
+                        },
+                        "description": "**EP-RP-021** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | إضافة لسلة محل |\n\n🟡 Increments qty if the (product, variant) exists. No PATCH/DELETE. Resolve product names locally from the catalog cache.\n\n**Example `data`:**\n```json\n{\n    \"sections\": [\n        {\n            \"retailer\": {\n                \"id\": 481,\n                \"shop_name\": \"بقالية النور\"\n            },\n            \"lines\": [\n                {\n                    \"id\": 11,\n                    \"product_id\": 880,\n                    \"qty\": 4,\n                    \"unit_price\": 12000\n                }\n            ],\n            \"total\": 48000,\n            \"discount\": 0\n        }\n    ]\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"retailer_id\": 481,\n    \"product_id\": 880,\n    \"variant_id\": 1,\n    \"qty\": 4\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "POST /app/rep/cart/sections/{retailer_id}/submit",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/cart/sections/{{retailer_id}}/submit",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "cart",
+                                "sections",
+                                "{{retailer_id}}",
+                                "submit"
+                            ]
+                        },
+                        "description": "**EP-RP-023** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | إرسال طلب محل |\n\n🟡 Path param is retailer_id. 403 discount_cap_exceeded if discount_percent > session.commercial_limits.max_discount_percent. note is persisted.\n\ndiscount_percent must be ≤ the rep cap (BR-12).\n\n**Example `data`:**\n```json\n{\n    \"sub_order\": {\n        \"id\": 9001,\n        \"sub_order_no\": \"SO-9001\",\n        \"status\": \"pending\",\n        \"total\": 47040\n    }\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"note\": \"توصيل صباحي\",\n    \"discount_percent\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/rep/cart",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/cart",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "cart"
+                            ]
+                        },
+                        "description": "**EP-RP-022** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | سلة المندوب |\n\n🟡 Grouped by shop. No section id — submit uses retailer.id. Lines have id/product_id/qty/unit_price only.\n\nGrouped by shop.\n\n**Example `data`:**\n```json\n{\n    \"sections\": [\n        {\n            \"retailer\": {\n                \"id\": 481,\n                \"shop_name\": \"بقالية النور\"\n            },\n            \"lines\": [\n                {\n                    \"id\": 11,\n                    \"product_id\": 880,\n                    \"qty\": 4,\n                    \"unit_price\": 12000\n                }\n            ],\n            \"total\": 48000,\n            \"discount\": 0\n        }\n    ]\n}\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "06. Assignments",
+            "item": [
+                {
+                    "name": "POST /app/rep/assignments/{id}/accept",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/assignments/{{id}}/accept",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "assignments",
+                                "{{id}}",
+                                "accept"
+                            ]
+                        },
+                        "description": "**EP-RP-031** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.accept` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | قبول الإسناد |\n\n**Example `data`:**\n```json\n{\n    \"status\": \"accepted\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "POST /app/rep/assignments/{id}/reject",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/assignments/{{id}}/reject",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "assignments",
+                                "{{id}}",
+                                "reject"
+                            ]
+                        },
+                        "description": "**EP-RP-032** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.accept` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | رفض الإسناد |\n\nReturns to unassigned + immediate channel alert (REQ-IN-03).\n\n**Example `data`:**\n```json\n{\n    \"status\": \"unassigned\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"خارج مساري اليوم\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/rep/assignments",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/assignments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "assignments"
+                            ]
+                        },
+                        "description": "**EP-RP-030** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.accept` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | إسنادات بانتظار القبول |\n\n🟡 Unpaginated array. invoice_no is always null. id is sub_order id.\n\nGrouped by zone. Accept moves the card to deliveries (REQ-IN-03).\n\n**Example `data`:**\n```json\n[\n    {\n        \"id\": 9001,\n        \"sub_order_no\": \"SO-9001\",\n        \"shop\": \"بقالية النور\",\n        \"zone\": \"المزة\",\n        \"channel\": \"شركة النور\",\n        \"invoice_no\": null,\n        \"created_at\": \"2026-03-01T10:00:00+03:00\"\n    }\n]\n```"
+                    }
+                },
+                {
+                    "name": "GET /app/rep/scheduled-orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/scheduled-orders",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "scheduled-orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date",
+                                    "value": "2026-03-02",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-033** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.accept` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | الطلبات المجدولة |\n\n🟡 Unpaginated. Query `date` (Y-m-d). shop_logo always null. id is sub_order id.\n\n**Example `data`:**\n```json\n[\n    {\n        \"shop_logo\": null,\n        \"shop\": \"بقالية النور\",\n        \"address\": \"المزة فيلات شرقية\",\n        \"phone\": \"+963933000000\",\n        \"scheduled_at\": \"2026-03-02T10:00:00+03:00\",\n        \"status\": \"postponed\",\n        \"color\": \"amber\"\n    }\n]\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "07. Warehouse pickup",
+            "item": [
+                {
+                    "name": "POST /app/rep/warehouse-receipts/{handoverId}/confirm",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/warehouse-receipts/{{handoverId}}/confirm",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "warehouse-receipts",
+                                "{{handoverId}}",
+                                "confirm"
+                            ]
+                        },
+                        "description": "**EP-RP-041** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.warehouse.receive` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | تأكيد استلام العهدة |\n\n🟡 temp_code size 4. Wrong handover id → 409 illegal_transition (not 404). Replay of a confirmed handover returns the success payload.\n\nStock is deducted and status becomes on_the_way only when BOTH EP-WH-019 and this confirm exist (REQ-IN-02). temp_code used if previously offline.\n\n**Example `data`:**\n```json\n{\n    \"status\": \"on_the_way\",\n    \"tracking_enabled\": true\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"temp_code\": \"7391\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/rep/warehouse-receipts",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/warehouse-receipts",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "warehouse-receipts"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date",
+                                    "value": "2026-03-01",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-040** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.warehouse.receive` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | استلام العهدة |\n\n🟡 Use handover_id in the confirm path, not sub_order_id. Query `date` optional.\n\n**Example `data`:**\n```json\n{\n    \"date\": \"2026-03-01\",\n    \"rep_name\": \"أحمد العلي\",\n    \"count\": 1,\n    \"orders\": [\n        {\n            \"sub_order_id\": 9001,\n            \"order_no\": \"SO-9001\",\n            \"shop\": \"بقالية النور\",\n            \"zone\": \"المزة\",\n            \"handover_id\": 44\n        }\n    ]\n}\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "08. Delivery & returns",
+            "item": [
+                {
+                    "name": "POST /app/rep/deliveries/{id}/complete",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}/complete",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}",
+                                "complete"
+                            ]
+                        },
+                        "description": "**EP-RP-053** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.deliver` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | إنهاء التسليم |\n\n🟡 409 illegal_transition (no_handover) unless warehouse confirm ran. Mints receipt_no. ask_payment true — open collect.\n\n**Example `data`:**\n```json\n{\n    \"invoice\": {\n        \"no\": \"INV-501\",\n        \"total\": 48000\n    },\n    \"receipt_no\": \"RCPT-10041\",\n    \"ask_payment\": true\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty_delivered\": 4,\n            \"action\": \"accept\"\n        }\n    ],\n    \"delivered_at\": \"2026-03-01T12:05:00+03:00\",\n    \"signature\": \"data:image/png;base64,...\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const j = pm.response.json();",
+                                    "const d = j.data || {};",
+                                    "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                    "if (d.receipt_no) { store.set('receipt_no', d.receipt_no); console.log('receipt_no saved'); }"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "POST /app/rep/deliveries/{id}/fail",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}/fail",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}",
+                                "fail"
+                            ]
+                        },
+                        "description": "**EP-RP-055** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.deliver` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | تعذر التسليم |\n\n**Example `data`:**\n```json\n{\n    \"status\": \"undelivered\",\n    \"border_color\": \"red\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"رفض الاستلام\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "PATCH /app/rep/deliveries/{id}/lines/{lineId}",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}/lines/{{lineId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}",
+                                "lines",
+                                "{{lineId}}"
+                            ]
+                        },
+                        "description": "**EP-RP-052** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.deliver` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | تعديل بند التسليم |\n\naction: adjust|return|exchange. Updates the invoice on both sides in the same transaction (REQ-IN-05).\n\n**Example `data`:**\n```json\n{\n    \"new_invoice_total\": 36000\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qty_delivered\": 3,\n    \"action\": \"return\",\n    \"reason\": \"رفض التاجر عبوة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "POST /app/rep/deliveries/{id}/postpone",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}/postpone",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}",
+                                "postpone"
+                            ]
+                        },
+                        "description": "**EP-RP-054** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.postpone` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | تأجيل التسليم |\n\n🟡 Persists scheduled_at + reason. Card moves to GET /scheduled-orders.\n\nAutomatically added to scheduled orders.\n\n**Example `data`:**\n```json\n{\n    \"status\": \"postponed\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"scheduled_at\": \"2026-03-02T10:00:00+03:00\",\n    \"reason\": \"المحل مغلق\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/rep/deliveries/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RP-051** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.deliver` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | تفاصيل التسليم |\n\n**Example `data`:**\n```json\n{\n    \"lines\": [\n        {\n            \"id\": 1,\n            \"image\": null,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"brand\": \"نور\",\n            \"variant\": null,\n            \"qty\": 4,\n            \"qty_delivered\": 0,\n            \"price\": 12000,\n            \"status\": \"pending\"\n        }\n    ],\n    \"invoice_total\": 48000\n}\n```"
+                    }
+                },
+                {
+                    "name": "GET /app/rep/deliveries",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries"
+                            ],
+                            "query": [
+                                {
+                                    "key": "filter[zone_id]",
+                                    "value": "12",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-050** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.deliver` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | قائمة التسليم |\n\n🟡 Unpaginated. Delivered cards from other days are omitted. delivered count is today's delivered cards in that zone.\n\n**Example `data`:**\n```json\n{\n    \"zones\": [\n        {\n            \"name\": \"المزة\",\n            \"total\": 4,\n            \"delivered\": 1,\n            \"cards\": [\n                {\n                    \"id\": 9001,\n                    \"shop\": \"بقالية النور\",\n                    \"zone\": \"المزة\",\n                    \"channel\": \"شركة النور\",\n                    \"invoice_no\": \"INV-501\",\n                    \"ordered_at\": \"2026-03-01T09:10:00+03:00\",\n                    \"status\": \"on_the_way\",\n                    \"border_color\": \"green\"\n                }\n            ]\n        }\n    ]\n}\n```"
+                    }
+                },
+                {
+                    "name": "POST /app/rep/locations/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/locations/ping",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "locations",
+                                "ping"
+                            ]
+                        },
+                        "description": "**EP-RP-056** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `—` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | نبضات الموقع |\n\n🟡 422 off_duty if not on duty. 429 rate_limited if last ping < 30s. Batch in pings[].\n\nBatched pings, on-duty only. Rate: 1/30s per rep (REQ-CM-044).\n\n**Example `data`:**\n```json\n{\n    \"accepted\": 1\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"pings\": [\n        {\n            \"lat\": 33.5112,\n            \"lng\": 36.2781,\n            \"at\": \"2026-03-01T11:41:00+03:00\",\n            \"accuracy\": 12\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "POST /app/rep/return-requests",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/return-requests",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "return-requests"
+                            ]
+                        },
+                        "description": "**EP-RP-057** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.delivery.return_request` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | طلب إرجاع ميداني |\n\n**Example `data`:**\n```json\n{\n    \"request_no\": \"RR-201\",\n    \"status\": \"pending\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sub_order_id\": 9001,\n    \"type\": \"exchange\",\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty\": 1,\n            \"reason\": \"خطأ صنف\",\n            \"photos\": []\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "09. Wallet & cash",
+            "item": [
+                {
+                    "name": "POST /app/receipts/reserve",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/receipts/reserve",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "receipts",
+                                "reserve"
+                            ]
+                        },
+                        "description": "**EP-CM-050** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.payment.collect` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | حجز رقم وصل |\n\n🟡 Empty body {}. Use when collecting without a completion receipt. 24h expiry.\n\nServer-generated unique number BEFORE payment starts (REQ-IN-01). Used by EP-RP-060 then EP-RT-050.\n\n**Example `data`:**\n```json\n{\n    \"receipt_no\": \"RCPT-10041\"\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const j = pm.response.json();",
+                                    "const d = j.data || {};",
+                                    "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                    "if (d.receipt_no) { store.set('receipt_no', d.receipt_no); console.log('receipt_no saved'); }"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "POST /app/rep/payments",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/payments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "payments"
+                            ]
+                        },
+                        "description": "**EP-RP-060** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.payment.collect` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | تحصيل دفعة |\n\n🟡 amount integer. 409 duplicate_receipt_no. 403 cash_cap_exceeded. 422 receipt_not_reserved / receipt_expired. client_op_id replay returns the same payment.\n\nreceipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).\n\n**Example `data`:**\n```json\n{\n    \"payment\": {\n        \"id\": 301\n    },\n    \"wallet_balance\": 210000,\n    \"retailer_receivable\": 0\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"receipt_no\": \"RCPT-10041\",\n    \"retailer_id\": 481,\n    \"invoice_no\": \"INV-501\",\n    \"amount\": 48000,\n    \"paid_at\": \"2026-03-01T12:08:00+03:00\",\n    \"client_op_id\": \"op_rep_pay_10041\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/rep/receivables",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/receivables",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "receivables"
+                            ]
+                        },
+                        "description": "**EP-RP-064** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.wallet.view` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | ذمم المحلات |\n\n**Example `data`:**\n```json\n{\n    \"by_shop\": [\n        {\n            \"shop\": \"بقالية النور\",\n            \"total\": 48000,\n            \"invoices\": [\n                {\n                    \"no\": \"INV-501\",\n                    \"total\": 48000,\n                    \"paid\": 0,\n                    \"remaining\": 48000\n                }\n            ]\n        }\n    ]\n}\n```"
+                    }
+                },
+                {
+                    "name": "GET /app/rep/wallet/withdrawals",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/wallet/withdrawals",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "wallet",
+                                "withdrawals"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-02-01",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-02-28",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-063** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.wallet.view` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | سجل التسليمات |\n\n**Example `data`:**\n```json\n{\n    \"rows\": [\n        {\n            \"operation_no\": \"OP-7700\",\n            \"amount\": 900000,\n            \"operated_at\": \"2026-02-20\"\n        }\n    ],\n    \"total\": 900000\n}\n```"
+                    }
+                },
+                {
+                    "name": "POST /app/rep/wallet/withdrawals",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/wallet/withdrawals",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "wallet",
+                                "withdrawals"
+                            ]
+                        },
+                        "description": "**EP-RP-062** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.payment.withdraw` — not enforced on /app/rep |\n| Idempotency | required |\n| Name | تسليم نقدية |\n\noperation_no comes from the accountant and must stay unique across sync retries (TB-RP-063).\n\n**Example `data`:**\n```json\n{\n    \"remaining_balance\": 250000\n}\n```",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"amount\": 1500000,\n    \"operation_no\": \"OP-7781\",\n    \"operated_at\": \"2026-03-01T16:00:00+03:00\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /app/rep/wallet",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/wallet",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "wallet"
+                            ]
+                        },
+                        "description": "**EP-RP-061** · live\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission in catalog | `rp.wallet.view` — not enforced on /app/rep |\n| Idempotency | n/a |\n| Name | المحفظة |\n\nnet_balance == SUM(collected) − SUM(settled) at all times (AC-06).\n\n**Example `data`:**\n```json\n{\n    \"net_balance\": 210000,\n    \"stats\": {\n        \"invoices_delivered\": 18,\n        \"collected_total\": 860000,\n        \"receivables\": 120000\n    },\n    \"today\": {\n        \"invoices\": 4,\n        \"collected\": 180000,\n        \"receivables\": 30000\n    }\n}\n```"
+                    }
+                }
+            ]
+        }
+    ]
+}

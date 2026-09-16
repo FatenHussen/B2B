@@ -520,8 +520,10 @@ final class WarehouseWorkspace
         $orders = [];
         foreach ($handovers as $h) {
             foreach ($h->items as $item) {
-                $header = $this->orders->header((int) $item->sub_order_id);
+                $subOrderId = (int) $item->sub_order_id;
+                $header = $this->orders->header($subOrderId);
                 $orders[] = [
+                    'sub_order_id' => $subOrderId,
                     'order_no' => $header['sub_order_no'] ?? null,
                     'shop' => $header['shop_name'] ?? null,
                     'zone' => $header['zone_name'] ?? null,

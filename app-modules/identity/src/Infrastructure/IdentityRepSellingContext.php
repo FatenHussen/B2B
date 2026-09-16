@@ -11,9 +11,14 @@ use Modules\Identity\Domain\Models\AppUser;
 
 final class IdentityRepSellingContext implements RepSellingContext
 {
+    public function isRep(object $user): bool
+    {
+        return $user instanceof AppUser && $user->kind === AppUserKind::Rep;
+    }
+
     public function for(object $user): array
     {
-        if (! $user instanceof AppUser || $user->kind !== AppUserKind::Rep) {
+        if (! $this->isRep($user)) {
             throw new DomainException(__('auth.forbidden'), 'insufficient_permission', 403);
         }
 

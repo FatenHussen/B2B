@@ -56,6 +56,9 @@ function place(string $path, string $mw): array
     if (str_starts_with($path, '/app/rep/deliveries') || str_starts_with($path, '/app/rep/locations'))
         return ['02. Field rep app', '06. Delivery'];
     if (str_starts_with($path, '/app/rep/return-requests')) return ['02. Field rep app', '07. Returns'];
+    if (str_starts_with($path, '/app/rep/payments') || str_starts_with($path, '/app/rep/wallet')
+        || str_starts_with($path, '/app/rep/receivables') || str_starts_with($path, '/app/receipts'))
+        return ['02. Field rep app', '08. Wallet & cash'];
     if (str_starts_with($path, '/app/rep/')) return ['02. Field rep app', '02. Catalog'];
 
     // ---------- Shared app surface (both mobile apps)

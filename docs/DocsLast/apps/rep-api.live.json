@@ -1,0 +1,1574 @@
+{
+    "info": {
+        "title": "Field rep app — live API only",
+        "generated_at": "2026-09-16",
+        "base_path": "/api/v1",
+        "guard": "app",
+        "kind": "rep",
+        "x_client": "rep-android | rep-ios",
+        "seed": "none — OTP any Syrian mobile; staging code 000000",
+        "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.",
+        "counts": {
+            "live_endpoints": 39,
+            "matched_catalog": 39,
+            "live_without_catalog": 0,
+            "forbidden": 17
+        }
+    },
+    "headers": {
+        "Authorization": "Bearer {token} — required except GET /health and POST /public/auth/*",
+        "Accept": "application/json",
+        "Accept-Language": "ar — server messages may still be English; map error.code in the UI",
+        "X-Client": "rep-android or rep-ios",
+        "X-Device-Id": "stable UUID per install — required on /public/* and /app/*",
+        "X-App-Version": "semver (build), e.g. 1.4.2 (142)",
+        "X-Idempotency-Key": "UUID per user intent on every write except the three public OTP paths",
+        "Content-Type": "application/json",
+        "X-Channel-Id": "do not send — /app/rep sets no tenant"
+    },
+    "envelope": {
+        "success": {
+            "data": {},
+            "meta": {
+                "server_time": "..."
+            }
+        },
+        "list": {
+            "data": [],
+            "meta": {
+                "page": 1,
+                "per_page": 25,
+                "total": 0,
+                "last_page": 1
+            }
+        },
+        "error": {
+            "error": {
+                "code": "not_found",
+                "message": "...",
+                "details": {}
+            }
+        },
+        "money": "integer minor units. SYP decimals = 0 so the integer is the display amount. Never /100.",
+        "sort": "never send sort",
+        "not_found": "404 means missing OR not yours — never render forbidden",
+        "permissions": "session.permissions lists rp.* by kind. Routes do not check them. Do not hide screens behind can(rp.*)."
+    },
+    "forbidden": [
+        {
+            "method": "GET",
+            "path": "/api/v1/public/refs",
+            "code": "EP-PB-001",
+            "reason": "No public reference snapshot — registration cannot list channels, zones or activity types"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/public/app-config",
+            "code": "EP-PB-010",
+            "reason": "No force-update / maintenance config"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/app/sync/pull",
+            "code": "EP-SY-001",
+            "reason": "Offline sync not built — online-first"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/app/sync/push",
+            "code": "EP-SY-002",
+            "reason": "No outbox drain"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/app/sync/status",
+            "code": "EP-SY-003",
+            "reason": "No sync status"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/app/sync/resolve-conflict",
+            "code": "EP-SY-004",
+            "reason": "No conflict API"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/app/notifications",
+            "code": "EP-CM-060",
+            "reason": "No inbox"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/app/notifications/read-all",
+            "code": "EP-CM-061",
+            "reason": "No inbox"
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/app/notifications",
+            "code": "EP-CM-062",
+            "reason": "No inbox"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/app/devices/push-token",
+            "code": "EP-CM-063",
+            "reason": "No push token registration"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/app/content/home-blocks",
+            "code": "EP-APP-100",
+            "reason": "No home banners/sliders — compose home from live lists"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/app/loyalty",
+            "code": "EP-APP-110",
+            "reason": "Loyalty is not a rep surface"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/app/loyalty/redeem",
+            "code": "EP-APP-111",
+            "reason": "Loyalty is not a rep surface"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/app/rep/zones",
+            "code": null,
+            "reason": "No list of assigned zones — only POST extra zone and GET /zones/{id}/shops"
+        },
+        {
+            "method": "PATCH",
+            "path": "/api/v1/app/rep/cart/lines/{id}",
+            "code": null,
+            "reason": "No update/delete cart line for the rep"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/app/rep/return-requests",
+            "code": null,
+            "reason": "Create only — no list or detail"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/app/rep/discount-cap",
+            "code": null,
+            "reason": "Cap is session.commercial_limits.max_discount_percent — no dedicated GET"
+        }
+    ],
+    "gotchas": [
+        "POST /app/rep/cart/lines increments qty on an existing (product, variant) — there is no PATCH or DELETE for rep cart lines.",
+        "POST /app/rep/customers returns RepSourcedShop id, not retailer_id. Cart, payments and submit use RetailerProfile id from GET /customers and GET /zones/{id}/shops.",
+        "Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.",
+        "max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.",
+        "No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.",
+        "GET /public/refs and GET /public/app-config are 404. Registration cannot load a channel/zone directory from the API."
+    ],
+    "endpoints": [
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/health",
+            "catalog_path": "/health",
+            "code": "EP-CORE-001",
+            "name": "Health check",
+            "name_ar": "فحص الصحة",
+            "permission": null,
+            "guard": "none",
+            "auth": false,
+            "write": false,
+            "idempotency": false,
+            "folder": "00. Health",
+            "query": [],
+            "body": null,
+            "response": {
+                "status": "ok"
+            },
+            "errors": [],
+            "description": "Public liveness. No tenant, no auth.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/register",
+            "catalog_path": "/app/rep/register",
+            "code": "EP-RP-001",
+            "name": "Complete rep registration",
+            "name_ar": "إكمال تسجيل المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "01. Auth & registration",
+            "query": [],
+            "body": {
+                "name": "أحمد العلي",
+                "supply_channel_id": 1,
+                "activity_type_id": 3,
+                "zone_ids": [
+                    12,
+                    13
+                ],
+                "note": "خبرة سنتين في المزة"
+            },
+            "response": {
+                "rep": {
+                    "id": 70,
+                    "name": "أحمد العلي",
+                    "channel": {
+                        "id": 1,
+                        "name": "شركة النور"
+                    },
+                    "zones": [
+                        {
+                            "id": 12,
+                            "name": "المزة"
+                        }
+                    ],
+                    "status": "pending_review"
+                },
+                "token": "50|rep_xxxxx"
+            },
+            "errors": [],
+            "description": "Channel must be active; zones must be inside its coverage (TB-RP-010).",
+            "note": "Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null. GET /public/refs is 404 — ids must be known."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/public/auth/request-otp",
+            "catalog_path": "/public/auth/request-otp",
+            "code": "EP-CM-001",
+            "name": "Request OTP",
+            "name_ar": "طلب رمز واتساب",
+            "permission": null,
+            "guard": "none",
+            "auth": false,
+            "write": true,
+            "idempotency": false,
+            "folder": "01. Auth & registration",
+            "query": [],
+            "body": {
+                "phone": "+963933000000",
+                "purpose": "login",
+                "client": "retailer-android"
+            },
+            "response": {
+                "otp_id": "otp_9f2a71",
+                "channel_used": "whatsapp",
+                "expires_in": 300,
+                "resend_after": 60
+            },
+            "errors": {
+                "422": "validation_failed",
+                "429": "rate_limited"
+            },
+            "description": "purpose: register|login. Rate: 3/hour per phone, 10/hour per device, 30/hour per IP (REQ-CM-055). Phone E.164 Syrian mobile.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/public/auth/resend-otp",
+            "catalog_path": "/public/auth/resend-otp",
+            "code": "EP-CM-003",
+            "name": "Resend OTP",
+            "name_ar": "إعادة إرسال الرمز",
+            "permission": null,
+            "guard": "none",
+            "auth": false,
+            "write": true,
+            "idempotency": false,
+            "folder": "01. Auth & registration",
+            "query": [],
+            "body": {
+                "otp_id": "{{otp_id}}",
+                "prefer_channel": "sms"
+            },
+            "response": {
+                "channel_used": "sms",
+                "resend_after": 60
+            },
+            "errors": {
+                "429": "rate_limited",
+                "404": "not_found"
+            },
+            "description": "prefer_channel: whatsapp|sms. Falls back to SMS if WhatsApp fails.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/public/auth/verify-otp",
+            "catalog_path": "/public/auth/verify-otp",
+            "code": "EP-CM-002",
+            "name": "Verify OTP",
+            "name_ar": "تحقق رمز الدخول",
+            "permission": null,
+            "guard": "none",
+            "auth": false,
+            "write": true,
+            "idempotency": false,
+            "folder": "01. Auth & registration",
+            "query": [],
+            "body": {
+                "otp_id": "{{otp_id}}",
+                "code": "482193",
+                "device_id": "{{deviceId}}",
+                "device_name": "Redmi Note 13",
+                "platform": "android"
+            },
+            "response": {
+                "token": "12|xxxxx",
+                "is_new_user": false,
+                "user_type": "retailer",
+                "profile_completed": true,
+                "user": {
+                    "id": 481,
+                    "name": "أبو خالد",
+                    "phone": "+963933000000",
+                    "shop_name": "بقالية النور",
+                    "zone": {
+                        "id": 12,
+                        "name": "المزة"
+                    },
+                    "activity_type": {
+                        "id": 3,
+                        "name": "بقالة"
+                    },
+                    "points": 1240,
+                    "tier": "silver"
+                }
+            },
+            "errors": {
+                "401": "otp_invalid",
+                "429": "rate_limited"
+            },
+            "description": "5 attempts per otp_id. New user returns is_new_user=true without a full profile.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/auth/logout",
+            "catalog_path": "/app/auth/logout",
+            "code": "EP-CM-005",
+            "name": "App logout",
+            "name_ar": "خروج التطبيق",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. Session & duty",
+            "query": [],
+            "body": [],
+            "response": {
+                "success": true
+            },
+            "errors": [],
+            "description": "Client must wipe local data (REQ-CM-056).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/app/rep/status",
+            "catalog_path": "/app/rep/status",
+            "code": "EP-RP-034",
+            "name": "On-duty toggle",
+            "name_ar": "داخل/خارج الخدمة",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. Session & duty",
+            "query": [],
+            "body": {
+                "on_duty": true
+            },
+            "response": {
+                "on_duty": true,
+                "tracking_enabled": true
+            },
+            "errors": [],
+            "description": "Tracking is enabled only while on duty (REQ-CM-054).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/session",
+            "catalog_path": "/app/session",
+            "code": "EP-CM-004",
+            "name": "App session bootstrap",
+            "name_ar": "جلسة الإقلاع",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "02. Session & duty",
+            "query": [],
+            "body": null,
+            "response": {
+                "user": {
+                    "id": 70,
+                    "name": "أحمد العلي",
+                    "user_type": "rep",
+                    "profile_completed": true
+                },
+                "permissions": [
+                    "rp.delivery.accept",
+                    "rp.delivery.deliver",
+                    "rp.delivery.postpone",
+                    "rp.delivery.return_request",
+                    "rp.payment.collect",
+                    "rp.payment.withdraw",
+                    "rp.wallet.view",
+                    "rp.warehouse.receive"
+                ],
+                "feature_flags": {
+                    "offline_orders": false,
+                    "loyalty": false
+                },
+                "sync_cursor": "",
+                "server_time": "2026-03-01T09:12:44+03:00",
+                "requires_legal_accept": false,
+                "legal": {
+                    "privacy_version": "2026-03",
+                    "terms_version": "2026-01"
+                },
+                "commercial_limits": {
+                    "max_discount_percent": 5,
+                    "max_cash_hold": 0
+                }
+            },
+            "errors": [],
+            "description": "Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081).",
+            "note": "Rep-only extra: commercial_limits. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/customers",
+            "catalog_path": "/app/rep/customers",
+            "code": "EP-RP-070A",
+            "name": "List customers",
+            "name_ar": "زبائن المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. Field — zones & customers",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "filter[search]",
+                    "example": "النور"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 481,
+                    "shop_name": "بقالية النور",
+                    "zone_id": 12,
+                    "is_active": true
+                }
+            ],
+            "errors": [],
+            "description": "DOC-12B TB-RP-053.",
+            "note": "Paginated. Search is filter[search]. id is RetailerProfile id — this is retailer_id everywhere else."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/customers",
+            "catalog_path": "/app/rep/customers",
+            "code": "EP-RP-070B",
+            "name": "Register shop offline",
+            "name_ar": "إضافة محل",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. Field — zones & customers",
+            "query": [],
+            "body": {
+                "shop_name": "ميني ماركت الشام",
+                "owner_name": "أبو سامر",
+                "phone": "+963988000000",
+                "zone_id": 12,
+                "activity_type_id": 3,
+                "lat": 33.51,
+                "lng": 36.27,
+                "client_op_id": "op_shop_local_1"
+            },
+            "response": {
+                "id": 490,
+                "status": "pending_sync"
+            },
+            "errors": [],
+            "description": "Stored locally and synced with a unique client_op_id (TB-RP-053).",
+            "note": "client_op_id required; replay returns the same sourced-shop row. Returned id is NOT retailer_id — reload GET /customers."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/zones/{id}/shops",
+            "catalog_path": "/app/rep/zones/{id}/shops",
+            "code": "EP-RP-020",
+            "name": "Shops in zone",
+            "name_ar": "محلات المنطقة",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. Field — zones & customers",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": "النور"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 481,
+                    "shop_name": "بقالية النور",
+                    "address": "المزة فيلات شرقية",
+                    "is_open": true,
+                    "is_active": true,
+                    "last_order_at": "2026-02-28T16:00:00+03:00"
+                }
+            ],
+            "errors": [],
+            "description": "Available offline from the cached pull (TB-RP-020).",
+            "note": "Paginated. Search is top-level `search`, not filter[search]. is_open is hardcoded true. last_order_at is always null. 403 zone_not_covered if the zone is not assigned."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/zones",
+            "catalog_path": "/app/rep/zones",
+            "code": "EP-RP-071",
+            "name": "Request extra zone",
+            "name_ar": "إضافة منطقة تغطية",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. Field — zones & customers",
+            "query": [],
+            "body": {
+                "zone_id": 14,
+                "note": "طلب تغطية كفرسوسة"
+            },
+            "response": {
+                "status": "pending_approval"
+            },
+            "errors": [],
+            "description": "DOC-12B TB-RP-055.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/offers/{id}",
+            "catalog_path": "/app/offers/{id}",
+            "code": "EP-APP-041",
+            "name": "Offer detail",
+            "name_ar": "تفاصيل عرض",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "04. Catalog, offers & quote",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 44,
+                "images": [],
+                "long_description": "على زيت دوار الشمس",
+                "icons": [
+                    "gift"
+                ],
+                "same_company_offers": [],
+                "same_company_products": []
+            },
+            "errors": [],
+            "description": "Re-validate via quote before submit (TB-RT-043).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/offers",
+            "catalog_path": "/app/offers",
+            "code": "EP-APP-040",
+            "name": "Browse offers",
+            "name_ar": "العروض",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "04. Catalog, offers & quote",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[activity_type_id]",
+                    "example": "3"
+                },
+                {
+                    "name": "filter[zone_id]",
+                    "example": "12"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 44,
+                    "image": "https://cdn.example/o/44.jpg",
+                    "name": "اشترِ 10 واحصل على 1",
+                    "company": null,
+                    "rating": 4.7,
+                    "components": [
+                        {
+                            "product_id": 880,
+                            "qty": 10
+                        }
+                    ],
+                    "price_before": 120000,
+                    "discount": 12000,
+                    "price_after": 108000,
+                    "ends_at": "2026-03-31T23:59:59+03:00",
+                    "days_left": 30,
+                    "remaining_qty": 320,
+                    "sold_count": 180
+                }
+            ],
+            "errors": [],
+            "description": "company (channel identity) stays hidden until an order is confirmed (REQ-IN-06).",
+            "note": "Paginated. Empty list is valid when no offer matches the rep zone/activity/channel. company stays hidden."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/pricing/quote",
+            "catalog_path": "/app/pricing/quote",
+            "code": "EP-APP-030",
+            "name": "Server price quote",
+            "name_ar": "تسعير الخادم",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "04. Catalog, offers & quote",
+            "query": [],
+            "body": {
+                "lines": [
+                    {
+                        "product_id": 880,
+                        "variant_id": 1,
+                        "qty": 6
+                    }
+                ],
+                "zone_id": 12
+            },
+            "response": {
+                "lines": [
+                    {
+                        "product_id": 880,
+                        "unit_price": 11500,
+                        "applied_rule": {
+                            "type": "qty_tier",
+                            "id": 3,
+                            "label": "شريحة 5–9"
+                        },
+                        "tier": {
+                            "from": 5,
+                            "to": 9
+                        },
+                        "discount": 0,
+                        "line_total": 69000
+                    }
+                ],
+                "subtotal": 69000,
+                "currency": "SYP"
+            },
+            "errors": [],
+            "description": "Single source of truth (REQ-IN-07). Precedence: retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices.",
+            "note": "Reps skip retailer visibility; still send the shop zone_id. Never send unit_price."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/products",
+            "catalog_path": "/app/rep/products",
+            "code": "EP-RP-010",
+            "name": "Rep catalog",
+            "name_ar": "منتجات المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "04. Catalog, offers & quote",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "filter[search]",
+                    "example": "زيت"
+                },
+                {
+                    "name": "filter[category_id]",
+                    "example": "340"
+                },
+                {
+                    "name": "filter[brand_id]",
+                    "example": "12"
+                },
+                {
+                    "name": "filter[channel_id]",
+                    "example": "1"
+                },
+                {
+                    "name": "barcode",
+                    "example": ""
+                },
+                {
+                    "name": "zone",
+                    "example": "12"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 880,
+                    "name": "زيت دوار الشمس 1 لتر",
+                    "channel": {
+                        "id": 1,
+                        "name": "شركة النور"
+                    },
+                    "price": {
+                        "type": "tiered",
+                        "value": 12000,
+                        "label": "السعر حسب الكمية"
+                    },
+                    "availability": "in_stock"
+                }
+            ],
+            "errors": [],
+            "description": "Union of all channels the rep belongs to, each SKU tagged with its channel (TB-RP-050).",
+            "note": "Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Lines have no image/sku."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/cart/lines",
+            "catalog_path": "/app/rep/cart/lines",
+            "code": "EP-RP-021",
+            "name": "Add line to shop cart",
+            "name_ar": "إضافة لسلة محل",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Cart",
+            "query": [],
+            "body": {
+                "retailer_id": 481,
+                "product_id": 880,
+                "variant_id": 1,
+                "qty": 4
+            },
+            "response": {
+                "sections": [
+                    {
+                        "retailer": {
+                            "id": 481,
+                            "shop_name": "بقالية النور"
+                        },
+                        "lines": [
+                            {
+                                "id": 11,
+                                "product_id": 880,
+                                "qty": 4,
+                                "unit_price": 12000
+                            }
+                        ],
+                        "total": 48000,
+                        "discount": 0
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "",
+            "note": "Increments qty if the (product, variant) exists. No PATCH/DELETE. Resolve product names locally from the catalog cache."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/cart/sections/{retailer_id}/submit",
+            "catalog_path": "/app/rep/cart/sections/{retailer_id}/submit",
+            "code": "EP-RP-023",
+            "name": "Submit shop order",
+            "name_ar": "إرسال طلب محل",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Cart",
+            "query": [],
+            "body": {
+                "note": "توصيل صباحي",
+                "discount_percent": 2
+            },
+            "response": {
+                "sub_order": {
+                    "id": 9001,
+                    "sub_order_no": "SO-9001",
+                    "status": "pending",
+                    "total": 47040
+                }
+            },
+            "errors": {
+                "403": "discount_cap_exceeded"
+            },
+            "description": "discount_percent must be ≤ the rep cap (BR-12).",
+            "note": "Path param is retailer_id. 403 discount_cap_exceeded if discount_percent > session.commercial_limits.max_discount_percent. note is persisted."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/cart",
+            "catalog_path": "/app/rep/cart",
+            "code": "EP-RP-022",
+            "name": "Rep cart",
+            "name_ar": "سلة المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "05. Cart",
+            "query": [],
+            "body": null,
+            "response": {
+                "sections": [
+                    {
+                        "retailer": {
+                            "id": 481,
+                            "shop_name": "بقالية النور"
+                        },
+                        "lines": [
+                            {
+                                "id": 11,
+                                "product_id": 880,
+                                "qty": 4,
+                                "unit_price": 12000
+                            }
+                        ],
+                        "total": 48000,
+                        "discount": 0
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "Grouped by shop.",
+            "note": "Grouped by shop. No section id — submit uses retailer.id. Lines have id/product_id/qty/unit_price only."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/assignments/{id}/accept",
+            "catalog_path": "/app/rep/assignments/{id}/accept",
+            "code": "EP-RP-031",
+            "name": "Accept assignment",
+            "name_ar": "قبول الإسناد",
+            "permission": "rp.delivery.accept",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "06. Assignments",
+            "query": [],
+            "body": [],
+            "response": {
+                "status": "accepted"
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/assignments/{id}/reject",
+            "catalog_path": "/app/rep/assignments/{id}/reject",
+            "code": "EP-RP-032",
+            "name": "Reject assignment",
+            "name_ar": "رفض الإسناد",
+            "permission": "rp.delivery.accept",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "06. Assignments",
+            "query": [],
+            "body": {
+                "reason": "خارج مساري اليوم"
+            },
+            "response": {
+                "status": "unassigned"
+            },
+            "errors": [],
+            "description": "Returns to unassigned + immediate channel alert (REQ-IN-03).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/assignments",
+            "catalog_path": "/app/rep/assignments",
+            "code": "EP-RP-030",
+            "name": "Pending assignments",
+            "name_ar": "إسنادات بانتظار القبول",
+            "permission": "rp.delivery.accept",
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "06. Assignments",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 9001,
+                    "sub_order_no": "SO-9001",
+                    "shop": "بقالية النور",
+                    "zone": "المزة",
+                    "channel": "شركة النور",
+                    "invoice_no": null,
+                    "created_at": "2026-03-01T10:00:00+03:00"
+                }
+            ],
+            "errors": [],
+            "description": "Grouped by zone. Accept moves the card to deliveries (REQ-IN-03).",
+            "note": "Unpaginated array. invoice_no is always null. id is sub_order id."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/scheduled-orders",
+            "catalog_path": "/app/rep/scheduled-orders",
+            "code": "EP-RP-033",
+            "name": "Scheduled orders",
+            "name_ar": "الطلبات المجدولة",
+            "permission": "rp.delivery.accept",
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "06. Assignments",
+            "query": [
+                {
+                    "name": "date",
+                    "example": "2026-03-02"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "shop_logo": null,
+                    "shop": "بقالية النور",
+                    "address": "المزة فيلات شرقية",
+                    "phone": "+963933000000",
+                    "scheduled_at": "2026-03-02T10:00:00+03:00",
+                    "status": "postponed",
+                    "color": "amber"
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": "Unpaginated. Query `date` (Y-m-d). shop_logo always null. id is sub_order id."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/warehouse-receipts/{handoverId}/confirm",
+            "catalog_path": "/app/rep/warehouse-receipts/{handoverId}/confirm",
+            "code": "EP-RP-041",
+            "name": "Confirm handover",
+            "name_ar": "تأكيد استلام العهدة",
+            "permission": "rp.warehouse.receive",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "07. Warehouse pickup",
+            "query": [],
+            "body": {
+                "temp_code": "7391"
+            },
+            "response": {
+                "status": "on_the_way",
+                "tracking_enabled": true
+            },
+            "errors": [],
+            "description": "Stock is deducted and status becomes on_the_way only when BOTH EP-WH-019 and this confirm exist (REQ-IN-02). temp_code used if previously offline.",
+            "note": "temp_code size 4. Wrong handover id → 409 illegal_transition (not 404). Replay of a confirmed handover returns the success payload."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/warehouse-receipts",
+            "catalog_path": "/app/rep/warehouse-receipts",
+            "code": "EP-RP-040",
+            "name": "Warehouse receipts",
+            "name_ar": "استلام العهدة",
+            "permission": "rp.warehouse.receive",
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "07. Warehouse pickup",
+            "query": [
+                {
+                    "name": "date",
+                    "example": "2026-03-01"
+                }
+            ],
+            "body": null,
+            "response": {
+                "date": "2026-03-01",
+                "rep_name": "أحمد العلي",
+                "count": 1,
+                "orders": [
+                    {
+                        "sub_order_id": 9001,
+                        "order_no": "SO-9001",
+                        "shop": "بقالية النور",
+                        "zone": "المزة",
+                        "handover_id": 44
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "",
+            "note": "Use handover_id in the confirm path, not sub_order_id. Query `date` optional."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/deliveries/{id}/complete",
+            "catalog_path": "/app/rep/deliveries/{id}/complete",
+            "code": "EP-RP-053",
+            "name": "Complete delivery",
+            "name_ar": "إنهاء التسليم",
+            "permission": "rp.delivery.deliver",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "08. Delivery & returns",
+            "query": [],
+            "body": {
+                "lines": [
+                    {
+                        "line_id": 1,
+                        "qty_delivered": 4,
+                        "action": "accept"
+                    }
+                ],
+                "delivered_at": "2026-03-01T12:05:00+03:00",
+                "signature": "data:image/png;base64,..."
+            },
+            "response": {
+                "invoice": {
+                    "no": "INV-501",
+                    "total": 48000
+                },
+                "receipt_no": "RCPT-10041",
+                "ask_payment": true
+            },
+            "errors": [],
+            "description": "",
+            "note": "409 illegal_transition (no_handover) unless warehouse confirm ran. Mints receipt_no. ask_payment true — open collect."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/deliveries/{id}/fail",
+            "catalog_path": "/app/rep/deliveries/{id}/fail",
+            "code": "EP-RP-055",
+            "name": "Mark undelivered",
+            "name_ar": "تعذر التسليم",
+            "permission": "rp.delivery.deliver",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "08. Delivery & returns",
+            "query": [],
+            "body": {
+                "reason": "رفض الاستلام"
+            },
+            "response": {
+                "status": "undelivered",
+                "border_color": "red"
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/app/rep/deliveries/{id}/lines/{lineId}",
+            "catalog_path": "/app/rep/deliveries/{id}/lines/{lineId}",
+            "code": "EP-RP-052",
+            "name": "Adjust delivery line",
+            "name_ar": "تعديل بند التسليم",
+            "permission": "rp.delivery.deliver",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "08. Delivery & returns",
+            "query": [],
+            "body": {
+                "qty_delivered": 3,
+                "action": "return",
+                "reason": "رفض التاجر عبوة"
+            },
+            "response": {
+                "new_invoice_total": 36000
+            },
+            "errors": [],
+            "description": "action: adjust|return|exchange. Updates the invoice on both sides in the same transaction (REQ-IN-05).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/deliveries/{id}/postpone",
+            "catalog_path": "/app/rep/deliveries/{id}/postpone",
+            "code": "EP-RP-054",
+            "name": "Postpone delivery",
+            "name_ar": "تأجيل التسليم",
+            "permission": "rp.delivery.postpone",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "08. Delivery & returns",
+            "query": [],
+            "body": {
+                "scheduled_at": "2026-03-02T10:00:00+03:00",
+                "reason": "المحل مغلق"
+            },
+            "response": {
+                "status": "postponed"
+            },
+            "errors": [],
+            "description": "Automatically added to scheduled orders.",
+            "note": "Persists scheduled_at + reason. Card moves to GET /scheduled-orders."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/deliveries/{id}",
+            "catalog_path": "/app/rep/deliveries/{id}",
+            "code": "EP-RP-051",
+            "name": "Delivery detail",
+            "name_ar": "تفاصيل التسليم",
+            "permission": "rp.delivery.deliver",
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "08. Delivery & returns",
+            "query": [],
+            "body": null,
+            "response": {
+                "lines": [
+                    {
+                        "id": 1,
+                        "image": null,
+                        "name": "زيت دوار الشمس 1 لتر",
+                        "brand": "نور",
+                        "variant": null,
+                        "qty": 4,
+                        "qty_delivered": 0,
+                        "price": 12000,
+                        "status": "pending"
+                    }
+                ],
+                "invoice_total": 48000
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/deliveries",
+            "catalog_path": "/app/rep/deliveries",
+            "code": "EP-RP-050",
+            "name": "Delivery list",
+            "name_ar": "قائمة التسليم",
+            "permission": "rp.delivery.deliver",
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "08. Delivery & returns",
+            "query": [
+                {
+                    "name": "filter[zone_id]",
+                    "example": "12"
+                }
+            ],
+            "body": null,
+            "response": {
+                "zones": [
+                    {
+                        "name": "المزة",
+                        "total": 4,
+                        "delivered": 1,
+                        "cards": [
+                            {
+                                "id": 9001,
+                                "shop": "بقالية النور",
+                                "zone": "المزة",
+                                "channel": "شركة النور",
+                                "invoice_no": "INV-501",
+                                "ordered_at": "2026-03-01T09:10:00+03:00",
+                                "status": "on_the_way",
+                                "border_color": "green"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "",
+            "note": "Unpaginated. Delivered cards from other days are omitted. delivered count is today's delivered cards in that zone."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/locations/ping",
+            "catalog_path": "/app/rep/locations/ping",
+            "code": "EP-RP-056",
+            "name": "Location pings",
+            "name_ar": "نبضات الموقع",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "08. Delivery & returns",
+            "query": [],
+            "body": {
+                "pings": [
+                    {
+                        "lat": 33.5112,
+                        "lng": 36.2781,
+                        "at": "2026-03-01T11:41:00+03:00",
+                        "accuracy": 12
+                    }
+                ]
+            },
+            "response": {
+                "accepted": 1
+            },
+            "errors": {
+                "429": "rate_limited"
+            },
+            "description": "Batched pings, on-duty only. Rate: 1/30s per rep (REQ-CM-044).",
+            "note": "422 off_duty if not on duty. 429 rate_limited if last ping < 30s. Batch in pings[]."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/return-requests",
+            "catalog_path": "/app/rep/return-requests",
+            "code": "EP-RP-057",
+            "name": "Create return from field",
+            "name_ar": "طلب إرجاع ميداني",
+            "permission": "rp.delivery.return_request",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "08. Delivery & returns",
+            "query": [],
+            "body": {
+                "sub_order_id": 9001,
+                "type": "exchange",
+                "lines": [
+                    {
+                        "line_id": 1,
+                        "qty": 1,
+                        "reason": "خطأ صنف",
+                        "photos": []
+                    }
+                ]
+            },
+            "response": {
+                "request_no": "RR-201",
+                "status": "pending"
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/receipts/reserve",
+            "catalog_path": "/app/receipts/reserve",
+            "code": "EP-CM-050",
+            "name": "Reserve receipt number",
+            "name_ar": "حجز رقم وصل",
+            "permission": "rp.payment.collect",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "09. Wallet & cash",
+            "query": [],
+            "body": [],
+            "response": {
+                "receipt_no": "RCPT-10041"
+            },
+            "errors": {
+                "409": "duplicate_receipt_no"
+            },
+            "description": "Server-generated unique number BEFORE payment starts (REQ-IN-01). Used by EP-RP-060 then EP-RT-050.",
+            "note": "Empty body {}. Use when collecting without a completion receipt. 24h expiry."
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/payments",
+            "catalog_path": "/app/rep/payments",
+            "code": "EP-RP-060",
+            "name": "Collect payment",
+            "name_ar": "تحصيل دفعة",
+            "permission": "rp.payment.collect",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "09. Wallet & cash",
+            "query": [],
+            "body": {
+                "receipt_no": "RCPT-10041",
+                "retailer_id": 481,
+                "invoice_no": "INV-501",
+                "amount": 48000,
+                "paid_at": "2026-03-01T12:08:00+03:00",
+                "client_op_id": "op_rep_pay_10041"
+            },
+            "response": {
+                "payment": {
+                    "id": 301
+                },
+                "wallet_balance": 210000,
+                "retailer_receivable": 0
+            },
+            "errors": {
+                "409": "duplicate_receipt_no"
+            },
+            "description": "receipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).",
+            "note": "amount integer. 409 duplicate_receipt_no. 403 cash_cap_exceeded. 422 receipt_not_reserved / receipt_expired. client_op_id replay returns the same payment."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/receivables",
+            "catalog_path": "/app/rep/receivables",
+            "code": "EP-RP-064",
+            "name": "Shop receivables",
+            "name_ar": "ذمم المحلات",
+            "permission": "rp.wallet.view",
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "09. Wallet & cash",
+            "query": [],
+            "body": null,
+            "response": {
+                "by_shop": [
+                    {
+                        "shop": "بقالية النور",
+                        "total": 48000,
+                        "invoices": [
+                            {
+                                "no": "INV-501",
+                                "total": 48000,
+                                "paid": 0,
+                                "remaining": 48000
+                            }
+                        ]
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/wallet/withdrawals",
+            "catalog_path": "/app/rep/wallet/withdrawals",
+            "code": "EP-RP-063",
+            "name": "Withdrawal history",
+            "name_ar": "سجل التسليمات",
+            "permission": "rp.wallet.view",
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "09. Wallet & cash",
+            "query": [
+                {
+                    "name": "date_from",
+                    "example": "2026-02-01"
+                },
+                {
+                    "name": "date_to",
+                    "example": "2026-02-28"
+                }
+            ],
+            "body": null,
+            "response": {
+                "rows": [
+                    {
+                        "operation_no": "OP-7700",
+                        "amount": 900000,
+                        "operated_at": "2026-02-20"
+                    }
+                ],
+                "total": 900000
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/rep/wallet/withdrawals",
+            "catalog_path": "/app/rep/wallet/withdrawals",
+            "code": "EP-RP-062",
+            "name": "Record cash handover",
+            "name_ar": "تسليم نقدية",
+            "permission": "rp.payment.withdraw",
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "09. Wallet & cash",
+            "query": [],
+            "body": {
+                "amount": 1500000,
+                "operation_no": "OP-7781",
+                "operated_at": "2026-03-01T16:00:00+03:00"
+            },
+            "response": {
+                "remaining_balance": 250000
+            },
+            "errors": [],
+            "description": "operation_no comes from the accountant and must stay unique across sync retries (TB-RP-063).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/wallet",
+            "catalog_path": "/app/rep/wallet",
+            "code": "EP-RP-061",
+            "name": "Wallet",
+            "name_ar": "المحفظة",
+            "permission": "rp.wallet.view",
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "09. Wallet & cash",
+            "query": [],
+            "body": null,
+            "response": {
+                "net_balance": 210000,
+                "stats": {
+                    "invoices_delivered": 18,
+                    "collected_total": 860000,
+                    "receivables": 120000
+                },
+                "today": {
+                    "invoices": 4,
+                    "collected": 180000,
+                    "receivables": 30000
+                }
+            },
+            "errors": [],
+            "description": "net_balance == SUM(collected) − SUM(settled) at all times (AC-06).",
+            "note": null
+        }
+    ]
+}

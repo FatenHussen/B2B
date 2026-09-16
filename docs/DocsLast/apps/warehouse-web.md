@@ -740,7 +740,7 @@ Errors: `409 illegal_transition` (a sub-order not in `processing|accepted|confir
 ```
 
 ⚠️ **`wallet_matched` is hardcoded `true`** — no reconciliation happens. Do not present it
-as a cash check; the rep wallet endpoints do not exist at all
+as a cash check; the rep wallet lives on `/app/rep/wallet` (see the Flutter pack)
 ([rep.md §7](./rep.md#7-not-built--do-not-mock)).
 ⚠️ `reason` is validated and never persisted. `restocked` just echoes the ids you sent.
 
@@ -1020,7 +1020,7 @@ Every path below **returns 404 today**. No stub, no feature flag.
 | Warehouse alerts | `queues.alerts` is a hardcoded `[]` |
 | Offline picking | no sync endpoints exist anywhere; the station must be online |
 | Device self-registration | CLI only, by design (§1.3) |
-| Rep wallet reconciliation | `wallet_matched: true` is fictional — see [rep.md §7](./rep.md#7-not-built--do-not-mock) |
+| Rep wallet reconciliation | `wallet_matched: true` is fictional — real wallet is `/app/rep/wallet` |
 
 Do not fake any of these. A fabricated stock count or a fake "wallet matched" is a
 warehouse discrepancy someone has to reconcile by hand.

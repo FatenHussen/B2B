@@ -245,7 +245,7 @@ object, and read `casts()`'s declared return type instead of its body. What rema
 372, or **585 with no identifier ignored**, which is how it is counted: the 213 relation
 declarations without a related type are the cause of 173 of the rest, and hiding a cause
 while freezing its symptoms is not a baseline — is in `phpstan-baseline.neon`, pinned
-exactly at 585 by `tests/Architecture/PhpstanBaselineTest.php`: the number only falls,
+exactly at 479 by `tests/Architecture/PhpstanBaselineTest.php`: the number only falls,
 and a fall lowers the pin in the same commit. A new finding in new code is fixed, never added to the
 baseline — the gate is green for new code and red for regressions. BE-F11 owns the
 pay-down, one module per ticket; its table is the work list.

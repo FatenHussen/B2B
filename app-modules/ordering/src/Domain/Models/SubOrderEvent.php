@@ -17,6 +17,7 @@ class SubOrderEvent extends Model
         'at',
         'actor_type',
         'actor_id',
+        'reason',
     ];
 
     protected function casts(): array

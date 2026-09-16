@@ -16,6 +16,7 @@ use Modules\Ordering\Domain\Enums\OrderSource;
 use Modules\Ordering\Domain\Enums\SubOrderStatus;
 use Modules\Ordering\Domain\Models\CartSection;
 use Modules\Ordering\Domain\Models\Order;
+use Modules\Ordering\Domain\Models\OrderSection;
 use Modules\Ordering\Domain\Models\SubOrder;
 use Modules\Ordering\Domain\Models\SubOrderEvent;
 use Modules\Ordering\Domain\Models\SubOrderLine;
@@ -60,6 +61,8 @@ final class SubmitRepCartSection
             throw new DomainException(__('ordering.cart_empty'), 'validation_failed', 422);
         }
 
+        $section->forceFill(['note' => $data['note'] ?? $section->note])->save();
+
         $this->carts->reprice($cart, $retailerZoneId, $retailerId, (int) $section->channel_id);
         $section->refresh()->load('lines');
 
@@ -81,6 +84,14 @@ final class SubmitRepCartSection
                 'currency' => 'SYP',
             ]);
             $order->forceFill(['order_no' => 'ORD-'.$order->id])->save();
+
+            OrderSection::query()->create([
+                'order_id' => $order->id,
+                'channel_id' => $section->channel_id,
+                'opaque_ref' => $section->opaque_ref,
+                'note' => $section->note,
+                'scheduled_at' => $section->scheduled_at,
+            ]);
 
             $sub = SubOrder::query()->create([
                 'order_id' => $order->id,

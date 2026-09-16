@@ -11,29 +11,30 @@ use Modules\Core\Support\Concerns\BelongsToChannel;
 /**
  * @property int $id
  * @property int $supply_channel_id
+ * @property string $receipt_no
  * @property int $rep_id
- * @property int $amount
- * @property string $operation_no
- * @property Carbon|null $operated_at
- * @property string $receipt_pdf_url
+ * @property Carbon $expires_at
+ * @property Carbon|null $consumed_at
+ * @property int|null $payment_id
  */
-class Settlement extends Model
+class ReceiptReservation extends Model
 {
     use BelongsToChannel;
 
     protected $fillable = [
         'supply_channel_id',
+        'receipt_no',
         'rep_id',
-        'amount',
-        'operation_no',
-        'operated_at',
-        'receipt_pdf_url',
+        'expires_at',
+        'consumed_at',
+        'payment_id',
     ];
 
     protected function casts(): array
     {
         return [
-            'operated_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'consumed_at' => 'datetime',
         ];
     }
 }

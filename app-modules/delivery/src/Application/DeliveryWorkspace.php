@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Delivery\Application;
 
+use Illuminate\Support\Carbon;
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\HandoverGuard;
 use Modules\Core\Contracts\IssuesInvoice;
@@ -64,9 +65,10 @@ final class DeliveryWorkspace
      */
     public function listForRep(object $rep, ?int $zoneId): array
     {
-        $ids = $this->orders->idsForRep((int) $rep->getAuthIdentifier(), ['on_the_way', 'accepted']);
+        $ids = $this->orders->idsForRep((int) $rep->getAuthIdentifier(), ['on_the_way', 'accepted', 'delivered']);
         $cards = [];
         $headers = [];
+        $today = now('Asia/Damascus')->toDateString();
         foreach ($ids as $sid) {
             $this->ensure($sid, (int) $rep->getAuthIdentifier());
             $header = $this->orders->header($sid);
@@ -76,15 +78,22 @@ final class DeliveryWorkspace
             if ($zoneId && (int) $header['zone_id'] !== $zoneId) {
                 continue;
             }
+            if ($header['status'] === 'delivered') {
+                $stamp = $header['updated_at'] ?? $header['created_at'];
+                $day = is_string($stamp) ? substr($stamp, 0, 10) : null;
+                if ($day !== $today) {
+                    continue;
+                }
+            }
             $card = [
                 'id' => $sid,
                 'shop' => $header['shop_name'],
                 'zone' => $header['zone_name'],
                 'channel' => $header['channel_name'],
                 'invoice_no' => $this->invoices->forSubOrder($sid)['no'] ?? null,
-                'ordered_at' => null,
+                'ordered_at' => $header['created_at'],
                 'status' => $header['status'],
-                'border_color' => $header['status'] === 'on_the_way' ? 'green' : 'blue',
+                'border_color' => $header['status'] === 'on_the_way' ? 'green' : ($header['status'] === 'delivered' ? 'gray' : 'blue'),
             ];
             $headers[$header['zone_name']][] = $card;
         }
@@ -94,7 +103,7 @@ final class DeliveryWorkspace
             $zones[] = [
                 'name' => $name,
                 'total' => count($zoneCards),
-                'delivered' => 0,
+                'delivered' => count(array_filter($zoneCards, fn (array $card): bool => $card['status'] === 'delivered')),
                 'cards' => $zoneCards,
             ];
         }
@@ -124,6 +133,7 @@ final class DeliveryWorkspace
                 'brand' => $src['brand'] ?? null,
                 'variant' => null,
                 'qty' => (int) $line->qty_expected,
+                'qty_delivered' => (int) $line->qty_delivered,
                 'price' => $src['unit_price'] ?? 0,
                 'status' => $line->action,
             ];
@@ -195,7 +205,10 @@ final class DeliveryWorkspace
         }
         $total = $this->invoiceTotal($delivery->fresh('lines'));
         $invoice = $this->invoices->issue($subOrderId, (int) $header['channel_id'], (int) $header['retailer_id'], $total, (int) $header['rep_id']);
-        $receipt = $this->receipts->reserve((int) $header['channel_id']);
+        $receipt = $this->receipts->reserveFor(
+            (int) $header['channel_id'],
+            (int) ($header['rep_id'] ?? $actor->getAuthIdentifier()),
+        );
         DeliveryCompletion::query()->updateOrCreate(
             ['delivery_id' => $delivery->id],
             [
@@ -222,8 +235,16 @@ final class DeliveryWorkspace
      */
     public function postpone(int $subOrderId, array $data, object $actor): array
     {
-        $this->orders->transition($subOrderId, 'postpone', $actor);
-        Delivery::query()->where('sub_order_id', $subOrderId)->update(['status' => 'postponed']);
+        $this->assertOwned($subOrderId, $actor);
+        $when = Carbon::parse((string) $data['scheduled_at']);
+        $this->orders->postponeTo($subOrderId, $actor, $when->toIso8601String(), (string) $data['reason']);
+        $delivery = Delivery::query()->where('sub_order_id', $subOrderId)->first();
+        if ($delivery !== null) {
+            $delivery->status = 'postponed';
+            $delivery->reason = $data['reason'];
+            $delivery->scheduled_at = $when;
+            $delivery->save();
+        }
 
         return ['status' => 'postponed'];
     }
@@ -233,8 +254,12 @@ final class DeliveryWorkspace
      */
     public function fail(int $subOrderId, array $data, object $actor): array
     {
-        $this->orders->transition($subOrderId, 'undelivered', $actor);
-        Delivery::query()->where('sub_order_id', $subOrderId)->update(['status' => 'undelivered']);
+        $this->assertOwned($subOrderId, $actor);
+        $this->orders->markUndelivered($subOrderId, $actor, (string) $data['reason']);
+        Delivery::query()->where('sub_order_id', $subOrderId)->update([
+            'status' => 'undelivered',
+            'reason' => $data['reason'],
+        ]);
 
         return ['status' => 'undelivered', 'border_color' => 'red'];
     }
@@ -309,5 +334,13 @@ final class DeliveryWorkspace
         }
 
         return $total;
+    }
+
+    private function assertOwned(int $subOrderId, object $actor): void
+    {
+        $header = $this->orders->header($subOrderId);
+        if ($header === null || (int) ($header['rep_id'] ?? 0) !== (int) $actor->getAuthIdentifier()) {
+            throw new DomainException(__('delivery.not_found'), 'not_found', 404);
+        }
     }
 }

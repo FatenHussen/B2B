@@ -10,7 +10,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Delivery extends Model
 {
-    protected $fillable = ['sub_order_id', 'rep_id', 'status'];
+    protected $fillable = ['sub_order_id', 'rep_id', 'status', 'reason', 'scheduled_at'];
+
+    protected function casts(): array
+    {
+        return [
+            'scheduled_at' => 'datetime',
+        ];
+    }
 
     public function lines(): HasMany
     {

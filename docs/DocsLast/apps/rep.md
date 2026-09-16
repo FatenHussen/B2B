@@ -1,7 +1,8 @@
 # Field rep app (Flutter)
 
-**This is the only file you need.** Backend setup, the Dart package, the HTTP contract and
-every endpoint — all of it is here. No other document is required to build this app.
+**This is the backend/Dart kit.** Flutter screens, fields and design live in
+[rep-README.md](./rep-README.md) + [rep-app-spec.md](./rep-app-spec.md) +
+[rep-api.live.json](./rep-api.live.json).
 
 | | |
 |---|---|
@@ -12,13 +13,19 @@ every endpoint — all of it is here. No other document is required to build thi
 | `X-Client` | `rep-android` / `rep-ios` *(sent for logs; the server ignores it)* |
 | Seed account | **none** — create one with an OTP for any Syrian number (§3) |
 
-Verified against `php artisan route:list` and the controller/action source on
-**2026-09-07**. Where the API catalog disagrees with this page, the code wins.
+Verified against `php artisan route:list` and the controller/action source. Endpoint
+tables in §4 were first written **2026-09-07**; **money, delivery outcomes and session
+limits were added 2026-09-16.** Where this page disagrees with
+[rep-api.live.json](./rep-api.live.json) or the controller, those win.
 
-**33 endpoints are reachable from this app** — 24 under `/app/rep`, 5 shared `/app/*`, the
-3 public OTP calls and `/health`. The whole field day works — customers, cart,
-assignments, warehouse pickup, delivery, returns. The rep **wallet and cash collection do
-not exist** (§7), which shapes what you can ship.
+**Flutter team:** start at [rep-README.md](./rep-README.md) — screens, fields, RTL spec
+and a live JSON/Postman collection. This file remains the backend/Dart kit.
+
+**39 endpoints are reachable from this app** — 29 under `/app/rep`, 6 shared `/app/*`
+(session, logout, quote, offers ×2, receipts/reserve), the 3 public OTP calls and
+`/health`. The field day includes customers, cart, assignments, warehouse pickup,
+delivery, returns, **wallet and cash collection**. Sync, notifications and public refs
+do not exist (§7).
 
 ### Contents
 
@@ -325,9 +332,9 @@ when the app is killed mid-submit, and the retry then creates a second order.
 
 ### 2.6 `op_ids.dart` — the one true offline key (rep only)
 
-`POST /app/rep/customers` is the **only endpoint in the entire API** with a business-level
-replay key. It is deduplicated per `(rep, client_op_id)` by a database unique index, so a
-replay carrying a *new* idempotency header still returns the original row.
+`POST /app/rep/customers` and `POST /app/rep/payments` carry a business-level
+replay key `client_op_id`. Each is deduplicated per `(rep, client_op_id)` by a unique
+index, so a replay carrying a *new* idempotency header still returns the original row.
 
 Generate it once per local draft and **never rotate it on retry**:
 
@@ -341,7 +348,8 @@ class DraftShop {
 Send **both** it and `X-Idempotency-Key`: the header catches a byte-identical retry within
 24 h, `client_op_id` catches a genuine offline re-send days later.
 
-⚠️ No other write accepts `client_op_id`. Everywhere else the header is your only guard.
+⚠️ `client_op_id` is required on field signup **and** cash collection. Everywhere else the
+header is your only guard.
 
 ### 2.7 `client.dart`
 
@@ -490,22 +498,23 @@ is online-only. Do not ship a UI promising deferred delivery.
 | incomplete | `['registration']` | **only** `/app/rep/register` and `/app/retailer/register` |
 | complete | `['*']` | everything |
 
-**Registration does not upgrade the token in your hand.** `RegisterRep` writes the profile
-and returns — it never re-issues a token. So the obvious flow is wrong:
+**Registration re-issues the token in `data.token`.** `RegisterRep` deletes existing
+tokens and returns ability `*`. The flow that costs a week is **keeping the
+registration-only token** and ignoring that field:
 
 ```
-request-otp → verify-otp → register → GET /app/rep/products     ❌ 403 forever
+request-otp → verify-otp → register → GET /app/rep/products     ❌ 403 if you kept the old token
 ```
-
-The token you are still holding has `registration` only. You must **verify a second OTP**
-after registering:
 
 ```
 request-otp → verify-otp  (token: registration-only)
             → POST /app/rep/register
-            → request-otp → verify-otp  (token: *)   ← the second round trip is mandatory
+            → store data.token  (ability *)
             → GET /app/rep/products                              ✅
 ```
+
+A second OTP also yields `*` after the profile is complete, if the client discarded
+`data.token`. Prefer replacing the token from register.
 
 Branch on `profile_completed` in the verify response, never on "do I have a token".
 Persist that flag with the token — see `TokenStore` in the
@@ -947,11 +956,43 @@ products. Errors: `422 product_not_available` with `details.product_id`.
   "ends_at":"…|null", "days_left":5, "remaining_qty":40, "sold_count":0 }
 ```
 ⚠️ `company`, `rating`, `sold_count` hardcoded. `components[]` is ids only.
-⚠️ For a **rep** the offer feed derives `channel_ids` from a *retailer* shopping context,
-so a rep user gets an **empty list**. Offers are effectively a retailer feature today —
-do not build a rep offers tab against it.
+The offer feed now resolves `channel_ids` from the **rep selling context** as well as
+the retailer one. An empty list means no matching offer.
 Detail adds `images[]`, `long_description`, `icons` (⚠️ a type string, not an icon) and
 `same_company_offers` / `same_company_products`, ⚠️ **both always empty**.
+
+### 4.7 Wallet and cash collection
+
+| EP-ID | Method | Path | Stability |
+|---|---|---|---|
+| EP-CM-050 | POST | `/app/receipts/reserve` | stable |
+| EP-RP-060 | POST | `/app/rep/payments` | stable |
+| EP-RP-061 | GET | `/app/rep/wallet` | stable |
+| EP-RP-062 | POST | `/app/rep/wallet/withdrawals` | stable |
+| EP-RP-063 | GET | `/app/rep/wallet/withdrawals` | stable |
+| EP-RP-064 | GET | `/app/rep/receivables` | stable |
+
+**`POST /app/receipts/reserve`** — empty body `{}` → `{"receipt_no":"RCPT-…"}`. 24 h
+expiry. Skip this when `complete` already returned `receipt_no`.
+
+**`POST /app/rep/payments`** — `{receipt_no, retailer_id, invoice_no, amount, paid_at,
+client_op_id}`. `amount` is an integer. Replay on `client_op_id` returns the same payment.
+Errors: `409 duplicate_receipt_no`, `403 cash_cap_exceeded` (`max_cash_hold` **0 means no
+cap**), `422` for an unreserved or expired receipt, `404` for a foreign invoice.
+
+**`GET /app/rep/wallet`** — `{net_balance, stats, today}`. `net_balance` is
+`SUM(collected) − SUM(settled)`.
+
+**`POST /app/rep/wallet/withdrawals`** — `{amount, operation_no, operated_at}` →
+`{remaining_balance}`. `operation_no` comes from the accountant and is unique per channel.
+
+**`GET /app/rep/wallet/withdrawals`** — `date_from` / `date_to` → `{rows, total}`.
+
+**`GET /app/rep/receivables`** — `{by_shop:[{shop, total, invoices:[{no, total, paid,
+remaining}]}]}`. No `retailer_id` in the payload; match `shop` to `GET /customers`.
+
+Session extra (existing `GET /app/session`, reps only):
+`commercial_limits.max_discount_percent` and `commercial_limits.max_cash_hold`.
 
 ---
 
@@ -1102,45 +1143,32 @@ Several endpoints return plain unpaginated arrays: `assignments`, `scheduled-ord
 |---|---|---|---|
 | 1 | Splash / reachability | `GET /health` | |
 | 2 | Phone → OTP → verify | `request-otp`, `verify-otp`, `resend-otp` | 60 s timer from `resend_after` |
-| 3 | Registration | `POST /app/rep/register` | ⚠️ then **verify a second OTP** (§2) |
-| 4 | Session bootstrap | `GET /app/session` | route on `profile_completed` |
+| 3 | Registration | `POST /app/rep/register` | replace `data.token` (ability `*`); no second OTP required if you do |
+| 4 | Session bootstrap | `GET /app/session` | route on `profile_completed`; read `commercial_limits` |
 | 5 | Duty toggle | `PATCH /app/rep/status` | gate the whole day on it — pings need it |
 | 6 | My zones → shops | `zones/{id}/shops` | search is top-level `search` |
-| 7 | Customers + field signup | `customers` | ⚠️ send `client_op_id`; search is `filter[search]` |
+| 7 | Customers + field signup | `customers` | ⚠️ send `client_op_id`; search is `filter[search]`; returned POST id ≠ retailer_id |
 | 8 | Product browse | `products` | show `channel.name`; use `zone`, never `filter[zone_id]` |
-| 9 | Build order per shop | `cart`, `cart/lines` | resolve names locally — lines have none |
-| 10 | Submit with discount | `cart/sections/{id}/submit` | expect `403 discount_cap_exceeded`; cap is unreadable |
+| 9 | Build order per shop | `cart`, `cart/lines` | resolve names locally — lines have none; POST **increments** qty |
+| 10 | Submit with discount | `cart/sections/{retailer_id}/submit` | `403 discount_cap_exceeded`; cap from session |
 | 11 | Assignments inbox | `assignments`, accept/reject | |
 | 12 | Warehouse pickup | `warehouse-receipts`, confirm | 4-char code — **gate for delivery** |
 | 13 | Delivery route | `deliveries`, detail, line patch | |
-| 14 | Complete / postpone / fail | the three POSTs | ⚠️ postpone loses the date |
+| 14 | Complete / postpone / fail | the three POSTs | postpone persists `scheduled_at`; complete returns `receipt_no` + `ask_payment` |
 | 15 | Location pings | `locations/ping` | on duty + 30 s floor |
 | 16 | Returns | `return-requests` | create only; no list |
+| 17 | Wallet + collect | `wallet`, `payments`, `receipts/reserve`, `receivables`, `withdrawals` | `max_cash_hold` 0 = no cap; `cash_cap_exceeded` is 403 |
 
-Do not build a wallet, a cash-collection screen, a receivables list, an offline sync
-banner or a notifications inbox — §5.
+Do not build an offline sync banner or a notifications inbox — §7.
 
 ---
 
 ## 7. Not built — do not mock
 
-Every path below **returns 404 today**. No stub, no feature flag. Wire nothing to them, and
-do not fake the numbers: a fabricated wallet balance in a cash-handling app is a financial
-incident, not a UI placeholder.
+Every path below **returns 404 today**. No stub, no feature flag. Wire nothing to them.
 
-**Rep money — SP-13** (blocks the entire collection flow)
-
-| Method | Path | EP |
-|---|---|---|
-| POST | `/app/rep/payments` | EP-RP-060 |
-| GET | `/app/rep/wallet` | EP-RP-061 |
-| POST | `/app/rep/wallet/withdrawals` | EP-RP-062 |
-| GET | `/app/rep/wallet/withdrawals` | EP-RP-063 |
-| GET | `/app/rep/receivables` | EP-RP-064 |
-| POST | `/app/receipts/reserve` | EP-CM-050 |
-
-Consequence: `ask_payment: true` from `complete` points nowhere, and `max_cash_hold`
-(settable by the channel) is unenforceable in the app. Hide any money UI.
+**Rep money is live** (EP-RP-060…064, EP-CM-050). Do not hide the wallet. A fabricated
+balance would still be a financial incident — call `GET /app/rep/wallet`.
 
 **Offline sync and notifications — SP-14**
 
@@ -1178,8 +1206,10 @@ replay-safe. Nothing else is.
 | GET | `/public/refs` | EP-PB-001 | **deliberately absent** — see the comment in `app-modules/reference/routes/api.php` |
 | GET | `/public/app-config` | EP-PB-010 | not built |
 
-**Also missing on the rep side specifically:** any endpoint exposing the rep's discount cap,
-any rep-side returns list, and a `sub_order_id` on `/warehouse-receipts` rows.
+**Also missing on the rep side specifically:** a dedicated GET for the discount cap
+(`session.commercial_limits` carries both caps), any rep-side returns list, and
+`GET /app/rep/zones` (persist zone ids from register). Warehouse receipts now include
+`sub_order_id` and `handover_id`.
 
 ---
 
@@ -1187,7 +1217,7 @@ any rep-side returns list, and a `sub_order_id` on `/warehouse-receipts` rows.
 
 | # | Where | Watch out |
 |---|---|---|
-| 1 | `verify-otp` | An incomplete profile yields a **`registration`-only** token. Register, then **verify a second OTP** — registration never upgrades your token |
+| 1 | `verify-otp` | An incomplete profile yields a **`registration`-only** token. `POST /register` returns a new `token` with ability `*` — **replace the stored token**. A second OTP also works if you ignore that field |
 | 2 | Any `/app/retailer/*` call | One phone is one kind. Cross-kind is `403 insufficient_permission`; no switcher |
 | 3 | Pre-login screens | No `/public/refs`. Zones and activity types come **after** the token, or bundled |
 | 4 | All writes | `X-Idempotency-Key` mandatory. Exempt: only the three OTP paths |
@@ -1196,22 +1226,25 @@ any rep-side returns list, and a `sub_order_id` on `/warehouse-receipts` rows.
 | 7 | `products` | Use top-level `zone`. `filter[zone_id]` throws. Never send `sort` |
 | 8 | `products` | Prices are zone+channel at qty 1, never retailer-specific — re-quote before promising |
 | 9 | rep cart | Lines have **no `name` and no `line_total`**, and there is no top-level summary |
-| 10 | `submit` | `note` is validated then **silently dropped** |
-| 11 | `submit` | Discount cap defaults to **0** with no limit row, is **not exposed by any endpoint**, and resolves against your *first* channel |
+| 10 | `submit` | `note` is persisted onto the order section |
+| 11 | `submit` | Discount cap defaults to **0** with no limit row and resolves against your *first* channel. Read it from `session.commercial_limits.max_discount_percent` |
 | 12 | `assignments/{id}/reject` | `"unassigned"` is a stage label, not a real status |
-| 13 | `scheduled-orders` | **No `id`** in the rows — cannot navigate from them |
-| 14 | `warehouse-receipts` | Rows carry no `sub_order_id`; `count` counts sub-orders, not handovers |
+| 13 | `scheduled-orders` | Rows include `id` (sub-order id) |
+| 14 | `warehouse-receipts` | Rows carry `sub_order_id` and `handover_id`; confirm uses **handover_id**; `count` counts sub-orders, not handovers |
 | 15 | `.../confirm` | **Gate for all deliveries.** Re-confirming succeeds **even with a wrong code** |
 | 16 | `.../confirm` | Missing or foreign handover is **409**, not 404 |
 | 17 | `GET /deliveries` | Has **write side effects** — do not poll it |
-| 18 | `GET /deliveries` | `delivered` hardcoded `0`; `ordered_at` null |
-| 19 | `deliveries/{id}` | `qty` is *expected*; `qty_delivered` is never exposed |
-| 20 | `complete` | 409 until the handover is confirmed. `ask_payment` is hardcoded and leads nowhere |
-| 21 | `postpone` | `scheduled_at` and `reason` are **ignored** — the date is lost |
-| 22 | `fail` | `reason` is **ignored** |
+| 18 | `GET /deliveries` | `delivered` counts today's delivered cards; `ordered_at` comes from the header |
+| 19 | `deliveries/{id}` | `qty` is *expected*; `qty_delivered` is exposed |
+| 20 | `complete` | 409 until the handover is confirmed. `ask_payment: true` + `receipt_no` → `POST /payments` |
+| 21 | `postpone` | `scheduled_at` and `reason` are persisted; the card appears on scheduled-orders |
+| 22 | `fail` | `reason` is persisted |
 | 23 | `locations/ping` | Needs on-duty (else 422) and honours a **30 s floor vs the newest stored `at`** (else 429) |
 | 24 | `locations/ping` | Uploading a backlog can lock out live pings; each call needs a **fresh** key |
-| 25 | `offers` | The feed resolves channels from a *retailer* context — a rep gets an empty list |
+| 25 | `offers` | Feed uses the rep selling context. An empty list means no matching offer, not a bug |
 | 26 | `return-requests` | Create only; no rep-side list. No numeric id returned |
 | 27 | `not_found` | Also means "not yours". Render as missing, never as forbidden |
 | 28 | Money | Integers, minor units. SYP has 0 decimals — never `/ 100` |
+| 29 | `POST /customers` | Returned `id` is the sourced-shop row, **not** `retailer_id`. Reload `GET /customers` |
+| 30 | `POST /cart/lines` | Increments qty; there is no PATCH/DELETE for rep cart lines |
+| 31 | `POST /payments` | `cash_cap_exceeded` is **403**. `max_cash_hold` 0 means no cap |

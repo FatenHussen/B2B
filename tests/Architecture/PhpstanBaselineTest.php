@@ -15,14 +15,14 @@ declare(strict_types=1);
  * escape inventory. It rises — the build fails. It falls, in a pay-down commit — the pin
  * is lowered in the same commit, so the number is always known, never discovered.
  *
- * `<=` was considered and rejected: a ceiling that stays at 585 while the file shrinks
+ * `<=` was considered and rejected: a ceiling that stays high while the file shrinks
  * leaves silent headroom, which is the grave again.
  */
 
 use Illuminate\Support\Facades\File;
 
 /** The baseline's sum, pinned. Lower it in the commit that pays findings down. */
-const PHPSTAN_BASELINE_FINDINGS = 585;
+const PHPSTAN_BASELINE_FINDINGS = 479;
 
 /**
  * @return array{sum: int, entries: int}

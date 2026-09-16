@@ -17,6 +17,8 @@ interface SubOrderLifecycle
      *     rep_id: int|null,
      *     rep_user_id: int|null,
      *     total: int,
+     *     created_at: string|null,
+     *     updated_at: string|null,
      *     scheduled_at: string|null,
      *     shop_name: string,
      *     zone_name: string,
@@ -43,6 +45,10 @@ interface SubOrderLifecycle
     public function lines(int $subOrderId): array;
 
     public function transition(int $subOrderId, string $to, object $actor, ?string $stage = null): void;
+
+    public function postponeTo(int $subOrderId, object $actor, string $scheduledAt, string $reason): void;
+
+    public function markUndelivered(int $subOrderId, object $actor, string $reason): void;
 
     public function status(int $subOrderId): ?string;
 

@@ -23,9 +23,20 @@ class Payment extends Model
     protected $fillable = [
         'supply_channel_id',
         'retailer_id',
+        'rep_id',
         'invoice_id',
         'amount',
         'method',
+        'source',
         'receipt_no',
+        'paid_at',
+        'client_op_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'paid_at' => 'datetime',
+        ];
+    }
 }

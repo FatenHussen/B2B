@@ -11,7 +11,7 @@ point.
 | App | File | Guard | Platform / port | Seed account |
 |---|---|---|---|---|
 | Retailer | [apps/retailer.md](./apps/retailer.md) | `app` | Flutter, Android + iOS | none — OTP any number |
-| Field rep | [apps/rep.md](./apps/rep.md) | `app` | Flutter, Android + iOS | none — OTP any number |
+| Field rep | [apps/rep.md](./apps/rep.md) · **Flutter pack:** [apps/rep-README.md](./apps/rep-README.md) | `app` | Flutter, Android + iOS | none — OTP any number |
 | Channel | [apps/channel-web.md](./apps/channel-web.md) | `channel` | React + Vite, **3001** | `+963900000001` + OTP |
 | Warehouse | [apps/warehouse-web.md](./apps/warehouse-web.md) | `warehouse` | React + Vite, **3002** | none — CLI device |
 | Platform | [apps/platform-web.md](./apps/platform-web.md) | `platform` | React + Vite, **3000** | `admin@platform.sy` / `password` |
@@ -36,9 +36,11 @@ and `route:list` disagree, `route:list` wins** and the document is the thing to 
 ## Postman
 
 Import [`docs/api/b2b-api.live.postman_collection.json`](../api/b2b-api.live.postman_collection.json)
-— **178 requests, generated from `route:list`, so nothing in it 404s.** Start at the
-**📖 READ ME FIRST** folder: it holds a `/health` probe and explains which folder belongs to
-your role, what `MOVING` means, and how to regenerate.
+— generated from `route:list`, so nothing in it 404s because it was never built. Start at
+the **📖 READ ME FIRST** folder.
+
+Field-rep subset for Flutter: [`apps/rep-api.postman.json`](./apps/rep-api.postman.json)
+plus the spec pack at [`apps/rep-README.md`](./apps/rep-README.md).
 
 Folders mirror the five apps, with a sub-folder per role/module inside each. Headers, JSON
 bodies, EP-IDs, guards, permissions and error codes are filled in; login requests capture
@@ -76,7 +78,7 @@ Every endpoint table carries a `Stability` column:
 | App | Reachable | Stability | Can start? | Blocked on |
 |---|---:|---|---|---|
 | **Retailer** | 37 | all stable | **Yes — fully** | money, sync, loyalty |
-| **Field rep** | 33 | all stable | **Yes — fully** | wallet + cash collection, sync |
+| **Field rep** | **39** | all stable | **Yes — fully** | sync, notifications, public refs. **Wallet and cash collection are live (2026-09-16).** |
 | **Channel** | 47 (+3 shared reference reads) | 39 stable · 5 uncatalogued · **3 broken (500)** | **Yes — except the orders queue and the two inventory lists** | `GET sub-orders`, `inventory/levels`, `inventory/movements` answer 500 (re-verified 2026-09-14, no ticket); offer analytics is a **hardcoded stub**; finance, reporting |
 | **Warehouse** | 19 | all stable | **Yes — fully** | reject/damage at QC; needs a **2nd device** to approve a stocktake |
 | **Platform** | 41 | 36 stable · **5 moving** | **Partly** | **SP-03 and SP-04: 0 of 47 contract paths live** |
@@ -86,8 +88,8 @@ completely, but its channel screens sit on a temporary path and its entire refer
 surface is missing.
 
 The two app figures include the shared `/app/*` routes, the 3 public OTP calls and
-`/health`, which both apps use. The 57 `/app/*` routes split 28 retailer / 24 rep / 5
-shared.
+`/health`, which both apps use. Rep-reachable total is **39** (29 `/app/rep` + 6 shared
+`/app/*` + 3 OTP + health).
 
 ### The moving set — all 15
 
@@ -111,7 +113,7 @@ moving base path is the whole mitigation.
 |---|---:|---|
 | SP-03 | 32 | every platform reference screen — governorates, zones, activity types, categories, units, currencies, FX |
 | SP-04 | 22 | channel provisioning, transitions, usage, limits, coverage, join applications |
-| SP-13 | 18 | **all money** — retailer debts and payments, rep wallet, receivables, statements |
+| SP-13 | 18 | retailer debts/payments/statements still missing; **rep wallet + collect + withdrawals + receivables + receipt reserve are live** |
 | SP-14 | 20 | **all offline sync** and the notification inbox |
 | SP-15 | 14 | home content blocks, loyalty |
 | SP-16 | 11 | campaigns, plan SKUs, team, feature flags |

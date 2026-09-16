@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Ordering\Infrastructure;
 
+use Illuminate\Support\Carbon;
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\IssuesInvoice;
@@ -48,6 +49,8 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
             'rep_id' => $sub->rep_id ? (int) $sub->rep_id : null,
             'rep_user_id' => $sub->rep_id ? (int) $sub->rep_id : null,
             'total' => (int) $sub->total,
+            'created_at' => $sub->created_at?->timezone('Asia/Damascus')->toIso8601String(),
+            'updated_at' => $sub->updated_at?->timezone('Asia/Damascus')->toIso8601String(),
             'scheduled_at' => $sub->scheduled_at?->timezone('Asia/Damascus')->toIso8601String(),
             'shop_name' => $shop['shop_name'] ?? '',
             'zone_name' => $sub->zone_id ? ($this->refs->zoneName((int) $sub->zone_id) ?? '') : '',
@@ -80,6 +83,49 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
         }
 
         return $out;
+    }
+
+    public function postponeTo(int $subOrderId, object $actor, string $scheduledAt, string $reason): void
+    {
+        $sub = Tenant::withoutScope(fn () => SubOrder::query()->find($subOrderId));
+        if ($sub === null) {
+            throw new DomainException(__('ordering.not_found'), 'not_found', 404);
+        }
+        $this->machine->assert($sub->status, 'postpone');
+        Tenant::withoutScope(function () use ($sub, $actor, $scheduledAt, $reason): void {
+            $sub->status = $this->machine->target('postpone');
+            $sub->scheduled_at = Carbon::parse($scheduledAt);
+            $sub->save();
+            SubOrderEvent::query()->create([
+                'sub_order_id' => $sub->id,
+                'stage' => $sub->status->value,
+                'at' => now(),
+                'actor_type' => $actor::class,
+                'actor_id' => method_exists($actor, 'getAuthIdentifier') ? $actor->getAuthIdentifier() : null,
+                'reason' => $reason,
+            ]);
+        });
+    }
+
+    public function markUndelivered(int $subOrderId, object $actor, string $reason): void
+    {
+        $sub = Tenant::withoutScope(fn () => SubOrder::query()->find($subOrderId));
+        if ($sub === null) {
+            throw new DomainException(__('ordering.not_found'), 'not_found', 404);
+        }
+        $this->machine->assert($sub->status, 'undelivered');
+        Tenant::withoutScope(function () use ($sub, $actor, $reason): void {
+            $sub->status = $this->machine->target('undelivered');
+            $sub->save();
+            SubOrderEvent::query()->create([
+                'sub_order_id' => $sub->id,
+                'stage' => $sub->status->value,
+                'at' => now(),
+                'actor_type' => $actor::class,
+                'actor_id' => method_exists($actor, 'getAuthIdentifier') ? $actor->getAuthIdentifier() : null,
+                'reason' => $reason,
+            ]);
+        });
     }
 
     public function transition(int $subOrderId, string $to, object $actor, ?string $stage = null): void

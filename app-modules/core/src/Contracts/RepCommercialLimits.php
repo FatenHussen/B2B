@@ -18,4 +18,10 @@ interface RepCommercialLimits
      * Zero when no limit row exists, which denies any discount.
      */
     public function maxDiscountPercent(int $channelId, int $repId): int;
+
+    /**
+     * Cash the rep may hold before settlement is mandatory.
+     * Zero when no limit row exists, which means no cap is enforced.
+     */
+    public function maxCashHold(int $channelId, int $repId): int;
 }

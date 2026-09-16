@@ -223,6 +223,24 @@ it('lets a rep build a customer section and submit it', function () {
     expect(DB::table('sub_orders')->where('retailer_id', $customer)->where('channel_id', $channel->id)->count())->toBe(1);
 });
 
+it('persists the submit note on the order section', function () {
+    $refs = AppSurface::refs();
+    $channel = AppSurface::channel($refs);
+    [$productId] = AppSurface::productWithBrand($this, $channel, $refs);
+    $rep = AppSurface::rep($channel, $refs);
+    Sanctum::actingAs($rep, ['*'], 'app');
+    $customer = repCustomer($this, $refs, '+963944000103');
+
+    $this->postJson('/api/v1/app/rep/cart/lines', ['retailer_id' => $customer, 'product_id' => $productId, 'qty' => 1])
+        ->assertOk();
+
+    $this->postJson("/api/v1/app/rep/cart/sections/{$customer}/submit", [
+        'note' => 'توصيل صباحي',
+    ])->assertOk();
+
+    expect(DB::table('order_sections')->where('note', 'توصيل صباحي')->count())->toBe(1);
+});
+
 it('never shows one rep another rep cart, and never submits another rep section', function () {
     $refs = AppSurface::refs();
     $channel = AppSurface::channel($refs);
