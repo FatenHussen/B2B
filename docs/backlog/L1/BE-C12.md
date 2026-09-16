@@ -131,14 +131,29 @@ extended to count raw `withoutGlobalScope('channel')` as an `acrossChannels()` s
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] Each of the fifteen routes has a "works" test whose fixture reaches the relation
+- [x] Each of the fifteen routes has a "works" test whose fixture reaches the relation
       the route loads (a brand, a section, a return request), and an "other owner sees
       nothing" test — the AppOrderIsolationTest shape, one request per test.
-- [ ] `Layer2Test`'s two product tests run with a brand on the product and still pass.
-- [ ] A retailer's return-request list is one query with the retailer in its `where`.
-- [ ] Retailer A cannot cancel retailer B's order: 404, status unchanged, no event row.
-- [ ] The arch test fails on a new `withoutGlobalScope('channel')` written without a
+- [x] `Layer2Test`'s two product tests run with a brand on the product and still pass.
+- [x] A retailer's return-request list is one query with the retailer in its `where`.
+- [x] Retailer A cannot cancel retailer B's order: 404, status unchanged, no event row.
+- [x] The arch test fails on a new `withoutGlobalScope('channel')` written without a
       reason comment on the same or the previous line.
+
+## Status — delivered 2026-09-16 on `work/be-c12`, six commits
+
+| Commit | Part |
+|---|---|
+| `1bc4878` | CancelSubOrder `retailer_id` filter, proved through the action with the scope lifted — before any escape |
+| `e1aabe5` | Pricing: rep commercial limit read, escape beside its explicit channel |
+| `0f68267` | Ordering: relation-level escapes on `Cart::sections()`, `CartLine::section()`, `Order::sections()/subOrders()`; site-level on seven direct queries; AppCartSurfaceTest (11) |
+| `db34ff3` | Catalog: `Product::brand()/category()`; AppCatalogSurfaceTest (6); Layer2Test's two tests rewritten with a brand |
+| `b43d81e` | Returns: list isolates in its query via `SubOrderLifecycle::idsForRetailer`; create refuses a foreign order on both apps (was 200) |
+| `49cdfac` | ChannelScopeEscapeTest — both spellings, 42 sites in 31 files pinned, a reason within reach of each; rule 10 rewritten |
+
+All acceptance criteria hold; the fifteen routes answer with a branded product and a cart
+with a section, and each has its other-owner test. Still unverified behind validation:
+`POST /app/rep/warehouse-receipts/{id}/confirm` (`WarehouseWorkspace:543`).
 
 ## Working rules
 
