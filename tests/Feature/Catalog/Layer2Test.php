@@ -210,6 +210,11 @@ it('rejects a duplicate sku inside a channel and allows it on another channel', 
 })->group('tenancy');
 
 it('hides a zone-13 product from a zone-12 retailer and never leaks supply_channel', function () {
+    // Rewritten in BE-C12. Until then both products here had no brand, and that is the
+    // only reason this passed: `->with('brand')` on the retailer routes ran no query for
+    // a null brand_id, so the strict Brand scope — which throws with no tenant on /app/*
+    // — was never reached. With a brand the routes answered 500 while this stayed green.
+    // The brand is on the products now, so the test claims what it looks like it claims.
     $refs = layer2Refs();
     $channel = SupplyChannel::factory()->create();
     layer2Cover($channel, $refs['zone12']);
@@ -217,11 +222,12 @@ it('hides a zone-13 product from a zone-12 retailer and never leaks supply_chann
 
     Sanctum::actingAs(layer2ChannelManager($channel), ['*'], 'channel');
     $cat = layer2CategoryId($refs['root']->id);
+    $brandId = $this->postJson('/api/v1/channel/brands', ['name_ar' => 'ماركة', 'name_en' => 'Brand'])->json('data.id');
     $visibleId = $this->postJson('/api/v1/channel/products', layer2ProductPayload($refs, $cat, $refs['zone12'], [
-        'sku' => 'VIS-12',
+        'sku' => 'VIS-12', 'brand_id' => $brandId,
     ]))->json('data.id');
     $hiddenId = $this->postJson('/api/v1/channel/products', layer2ProductPayload($refs, $cat, $refs['zone13'], [
-        'sku' => 'HID-13',
+        'sku' => 'HID-13', 'brand_id' => $brandId,
         'name_ar' => 'مخفي',
     ]))->json('data.id');
 
@@ -240,13 +246,17 @@ it('hides a zone-13 product from a zone-12 retailer and never leaks supply_chann
 })->group('browse');
 
 it('shows channel on rep products and writes integer prices via the pricing writer', function () {
+    // Rewritten in BE-C12: the product now carries a brand. Without one this test was
+    // green while GET /app/rep/products answered 500 for every real catalog — see the
+    // note on the retailer test above.
     $refs = layer2Refs();
     $channel = SupplyChannel::factory()->create(['name' => 'شركة النور']);
     layer2Cover($channel, $refs['zone12']);
 
     Sanctum::actingAs(layer2ChannelManager($channel), ['*'], 'channel');
     $cat = layer2CategoryId($refs['root']->id);
-    $productId = $this->postJson('/api/v1/channel/products', layer2ProductPayload($refs, $cat, $refs['zone12']))
+    $brandId = $this->postJson('/api/v1/channel/brands', ['name_ar' => 'ماركة', 'name_en' => 'Brand'])->json('data.id');
+    $productId = $this->postJson('/api/v1/channel/products', layer2ProductPayload($refs, $cat, $refs['zone12'], ['brand_id' => $brandId]))
         ->json('data.id');
 
     $rep = layer2Rep($channel, $refs, $refs['zone12']);

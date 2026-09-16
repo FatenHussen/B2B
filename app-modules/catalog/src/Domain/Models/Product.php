@@ -48,14 +48,26 @@ class Product extends Model
         ];
     }
 
+    /**
+     * The channel scope is lifted on this relation and on `category()`, with the reason
+     * here (rule 10, BE-C12). A product's brand and category are on the product's own
+     * channel by construction — `supply_channel_id` is written from the same tenant that
+     * wrote the product — so whatever constrained the product query has already
+     * constrained what these can load. On `/app/*` there is no tenant: the retailer and
+     * rep product queries lift the scope on the root and filter by the caller's channels,
+     * and an eager load that re-applied Brand's strict scope threw on every branded
+     * product. Lifting it here widens nothing and removes that failure once, where the
+     * relation is defined, rather than at every `with('brand')`.
+     */
     public function brand(): BelongsTo
     {
-        return $this->belongsTo(Brand::class);
+        return $this->belongsTo(Brand::class)->withoutGlobalScope('channel');
     }
 
+    /** See `brand()`. */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class)->withoutGlobalScope('channel');
     }
 
     public function specs(): HasMany
