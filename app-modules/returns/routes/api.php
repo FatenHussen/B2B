@@ -10,13 +10,13 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
     ->prefix('api/v1/app/retailer')
     ->group(function (): void {
         Route::get('return-requests', [ReturnsController::class, 'retailerIndex']);
-        Route::post('return-requests', [ReturnsController::class, 'create']);
+        Route::post('return-requests', [ReturnsController::class, 'createForRetailer']);
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:rep'])
     ->prefix('api/v1/app/rep')
     ->group(function (): void {
-        Route::post('return-requests', [ReturnsController::class, 'create']);
+        Route::post('return-requests', [ReturnsController::class, 'createForRep']);
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.tokenable:channel', 'tenant'])

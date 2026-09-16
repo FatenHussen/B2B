@@ -29,12 +29,19 @@ final class ReturnsWorkspace
 
     /**
      * @param  array{sub_order_id: int, type: string, lines: list<array{line_id: int, qty: int, reason: string, photos?: array}>}  $data
+     * @param  bool  $asRetailer  true from the retailer app, false from the rep app
      * @return array{request_no: string, status: string}
      */
-    public function create(object $actor, array $data): array
+    public function create(object $actor, array $data, bool $asRetailer): array
     {
         $header = $this->orders->header((int) $data['sub_order_id']);
-        if ($header === null) {
+        // The order must be the caller's: the retailer it was placed for, or the rep who
+        // delivered it (REQ-IN-04 — either app may raise a return, on its own order). Until
+        // BE-C12 any sub-order id opened a return. A foreign order is 404, rule 11.
+        $mine = $header !== null && ($asRetailer
+            ? (int) $header['retailer_id'] === (int) $this->shopping->for($actor)['retailer_id']
+            : (int) ($header['rep_id'] ?? 0) === (int) $actor->getAuthIdentifier());
+        if (! $mine) {
             throw new DomainException(__('returns.not_found'), 'not_found', 404);
         }
         $row = ReturnRequest::query()->create([
@@ -71,12 +78,16 @@ final class ReturnsWorkspace
         $ctx = $this->shopping->for($user);
         $retailerId = (int) $ctx['retailer_id'];
 
-        return ReturnRequest::query()->orderByDesc('id')->get()
-            ->filter(function (ReturnRequest $r) use ($retailerId): bool {
-                $h = $this->orders->header((int) $r->sub_order_id);
-
-                return $h !== null && (int) $h['retailer_id'] === $retailerId;
-            })
+        // The isolation is in the query: the retailer's own sub-orders, named through the
+        // Ordering contract, are the `whereIn`. Before BE-C12 this read every channel's
+        // rows and filtered them in PHP afterwards. acrossChannels(), per rule 10: the
+        // retailer's orders span channels and `/app/retailer/*` sets no tenant; the owner
+        // filter beside it is the line that isolates.
+        return ReturnRequest::query()
+            ->acrossChannels()
+            ->whereIn('sub_order_id', $this->orders->idsForRetailer($retailerId))
+            ->orderByDesc('id')
+            ->get()
             ->map(fn (ReturnRequest $r) => [
                 'request_no' => $r->request_no,
                 'type' => $r->type,

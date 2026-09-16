@@ -142,4 +142,15 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
             ->map(fn ($id) => (int) $id)
             ->all());
     }
+
+    public function idsForRetailer(int $retailerId): array
+    {
+        // Cross-channel by design, like the rest of this contract: the caller names the
+        // owner, and a retailer's orders span every channel that serves them.
+        return Tenant::withoutScope(fn () => SubOrder::query()
+            ->where('retailer_id', $retailerId)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all());
+    }
 }

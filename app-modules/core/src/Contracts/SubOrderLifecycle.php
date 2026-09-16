@@ -53,4 +53,12 @@ interface SubOrderLifecycle
      * @return list<int>
      */
     public function idsForRep(int $repUserId, array $statuses): array;
+
+    /**
+     * Every sub-order id that belongs to a retailer, across channels — the owner side of
+     * an app-facing list that must filter in its query rather than after it (BE-C12).
+     *
+     * @return list<int>
+     */
+    public function idsForRetailer(int $retailerId): array;
 }

@@ -15,9 +15,14 @@ use Modules\Returns\Presentation\Http\Requests\SortReturnRequest;
 
 final class ReturnsController extends ApiController
 {
-    public function create(CreateReturnRequest $request, ReturnsWorkspace $ops): JsonResponse
+    public function createForRetailer(CreateReturnRequest $request, ReturnsWorkspace $ops): JsonResponse
     {
-        return $this->ok($ops->create($request->user(), $request->validated()));
+        return $this->ok($ops->create($request->user(), $request->validated(), true));
+    }
+
+    public function createForRep(CreateReturnRequest $request, ReturnsWorkspace $ops): JsonResponse
+    {
+        return $this->ok($ops->create($request->user(), $request->validated(), false));
     }
 
     public function retailerIndex(Request $request, ReturnsWorkspace $ops): JsonResponse
