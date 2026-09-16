@@ -1,6 +1,6 @@
 # Channel backend status — frontend handoff
 
-Updated **2026-09-15**. Source of paths: [`docs/DocsLast/apps/channel-web.md`](../../DocsLast/apps/channel-web.md).
+Updated **2026-09-16**. Source of paths: [`docs/DocsLast/apps/channel-web.md`](../../DocsLast/apps/channel-web.md).
 Do not invent routes. This repo is API-only.
 
 ## Live on `auth:channel`
@@ -16,7 +16,8 @@ Do not invent routes. This repo is API-only.
 | Notify | `EP-SC-090` / `091A–B` / `092` | `sc.notify.view` is seeded **with** the log route. |
 | Content | `EP-SC-100`…`103` | Banner stats are the stored ledger (0 until a serve path writes). `ctr` is integer scale 10^4, never a fabricated 0.07. |
 | Loyalty | `EP-SC-110`…`111` | Rules JSON + rewards. |
-| Dashboard / reports | `EP-SC-120`…`123` | Read from `daily_snapshots` (ADR-07). `fill_rate` is integer scale 10^4. No live JOIN on HTTP. `GET /channel/reports/margins` is registered **before** `{type}`. |
+| Dashboard / reports | `EP-SC-120`…`123` | Read from `daily_snapshots` (ADR-07). Nightly `reports:daily-snapshots` at 00:05 Asia/Damascus. `fill_rate` is integer scale 10^4. No live JOIN on HTTP. `GET /channel/reports/margins` is registered **before** `{type}`. |
+| Returns | `EP-SC-070` / `071` | Paginated + catalog filters. Second `decide` → `409 illegal_transition`. |
 
 ## Stopped — not in the catalog
 

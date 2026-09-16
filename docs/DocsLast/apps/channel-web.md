@@ -1152,8 +1152,8 @@ button accordingly. `reason` is not persisted.
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
-| EP-SC-080 | GET | `/channel/return-requests` | stable | `sc.returns.view` |
-| EP-SC-081 | POST | `/channel/return-requests/{id}/decide` | stable | `sc.returns.decide` |
+| EP-SC-070 | GET | `/channel/return-requests` | stable | `sc.returns.view` |
+| EP-SC-071 | POST | `/channel/return-requests/{id}/decide` | stable | `sc.returns.decide` |
 
 **`GET`** — paginated envelope `{id, request_no, type, status}`. Catalog filters:
 `filter[type]`, `filter[status]`, `filter[rep_id]`, `filter[zone_id]`. Never send `sort`.
@@ -1464,9 +1464,9 @@ Job status for import/export/schedule still has nothing to poll (`job_id` only).
 | 23 | `assign` | Silently skips unresolvable ids and is not transactional |
 | 24 | `schedule` | Produces status **`postponed`**, not "scheduled" |
 | 25 | `cancel` / `reassign` | Also 409 once the warehouse handover is confirmed |
-| 26 | `return-requests` | Unpaginated, unfiltered, and `decide` has **no state guard** |
+| 26 | `return-requests` | Paginated. Filters: type, status, rep_id, zone_id. `decide` on non-pending → 409 `illegal_transition` |
 | 27 | `/channel/zones` | ⚠️ `delivery_fee` and `min_order_value` are **decimal strings**; POST is an upsert returning 201; DELETE is **204 no body** |
-| 28 | Inventory writes | `transfers` and `reorder-points` are **not transactional** — re-fetch after a 409/422 |
+| 28 | Inventory writes | `transfers` and `reorder-points` run in a DB transaction — a 409/422 leaves no partial row |
 | 29 | `not_found` | Also means "not yours". Never render "forbidden" |
 | 30 | Money | Integers in minor units everywhere **except** `/channel/zones` |
 | 31 | `inventory/adjust` | Catalog `dual: true` — first 200 is a pending request, not a movement. Second user + `approval_reason` |
