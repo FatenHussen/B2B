@@ -543,11 +543,9 @@ Hiding a control is not security — the server checks again — but it is the d
 between a usable dashboard and one that answers 403 on every click.
 
 The routes on this guard gate on **30 distinct `sc.*` permissions** — see the tables in §4.
-The seed `channel_manager` receives **47** at login: every `sc.*` code seeded, including
-17 (`sc.finance.*` ×5, `sc.reports.*` ×3, `sc.content.*` ×3, `sc.notify.*` ×2,
-`sc.loyalty.manage`, `sc.dashboard.view`, `sc.reps.settle`, `sc.retailers.credit`) whose
-routes do not exist yet. Holding a permission is not evidence that its screen can be
-built — §7 is.
+The seed `channel_manager` receives every seeded `sc.*` code, including `sc.notify.view`
+(EP-SC-092). Holding a permission is not evidence that a **list** of retailers or reps
+exists — those paths are not in the catalog (§7).
 
 Four built-in channel roles exist: `channel_manager` (everything), `sales_manager`
 (orders, reps, pricing, promotions), `catalog_manager` (catalog, pricing, offers,
@@ -936,8 +934,7 @@ Filters: `filter[product_id]`, `filter[user_id]`, `filter[date]`.
 📌 Nested under `rep`. ⚠️ `id` is echoed from the URL, not read back from the row.
 📌 **Setting this matters:** with no limit row a rep's cap is **0**, and every discount they
 attempt is rejected. If reps report "discount always fails", this is why.
-⚠️ `max_cash_hold` is stored but **unenforceable today** — the rep wallet endpoints do not
-exist (see [rep.md §7](./rep.md#7-not-built--do-not-mock)).
+⚠️ `max_cash_hold` is stored. Collection still has no channel write path; `POST /channel/reps/{id}/settle` reduces the wallet ledger (`collected − settled`). The cap is not what settle checks — settle refuses only when `amount` exceeds the ledger remainder.
 Errors: `422 validation_failed` keyed on **`id`** when the rep is not in your channel.
 
 ### 4.4 Offers
@@ -973,15 +970,16 @@ offer group targeting.
 block `if isset($rewards['product_id'])`, so a pure percentage discount saves nothing and
 returns 201 as if it worked. Require a reward product in your form until this is fixed.
 
-**`GET /channel/offers/{id}/performance`** — `applied_count` is the redemption counter.
-The money keys are **not computed yet** (they need order lines; Promotion must not query
-Ordering). Until BE2-PRM05 lands they stay `0` / `[]`. **Do not chart `linked_sales`,
-`discount_given` or `net_margin`.** A zero here is "not built", not "sold nothing".
-A foreign id is **404 `not_found`**.
+**`GET /channel/offers/{id}/performance`** — `applied_count` is the redemption
+counter. `linked_sales`, `discount_given`, `retailers_count` and `by_zone` come from
+order lines (BE2-PRM05). `net_margin` stays 0 (no cost). `conversion_rate` stays 0
+until views exist; when non-zero it is an integer at scale 10^4 (1.00 = 10000), not
+Money and not a float. A foreign id is **404 `not_found`**.
 
 ```jsonc
-{ "data": { "applied_count": 7, "linked_sales": 0, "discount_given": 0,
-            "net_margin": 0, "retailers_count": 0, "by_zone": [], "conversion_rate": 0 } }
+{ "data": { "applied_count": 7, "linked_sales": 48000, "discount_given": 2000,
+            "net_margin": 0, "retailers_count": 1, "by_zone": [{"zone_id":12,"applied_count":1}],
+            "conversion_rate": 0 } }
 ```
 
 **`PATCH /channel/offers/{id}/stop`** — note **PATCH**. `{reason}` required →
@@ -998,9 +996,19 @@ succeeds.
 | EP-SC-063 | POST | `/channel/inventory/transfers` | stable | `sc.inventory.transfer` |
 | EP-SC-064 | PUT | `/channel/inventory/reorder-points` | stable | `sc.inventory.reorder` |
 
-The three writes below execute immediately. Catalog `dual: true` on **adjust** is unmet
-— there is no Core hook for channel dual-approval yet (BE-C05 is IAM-shaped). Do not
-wait for a second confirmer on this path.
+Adjust is dual. Transfers and reorder-points still execute immediately.
+
+**`POST /channel/inventory/adjust`** — first call does **not** move stock. Body is
+`{product_id, variant_id?, warehouse_id, qty_delta (signed), reason}` →
+`{ "approval_request_id": 1 }` with `meta.requires_dual_approval: true`.
+A **different** user resubmits the **same** body plus
+`approval_request_id` and `approval_reason` → `{ "movement_id": 88, "available": 35 }`.
+Self-approval → `403 sod_violation`. Payload mismatch → `409 stale_version`.
+Errors: `422` on `warehouse_id`/`product_id`; **`409 insufficient_stock`** when a
+negative delta would go below zero **on the second call**.
+
+The three writes below: transfers and reorder still execute immediately. Dual is
+adjust (and finance credit-note / void) only.
 
 The shapes:
 
@@ -1021,10 +1029,8 @@ Filters: `filter[warehouse_id]`, `filter[product_id]`.
 ⚠️ **No product, no warehouse, no reason, no actor** — five keys only. You cannot build an
 audit view from this alone.
 
-**`POST /channel/inventory/adjust`** — `{product_id, variant_id?, warehouse_id, qty_delta
-(signed), reason}` → `{ "movement_id": 88, "available": 35 }`.
-Errors: `422` on `warehouse_id`/`product_id`; **`409 insufficient_stock`** when a negative
-delta would go below zero.
+**`POST /channel/inventory/adjust`** — see dual flow above. Do not treat the first
+200 as a stock movement.
 
 **`POST /channel/inventory/transfers`** → **201** `{ "id": 4, "status": "sent" }`.
 `{from_warehouse_id, to_warehouse_id, lines:[{product_id, variant_id?, qty}]}`.
@@ -1146,16 +1152,15 @@ button accordingly. `reason` is not persisted.
 
 | EP-ID | Method | Path | Stability | Permission |
 |---|---|---|---|---|
-| EP-SC-080 | GET | `/channel/return-requests` | stable | `sc.returns.view` |
-| EP-SC-081 | POST | `/channel/return-requests/{id}/decide` | stable | `sc.returns.decide` |
+| EP-SC-070 | GET | `/channel/return-requests` | stable | `sc.returns.view` |
+| EP-SC-071 | POST | `/channel/return-requests/{id}/decide` | stable | `sc.returns.decide` |
 
-**`GET`** — ⚠️ **plain array, not paginated, no filters**, ordered by id desc:
-`{id, request_no, type, status}`. Statuses: `pending, approved, rejected, sorted`. Paginate
-client-side; this will grow unbounded.
+**`GET`** — paginated envelope `{id, request_no, type, status}`. Catalog filters:
+`filter[type]`, `filter[status]`, `filter[rep_id]`, `filter[zone_id]`. Never send `sort`.
+Statuses: `pending, approved, rejected, sorted`.
 
 **`POST /{id}/decide`** — `{decision: approve|reject, reason?}` → `{"status":"approved"}`.
-⚠️ **No state guard** — an already-decided request can be decided again. Gate the buttons
-on `status === "pending"` yourself.
+A non-`pending` request returns **`409 illegal_transition`**. Foreign id → 404.
 📌 An approved return then goes to the warehouse to be sorted — see
 [warehouse-web.md](./warehouse-web.md).
 
@@ -1192,6 +1197,36 @@ server stores and returns a two-decimal **string**.
 restore.
 ⚠️ `zone_name` uses `whenLoaded`, so in principle the key can be **absent** rather than
 null. Read it defensively.
+
+### 4.9 Finance — EP-SC-080…086
+
+| EP-ID | Method | Path | Permission |
+|---|---|---|---|
+| EP-SC-080 | GET | `/channel/invoices` | `sc.finance.view` |
+| EP-SC-081 | POST | `/channel/invoices/{id}/credit-note` | `sc.finance.credit_note` |
+| EP-SC-082 | POST | `/channel/invoices/{id}/void` | `sc.finance.void_invoice` |
+| EP-SC-083 | POST | `/channel/payments` | `sc.finance.payment` |
+| EP-SC-084 | POST | `/channel/reps/{id}/settle` | `sc.reps.settle` |
+| EP-SC-085 | GET | `/channel/finance/aging` | `sc.finance.aging` |
+| EP-SC-086 | PUT | `/channel/retailers/{id}/credit` | `sc.retailers.credit` |
+
+Statuses: `open` / `void` / `credited`. A posted (`open`) invoice is not rewritten; credit notes add `credited_total`. Dual on credit-note and void — same protocol as inventory adjust. Payments FIFO. SOD-01: a user holding both `sc.orders.confirm` and `sc.finance.payment` gets `403 sod_violation` unless they are `channel_manager`. Aging buckets are integers. `on_exceed`: `warn|block|manual_approval`. Foreign invoice/rep/retailer id → `404`. There is **no** JSON statement path; settlement PDF is `receipt_pdf_url`.
+
+### 4.10 Notifications — EP-SC-090…092
+
+`POST /channel/notifications` → `{id, status: "queued"}`. `GET`/`PUT /channel/notifications/templates`. `GET /channel/notifications/log` is paginated; `sc.notify.view` is seeded.
+
+### 4.11 Content — EP-SC-100…103
+
+Intro GET/PUT. Banners list/create and `{id}/stats`. Stats `impressions`/`clicks` are the stored ledger (0 until a serve path writes them). `ctr` is integer scale 10^4, never a fabricated decimal. Sliders GET/POST.
+
+### 4.12 Loyalty — EP-SC-110…111
+
+`GET`/`PUT /channel/loyalty/rules` — `{retailer_rules, rep_rules, tiers}`. `GET`/`POST /channel/loyalty/rewards`.
+
+### 4.13 Dashboard and reports — EP-SC-120…123
+
+`GET /channel/dashboard` reads the latest **daily snapshot**, not live order joins. `fill_rate` is integer scale 10^4. `meta.snapshot_date` may be null when no snapshot exists (zeros). `GET /channel/reports/{type}` type ∈ sales|products|retailers|reps|zones|inventory|finance|offers|operations. `GET /channel/reports/margins` is a separate route (registered first). `POST /channel/reports/{type}/export` → `{job_id}`.
 
 ---
 
@@ -1378,33 +1413,25 @@ the three reference lists (§4.0) are **plain arrays**: unpaginated, unfiltered.
 | 16 | **Orders queue** | `sub-orders` | paginated; never send `sort` |
 | 17 | Bulk confirm | `bulk-confirm` | render `confirmed` **and** `failed` |
 | 18 | Assign / reassign / schedule | the three POSTs | note the differing response keys |
-| 19 | Inventory adjust, transfers, reorder points | the three writes | expect `409 insufficient_stock`; adjust has **no** dual-approval yet |
+| 19 | Inventory adjust, transfers, reorder points | the three writes | adjust is dual; expect `409 insufficient_stock` on the confirming call |
 | 20 | Inventory levels + movements | `inventory/levels`, `movements` | paginated; filters `warehouse_id`, `product_id` |
 | 21 | Returns inbox | `return-requests`, `decide` | gate on `status === pending` yourself |
 | 22 | Offers | `offers`, `POST`, `stop` | require a reward product; **no analytics** |
 
-Do not build the offer analytics screen (§4.4) or anything in §7. Inbox (#16) and
-inventory lists (#20) are wired — build the real tables.
+Do not build retailer or rep **list** screens — those paths are not in the catalog.
 
 ---
 
-## 7. Not built — do not mock
+## 7. Not in the catalog — do not mock
 
-**`GET /channel/offers/{id}/performance`** returns a live `applied_count` and **zeros** for
-every money figure (§4.4). Do not chart sales or margin.
+There is no `GET /channel/retailers`, no retailer approval/360, no `GET /channel/reps`,
+no rep CRUD. People writes that exist:
 
-Also absent from this guard, in the catalog with no route:
+- `PUT /channel/reps/{id}/discount-cap`
+- `POST /channel/reps/{id}/settle`
+- `PUT /channel/retailers/{id}/credit`
 
-| Area | Note |
-|---|---|
-| Channel notifications log (`sc.notify.view`, EP-SC-092) | catalogued; the route does not exist and the permission is no longer seeded |
-| Job status for import/export/schedule | three endpoints hand you a `job_id` with nothing to poll |
-| Channel finance — invoices, statements, settlements | SP-13; nothing on this guard |
-| Channel reporting and dashboards | SP-17; the largest missing block (63 endpoints) |
-| Rep wallet oversight | `max_cash_hold` is settable but unenforceable — see [rep.md §7](./rep.md#7-not-built--do-not-mock) |
-
-Every one of these 404s today. Keep a route shell if you like, but disable submit and
-never invent numbers — a fabricated sales figure is worse than an empty screen.
+Job status for import/export/schedule still has nothing to poll (`job_id` only).
 
 ---
 
@@ -1427,7 +1454,7 @@ never invent numbers — a fabricated sales figure is worse than an empty screen
 | 13 | `pricing/change-log` | Keys are `user` and `product`, bare ints, no names |
 | 14 | `reps/{id}/discount-cap` | No limit row = cap **0** = every rep discount fails |
 | 15 | Offers | `targeting.group_ids` silently dropped; a reward **without `product_id`** is silently discarded |
-| 16 | `offers/{id}/performance` | **Entirely hardcoded zeros.** Do not chart |
+| 16 | `offers/{id}/performance` | `linked_sales` / `discount_given` are real; `net_margin` and `conversion_rate` stay 0. `conversion_rate` scale is 10^4, not Money |
 | 17 | `offers/{id}/stop` | PATCH, and no state guard |
 | 18 | `sub-orders/{id}` | Drive buttons from `allowed_actions` — but it is **not** an authorisation check |
 | 19 | `confirm` | `picking_list_id` may be null; no default warehouse surfaces as **404 `not_found`** |
@@ -1437,12 +1464,12 @@ never invent numbers — a fabricated sales figure is worse than an empty screen
 | 23 | `assign` | Silently skips unresolvable ids and is not transactional |
 | 24 | `schedule` | Produces status **`postponed`**, not "scheduled" |
 | 25 | `cancel` / `reassign` | Also 409 once the warehouse handover is confirmed |
-| 26 | `return-requests` | Unpaginated, unfiltered, and `decide` has **no state guard** |
+| 26 | `return-requests` | Paginated. Filters: type, status, rep_id, zone_id. `decide` on non-pending → 409 `illegal_transition` |
 | 27 | `/channel/zones` | ⚠️ `delivery_fee` and `min_order_value` are **decimal strings**; POST is an upsert returning 201; DELETE is **204 no body** |
-| 28 | Inventory writes | `transfers` and `reorder-points` are **not transactional** — re-fetch after a 409/422 |
+| 28 | Inventory writes | `transfers` and `reorder-points` run in a DB transaction — a 409/422 leaves no partial row |
 | 29 | `not_found` | Also means "not yours". Never render "forbidden" |
 | 30 | Money | Integers in minor units everywhere **except** `/channel/zones` |
-| 31 | `inventory/adjust` | Catalog `dual: true` — **executes on the first request**. No Core dual-approval hook for this guard yet |
+| 31 | `inventory/adjust` | Catalog `dual: true` — first 200 is a pending request, not a movement. Second user + `approval_reason` |
 | 32 | `Accept-Language` | **Ignored** — every message is English. Never show `error.message` raw on an Arabic screen |
 | 33 | `Idempotent-Replayed` | Invisible to `fetch` — CORS exposes no headers. Do not wait for it |
 | 34 | `/governorates`, `/zones`, `/currencies` | Readable with your token, no `/channel` prefix, **include disabled rows** — filter `status === 'active'` in pickers |

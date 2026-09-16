@@ -25,4 +25,11 @@ interface ChannelDirectory
      * @return list<int>
      */
     public function activeIdsCoveringZone(int $zoneId): array;
+
+    /**
+     * Every supply channel id (any status). Used to fan out nightly snapshots.
+     *
+     * @return list<int>
+     */
+    public function allIds(): array;
 }

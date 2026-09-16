@@ -76,4 +76,13 @@ final class EloquentChannelDirectory implements ChannelDirectory
             ->map(fn ($id) => (int) $id)
             ->all();
     }
+
+    public function allIds(): array
+    {
+        return SupplyChannel::query()
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
 }

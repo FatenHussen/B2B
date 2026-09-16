@@ -11,6 +11,14 @@ use Modules\Core\Support\Concerns\BelongsToChannel;
 use Modules\Ordering\Domain\Enums\OrderSource;
 use Modules\Ordering\Domain\Enums\SubOrderStatus;
 
+/**
+ * @property int $id
+ * @property int $channel_id
+ * @property int $retailer_id
+ * @property int|null $zone_id
+ * @property int $total
+ * @property SubOrderStatus $status
+ */
 class SubOrder extends Model
 {
     use BelongsToChannel;

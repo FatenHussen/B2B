@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Inventory\Application\Actions;
 
+use Illuminate\Support\Facades\DB;
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\RecordsAudit;
+use Modules\Core\Contracts\RequestsDualApproval;
 use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Contracts\WarehouseDirectory;
 use Modules\Core\Support\InvalidFields;
@@ -18,11 +20,12 @@ final class AdjustStock
         private readonly WarehouseDirectory $warehouses,
         private readonly CatalogProductLookup $products,
         private readonly RecordsAudit $audit,
+        private readonly RequestsDualApproval $dual,
     ) {}
 
     /**
-     * @param  array{product_id: int, variant_id?: int|null, warehouse_id: int, qty_delta: int, reason: string}  $data
-     * @return array{movement_id: int, available: int}
+     * @param  array{product_id: int, variant_id?: int|null, warehouse_id: int, qty_delta: int, reason: string, approval_request_id?: int|null, approval_reason?: string|null}  $data
+     * @return array<string, int>
      */
     public function __invoke(object $actor, array $data): array
     {
@@ -35,23 +38,43 @@ final class AdjustStock
             InvalidFields::throw(['product_id' => 'inventory.product_not_found']);
         }
 
-        $result = $this->ledger->adjust(
-            $warehouseId,
-            (int) $data['product_id'],
-            isset($data['variant_id']) ? (int) $data['variant_id'] : null,
-            (int) $data['qty_delta'],
-            (string) $data['reason'],
-            $actor,
-        );
+        $payload = [
+            'product_id' => (int) $data['product_id'],
+            'variant_id' => isset($data['variant_id']) ? (int) $data['variant_id'] : null,
+            'warehouse_id' => $warehouseId,
+            'qty_delta' => (int) $data['qty_delta'],
+            'reason' => (string) $data['reason'],
+        ];
 
-        // Catalog dual=true (EP-SC-051) is unmet: BE-C05's approval_requests live in
-        // Access for IAM, and Core exposes no mutation hook. Inventory cannot import
-        // Access models. The first request still executes. Documented for the FE handoff.
+        return DB::transaction(function () use ($actor, $data, $payload, $warehouseId, $channelId): array {
+            $decision = $this->dual->gate(
+                $actor,
+                'sc.inventory.adjust',
+                'inventory.adjust',
+                $payload,
+                isset($data['approval_request_id']) ? (int) $data['approval_request_id'] : null,
+                isset($data['approval_reason']) ? (string) $data['approval_reason'] : null,
+            );
 
-        $this->audit->record('inventory.adjust', $actor, 'stock_movement', $result['movement_id'], [
-            'after' => $data,
-        ], $channelId);
+            if (! $decision->execute) {
+                return ['approval_request_id' => (int) $decision->approvalRequestId];
+            }
 
-        return $result;
+            $result = $this->ledger->adjust(
+                $warehouseId,
+                (int) $data['product_id'],
+                isset($data['variant_id']) ? (int) $data['variant_id'] : null,
+                (int) $data['qty_delta'],
+                (string) $data['reason'],
+                $actor,
+            );
+
+            $this->audit->record('inventory.adjust', $actor, 'stock_movement', $result['movement_id'], [
+                'after' => $payload,
+                'approval_request_id' => $decision->approvalRequestId,
+            ], $channelId);
+
+            return $result;
+        });
     }
 }

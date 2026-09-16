@@ -10,9 +10,7 @@ class ContentServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $migrations = __DIR__.'/../database/migrations';
-        if (is_dir($migrations)) {
-            $this->loadMigrationsFrom($migrations);
-        }
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
     }
 }

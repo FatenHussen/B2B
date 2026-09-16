@@ -7,6 +7,7 @@ namespace Modules\Finance\Infrastructure;
 use Modules\Core\Contracts\IssuesInvoice;
 use Modules\Core\Support\Tenant;
 use Modules\Finance\Domain\Models\Invoice;
+use Modules\Finance\Domain\Models\InvoiceLine;
 
 final class EloquentIssuesInvoice implements IssuesInvoice
 {
@@ -18,16 +19,26 @@ final class EloquentIssuesInvoice implements IssuesInvoice
                 return $this->map($existing);
             }
 
-            $invoice = Invoice::query()->create([
+            $invoice = new Invoice;
+            $invoice->fill([
                 'supply_channel_id' => $channelId,
                 'sub_order_id' => $subOrderId,
                 'retailer_id' => $retailerId,
                 'rep_id' => $repId,
                 'no' => 'INV-tmp',
                 'total' => $totalMinor,
-                'status' => 'open',
+                'paid_total' => 0,
+                'credited_total' => 0,
             ]);
+            $invoice->forceFill(['status' => 'open'])->save();
             $invoice->forceFill(['no' => 'INV-'.$invoice->id])->save();
+
+            InvoiceLine::query()->create([
+                'supply_channel_id' => $channelId,
+                'invoice_id' => $invoice->id,
+                'qty' => 1,
+                'amount' => $totalMinor,
+            ]);
 
             return $this->map($invoice);
         });
@@ -42,7 +53,14 @@ final class EloquentIssuesInvoice implements IssuesInvoice
 
     public function replaceTotal(int $invoiceId, int $totalMinor): void
     {
-        Tenant::withoutScope(fn () => Invoice::query()->whereKey($invoiceId)->update(['total' => $totalMinor]));
+        Tenant::withoutScope(function () use ($invoiceId, $totalMinor): void {
+            $invoice = Invoice::query()->whereKey($invoiceId)->first();
+            if ($invoice === null || $invoice->status !== 'open' || (int) $invoice->paid_total !== 0 || (int) $invoice->credited_total !== 0) {
+                return;
+            }
+            $invoice->forceFill(['total' => $totalMinor])->save();
+            InvoiceLine::query()->where('invoice_id', $invoiceId)->update(['amount' => $totalMinor]);
+        });
     }
 
     /**

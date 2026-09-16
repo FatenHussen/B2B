@@ -6,6 +6,12 @@ namespace Modules\Promotion\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $offer_id
+ * @property int $applied_count
+ * @property int $qty_consumed
+ */
 class OfferRedemption extends Model
 {
     public $timestamps = false;
