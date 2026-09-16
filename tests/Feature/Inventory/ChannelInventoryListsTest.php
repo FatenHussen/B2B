@@ -117,3 +117,78 @@ it('hides another channel stock rows from levels and movements', function () {
     expect($levelProducts)->toContain($mine['product_id'])->not->toContain($theirs['product_id'])
         ->and($movementCount)->toBe(1);
 })->group('tenancy');
+
+it('rolls back the transfer row when a later line has no stock', function () {
+    $channel = SupplyChannel::factory()->create();
+    $from = inventoryBalance($channel->id, 'TRN-OK', 40);
+    $toWarehouseId = (int) DB::table('warehouses')->insertGetId([
+        'channel_id' => $channel->id,
+        'name' => 'مستودع الهدف',
+        'status' => WarehouseStatus::Active->value,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    $emptyProductId = (int) DB::table('products')->insertGetId([
+        'supply_channel_id' => $channel->id,
+        'name_ar' => 'منتج بلا رصيد',
+        'sku' => 'TRN-EMPTY',
+        'status' => ProductStatus::Active->value,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Sanctum::actingAs(inventoryManager($channel), ['*'], 'channel');
+    CatalogAssert::error(
+        $this->postJson('/api/v1/channel/inventory/transfers', [
+            'from_warehouse_id' => $from['warehouse_id'],
+            'to_warehouse_id' => $toWarehouseId,
+            'lines' => [
+                ['product_id' => $from['product_id'], 'qty' => 2],
+                ['product_id' => $emptyProductId, 'qty' => 1],
+            ],
+        ]),
+        409,
+        'insufficient_stock',
+    );
+
+    expect(DB::table('stock_transfers')->count())->toBe(0)
+        ->and(DB::table('stock_transfer_lines')->count())->toBe(0);
+});
+
+it('writes reorder points in one transaction', function () {
+    $channel = SupplyChannel::factory()->create();
+    $row = inventoryBalance($channel->id, 'ROP-1');
+    Sanctum::actingAs(inventoryManager($channel), ['*'], 'channel');
+
+    $ok = $this->putJson('/api/v1/channel/inventory/reorder-points', [
+        'items' => [[
+            'product_id' => $row['product_id'],
+            'warehouse_id' => $row['warehouse_id'],
+            'point' => 50,
+        ]],
+    ]);
+    CatalogAssert::ok($ok);
+    expect($ok->json('data.updated'))->toBe(1);
+
+    CatalogAssert::error(
+        $this->putJson('/api/v1/channel/inventory/reorder-points', [
+            'items' => [
+                [
+                    'product_id' => $row['product_id'],
+                    'warehouse_id' => $row['warehouse_id'],
+                    'point' => 9,
+                ],
+                [
+                    'product_id' => $row['product_id'],
+                    'warehouse_id' => 999999,
+                    'point' => 1,
+                ],
+            ],
+        ]),
+        422,
+        'validation_failed',
+    );
+
+    expect((int) DB::table('stock_reorder_points')->where('product_id', $row['product_id'])->value('point'))->toBe(50);
+});
+

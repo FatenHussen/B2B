@@ -3,6 +3,7 @@
 namespace Modules\Reporting;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Reporting\Console\GenerateDailySnapshotsCommand;
 
 class ReportingServiceProvider extends ServiceProvider
 {
@@ -10,9 +11,13 @@ class ReportingServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $migrations = __DIR__.'/../database/migrations';
-        if (is_dir($migrations)) {
-            $this->loadMigrationsFrom($migrations);
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                GenerateDailySnapshotsCommand::class,
+            ]);
         }
     }
 }

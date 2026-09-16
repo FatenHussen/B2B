@@ -9,10 +9,10 @@ use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Contracts\WarehouseDirectory;
+use Modules\Core\Domain\Enums\ErrorCode;
 use Modules\Core\Domain\Events\ReturnDecided;
 use Modules\Core\Domain\Events\ReturnRequested;
 use Modules\Core\Domain\Exceptions\DomainException;
-use Modules\Core\Support\Tenant;
 use Modules\Returns\Domain\Models\ReturnDecision as DecisionRow;
 use Modules\Returns\Domain\Models\ReturnLine;
 use Modules\Returns\Domain\Models\ReturnRequest;
@@ -40,6 +40,8 @@ final class ReturnsWorkspace
         $row = ReturnRequest::query()->create([
             'channel_id' => $header['channel_id'],
             'sub_order_id' => $data['sub_order_id'],
+            'zone_id' => $header['zone_id'],
+            'rep_id' => $header['rep_id'],
             'requester_type' => $actor::class,
             'requester_id' => $actor->getAuthIdentifier(),
             'type' => $data['type'],
@@ -59,23 +61,6 @@ final class ReturnsWorkspace
         event(new ReturnRequested((int) $row->id, (int) $data['sub_order_id'], (int) $header['channel_id']));
 
         return ['request_no' => $row->request_no, 'status' => 'pending'];
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForChannel(): array
-    {
-        return ReturnRequest::query()
-            ->where('channel_id', Tenant::currentId())
-            ->orderByDesc('id')
-            ->get()
-            ->map(fn (ReturnRequest $r) => [
-                'id' => (int) $r->id,
-                'request_no' => $r->request_no,
-                'type' => $r->type,
-                'status' => $r->status,
-            ])->all();
     }
 
     /**
@@ -107,6 +92,9 @@ final class ReturnsWorkspace
         $row = ReturnRequest::query()->find($id);
         if ($row === null) {
             throw new DomainException(__('returns.not_found'), 'not_found', 404);
+        }
+        if ($row->status !== 'pending') {
+            throw DomainException::of(ErrorCode::IllegalTransition);
         }
         $row->status = $data['decision'] === 'approve' ? 'approved' : 'rejected';
         $row->save();

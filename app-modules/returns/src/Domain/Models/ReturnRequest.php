@@ -21,6 +21,8 @@ class ReturnRequest extends Model
     protected $fillable = [
         'channel_id',
         'sub_order_id',
+        'zone_id',
+        'rep_id',
         'requester_type',
         'requester_id',
         'type',

@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Promotion\Application\Queries;
 
+use Modules\Core\Contracts\OfferLineStats;
 use Modules\Core\Domain\Exceptions\DomainException;
+use Modules\Core\Support\Tenant;
 use Modules\Promotion\Domain\Models\Offer;
+use Modules\Promotion\Domain\Models\OfferRedemption;
 
 final class ShowOfferPerformance
 {
+    public function __construct(private readonly OfferLineStats $lines) {}
+
     /**
      * @return array{
      *     applied_count: int,
@@ -27,17 +32,19 @@ final class ShowOfferPerformance
             throw new DomainException(__('promotion.not_found'), 'not_found', 404);
         }
 
-        // applied_count is the redemption counter this module owns. linked_sales,
-        // discount_given, net_margin, retailers_count, by_zone and conversion_rate
-        // need order lines (BE2-PRM05) via a Core contract — Promotion must not query
-        // Ordering tables. Until that contract exists those keys stay 0, never invented.
+        $stats = $this->lines->forOffer((int) $offer->id, (int) Tenant::currentId());
+        $redemption = $offer->redemption;
+        $applied = $redemption instanceof OfferRedemption ? (int) $redemption->applied_count : 0;
+
+        // conversion_rate is dimensionless at scale 10^4. Views are not stored, so 0.
+        // net_margin needs cost; stay 0 rather than invent a margin.
         return [
-            'applied_count' => (int) ($offer->redemption?->applied_count ?? 0),
-            'linked_sales' => 0,
-            'discount_given' => 0,
+            'applied_count' => $applied,
+            'linked_sales' => $stats['linked_sales'],
+            'discount_given' => $stats['discount_given'],
             'net_margin' => 0,
-            'retailers_count' => 0,
-            'by_zone' => [],
+            'retailers_count' => $stats['retailers_count'],
+            'by_zone' => $stats['by_zone'],
             'conversion_rate' => 0,
         ];
     }

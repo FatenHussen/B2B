@@ -16,6 +16,8 @@ final class AdjustStockRequest extends ApiFormRequest
             'warehouse_id' => ['required', 'integer', 'min:1'],
             'qty_delta' => ['required', 'integer'],
             'reason' => ['required', 'string', 'max:255'],
+            'approval_request_id' => ['nullable', 'integer', 'min:1'],
+            'approval_reason' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

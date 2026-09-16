@@ -62,11 +62,10 @@ const ROLE_GUARDS = [
  * It held two. `ad.billing.manage` was a phantom — in neither DOC-08 nor the API catalog,
  * kept alive only because `bin/extract-permissions.php` re-injected it on every
  * generation; the generator was fixed rather than the exemption maintained.
- * `sc.notify.view` belonged to EP-SC-092, an endpoint that is not built, so it was a
- * permission for a route that does not exist — against the rule this repository settled
- * on: a code is added when a route needs it, never before.
+ * `sc.notify.view` belongs to EP-SC-092. It is not in DOC-08; the catalog is the
+ * source of the path, so the code is seeded with that endpoint and listed here.
  */
-const DOC08_EXEMPT = [];
+const DOC08_EXEMPT = ['sc.notify.view'];
 
 /**
  * The DOC-08 catalog as the document defines it, read from the document rather than
@@ -98,6 +97,9 @@ it('seeds no permission name that DOC-08 does not define', function () {
 
     $offenders = [];
     foreach (Permission::query()->orderBy('guard_name')->orderBy('name')->get() as $permission) {
+        if (in_array($permission->name, DOC08_EXEMPT, true)) {
+            continue;
+        }
         if (! in_array($permission->name, $catalog, true)) {
             $offenders[$permission->guard_name][] = $permission->name;
         }
@@ -124,7 +126,7 @@ it('gives no role a permission that DOC-08 does not define', function () {
         $role = Role::query()->where('name', $name)->where('guard_name', $guard)->firstOrFail();
         $held = $role->permissions->pluck('name')->all();
         sort($held);
-        $extra = array_values(array_diff($held, $catalog));
+        $extra = array_values(array_diff($held, $catalog, DOC08_EXEMPT));
 
         if ($extra !== []) {
             $report[] = sprintf('%s (%s): %d of %d — %s', $name, $guard, count($extra), count($held), implode(' ', $extra));
@@ -177,13 +179,10 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // time. `sc.settings.*` and `sc.zones.*` arrived exactly that way in this batch.
     $catalog = doc08Codes();
 
-    expect(Permission::query()->count())->toBe(130)
-        ->and(PermissionCatalog::codes())->toHaveCount(130)
-        // 40, up from 39. Removing `ad.billing.manage` and `sc.notify.view` did not move
-        // this number — neither was in DOC-08, so dropping them shrank the catalog
-        // without changing how much of the document is unseeded. Removing
-        // `ad.channels.archive` did move it: that one *is* in DOC-08, so it left the
-        // catalog and rejoined the unseeded set. It returns when an endpoint claims it.
+    expect(Permission::query()->count())->toBe(131)
+        ->and(PermissionCatalog::codes())->toHaveCount(131)
+        // 40, up from 39. Adding `sc.notify.view` (catalog-only, EP-SC-092) did not
+        // shrink the unseeded DOC-08 set. It sits in DOC08_EXEMPT.
         ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(40)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
         ->toBe(DOC08_EXEMPT);

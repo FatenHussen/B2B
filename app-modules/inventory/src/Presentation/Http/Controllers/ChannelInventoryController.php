@@ -24,7 +24,12 @@ final class ChannelInventoryController extends ApiController
 
     public function adjust(AdjustStockRequest $request, AdjustStock $action): JsonResponse
     {
-        return $this->ok($action($request->user(), $request->validated()));
+        $result = $action($request->user(), $request->validated());
+        if (isset($result['approval_request_id']) && ! isset($result['movement_id'])) {
+            return $this->ok($result, ['requires_dual_approval' => true]);
+        }
+
+        return $this->ok($result);
     }
 
     public function transfer(StoreTransferRequest $request, CreateStockTransfer $action): JsonResponse

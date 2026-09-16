@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Inventory\Application\Actions;
 
+use Illuminate\Support\Facades\DB;
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Contracts\WarehouseDirectory;
@@ -52,23 +53,25 @@ final class CreateStockTransfer
             ];
         }
 
-        $transfer = StockTransfer::query()->create([
-            'from_warehouse_id' => $from,
-            'to_warehouse_id' => $to,
-            'status' => TransferStatus::Sent,
-        ]);
-
-        foreach ($lines as $line) {
-            StockTransferLine::query()->create([
-                'stock_transfer_id' => $transfer->id,
-                'product_id' => $line['product_id'],
-                'variant_id' => $line['variant_id'] ?: 0,
-                'qty' => $line['qty'],
+        return DB::transaction(function () use ($from, $to, $lines, $actor): array {
+            $transfer = StockTransfer::query()->create([
+                'from_warehouse_id' => $from,
+                'to_warehouse_id' => $to,
+                'status' => TransferStatus::Sent,
             ]);
-        }
 
-        $this->ledger->transferSent($from, $to, $lines, (int) $transfer->id, $actor);
+            foreach ($lines as $line) {
+                StockTransferLine::query()->create([
+                    'stock_transfer_id' => $transfer->id,
+                    'product_id' => $line['product_id'],
+                    'variant_id' => $line['variant_id'] ?: 0,
+                    'qty' => $line['qty'],
+                ]);
+            }
 
-        return ['id' => (int) $transfer->id, 'status' => TransferStatus::Sent->value];
+            $this->ledger->transferSent($from, $to, $lines, (int) $transfer->id, $actor);
+
+            return ['id' => (int) $transfer->id, 'status' => TransferStatus::Sent->value];
+        });
     }
 }

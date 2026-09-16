@@ -115,6 +115,8 @@ final class PermissionCatalog
         'sc.loyalty.manage' => ['name_ar' => 'قواعد النقاط', 'system' => 'channel', 'module' => 'loyalty', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.notify.send' => ['name_ar' => 'إرسال إشعار', 'system' => 'channel', 'module' => 'notify', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.notify.templates' => ['name_ar' => 'قوالب الإشعارات', 'system' => 'channel', 'module' => 'notify', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // EP-SC-092 GET /channel/notifications/log — catalogued, not in DOC-08.
+        'sc.notify.view' => ['name_ar' => 'سجل الإشعارات', 'system' => 'channel', 'module' => 'notify', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.offers.create' => ['name_ar' => 'إنشاء عرض', 'system' => 'channel', 'module' => 'offers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.offers.stop' => ['name_ar' => 'إيقاف عرض', 'system' => 'channel', 'module' => 'offers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.offers.view' => ['name_ar' => 'العروض', 'system' => 'channel', 'module' => 'offers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],

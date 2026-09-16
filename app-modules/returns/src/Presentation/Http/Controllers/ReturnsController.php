@@ -7,6 +7,7 @@ namespace Modules\Returns\Presentation\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Core\Http\ApiController;
+use Modules\Returns\Application\Queries\ListChannelReturnRequests;
 use Modules\Returns\Application\ReturnsWorkspace;
 use Modules\Returns\Presentation\Http\Requests\CreateReturnRequest;
 use Modules\Returns\Presentation\Http\Requests\DecideReturnRequest;
@@ -24,9 +25,9 @@ final class ReturnsController extends ApiController
         return $this->ok($ops->listForRetailer($request->user()));
     }
 
-    public function channelIndex(ReturnsWorkspace $ops): JsonResponse
+    public function channelIndex(ListChannelReturnRequests $query, Request $request): JsonResponse
     {
-        return $this->ok($ops->listForChannel());
+        return $this->paginated($query($request), fn ($row) => $query->map($row));
     }
 
     public function decide(DecideReturnRequest $request, ReturnsWorkspace $ops, int $id): JsonResponse
