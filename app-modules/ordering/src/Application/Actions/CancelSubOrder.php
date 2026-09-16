@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Ordering\Application\Actions;
 
 use Modules\Core\Contracts\HandoverGuard;
+use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Domain\Events\SubOrderCancelled;
 use Modules\Core\Domain\Exceptions\DomainException;
@@ -19,6 +20,7 @@ final class CancelSubOrder
         private readonly SubOrderStateMachine $machine,
         private readonly StockLedger $ledger,
         private readonly HandoverGuard $handover,
+        private readonly RetailerShoppingContext $shopping,
     ) {}
 
     /**
@@ -27,7 +29,16 @@ final class CancelSubOrder
      */
     public function __invoke(object $actor, int $id, array $data, bool $retailer = false): array
     {
-        $sub = SubOrder::query()->find($id);
+        // Two callers, two isolations. From the channel route the tenant scope decides what
+        // this query can see. From `/app/retailer/orders/{id}/cancel` there is no tenant —
+        // and there must not be one, a retailer buys from several channels — so the only
+        // line between one retailer and another is `retailer_id`. It is applied here, on
+        // the query, before anything is read (BE-C12): a foreign order is simply not found.
+        $query = SubOrder::query();
+        if ($retailer) {
+            $query->where('retailer_id', $this->shopping->for($actor)['retailer_id']);
+        }
+        $sub = $query->find($id);
         if ($sub === null) {
             throw new DomainException(__('ordering.not_found'), 'not_found', 404);
         }
