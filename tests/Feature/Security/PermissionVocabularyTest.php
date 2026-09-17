@@ -15,16 +15,17 @@ declare(strict_types=1);
  * in AccessMatrix and on every guard at once, so a channel manager could create a
  * governorate. The last test here is that probe, now inverted.
  *
- * AccessMatrix is gone, and so are the two codes this file used to exempt. Every
- * assertion below is now a genuinely empty list: nothing is seeded, held by a role, or
- * writable through a name DOC-08 does not define.
+ * AccessMatrix is gone. Every assertion below is an empty list with one named exception:
+ * nothing is seeded, held by a role, or writable through a name DOC-08 does not define,
+ * other than the single catalog-only code in DOC08_EXEMPT.
  *
- * The exemptions were retired rather than maintained. `ad.billing.manage` was in neither
- * DOC-08 nor the API catalog and survived only because `bin/extract-permissions.php`
- * re-injected it on every generation, so the generator was fixed. `sc.notify.view`
- * belonged to EP-SC-092, which is not built — a permission for a route that does not
- * exist, against the rule this repository settled on: a code is added when a route needs
- * it, never before.
+ * Two codes were once exempt here. `ad.billing.manage` was in neither DOC-08 nor the API
+ * catalog and survived only because `bin/extract-permissions.php` re-injected it on every
+ * generation, so the generator was fixed and the code is gone. `sc.notify.view` stays: it
+ * guards EP-SC-092 `GET /channel/notifications/log`, a route the catalog defines and the
+ * Notification module publishes, which DOC-08 has not caught up with. The catalog is the
+ * source of the path, so the code is seeded and exempted with that endpoint named beside
+ * it — not deleted, and not given an invented DOC-08 entry.
  *
  * Hazards this file is shaped around, inherited from CrossGuardTest:
  *
@@ -57,13 +58,15 @@ const ROLE_GUARDS = [
 ];
 
 /**
- * Codes permitted outside DOC-08. Empty, and meant to stay that way.
+ * Codes permitted outside DOC-08: the ones the API catalog defines and DOC-08 does not.
+ * One today. An entry here carries the endpoint it serves, and nothing enters without one.
  *
- * It held two. `ad.billing.manage` was a phantom — in neither DOC-08 nor the API catalog,
- * kept alive only because `bin/extract-permissions.php` re-injected it on every
- * generation; the generator was fixed rather than the exemption maintained.
- * `sc.notify.view` belongs to EP-SC-092. It is not in DOC-08; the catalog is the
- * source of the path, so the code is seeded with that endpoint and listed here.
+ * `ad.billing.manage` was once listed too. It was a phantom — in neither DOC-08 nor the
+ * API catalog, kept alive only because `bin/extract-permissions.php` re-injected it on
+ * every generation; the generator was fixed rather than the exemption maintained.
+ * `sc.notify.view` guards EP-SC-092 `GET /channel/notifications/log`. It is not in DOC-08;
+ * the catalog is the source of the path, so the code is seeded with that endpoint and
+ * listed here.
  */
 const DOC08_EXEMPT = ['sc.notify.view'];
 
