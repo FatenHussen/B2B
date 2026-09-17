@@ -25,4 +25,8 @@ return [
     'zone_not_found' => 'المنطقة غير موجودة.',
     'zone_not_covered' => 'هذه المنطقة خارج تغطيتك.',
     'retailer_pending_review' => 'ملف التاجر قيد المراجعة.',
+    'not_found' => 'غير موجود.',
+    'illegal_rep_transition' => 'انتقال حالة المندوب غير مسموح.',
+    'illegal_zone_request_transition' => 'طلب المنطقة ليس قيد الموافقة.',
+    'illegal_sourced_shop_transition' => 'المحل ليس بانتظار المزامنة.',
 ];

@@ -15,6 +15,7 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::post('invoices/{id}/void', [ChannelFinanceController::class, 'voidInvoice'])->middleware('permission:sc.finance.void_invoice');
         Route::post('payments', [ChannelFinanceController::class, 'payment'])->middleware('permission:sc.finance.payment');
         Route::post('reps/{id}/settle', [ChannelFinanceController::class, 'settle'])->middleware('permission:sc.reps.settle');
+        Route::get('reps/{id}/wallet', [ChannelFinanceController::class, 'wallet'])->middleware('permission:sc.reps.wallet');
         Route::get('finance/aging', [ChannelFinanceController::class, 'aging'])->middleware('permission:sc.finance.aging');
         Route::put('retailers/{id}/credit', [ChannelFinanceController::class, 'credit'])->middleware('permission:sc.retailers.credit');
     });

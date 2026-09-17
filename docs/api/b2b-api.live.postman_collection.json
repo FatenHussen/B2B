@@ -1,7 +1,7 @@
 {
     "info": {
-        "name": "B2B API — live routes only (185)",
-        "_postman_id": "8f3c1d20-b2b0-4a51-9e77-liveeecca5b6",
+        "name": "B2B API — live routes only (227)",
+        "_postman_id": "8f3c1d20-b2b0-4a51-9e77-live705f2172",
         "description": "# B2B API — live routes only\n\nGenerated from `php artisan route:list`, **not** from the API catalog. Every request here\nis registered and callable today. Nothing in this collection 404s because it was never\nbuilt.\n\nVerified 2026-09-08 · 178 requests.\n\n> The older `b2b-api.postman_collection.json` holds 775 requests generated from the\n> catalog. Most of those are **not implemented** and return 404. Use this collection to\n> test what exists; use that one to see what is planned.\n\n## Setup — two minutes\n\n1. Import this collection **and** an environment from `docs/api/environments/`.\n2. Select the environment matching the client you are testing.\n3. `baseUrl` is the **host only** — `http://127.0.0.1:8000`, no `/api/v1`. Each request\n   carries `api/v1` in its own path, so the existing environment files work unchanged.\n4. Run a login request. **The token is captured automatically** into `{{token}}` by a test\n   script; every other request already sends `Authorization: Bearer {{token}}`.\n\n## Getting a token per guard\n\n| Guard | Request | Note |\n|---|---|---|\n| `app` (retailer / rep) | `00. Shared` → `01. Public OTP` → request-otp, then verify-otp | code is in `storage/logs/laravel.log` |\n| `channel` | `03. Channel dashboard` → `00. Auth` | seeded phone `+963900000001` |\n| `warehouse` | `04. Warehouse dashboard` → `00. Device login` | register a device first (CLI) |\n| `platform` | `05. Platform admin` → `00. Auth` | `admin@platform.sy` / `password` |\n\nOTP codes are written to the log, not sent:\n\n```bash\ntail -f storage/logs/laravel.log | grep OTP\n```\n\n`request-otp` saves `{{otp_id}}` automatically, so verify-otp works without copying.\n\n## Rules baked into every request\n\n- **`X-Idempotency-Key`** is set to `{{$guid}}` on every write **except** the 8 exempt\n  credential paths. Postman regenerates it per send — which is correct for testing, but\n  **wrong for a real client**, where the key must stay stable across retries of one intent.\n- **`Authorization: Bearer {{token}}`** is present on every guarded request.\n- **`Accept-Language`**, **`X-Client`**, **`X-App-Version`** come from the environment.\n  Note the server currently reads only `Accept-Language` — the other two are for logs.\n- **`X-Device-Id`** is sent on app, public and warehouse routes (OTP rate limiting uses it).\n\n## Folder structure\n\n```\n00. Shared — public & app       health, public OTP, app session, pricing, offers\n01. Retailer app                auth, catalog, cart, orders, receiving, returns\n02. Field rep app               duty/zones/customers, catalog, cart, assignments,\n                                warehouse pickup, delivery, returns\n03. Channel dashboard           auth, settings, zones, catalog, pricing, offers,\n                                inventory, sub-orders, returns\n04. Warehouse dashboard         device login, queues, picking, packing, handover,\n                                receiving, stocktake, return sorting\n05. Platform admin              auth, my account, IAM, audit, channels\n06. Reference (MOVING paths)    governorates & zones\n```\n\nEach request's **description** carries its EP-ID, guard, permission or role, whether an\nidempotency key is required, an example response, and its error codes.\n\n## Stability\n\nEvery request description names one of:\n\n| Value | Meaning |\n|---|---|\n| `stable` | registered at the path the catalog specifies |\n| `MOVING -> …` | registered, but at a temporary path — it will move |\n| `live, not in catalog` | callable, but the catalog has not caught up |\n\n⚠️ **22 requests are `MOVING`**: `/admin/channels` (→ `/platform/channels`, seven requests —\nthe five channel CRUD routes, `POST …/{id}/transition` and `POST …/{id}/retry-provisioning`), `/governorates`, `/zones` and\n`/currencies` (→ `/platform/refs/*`). Anything built against them will need rework. They are\ngrouped so you can see them at a glance, and each is meant to sit behind one base-path\nconstant in a client.\n\n## Path variables\n\nRequests with `{{id}}`, `{{subOrderId}}`, `{{handoverId}}` etc. expect you to set those in\nthe environment or edit them inline. They are left as variables rather than hardcoded ids\nso a folder can be run in order.\n\n## Regenerating\n\n```bash\nphp artisan route:list --json > docs/api/.live-routes.json\nphp docs/api/generate-live-postman.php\n```\n\nRe-run after any sprint merge. The generator reads `route:list` for the routes and the\ncatalog only for example bodies and EP-IDs — so a newly built endpoint appears\nautomatically, and one that was never built never appears.\n\n## What is NOT here\n\n180 catalogued endpoints have no route: all money (SP-13), all offline sync (SP-14),\ncontent and loyalty (SP-15), and every platform reference screen (SP-03). They are absent\nby design — see `docs/DocsLast/` for what that blocks per app.\n",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
@@ -2394,7 +2394,7 @@
             ]
         },
         {
-            "name": "02. Field rep app — 24",
+            "name": "02. Field rep app — 30",
             "item": [
                 {
                     "name": "00. Auth & registration (1)",
@@ -3173,7 +3173,7 @@
                                         }
                                     ]
                                 },
-                                "description": "**EP-RP-033** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | الطلبات المجدولة |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"shop_logo\": null,\n        \"shop\": \"بقالية النور\",\n        \"address\": \"المزة فيلات شرقية\",\n        \"phone\": \"+963933000000\",\n        \"scheduled_at\": \"2026-03-02T10:00:00+03:00\",\n        \"status\": \"postponed\",\n        \"color\": \"amber\"\n    }\n]\n```"
+                                "description": "**EP-RP-033** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | الطلبات المجدولة |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 9001,\n        \"shop_logo\": null,\n        \"shop\": \"بقالية النور\",\n        \"address\": \"المزة فيلات شرقية\",\n        \"phone\": \"+963933000000\",\n        \"scheduled_at\": \"2026-03-02T10:00:00+03:00\",\n        \"status\": \"postponed\",\n        \"color\": \"amber\"\n    }\n]\n```"
                             },
                             "response": []
                         },
@@ -3365,7 +3365,7 @@
                                         }
                                     ]
                                 },
-                                "description": "**EP-RP-040** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | استلام العهدة |\n\n**Example response `data`:**\n```json\n{\n    \"date\": \"2026-03-01\",\n    \"rep_name\": \"أحمد العلي\",\n    \"count\": 2,\n    \"orders\": [\n        {\n            \"order_no\": \"SO-9001\",\n            \"shop\": \"بقالية النور\",\n            \"zone\": \"المزة\"\n        }\n    ]\n}\n```"
+                                "description": "**EP-RP-040** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | استلام العهدة |\n\n**Example response `data`:**\n```json\n{\n    \"date\": \"2026-03-01\",\n    \"rep_name\": \"أحمد العلي\",\n    \"count\": 2,\n    \"orders\": [\n        {\n            \"sub_order_id\": 9001,\n            \"order_no\": \"SO-9001\",\n            \"shop\": \"بقالية النور\",\n            \"zone\": \"المزة\"\n        }\n    ]\n}\n```"
                             },
                             "response": []
                         },
@@ -3945,11 +3945,364 @@
                         }
                     ],
                     "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
+                },
+                {
+                    "name": "08. Wallet & cash (6)",
+                    "item": [
+                        {
+                            "name": "GET /app/rep/receivables",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/receivables",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "receivables"
+                                    ]
+                                },
+                                "description": "**EP-RP-064** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | ذمم المحلات |\n\nEach by_shop row includes retailer_id (RetailerProfile id).\n\n**Example response `data`:**\n```json\n{\n    \"by_shop\": [\n        {\n            \"retailer_id\": 481,\n            \"shop\": \"بقالية النور\",\n            \"total\": 48000,\n            \"invoices\": [\n                {\n                    \"no\": \"INV-501\",\n                    \"total\": 48000,\n                    \"paid\": 0,\n                    \"remaining\": 48000\n                }\n            ]\n        }\n    ]\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /app/rep/wallet",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/wallet",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "wallet"
+                                    ]
+                                },
+                                "description": "**EP-RP-061** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | المحفظة |\n\nnet_balance == SUM(collected) − SUM(settled) at all times (AC-06).\n\n**Example response `data`:**\n```json\n{\n    \"net_balance\": 210000,\n    \"stats\": {\n        \"invoices_delivered\": 18,\n        \"collected_total\": 860000,\n        \"receivables\": 120000\n    },\n    \"today\": {\n        \"invoices\": 4,\n        \"collected\": 180000,\n        \"receivables\": 30000\n    }\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /app/rep/wallet/withdrawals",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/wallet/withdrawals?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "wallet",
+                                        "withdrawals"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "2026-02-01",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "2026-02-28",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-RP-063** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | سجل التسليمات |\n\n**Example response `data`:**\n```json\n{\n    \"rows\": [\n        {\n            \"operation_no\": \"OP-7700\",\n            \"amount\": 900000,\n            \"operated_at\": \"2026-02-20\"\n        }\n    ],\n    \"total\": 900000\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /app/receipts/reserve",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/receipts/reserve",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "receipts",
+                                        "reserve"
+                                    ]
+                                },
+                                "description": "**EP-CM-050** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | حجز رقم وصل |\n\nServer-generated unique number BEFORE payment starts (REQ-IN-01). Used by EP-RP-060 then EP-RT-050.\n\n**Example response `data`:**\n```json\n{\n    \"receipt_no\": \"RCPT-10041\"\n}\n```\n\n**Errors:** `409` duplicate_receipt_no",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /app/rep/payments",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/payments",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "payments"
+                                    ]
+                                },
+                                "description": "**EP-RP-060** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | تحصيل دفعة |\n\nreceipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).\n\n**Example response `data`:**\n```json\n{\n    \"payment\": {\n        \"id\": 301\n    },\n    \"wallet_balance\": 210000,\n    \"retailer_receivable\": 0\n}\n```\n\n**Errors:** `409` duplicate_receipt_no",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"receipt_no\": \"RCPT-10041\",\n    \"retailer_id\": 481,\n    \"invoice_no\": \"INV-501\",\n    \"amount\": 48000,\n    \"paid_at\": \"2026-03-01T12:08:00+03:00\",\n    \"client_op_id\": \"op_rep_pay_10041\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /app/rep/wallet/withdrawals",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/wallet/withdrawals",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "wallet",
+                                        "withdrawals"
+                                    ]
+                                },
+                                "description": "**EP-RP-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | تسليم نقدية |\n\noperation_no comes from the accountant and must stay unique across sync retries (TB-RP-063).\n\n**Example response `data`:**\n```json\n{\n    \"remaining_balance\": 250000\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"amount\": 1500000,\n    \"operation_no\": \"OP-7781\",\n    \"operated_at\": \"2026-03-01T16:00:00+03:00\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        }
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 }
             ]
         },
         {
-            "name": "03. Channel dashboard — 47",
+            "name": "03. Channel dashboard — 83",
             "item": [
                 {
                     "name": "00. Auth (2)",
@@ -4354,7 +4707,7 @@
                     "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
-                    "name": "03. Catalog (13)",
+                    "name": "03. Catalog (38)",
                     "item": [
                         {
                             "name": "GET /channel/brands",
@@ -4514,6 +4867,574 @@
                             "response": []
                         },
                         {
+                            "name": "GET /channel/content/banners",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/content/banners?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "content",
+                                        "banners"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "1",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "25",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "-created_at",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-101A** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.content.banners` |\n| Idempotency | n/a (read) |\n| Name | البنرات |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 9,\n        \"media_type\": \"image\",\n        \"placements\": [\n            \"home_top\"\n        ]\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/content/banners/{id}/stats",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/content/banners/{{id}}/stats",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "content",
+                                        "banners",
+                                        "{{id}}",
+                                        "stats"
+                                    ]
+                                },
+                                "description": "**EP-SC-102** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.content.banners` |\n| Idempotency | n/a (read) |\n| Name | إحصاء البنر |\n\n**Example response `data`:**\n```json\n{\n    \"impressions\": 12000,\n    \"clicks\": 840,\n    \"ctr\": 0.07\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/content/intro",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/content/intro",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "content",
+                                        "intro"
+                                    ]
+                                },
+                                "description": "**EP-SC-100A** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.content.intro` |\n| Idempotency | n/a (read) |\n| Name | شاشة الانترو |\n\n**Example response `data`:**\n```json\n{\n    \"enabled\": true,\n    \"text\": \"مرحباً بتجار دمشق\",\n    \"media_type\": \"video\",\n    \"media_id\": \"media_intro\",\n    \"duration\": 8,\n    \"targeting\": {\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ]\n    }\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/content/sliders",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/content/sliders",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "content",
+                                        "sliders"
+                                    ]
+                                },
+                                "description": "**EP-SC-103A** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.content.sliders` |\n| Idempotency | n/a (read) |\n| Name | الساليدرات |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 4,\n        \"name\": \"الأكثر مبيعاً\",\n        \"source\": \"algorithm\",\n        \"algorithm\": \"best_selling\"\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/dashboard",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/dashboard",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "dashboard"
+                                    ]
+                                },
+                                "description": "**EP-SC-120** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.dashboard.view` |\n| Idempotency | n/a (read) |\n| Name | لوحة القناة |\n\n**Example response `data`:**\n```json\n{\n    \"kpis\": {\n        \"sales\": 62000000,\n        \"orders_by_status\": {\n            \"pending\": 12,\n            \"confirmed\": 40,\n            \"on_the_way\": 9\n        },\n        \"cash_collected\": 18000000,\n        \"receivables\": {\n            \"total\": 42000000,\n            \"overdue\": 6000000\n        },\n        \"retailers\": {\n            \"active\": 420,\n            \"registered\": 510,\n            \"new\": 14\n        },\n        \"avg_order_value\": 38000,\n        \"avg_confirm_time\": 11,\n        \"avg_delivery_time\": 140,\n        \"fill_rate\": 0.97\n    },\n    \"alerts\": [\n        {\n            \"type\": \"waiting_orders\",\n            \"count\": 8,\n            \"action_url\": \"/orders?filter[waiting_over_minutes]=30\"\n        }\n    ],\n    \"charts\": {\n        \"daily_sales\": [],\n        \"by_zone\": [],\n        \"top_products\": [],\n        \"top_retailers\": [],\n        \"rep_performance\": [],\n        \"heatmap\": []\n    }\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/finance/aging",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/finance/aging?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "finance",
+                                        "aging"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "zone",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-085** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.finance.aging` |\n| Idempotency | n/a (read) |\n| Name | أعمار الذمم |\n\ngroup_by: zone|rep\n\n**Example response `data`:**\n```json\n{\n    \"group_by\": \"zone\",\n    \"buckets\": {\n        \"0_30\": 12000000,\n        \"31_60\": 4000000,\n        \"61_90\": 1500000,\n        \"over_90\": 200000\n    }\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/invoices",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/invoices?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "invoices"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "1",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "25",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "-created_at",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "open",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "481",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "70",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "2026-03-01",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-080** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.finance.view` |\n| Idempotency | n/a (read) |\n| Name | الفواتير |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 501,\n        \"no\": \"INV-501\",\n        \"total\": 48000,\n        \"status\": \"open\"\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/loyalty/rewards",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/loyalty/rewards?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "loyalty",
+                                        "rewards"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "1",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "25",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "-created_at",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-111A** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.loyalty.manage` |\n| Idempotency | n/a (read) |\n| Name | المكافآت |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 3,\n        \"name\": \"كرتون زيت\",\n        \"points_cost\": 2000,\n        \"stock\": 40\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/loyalty/rules",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/loyalty/rules",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "loyalty",
+                                        "rules"
+                                    ]
+                                },
+                                "description": "**EP-SC-110A** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.loyalty.manage` |\n| Idempotency | n/a (read) |\n| Name | قواعد النقاط |\n\n**Example response `data`:**\n```json\n{\n    \"retailer_rules\": [\n        {\n            \"event\": \"invoice_paid\",\n            \"points_per_1000\": 1\n        }\n    ],\n    \"rep_rules\": [\n        {\n            \"event\": \"delivery_completed\",\n            \"points\": 5\n        }\n    ],\n    \"tiers\": [\n        {\n            \"name\": \"silver\",\n            \"threshold\": 1000,\n            \"benefits\": [\n                \"priority_support\"\n            ]\n        }\n    ]\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/notifications/log",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/notifications/log?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "notifications",
+                                        "log"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "1",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "25",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "-created_at",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-092** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.notify.view` |\n| Idempotency | n/a (read) |\n| Name | سجل الإشعارات |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"at\": \"2026-03-01T09:12:00+03:00\",\n        \"recipient\": 481,\n        \"template\": \"order.confirmed\",\n        \"status\": \"sent\",\n        \"failure_reason\": null\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/notifications/templates",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/notifications/templates",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "notifications",
+                                        "templates"
+                                    ]
+                                },
+                                "description": "**EP-SC-091A** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.notify.templates` |\n| Idempotency | n/a (read) |\n| Name | قوالب الإشعارات |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"event_key\": \"order.confirmed\",\n        \"title\": \"تم تأكيد طلبك\",\n        \"enabled\": true,\n        \"channels\": [\n            \"push\"\n        ]\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
                             "name": "GET /channel/products",
                             "request": {
                                 "method": "GET",
@@ -4594,6 +5515,121 @@
                                     ]
                                 },
                                 "description": "**EP-SC-014** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.catalog.view` |\n| Idempotency | n/a (read) |\n| Name | المنتجات |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 880,\n        \"sku\": \"OIL-SUN-1L\",\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"status\": \"active\"\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/reports/margins",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reports/margins?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reports",
+                                        "margins"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "2026-02-01",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "2026-02-28",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-123** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reports.margins` |\n| Idempotency | n/a (read) |\n| Name | تقرير الهوامش |\n\n**Example response `data`:**\n```json\n{\n    \"by_product\": [],\n    \"by_zone\": []\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/reports/{type}",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reports/{{type}}?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reports",
+                                        "{{type}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "2026-02-01",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "2026-02-28",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "12",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-121** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reports.view` |\n| Idempotency | n/a (read) |\n| Name | تقرير القناة |\n\ntype ∈ sales|products|retailers|reps|zones|inventory|finance|offers|operations\n\n**Example response `data`:**\n```json\n{\n    \"type\": \"sales\",\n    \"rows\": [],\n    \"totals\": []\n}\n```"
                             },
                             "response": []
                         },
@@ -4836,6 +5872,426 @@
                             "response": []
                         },
                         {
+                            "name": "POST /channel/content/banners",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/content/banners",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "content",
+                                        "banners"
+                                    ]
+                                },
+                                "description": "**EP-SC-101B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.content.banners` |\n| Idempotency | required |\n| Name | إنشاء بنر |\n\n**Example response `data`:**\n```json\n{\n    \"id\": 9\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"media_type\": \"image\",\n    \"media_id\": \"media_banner_2\",\n    \"link\": {\n        \"type\": \"offer\",\n        \"target\": 44\n    },\n    \"placements\": [\n        \"home_top\"\n    ],\n    \"targeting\": {\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ]\n    },\n    \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n    \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n    \"order\": 1,\n    \"weight\": 10\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/content/sliders",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/content/sliders",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "content",
+                                        "sliders"
+                                    ]
+                                },
+                                "description": "**EP-SC-103B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.content.sliders` |\n| Idempotency | required |\n| Name | إنشاء ساليدر |\n\nsource: manual|brand|category|offers|algorithm. algorithm: new_arrivals|best_selling|most_ordered_by_retailer|suggested|similar|same_brand.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 4\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"الأكثر مبيعاً\",\n    \"source\": \"algorithm\",\n    \"source_ref\": null,\n    \"algorithm\": \"best_selling\",\n    \"placements\": [\n        \"home\"\n    ],\n    \"items_count\": 12,\n    \"show_all_button\": true,\n    \"targeting\": {\n        \"activity_type_ids\": [\n            3\n        ]\n    }\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/invoices/{id}/credit-note",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/invoices/{{id}}/credit-note",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "invoices",
+                                        "{{id}}",
+                                        "credit-note"
+                                    ]
+                                },
+                                "description": "**EP-SC-081** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.finance.credit_note` |\n| Idempotency | required |\n| Name | إشعار دائن |\n\n**Example response `data`:**\n```json\n{\n    \"credit_note_id\": 88,\n    \"no\": \"CN-88\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty\": 1,\n            \"amount\": 12000\n        }\n    ],\n    \"reason\": \"فرق تسليم\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/invoices/{id}/void",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/invoices/{{id}}/void",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "invoices",
+                                        "{{id}}",
+                                        "void"
+                                    ]
+                                },
+                                "description": "**EP-SC-082** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.finance.void_invoice` |\n| Idempotency | required |\n| Name | إلغاء فاتورة |\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"void\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"reason\": \"إصدار مكرر بعد تعارض مزامنة\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/loyalty/rewards",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/loyalty/rewards",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "loyalty",
+                                        "rewards"
+                                    ]
+                                },
+                                "description": "**EP-SC-111B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.loyalty.manage` |\n| Idempotency | required |\n| Name | إنشاء مكافأة |\n\n**Example response `data`:**\n```json\n{\n    \"id\": 3\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"كرتون زيت\",\n    \"points_cost\": 2000,\n    \"stock\": 40,\n    \"expires_at\": \"2026-12-31\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/notifications",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/notifications",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "notifications"
+                                    ]
+                                },
+                                "description": "**EP-SC-090** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.notify.send` |\n| Idempotency | required |\n| Name | إرسال إشعار |\n\n**Example response `data`:**\n```json\n{\n    \"id\": 800,\n    \"status\": \"queued\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"عرض جديد\",\n    \"body\": \"اشترِ 10 واحصل على 1\",\n    \"icon\": \"offer\",\n    \"image\": \"media_id_9\",\n    \"action\": {\n        \"type\": \"offer\",\n        \"target\": 44\n    },\n    \"targeting\": {\n        \"type\": \"zone\",\n        \"ids\": [\n            12\n        ]\n    },\n    \"channels\": [\n        \"push\",\n        \"in_app\"\n    ],\n    \"scheduled_at\": null\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/payments",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/payments",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "payments"
+                                    ]
+                                },
+                                "description": "**EP-SC-083** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.finance.payment` |\n| Idempotency | required |\n| Name | تسجيل دفعة مكتبية |\n\nSOD-01: must not be held together with sc.orders.confirm.\n\n**Example response `data`:**\n```json\n{\n    \"payment_id\": 301,\n    \"retailer_receivable\": 28000\n}\n```\n\n**Errors:** `403` sod_violation",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"retailer_id\": 481,\n    \"amount\": 20000,\n    \"method\": \"cash\",\n    \"invoice_id\": 501\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
                             "name": "POST /channel/products",
                             "request": {
                                 "method": "POST",
@@ -5017,6 +6473,247 @@
                             "response": []
                         },
                         {
+                            "name": "POST /channel/reports/{type}/export",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reports/{{type}}/export",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reports",
+                                        "{{type}}",
+                                        "export"
+                                    ]
+                                },
+                                "description": "**EP-SC-122** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reports.export` |\n| Idempotency | required |\n| Name | تصدير تقرير |\n\n**Example response `data`:**\n```json\n{\n    \"job_id\": \"job_rep_exp_1\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"format\": \"xlsx\",\n    \"filters\": {\n        \"zone_id\": 12,\n        \"date_from\": \"2026-02-01\",\n        \"date_to\": \"2026-02-28\"\n    }\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "PUT /channel/content/intro",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/content/intro",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "content",
+                                        "intro"
+                                    ]
+                                },
+                                "description": "**EP-SC-100B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.content.intro` |\n| Idempotency | required |\n| Name | تحديث الانترو |\n\n**Example response `data`:**\n```json\n{\n    \"enabled\": true\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"enabled\": true,\n    \"text\": \"مرحباً بتجار دمشق\",\n    \"media_type\": \"video\",\n    \"media_id\": \"media_intro\",\n    \"duration\": 8,\n    \"targeting\": {\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ]\n    }\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "PUT /channel/loyalty/rules",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/loyalty/rules",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "loyalty",
+                                        "rules"
+                                    ]
+                                },
+                                "description": "**EP-SC-110B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.loyalty.manage` |\n| Idempotency | required |\n| Name | تحديث قواعد النقاط |\n\n**Example response `data`:**\n```json\n{\n    \"updated\": true\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"retailer_rules\": [\n        {\n            \"event\": \"invoice_paid\",\n            \"points_per_1000\": 1\n        }\n    ],\n    \"rep_rules\": [\n        {\n            \"event\": \"delivery_completed\",\n            \"points\": 5\n        }\n    ],\n    \"tiers\": [\n        {\n            \"name\": \"bronze\",\n            \"threshold\": 0,\n            \"benefits\": []\n        },\n        {\n            \"name\": \"silver\",\n            \"threshold\": 1000,\n            \"benefits\": [\n                \"priority_support\"\n            ]\n        },\n        {\n            \"name\": \"gold\",\n            \"threshold\": 5000,\n            \"benefits\": [\n                \"extra_offer\"\n            ]\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "PUT /channel/notifications/templates",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/notifications/templates",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "notifications",
+                                        "templates"
+                                    ]
+                                },
+                                "description": "**EP-SC-091B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.notify.templates` |\n| Idempotency | required |\n| Name | تحديث قالب إشعار |\n\n**Example response `data`:**\n```json\n{\n    \"event_key\": \"order.confirmed\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"event_key\": \"order.confirmed\",\n    \"title\": \"تم تأكيد طلبك\",\n    \"body\": \"الطلب {{sub_order_no}} قيد التجهيز\",\n    \"enabled\": true,\n    \"channels\": [\n        \"push\",\n        \"in_app\"\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
                             "name": "PUT /channel/products/{id}",
                             "request": {
                                 "method": "PUT",
@@ -5128,6 +6825,67 @@
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"type\": \"tiered\",\n    \"base_price\": 12000,\n    \"tiers\": [\n        {\n            \"from\": 1,\n            \"to\": 4,\n            \"price\": 12000\n        },\n        {\n            \"from\": 5,\n            \"to\": 9,\n            \"price\": 11500\n        },\n        {\n            \"from\": 10,\n            \"to\": null,\n            \"price\": 11000\n        }\n    ],\n    \"reason\": \"تعديل شرائح الجملة\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "PUT /channel/retailers/{id}/credit",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/retailers/{{id}}/credit",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "retailers",
+                                        "{{id}}",
+                                        "credit"
+                                    ]
+                                },
+                                "description": "**EP-SC-086** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.retailers.credit` |\n| Idempotency | required |\n| Name | سقف ائتمان التاجر |\n\non_exceed: warn|block|manual_approval. Confirm may return 423 credit_limit_exceeded.\n\n**Example response `data`:**\n```json\n{\n    \"retailer_id\": 481,\n    \"credit_limit\": 500000,\n    \"on_exceed\": \"block\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"credit_limit\": 500000,\n    \"grace_days\": 7,\n    \"on_exceed\": \"block\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -6849,6 +8607,657 @@
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"تلف ظاهر عند التسليم\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        }
+                    ],
+                    "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
+                },
+                {
+                    "name": "09. Reps (11)",
+                    "item": [
+                        {
+                            "name": "GET /channel/rep-sourced-shops",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/rep-sourced-shops?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "rep-sourced-shops"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "1",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "25",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "-created_at",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "pending_sync",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-093A** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.view` |\n| Idempotency | n/a (read) |\n| Name | محلات سجّلها المندوب |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 490,\n        \"rep_user_id\": 70,\n        \"shop_name\": \"ميني ماركت الشام\",\n        \"phone\": \"+963988000000\",\n        \"zone_id\": 12,\n        \"status\": \"pending_sync\",\n        \"retailer_id\": 481\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/rep-zone-requests",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/rep-zone-requests?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "rep-zone-requests"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "1",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "25",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "-created_at",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "pending_approval",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-088** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.view` |\n| Idempotency | n/a (read) |\n| Name | طلبات مناطق المندوبين |\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 1,\n        \"rep_user_id\": 70,\n        \"zone_id\": 12,\n        \"note\": \"تغطية جديدة\",\n        \"status\": \"pending_approval\"\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/reps",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reps?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reps"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "1",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "25",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "-created_at",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "pending_review",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-SC-075** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.view` |\n| Idempotency | n/a (read) |\n| Name | قائمة المندوبين |\n\nid is AppUser id (same as assign / settle / discount-cap). status: pending_review|active|rejected|disabled.\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 70,\n        \"name\": \"أحمد المندوب\",\n        \"phone\": \"+963933000070\",\n        \"status\": \"active\",\n        \"zone_ids\": [\n            12\n        ],\n        \"on_duty\": true,\n        \"max_discount_percent\": 5,\n        \"max_cash_hold\": 5000000\n    }\n]\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/reps/{id}",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reps/{{id}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reps",
+                                        "{{id}}"
+                                    ]
+                                },
+                                "description": "**EP-SC-076** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.view` |\n| Idempotency | n/a (read) |\n| Name | بطاقة مندوب |\n\nForeign channel rep → 404.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 70,\n    \"name\": \"أحمد المندوب\",\n    \"phone\": \"+963933000070\",\n    \"status\": \"active\",\n    \"zone_ids\": [\n        12\n    ],\n    \"on_duty\": true,\n    \"max_discount_percent\": 5,\n    \"max_cash_hold\": 5000000\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "GET /channel/reps/{id}/wallet",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reps/{{id}}/wallet",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reps",
+                                        "{{id}}",
+                                        "wallet"
+                                    ]
+                                },
+                                "description": "**EP-SC-087** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.wallet` |\n| Idempotency | n/a (read) |\n| Name | محفظة المندوب |\n\nSame ledger math as GET /app/rep/wallet. Foreign channel → 404.\n\n**Example response `data`:**\n```json\n{\n    \"net_balance\": 250000,\n    \"stats\": {\n        \"invoices_delivered\": 12,\n        \"collected_total\": 1750000,\n        \"receivables\": 48000\n    },\n    \"today\": {\n        \"invoices\": 2,\n        \"collected\": 90000,\n        \"receivables\": 12000\n    }\n}\n```"
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/rep-sourced-shops/{id}/decide",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/rep-sourced-shops/{{id}}/decide",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "rep-sourced-shops",
+                                        "{{id}}",
+                                        "decide"
+                                    ]
+                                },
+                                "description": "**EP-SC-093B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.update` |\n| Idempotency | required |\n| Name | قرار محل مندوب |\n\ndecision: approve|reject. Approve activates RetailerProfile and marks shop linked.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 490,\n    \"status\": \"linked\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"تحقق ميداني\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/rep-zone-requests/{id}/decide",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/rep-zone-requests/{{id}}/decide",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "rep-zone-requests",
+                                        "{{id}}",
+                                        "decide"
+                                    ]
+                                },
+                                "description": "**EP-SC-089** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.update` |\n| Idempotency | required |\n| Name | قرار طلب منطقة مندوب |\n\ndecision: approve|reject. Approve attaches zone to RepProfileZone.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 1,\n    \"status\": \"approved\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"ضمن التغطية\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/reps/{id}/approve",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reps/{{id}}/approve",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reps",
+                                        "{{id}}",
+                                        "approve"
+                                    ]
+                                },
+                                "description": "**EP-SC-077** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.update` |\n| Idempotency | required |\n| Name | اعتماد مندوب |\n\npending_review → active. reason optional. Illegal transition → 409.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 70,\n    \"status\": \"active\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"reason\": \"ملف مكتمل\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/reps/{id}/disable",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reps/{{id}}/disable",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reps",
+                                        "{{id}}",
+                                        "disable"
+                                    ]
+                                },
+                                "description": "**EP-SC-079** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.disable` |\n| Idempotency | required |\n| Name | تعطيل مندوب |\n\nactive → disabled. reason required.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 70,\n    \"status\": \"disabled\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"reason\": \"ترك العمل\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/reps/{id}/reject",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reps/{{id}}/reject",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reps",
+                                        "{{id}}",
+                                        "reject"
+                                    ]
+                                },
+                                "description": "**EP-SC-078** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.update` |\n| Idempotency | required |\n| Name | رفض مندوب |\n\npending_review → rejected. reason required.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 70,\n    \"status\": \"rejected\"\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"reason\": \"بيانات ناقصة\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "POST /channel/reps/{id}/settle",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/channel/reps/{{id}}/settle",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "channel",
+                                        "reps",
+                                        "{{id}}",
+                                        "settle"
+                                    ]
+                                },
+                                "description": "**EP-SC-084** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.reps.settle` |\n| Idempotency | required |\n| Name | تسوية عهدة المندوب |\n\nInvariant: wallet.net_balance == SUM(collected) − SUM(settled) (AC-06).\n\n**Example response `data`:**\n```json\n{\n    \"receipt_pdf_url\": \"https://files.example/settle-70.pdf\",\n    \"new_balance\": 250000\n}\n```",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"amount\": 1500000,\n    \"operation_no\": \"OP-7781\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"

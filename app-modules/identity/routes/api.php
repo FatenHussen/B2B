@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Modules\Identity\Presentation\Http\Controllers\AppAuthController;
 use Modules\Identity\Presentation\Http\Controllers\ChannelAuthController;
+use Modules\Identity\Presentation\Http\Controllers\ChannelRepOpsController;
 use Modules\Identity\Presentation\Http\Controllers\PlatformAuthController;
 use Modules\Identity\Presentation\Http\Controllers\PublicAuthController;
 use Modules\Identity\Presentation\Http\Controllers\RepFieldController;
@@ -68,5 +69,17 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::post('app/rep/zones', [RepFieldController::class, 'requestZone']);
         Route::get('app/rep/zones/{id}/shops', [RepFieldController::class, 'shops']);
         Route::patch('app/rep/status', [RepFieldController::class, 'status']);
+    });
+
+    Route::middleware(['auth:channel', 'guard.tokenable:channel', 'tenant'])->prefix('channel')->group(function (): void {
+        Route::get('reps', [ChannelRepOpsController::class, 'index'])->middleware('permission:sc.reps.view');
+        Route::get('reps/{id}', [ChannelRepOpsController::class, 'show'])->middleware('permission:sc.reps.view');
+        Route::post('reps/{id}/approve', [ChannelRepOpsController::class, 'approve'])->middleware('permission:sc.reps.update');
+        Route::post('reps/{id}/reject', [ChannelRepOpsController::class, 'reject'])->middleware('permission:sc.reps.update');
+        Route::post('reps/{id}/disable', [ChannelRepOpsController::class, 'disable'])->middleware('permission:sc.reps.disable');
+        Route::get('rep-zone-requests', [ChannelRepOpsController::class, 'zoneRequests'])->middleware('permission:sc.reps.view');
+        Route::post('rep-zone-requests/{id}/decide', [ChannelRepOpsController::class, 'decideZoneRequest'])->middleware('permission:sc.reps.update');
+        Route::get('rep-sourced-shops', [ChannelRepOpsController::class, 'sourcedShops'])->middleware('permission:sc.reps.view');
+        Route::post('rep-sourced-shops/{id}/decide', [ChannelRepOpsController::class, 'decideSourcedShop'])->middleware('permission:sc.reps.update');
     });
 });

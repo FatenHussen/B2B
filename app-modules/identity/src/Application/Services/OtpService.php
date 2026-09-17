@@ -49,7 +49,7 @@ final class OtpService
             ->whereNull('consumed_at')
             ->update(['consumed_at' => now()]);
 
-        $code = $this->generateCode();
+        $code = $this->generateCode($client);
         $used = $this->send($phone, $code, $purpose, $prefer);
 
         $row = OtpRequest::query()->create([
@@ -92,7 +92,7 @@ final class OtpService
             }
         }
 
-        $code = $this->generateCode();
+        $code = $this->generateCode(is_string($otp->client) ? $otp->client : null);
         $used = $this->send($otp->phone, $code, $otp->purpose, $prefer);
 
         $otp->forceFill([
@@ -206,11 +206,34 @@ final class OtpService
             ->first();
     }
 
-    private function generateCode(): string
+    /**
+     * Outside production, field-rep clients always receive a fixed all-zero code so
+     * Flutter can hard-code `000000` without reading the log. Retailer and channel
+     * flows keep random codes unless `otp.bypass` is on (any code then verifies).
+     */
+    private function generateCode(?string $client = null): string
     {
         $length = (int) config('otp.length', 6);
+
+        if ($this->fixedZerosForRep($client)) {
+            return str_repeat('0', $length);
+        }
+
         $max = (10 ** $length) - 1;
 
         return str_pad((string) random_int(0, $max), $length, '0', STR_PAD_LEFT);
+    }
+
+    private function fixedZerosForRep(?string $client): bool
+    {
+        if (app()->isProduction()) {
+            return false;
+        }
+
+        if (! is_string($client) || $client === '') {
+            return false;
+        }
+
+        return str_starts_with(strtolower($client), 'rep-');
     }
 }

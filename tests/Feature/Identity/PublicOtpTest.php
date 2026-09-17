@@ -179,3 +179,25 @@ it('resends over sms after the cooldown window', function () {
     CatalogAssert::ok($response, ['channel_used', 'resend_after']);
     expect($response->json('data.channel_used'))->toBe('sms');
 });
+
+it('issues a fixed all-zero code for rep clients outside production', function () {
+    config(['otp.bypass' => false]);
+
+    $response = $this->withHeaders(['X-Client' => 'rep-android'])->postJson('/api/v1/public/auth/request-otp', [
+        'phone' => '+963912345678',
+        'purpose' => 'register',
+    ]);
+    CatalogAssert::ok($response, ['otp_id']);
+
+    /** @var FakeOtpChannel $fake */
+    $fake = $this->otp;
+    expect($fake->codeFor('+963912345678'))->toBe('000000');
+
+    $verify = $this->postJson('/api/v1/public/auth/verify-otp', [
+        'otp_id' => $response->json('data.otp_id'),
+        'code' => '000000',
+        'device_id' => 'rep-device-1',
+        'platform' => 'android',
+    ]);
+    CatalogAssert::ok($verify, ['token']);
+});

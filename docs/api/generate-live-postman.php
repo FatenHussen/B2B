@@ -77,7 +77,9 @@ function place(string $path, string $mw): array
         || str_starts_with($path, '/channel/categories') || str_starts_with($path, '/channel/catalog'))
         return ['03. Channel dashboard', '03. Catalog'];
     if (str_starts_with($path, '/channel/price-lists') || str_starts_with($path, '/channel/pricing')
-        || str_starts_with($path, '/channel/reps')) return ['03. Channel dashboard', '04. Pricing'];
+        || str_ends_with($path, '/discount-cap')) return ['03. Channel dashboard', '04. Pricing'];
+    if (str_starts_with($path, '/channel/reps') || str_starts_with($path, '/channel/rep-zone-requests')
+        || str_starts_with($path, '/channel/rep-sourced-shops')) return ['03. Channel dashboard', '09. Reps'];
     if (str_starts_with($path, '/channel/offers')) return ['03. Channel dashboard', '05. Offers'];
     if (str_starts_with($path, '/channel/inventory')) return ['03. Channel dashboard', '06. Inventory'];
     if (str_starts_with($path, '/channel/sub-orders')) return ['03. Channel dashboard', '07. Sub-orders'];

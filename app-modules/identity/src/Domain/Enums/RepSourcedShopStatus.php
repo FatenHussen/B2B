@@ -8,4 +8,5 @@ enum RepSourcedShopStatus: string
 {
     case PendingSync = 'pending_sync';
     case Linked = 'linked';
+    case Rejected = 'rejected';
 }

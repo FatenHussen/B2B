@@ -9,4 +9,5 @@ enum ProfileStatus: string
     case PendingReview = 'pending_review';
     case Active = 'active';
     case Rejected = 'rejected';
+    case Disabled = 'disabled';
 }
