@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Reference\Application\Queries;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Modules\Reference\Domain\Enums\RefStatus;
 use Modules\Reference\Domain\Enums\ZoneStatus;
@@ -40,14 +40,14 @@ final class PublicReferenceSnapshot
         $now = now();
 
         return [
-            'governorates' => $this->rows(Governorate::query(), $sinceAt, RefStatus::Active->value)
+            'governorates' => $this->changed(Governorate::query(), $sinceAt, RefStatus::Active->value)->get()
                 ->map(fn (Governorate $g) => [
                     'id' => (int) $g->id,
                     'name' => $g->name_ar,
                     'order' => (int) $g->order,
                     'status' => $g->status->value,
                 ])->values()->all(),
-            'zones' => $this->rows(Zone::query(), $sinceAt, ZoneStatus::Active->value)
+            'zones' => $this->changed(Zone::query(), $sinceAt, ZoneStatus::Active->value)->get()
                 ->map(fn (Zone $z) => [
                     'id' => (int) $z->id,
                     'name' => $z->name,
@@ -56,7 +56,7 @@ final class PublicReferenceSnapshot
                     'order' => (int) $z->order,
                     'status' => $z->status->toContract(),
                 ])->values()->all(),
-            'activity_types' => $this->rows(ActivityType::query()->with('suggestedCategories'), $sinceAt, RefStatus::Active->value)
+            'activity_types' => $this->changed(ActivityType::query()->with('suggestedCategories'), $sinceAt, RefStatus::Active->value)->get()
                 ->map(fn (ActivityType $a) => [
                     'id' => (int) $a->id,
                     'name' => $a->name,
@@ -66,7 +66,7 @@ final class PublicReferenceSnapshot
                     // BE-R04: the categories a retailer of this activity is shown first.
                     'suggested_category_ids' => $a->suggestedCategories->map(fn (RootCategory $c) => (int) $c->id)->values()->all(),
                 ])->values()->all(),
-            'root_categories' => $this->rows(RootCategory::query(), $sinceAt, RefStatus::Active->value)
+            'root_categories' => $this->changed(RootCategory::query(), $sinceAt, RefStatus::Active->value)->get()
                 ->map(fn (RootCategory $c) => [
                     'id' => (int) $c->id,
                     'name' => $c->name,
@@ -75,7 +75,7 @@ final class PublicReferenceSnapshot
                     'order' => (int) $c->order,
                     'status' => $c->status->value,
                 ])->values()->all(),
-            'sale_units' => $this->rows(SaleUnit::query(), $sinceAt, RefStatus::Active->value)
+            'sale_units' => $this->changed(SaleUnit::query(), $sinceAt, RefStatus::Active->value)->get()
                 ->map(fn (SaleUnit $u) => [
                     'id' => (int) $u->id,
                     'name' => $u->name,
@@ -83,7 +83,7 @@ final class PublicReferenceSnapshot
                     'default_factor' => (int) $u->default_factor,
                     'status' => $u->status->value,
                 ])->values()->all(),
-            'equipments' => $this->rows(Equipment::query(), $sinceAt, RefStatus::Active->value)
+            'equipments' => $this->changed(Equipment::query(), $sinceAt, RefStatus::Active->value)->get()
                 ->map(fn (Equipment $e) => [
                     'id' => (int) $e->id,
                     'name' => $e->name,
@@ -96,12 +96,15 @@ final class PublicReferenceSnapshot
     }
 
     /**
-     * @template TModel of \Illuminate\Database\Eloquent\Model
+     * Full snapshot: the active rows. Differential: every row touched after `$since`,
+     * whatever its status, so a disable travels to the device as a change.
+     *
+     * @template TModel of Model
      *
      * @param  Builder<TModel>  $query
-     * @return Collection<int, TModel>
+     * @return Builder<TModel>
      */
-    private function rows(Builder $query, ?Carbon $since, string $activeValue): Collection
+    private function changed(Builder $query, ?Carbon $since, string $activeValue): Builder
     {
         if ($since === null) {
             $query->where('status', $activeValue);
@@ -109,7 +112,7 @@ final class PublicReferenceSnapshot
             $query->where('updated_at', '>', $since);
         }
 
-        return $query->orderBy('id')->get();
+        return $query->orderBy('id');
     }
 
     public function encode(Carbon $at): string

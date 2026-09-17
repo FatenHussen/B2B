@@ -6,6 +6,7 @@ namespace Modules\Identity\Infrastructure;
 
 use Modules\Core\Contracts\RepDirectory;
 use Modules\Identity\Domain\Enums\AppUserKind;
+use Modules\Identity\Domain\Enums\ProfileStatus;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\RepProfile;
 
@@ -83,5 +84,18 @@ final class EloquentRepDirectory implements RepDirectory
         $phone = AppUser::query()->whereKey($repUserId)->value('phone');
 
         return is_string($phone) && $phone !== '' ? $phone : null;
+    }
+
+    public function countInChannel(int $channelId): int
+    {
+        return RepProfile::query()
+            ->where('channel_id', $channelId)
+            ->whereNotIn('status', [ProfileStatus::Rejected->value, ProfileStatus::Disabled->value])
+            ->count();
+    }
+
+    public function countByActivityType(int $activityTypeId): int
+    {
+        return RepProfile::query()->where('activity_type_id', $activityTypeId)->count();
     }
 }

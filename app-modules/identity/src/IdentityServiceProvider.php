@@ -6,6 +6,7 @@ namespace Modules\Identity;
 
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Contracts\ChannelUserCounter;
 use Modules\Core\Contracts\OtpChannel;
 use Modules\Core\Contracts\RepDirectory;
 use Modules\Core\Contracts\RepDutyLookup;
@@ -13,6 +14,7 @@ use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Identity\Console\RegisterWarehouseDeviceCommand;
+use Modules\Identity\Infrastructure\EloquentChannelUserCounter;
 use Modules\Identity\Infrastructure\EloquentRepDirectory;
 use Modules\Identity\Infrastructure\EloquentRepDutyLookup;
 use Modules\Identity\Infrastructure\EloquentRetailerDirectory;
@@ -36,6 +38,7 @@ class IdentityServiceProvider extends ServiceProvider
         $this->app->singleton(RepSellingContext::class, IdentityRepSellingContext::class);
         $this->app->singleton(RepDirectory::class, EloquentRepDirectory::class);
         $this->app->singleton(RepDutyLookup::class, EloquentRepDutyLookup::class);
+        $this->app->singleton(ChannelUserCounter::class, EloquentChannelUserCounter::class);
     }
 
     public function boot(): void

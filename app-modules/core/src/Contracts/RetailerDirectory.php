@@ -58,4 +58,29 @@ interface RetailerDirectory
      * for the caller to measure is what keeps rule 3 intact.
      */
     public function countInZone(int $zoneId): int;
+
+    /**
+     * Retailer profiles registered under an activity type — the `affected.retailers`
+     * count EP-AD-043B shows before an activity type is disabled (BE-R04).
+     */
+    public function countByActivityType(int $activityTypeId): int;
+
+    /**
+     * Retailer profiles registered in a governorate — `affected.retailers` on
+     * EP-AD-043A before a governorate is disabled (BE-R02).
+     */
+    public function countInGovernorate(int $governorateId): int;
+
+    /**
+     * Retailer profiles that declared a piece of equipment — `affected.retailers` on
+     * EP-AD-043E (BE-R07). Counted through the `retailer_profile_equipments` pivot.
+     */
+    public function countByEquipment(int $equipmentId): int;
+
+    /**
+     * Retailer profiles that chose a root category at registration — part of the
+     * in-use check behind EP-AD-043C (BE-R05). Counted through
+     * `retailer_profile_categories`.
+     */
+    public function countByRootCategory(int $rootCategoryId): int;
 }

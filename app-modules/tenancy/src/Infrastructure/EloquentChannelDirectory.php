@@ -6,6 +6,8 @@ namespace Modules\Tenancy\Infrastructure;
 
 use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
+use Modules\Tenancy\Domain\Models\ChannelActivityType;
+use Modules\Tenancy\Domain\Models\ChannelGovernorate;
 use Modules\Tenancy\Domain\Models\ChannelZoneLookup;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 
@@ -84,5 +86,28 @@ final class EloquentChannelDirectory implements ChannelDirectory
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
+    }
+
+    public function countByActivityType(int $activityTypeId): int
+    {
+        // acrossChannels(), per rule 10: this is the platform back office counting how
+        // many channels a reference entity touches before it is disabled (EP-AD-043B).
+        // A count over every channel is the question; no tenant is the answer.
+        return ChannelActivityType::query()
+            ->acrossChannels()
+            ->where('activity_type_id', $activityTypeId)
+            ->distinct('channel_id')
+            ->count('channel_id');
+    }
+
+    public function countCoveringGovernorate(int $governorateId): int
+    {
+        // acrossChannels(), per rule 10: the same cross-channel impact count, for a
+        // governorate about to be disabled (EP-AD-043A). Platform back office only.
+        return ChannelGovernorate::query()
+            ->acrossChannels()
+            ->where('governorate_id', $governorateId)
+            ->distinct('channel_id')
+            ->count('channel_id');
     }
 }

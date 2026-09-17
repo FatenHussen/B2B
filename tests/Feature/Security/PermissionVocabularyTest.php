@@ -232,16 +232,16 @@ it('refuses a channel manager creating a governorate', function () {
 
     $token = $manager->createToken('vocabulary-probe', ['*'])->plainTextToken;
 
-    $response = $this->postJson('/api/v1/governorates', [
+    $response = $this->postJson('/api/v1/platform/refs/governorates', [
         'name_ar' => 'درعا',
         'name_en' => 'Daraa',
         'code' => 'DRA',
     ], ['Authorization' => 'Bearer '.$token]);
 
-    // The holder is authenticated — this is 403, not 401, and not `wrong_guard`: the
-    // channel guard is one of the four this route accepts. It is the permission that
-    // fails, which is exactly the distinction the error code carries.
+    // Reference writes moved under the platform prefix (BE-R01), so a channel token now
+    // fails the guard before it reaches the gate: 403 `wrong_guard`. Either way the row
+    // is not written, which is what this test has always measured.
     expect($response->getStatusCode())->toBe(403)
-        ->and($response->json('error.code'))->toBe('insufficient_permission')
+        ->and($response->json('error.code'))->toBe('wrong_guard')
         ->and(Governorate::where('code', 'DRA')->exists())->toBeFalse();
 })->group('security');

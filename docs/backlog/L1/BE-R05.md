@@ -29,13 +29,22 @@ unblocks_frontend: [AD-44]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] 409 carries the number of dependent records so the message can be specific.
+- [x] 409 carries the number of dependent records so the message can be specific.
 
 ## Frontend tickets waiting on this
 
 - AD-44
 
 Changing a response shape here breaks those tickets. Regenerate OpenAPI and say so in the PR.
+
+## Decision — the refusal is 422, not 409 — 2026-09-17
+
+The catalog example on EP-AD-043C/D says `409 ref_in_use`. CLAUDE.md's status map and
+`ErrorCode::RefInUse` put `ref_in_use` at **422**, and one renderer decides the status of a
+code so it cannot reach a client under two numbers depending on who threw it. The response
+carries `error.details.affected.{child_categories, active_products}` (and `products` for
+sale units) so the message can be specific, which is what the acceptance criterion asks.
+Both counts come from Catalog through `CatalogProductLookup`, never from a catalog table.
 
 ## Working rules
 

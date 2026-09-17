@@ -137,7 +137,7 @@ it('row errors name the exact row and column', function () {
         ->assertOk()
         ->json('data.errors');
 
-    $pairs = collect($errors)->map(fn (array $e) => $e['row'].':'.$e['column'])->all();
+    $pairs = collect((array) $errors)->map(fn (array $e) => $e['row'].':'.$e['column'])->all();
 
     expect($pairs)->toContain('3:governorate_code')
         ->and($pairs)->toContain('4:name')

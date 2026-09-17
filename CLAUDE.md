@@ -119,11 +119,18 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
     **The scope is lifted only with the reason written beside it, never as a habit — and both
     spellings count.** `acrossChannels()` and the raw `withoutGlobalScope('channel')` it wraps are the
     same escape; this rule once said "two places use it today" while the truth was twenty-three of
-    one spelling and fifteen of the other that nobody counted. As of BE-C12 there are **42 sites in
-    31 files**, every one with a comment saying why on the same line, within the six lines above, or
-    in the method's docblock. `tests/Architecture/ChannelScopeEscapeTest.php` pins the count per
-    file and fails on an escape with no reason within reach — a new site is a change to this
-    inventory, said out loud, not a discovery.
+    one spelling and fifteen of the other that nobody counted. As of BE-C12 there were **42 sites in
+    31 files**; the platform reference impact counts (BE-R01–R07, 2026-09-17) added six more —
+    **48 sites in 33 files** — every one with a comment saying why on the same line, within the six
+    lines above, or in the method's docblock. `tests/Architecture/ChannelScopeEscapeTest.php` pins
+    the count per file and fails on an escape with no reason within reach — a new site is a change
+    to this inventory, said out loud, not a discovery.
+
+    A third legitimate shape joined the two below with those six: **platform impact counts**, where
+    the back office asks how many channels' rows a shared reference entity touches before disabling
+    it (EP-AD-043A–D). The question spans every channel by definition, the answer is a number and
+    never a row, and the caller is the platform guard — there is no tenant to scope by and nothing
+    to leak.
 
     Two shapes are legitimate. **Site-level**, the SubOrder pattern: `acrossChannels()` on a direct
     query with the *owner* filter beside it — `retailer_id`, `rep_id`, the owner's `cart_id` — on a
@@ -254,7 +261,7 @@ object, and read `casts()`'s declared return type instead of its body. What rema
 372, or **585 with no identifier ignored**, which is how it is counted: the 213 relation
 declarations without a related type are the cause of 173 of the rest, and hiding a cause
 while freezing its symptoms is not a baseline — is in `phpstan-baseline.neon`, pinned
-exactly at 479 by `tests/Architecture/PhpstanBaselineTest.php`: the number only falls,
+exactly at 475 by `tests/Architecture/PhpstanBaselineTest.php`: the number only falls,
 and a fall lowers the pin in the same commit. A new finding in new code is fixed, never added to the
 baseline — the gate is green for new code and red for regressions. BE-F11 owns the
 pay-down, one module per ticket; its table is the work list.

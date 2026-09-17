@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Catalog\Infrastructure;
 
 use Modules\Catalog\Domain\Enums\ProductStatus;
+use Modules\Catalog\Domain\Models\Category;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Catalog\Domain\Models\ProductMedia;
 use Modules\Catalog\Domain\Models\ProductVariant;
@@ -122,5 +123,53 @@ final class EloquentCatalogProductLookup implements CatalogProductLookup
 
             return ['product_id' => (int) $product->id, 'variant_id' => null];
         });
+    }
+
+    public function countCategoriesUnderRoot(int $rootCategoryId): int
+    {
+        // acrossChannels(), per rule 10: the platform back office asks how many channel
+        // categories hang off a root category before disabling it (EP-AD-043C). The
+        // question spans every channel by definition, and the answer is a number.
+        return Category::query()
+            ->acrossChannels()
+            ->where('root_category_id', $rootCategoryId)
+            ->count();
+    }
+
+    public function countActiveProductsUnderRoot(int $rootCategoryId): int
+    {
+        // acrossChannels(), per rule 10: the channel categories under the root, from
+        // every channel, for the same platform impact count (EP-AD-043C).
+        $categoryIds = Category::query()
+            ->acrossChannels()
+            ->where('root_category_id', $rootCategoryId)
+            ->pluck('id');
+
+        if ($categoryIds->isEmpty()) {
+            return 0;
+        }
+
+        // acrossChannels(), per rule 10: the active products in those categories, again
+        // across every channel. A number for a refusal message, never a row.
+        return Product::query()
+            ->acrossChannels()
+            ->where('status', ProductStatus::Active)
+            ->whereIn('category_id', $categoryIds)
+            ->count();
+    }
+
+    public function countProductsUsingSaleUnit(int $saleUnitId): int
+    {
+        // acrossChannels(), per rule 10: platform impact count before a sale unit is
+        // disabled (EP-AD-043D). Every channel, a number only.
+        return Product::query()
+            ->acrossChannels()
+            ->where('sale_unit_id', $saleUnitId)
+            ->count();
+    }
+
+    public function countInChannel(int $channelId): int
+    {
+        return Tenant::as($channelId, fn (): int => Product::query()->count());
     }
 }

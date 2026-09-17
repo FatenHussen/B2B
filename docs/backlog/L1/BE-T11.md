@@ -29,13 +29,22 @@ unblocks_frontend: [AD-73]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] A channel with no activity returns zeros, not an error and not an empty body.
+- [x] A channel with no activity returns zeros, not an error and not an empty body.
 
 ## Frontend tickets waiting on this
 
 - AD-73
 
 Changing a response shape here breaks those tickets. Regenerate OpenAPI and say so in the PR.
+
+## Done — 2026-09-17
+
+`GET /platform/channels/{id}/usage`: thirty days from `ChannelOrderMetrics::snapshot()`
+(orders and GMV per Damascus day), `limit_usage` from real counters through Core
+contracts — reps and users from Identity, SKUs from Catalog, warehouses from this
+module — against the resolver's effective caps. `failed_jobs` counts failed provisioning
+jobs; `sync_status` is `healthy` when that is zero and `degraded` otherwise, because
+provisioning is the only sync this module can see until the L3 Sync module exists.
 
 ## Working rules
 

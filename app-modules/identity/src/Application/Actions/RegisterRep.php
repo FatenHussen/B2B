@@ -6,7 +6,9 @@ namespace Modules\Identity\Application\Actions;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Contracts\ChannelDirectory;
+use Modules\Core\Contracts\ChannelLimits;
 use Modules\Core\Contracts\ReferenceDirectory;
+use Modules\Core\Contracts\RepDirectory;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\InvalidFields;
 use Modules\Identity\Application\Services\TokenIssuer;
@@ -23,6 +25,8 @@ final class RegisterRep
         private readonly ChannelDirectory $channels,
         private readonly ReferenceDirectory $refs,
         private readonly TokenIssuer $tokens,
+        private readonly ChannelLimits $limits,
+        private readonly RepDirectory $reps,
     ) {}
 
     /**
@@ -35,6 +39,13 @@ final class RegisterRep
 
         if (! $this->channels->isActive($channelId)) {
             throw new DomainException(__('identity.channel_not_active'), 'conflict', 409);
+        }
+
+        // BE-T12: the `reps` plan limit is enforced where a rep is added, and a rep is
+        // added here. A phone that already holds a profile re-submits into that profile
+        // and adds nobody, so it is not counted against the cap.
+        if (! RepProfile::query()->where('app_user_id', $user->id)->exists()) {
+            $this->limits->assertCanAdd($channelId, 'reps', $this->reps->countInChannel($channelId));
         }
 
         $zoneIds = array_map('intval', $data['zone_ids'] ?? []);

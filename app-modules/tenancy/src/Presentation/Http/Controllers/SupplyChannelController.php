@@ -3,14 +3,18 @@
 namespace Modules\Tenancy\Presentation\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Modules\Core\Http\ApiController;
 use Modules\Tenancy\Application\Actions\CreateChannel;
+use Modules\Tenancy\Application\Actions\OverrideChannelLimits;
 use Modules\Tenancy\Application\Actions\RetryProvisioning;
 use Modules\Tenancy\Application\Actions\TransitionChannel;
 use Modules\Tenancy\Application\Actions\UpdateChannel;
+use Modules\Tenancy\Application\Queries\ChannelUsage;
 use Modules\Tenancy\Application\Queries\ShowChannel;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
+use Modules\Tenancy\Presentation\Http\Requests\OverrideChannelLimitsRequest;
 use Modules\Tenancy\Presentation\Http\Requests\StoreSupplyChannelRequest;
 use Modules\Tenancy\Presentation\Http\Requests\TransitionChannelRequest;
 use Modules\Tenancy\Presentation\Http\Requests\UpdateSupplyChannelRequest;
@@ -88,5 +92,25 @@ class SupplyChannelController extends ApiController
             $actor,
             (string) $request->validated('reason'),
         ));
+    }
+
+    /**
+     * EP-AD-055 (BE-T12). Overrides one or more plan limits with a mandatory reason and
+     * an optional expiry; answers the effective limits after the change.
+     */
+    public function overrideLimits(OverrideChannelLimitsRequest $request, SupplyChannel $supplyChannel, OverrideChannelLimits $action): JsonResponse
+    {
+        /** @var object $actor */
+        $actor = $request->user();
+
+        return $this->ok($action($supplyChannel, $request->validated(), $actor));
+    }
+
+    /**
+     * EP-AD-056 (BE-T11). The 30-day series and plan-limit usage from real counters.
+     */
+    public function usage(Request $request, SupplyChannel $supplyChannel, ChannelUsage $query): JsonResponse
+    {
+        return $this->ok($query($supplyChannel, (string) $request->query('range', '30d')));
     }
 }

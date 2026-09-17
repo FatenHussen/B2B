@@ -7,7 +7,6 @@ use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\ChannelUser;
 use Modules\Identity\Domain\Models\PlatformUser;
-use Modules\Identity\Domain\Models\WarehouseUser;
 use Modules\Reference\Domain\Enums\RefStatus;
 use Modules\Reference\Domain\Models\Governorate;
 use Modules\Reference\Domain\Models\Zone;
@@ -33,7 +32,7 @@ it('lets a platform admin create a governorate', function () {
     $admin->assignRole('platform_admin');
     Sanctum::actingAs($admin, ['*'], 'platform');
 
-    $this->postJson('/api/v1/governorates', [
+    $this->postJson('/api/v1/platform/refs/governorates', [
         'name_ar' => 'دمشق',
         'name_en' => 'Damascus',
         'code' => 'DAM',
@@ -43,16 +42,21 @@ it('lets a platform admin create a governorate', function () {
     expect(Governorate::where('code', 'DAM')->exists())->toBeTrue();
 });
 
-it('blocks a role without the reference-write permission', function () {
-    $keeper = WarehouseUser::factory()->create();
-    $keeper->assignRole('warehouse_keeper');
-    Sanctum::actingAs($keeper, ['*'], 'warehouse');
+it('blocks a platform user without the reference-write permission', function () {
+    // The route lives on the platform guard now (BE-R01), so the gate is measured with a
+    // platform user who holds a neighbouring refs code but not `ad.refs.create`. A
+    // warehouse keeper would fail the guard first and prove nothing about the gate.
+    $viewer = PlatformUser::factory()->create();
+    $viewer->givePermissionTo('ad.refs.view');
+    Sanctum::actingAs($viewer, ['*'], 'platform');
 
-    $this->postJson('/api/v1/governorates', [
+    $this->postJson('/api/v1/platform/refs/governorates', [
         'name_ar' => 'حلب',
         'name_en' => 'Aleppo',
         'code' => 'ALP',
-    ])->assertForbidden();
+    ])->assertForbidden()
+        ->assertJsonPath('error.code', 'insufficient_permission')
+        ->assertJsonPath('error.permission', 'ad.refs.create');
 });
 
 it('validates a unique code on update', function () {
@@ -63,7 +67,7 @@ it('validates a unique code on update', function () {
     Governorate::factory()->create(['code' => 'DAM']);
     $target = Governorate::factory()->create(['code' => 'ALP']);
 
-    $this->putJson("/api/v1/governorates/{$target->id}", ['code' => 'DAM'])
+    $this->putJson("/api/v1/platform/refs/governorates/{$target->id}", ['code' => 'DAM'])
         ->assertStatus(422)
         ->assertJsonPath('error.details.code', fn ($v) => is_array($v) && $v !== []);
 });
@@ -79,10 +83,10 @@ it('has no route that deletes a governorate', function () {
 
     $governorate = Governorate::factory()->create();
 
-    // 405, not 404: `/api/v1/governorates/{id}` still exists for GET and PUT, so Laravel
+    // 405, not 404: `/api/v1/platform/refs/governorates/{id}` still exists for GET and PUT, so Laravel
     // reports the method as unallowed rather than the path as missing. Either way there
     // is no handler, and the row survives — which is the assertion that matters.
-    $this->deleteJson("/api/v1/governorates/{$governorate->id}")->assertStatus(405);
+    $this->deleteJson("/api/v1/platform/refs/governorates/{$governorate->id}")->assertStatus(405);
 
     expect(Governorate::find($governorate->id))->not->toBeNull();
 });
@@ -95,7 +99,7 @@ it('disables a governorate instead, and reports what it affects', function () {
     $governorate = Governorate::factory()->create();
     Zone::factory()->count(3)->create(['governorate_id' => $governorate->id]);
 
-    $this->patchJson("/api/v1/governorates/{$governorate->id}/status", [
+    $this->patchJson("/api/v1/platform/refs/governorates/{$governorate->id}/status", [
         'status' => 'disabled',
         'reason' => 'إعادة ترسيم إداري',
     ])->assertOk()
@@ -116,7 +120,7 @@ it('refuses a status change with no reason', function () {
 
     $governorate = Governorate::factory()->create();
 
-    $this->patchJson("/api/v1/governorates/{$governorate->id}/status", ['status' => 'disabled'])
+    $this->patchJson("/api/v1/platform/refs/governorates/{$governorate->id}/status", ['status' => 'disabled'])
         ->assertStatus(422)
         ->assertJsonPath('error.code', 'validation_failed');
 
@@ -130,7 +134,7 @@ it('refuses a status the enum does not define', function () {
 
     $governorate = Governorate::factory()->create();
 
-    $this->patchJson("/api/v1/governorates/{$governorate->id}/status", [
+    $this->patchJson("/api/v1/platform/refs/governorates/{$governorate->id}/status", [
         'status' => 'inactive', // ZoneStatus has this case; RefStatus does not.
         'reason' => 'خطأ مطبعي',
     ])->assertStatus(422);
@@ -148,7 +152,7 @@ it('never lets a channel manager disable a governorate', function () {
     $governorate = Governorate::factory()->create();
     $token = $manager->createToken('disable-probe', ['*'])->plainTextToken;
 
-    $this->patchJson("/api/v1/governorates/{$governorate->id}/status", [
+    $this->patchJson("/api/v1/platform/refs/governorates/{$governorate->id}/status", [
         'status' => 'disabled',
         'reason' => 'محاولة',
     ], ['Authorization' => 'Bearer '.$token])->assertForbidden();

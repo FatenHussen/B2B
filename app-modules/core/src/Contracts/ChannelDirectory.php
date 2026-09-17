@@ -32,4 +32,16 @@ interface ChannelDirectory
      * @return list<int>
      */
     public function allIds(): array;
+
+    /**
+     * Channels that declared an activity type in their profile — `affected.channels`
+     * before an activity type is disabled, EP-AD-043B (BE-R04).
+     */
+    public function countByActivityType(int $activityTypeId): int;
+
+    /**
+     * Channels whose coverage names a governorate — `affected.channels` before a
+     * governorate is disabled, EP-AD-043A (BE-R02).
+     */
+    public function countCoveringGovernorate(int $governorateId): int;
 }

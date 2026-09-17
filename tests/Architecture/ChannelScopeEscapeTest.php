@@ -27,6 +27,7 @@ const CHANNEL_SCOPE_ESCAPES = [
     'app-modules/catalog/src/Application/Queries/RetailerHome.php' => 1,
     'app-modules/catalog/src/Application/Support/VisibleCatalogQuery.php' => 2,
     'app-modules/catalog/src/Domain/Models/Product.php' => 2,
+    'app-modules/catalog/src/Infrastructure/EloquentCatalogProductLookup.php' => 4,
     'app-modules/ordering/src/Application/Actions/AcceptAssignment.php' => 1,
     'app-modules/ordering/src/Application/Actions/AddRepCartLine.php' => 1,
     'app-modules/ordering/src/Application/Actions/AddRetailerCartLine.php' => 1,
@@ -51,6 +52,7 @@ const CHANNEL_SCOPE_ESCAPES = [
     'app-modules/promotion/src/Infrastructure/EloquentOfferApplicator.php' => 1,
     'app-modules/promotion/src/Infrastructure/EloquentOfferFeed.php' => 1,
     'app-modules/returns/src/Application/ReturnsWorkspace.php' => 1,
+    'app-modules/tenancy/src/Infrastructure/EloquentChannelDirectory.php' => 2,
     'app-modules/tenancy/src/Infrastructure/EloquentWarehouseDirectory.php' => 4,
 ];
 
@@ -135,7 +137,7 @@ it('writes a reason beside every escape', function () {
 
 it('pins the inventory to the number rule 10 states', function () {
     // CLAUDE.md rule 10 names this number. When it moves, the rule's text moves with it.
-    expect(array_sum(CHANNEL_SCOPE_ESCAPES))->toBe(42);
+    expect(array_sum(CHANNEL_SCOPE_ESCAPES))->toBe(48);
 })->group('arch');
 
 it('actually catches an escape written without a reason', function () {

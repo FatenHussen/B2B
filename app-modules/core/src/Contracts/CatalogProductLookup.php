@@ -44,4 +44,28 @@ interface CatalogProductLookup
      * @return array{product_id: int, variant_id: int|null}|null
      */
     public function findByBarcode(string $barcode): ?array;
+
+    /**
+     * Channel categories hanging off a platform root category, across every channel —
+     * the `child_categories` half of the in-use check on EP-AD-043C (BE-R05). A number,
+     * never a row: Reference renders a refusal and reads no catalog table.
+     */
+    public function countCategoriesUnderRoot(int $rootCategoryId): int;
+
+    /**
+     * Active products under a root category across every channel — the
+     * `active_products` half of the same check.
+     */
+    public function countActiveProductsUnderRoot(int $rootCategoryId): int;
+
+    /**
+     * Products, any status, that sell in a sale unit across every channel —
+     * `affected.products` on EP-AD-043D (BE-R06). A unit in use cannot be disabled.
+     */
+    public function countProductsUsingSaleUnit(int $saleUnitId): int;
+
+    /**
+     * Products a channel holds against its `skus` plan limit (EP-AD-056 `limit_usage`).
+     */
+    public function countInChannel(int $channelId): int;
 }

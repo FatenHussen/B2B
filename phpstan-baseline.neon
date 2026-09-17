@@ -1889,38 +1889,10 @@ parameters:
 			path: app-modules/reference/src/Domain/Models/ChannelZone.php
 
 		-
-			message: '#^Method Modules\\Reference\\Domain\\Models\\FxRate\:\:fromCurrency\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reference/src/Domain/Models/FxRate.php
-
-		-
-			message: '#^Method Modules\\Reference\\Domain\\Models\\FxRate\:\:toCurrency\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reference/src/Domain/Models/FxRate.php
-
-		-
 			message: '#^Method Modules\\Reference\\Domain\\Models\\Governorate\:\:zones\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/reference/src/Domain/Models/Governorate.php
-
-		-
-			message: '#^Method Modules\\Reference\\Domain\\Models\\Zone\:\:channelZones\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reference/src/Domain/Models/Zone.php
-
-		-
-			message: '#^Method Modules\\Reference\\Domain\\Models\\Zone\:\:governorate\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/reference/src/Domain/Models/Zone.php
-
-
-
-
 
 		-
 			message: '#^Method Modules\\Returns\\Application\\Queries\\ListChannelReturnRequests\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'

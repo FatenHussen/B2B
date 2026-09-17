@@ -40,7 +40,7 @@ function refsAdmin(): PlatformUser
 it('has no delete route on any reference entity', function () {
     // BE-R01 acceptance criterion 2, read from the route table rather than from one
     // entity at a time: not a single DELETE under /platform/refs, nor on the shared reads.
-    $deletes = collect(Route::getRoutes())
+    $deletes = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($r) => in_array('DELETE', $r->methods(), true))
         ->map->uri()
         ->filter(fn (string $uri) => str_starts_with($uri, 'api/v1/platform/refs')

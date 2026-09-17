@@ -30,14 +30,30 @@ unblocks_frontend: [AD-74]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] An expired override reverts without a scheduled job having to run on time.
-- [ ] 423 names which limit was hit so the client can explain it.
+- [x] An expired override reverts without a scheduled job having to run on time.
+- [x] 423 names which limit was hit so the client can explain it.
 
 ## Frontend tickets waiting on this
 
 - AD-74
 
 Changing a response shape here breaks those tickets. Regenerate OpenAPI and say so in the PR.
+
+## Done — 2026-09-17
+
+`ChannelLimitResolver` replaces the 5000-SKU stub behind `ChannelLimits`: override →
+channel row → plan → defaults, per key, with `temporary_until` compared on every read so an
+expired override reverts with no job. Overrides live in their own nullable columns beside
+the base the plan wrote, so the base is never lost.
+
+Where a limit bites today: `reps` at rep registration (`RegisterRep`), `skus` at product
+creation (`SaveProduct`, which used to answer a bespoke 422). `users` and `warehouses`
+have no add path in the API yet (channel-user invites are BE-T07, warehouses come from
+provisioning), so they are resolved and reported on EP-AD-056 but not yet enforced.
+`assertCanAdd()` is the one place to call when those paths land.
+
+The route is `PUT /platform/channels/{id}/limits`, the catalog's path, while the sibling
+channel routes still sit under `/admin/channels` and are moving.
 
 ## Working rules
 

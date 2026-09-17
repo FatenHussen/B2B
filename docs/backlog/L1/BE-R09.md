@@ -44,8 +44,20 @@ reinterpreted. So: two columns, and `is_base` is not writable through the API.
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] An architecture test proves no float reaches the FX path.
-- [ ] Two display currencies cannot exist simultaneously, even under concurrent writes.
+- [x] An architecture test proves no float reaches the FX path.
+- [x] Two display currencies cannot exist simultaneously, even under concurrent writes.
+
+## Done — 2026-09-17 — EP-AD-040 and EP-AD-043G
+
+A rate is posted **from `currency_id` into the base currency**; the base is implied,
+never sent, and a rate for the base against itself is refused. Posting closes the open
+rate for the pair at the new `effective_from`, so `FxRateResolver::find()` always has one
+answer and the history reads as consecutive intervals. Existing orders are not touched.
+
+`fx_rates.effective_from` moved from TIMESTAMP to DATETIME: MySQL gives the first NOT NULL
+TIMESTAMP of a table an implicit `ON UPDATE CURRENT_TIMESTAMP`, and the UPDATE that closes
+a rate was silently rewriting the closed rate's start to "now". Same values, no behaviour.
+`source` and `entered_by` were added, nullable. Still no scale column (rule 7).
 
 ## Working rules
 

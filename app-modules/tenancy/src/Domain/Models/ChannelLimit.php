@@ -23,7 +23,11 @@ class ChannelLimit extends Model
 
     protected string $channelColumn = 'channel_id';
 
-    protected $fillable = ['channel_id', 'users', 'warehouses', 'reps', 'skus', 'storage_mb', 'temporary_until', 'reason'];
+    protected $fillable = [
+        'channel_id', 'users', 'warehouses', 'reps', 'skus', 'storage_mb',
+        'override_users', 'override_warehouses', 'override_reps', 'override_skus', 'override_storage_mb',
+        'temporary_until', 'reason', 'overridden_by', 'overridden_at',
+    ];
 
     /**
      * @return array<string, string>
@@ -36,7 +40,13 @@ class ChannelLimit extends Model
             'reps' => 'integer',
             'skus' => 'integer',
             'storage_mb' => 'integer',
+            'override_users' => 'integer',
+            'override_warehouses' => 'integer',
+            'override_reps' => 'integer',
+            'override_skus' => 'integer',
+            'override_storage_mb' => 'integer',
             'temporary_until' => 'datetime',
+            'overridden_at' => 'datetime',
         ];
     }
 }

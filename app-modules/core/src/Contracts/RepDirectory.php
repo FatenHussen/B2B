@@ -36,4 +36,18 @@ interface RepDirectory
      * Returns a number, never a model.
      */
     public function countInZone(int $zoneId): int;
+
+    /**
+     * Rep profiles a channel carries against its `reps` plan limit (BE-T12): every
+     * profile on the channel that is not rejected or disabled. Pending profiles count —
+     * a limit that only bit after approval would let a channel queue an unbounded
+     * backlog and then approve past the cap.
+     */
+    public function countInChannel(int $channelId): int;
+
+    /**
+     * Rep profiles registered under an activity type — `affected.reps` before an
+     * activity type is disabled (BE-R04).
+     */
+    public function countByActivityType(int $activityTypeId): int;
 }

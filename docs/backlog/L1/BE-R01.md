@@ -28,8 +28,33 @@ blocked_by: [BE-C04]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] A disabled reference blocks new registration but leaves existing records intact.
-- [ ] No delete route exists on any reference entity.
+- [x] A disabled reference blocks new registration but leaves existing records intact.
+- [x] No delete route exists on any reference entity.
+
+## Done — 2026-09-17
+
+Every write on the seven entities goes through one service, `ReferenceMutations`: create,
+update with a mandatory reason, and a status change that refuses to disable what is still
+in use (`ref_in_use` with the counts), writes a before/after audit row and emits
+`ReferenceDisabled`. There is no delete route anywhere; `PlatformRefsTest` reads the route
+table to prove it.
+
+**Routes moved.** Every write and the platform's own reads now live under
+`/api/v1/platform/refs/*` (the catalog's paths, platform guard, `ad.refs.*` gates with
+Spatie's `permission:` middleware so a 403 names the code). The shared `GET /governorates`,
+`/zones` and `/currencies` reads stay for the four guards because the channel dashboard
+pack lists them; nothing under them mutates.
+
+**"Block new use" is the directory, not a listener.** `ReferenceDirectory::all*Exist()`
+now require an active row, so a disabled activity type, root category, equipment or zone
+is refused wherever registration, a product, an offer or a price list names it, while
+every existing row keeps pointing at it. The event is emitted for Catalog, Tenancy and
+Ordering to consume when they have something to do with it; today the directory alone
+satisfies acceptance criterion 1.
+
+Six `acrossChannels()` sites were added for the impact counts — the platform back office
+counting rows across every channel before disabling a shared entity. They are pinned in
+`ChannelScopeEscapeTest` and named in CLAUDE.md rule 10 (42 → 48).
 
 ## Working rules
 

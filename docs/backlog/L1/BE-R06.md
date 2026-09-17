@@ -29,7 +29,7 @@ unblocks_frontend: [AD-45]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] 409 is returned with the usage context.
+- [x] 409 is returned with the usage context.
 
 ## Frontend tickets waiting on this
 

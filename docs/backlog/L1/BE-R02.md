@@ -29,8 +29,8 @@ unblocks_frontend: [AD-41]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] The seed is idempotent.
-- [ ] An update without a reason is refused with 422.
+- [x] The seed is idempotent.
+- [x] An update without a reason is refused with 422.
 
 ## Frontend tickets waiting on this
 

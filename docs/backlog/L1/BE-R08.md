@@ -29,8 +29,8 @@ unblocks_frontend: [AD-47]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] Storage stays integer regardless of decimals.
-- [ ] The permission split is enforced server side.
+- [x] Storage stays integer regardless of decimals.
+- [x] The permission split is enforced server side.
 
 ## Frontend tickets waiting on this
 

@@ -29,7 +29,7 @@ unblocks_frontend: [AD-43]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] Suggested categories are returned with the activity type in public refs.
+- [x] Suggested categories are returned with the activity type in public refs.
 
 ## Frontend tickets waiting on this
 

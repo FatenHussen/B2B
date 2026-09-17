@@ -21,7 +21,6 @@ use Modules\Core\Contracts\PricingDraft;
 use Modules\Core\Contracts\ProductPricingWriter;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Contracts\ReferenceDirectory;
-use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\InvalidFields;
 use Modules\Core\Support\Tenant;
 
@@ -52,10 +51,9 @@ final class SaveProduct
         }
 
         if ($productId === null) {
-            $count = Product::query()->count();
-            if ($count >= $this->limits->skuCap($channelId)) {
-                throw new DomainException(__('catalog.channel_limit_exceeded'), 'channel_limit_exceeded', 422);
-            }
+            // BE-T12: 423 `plan_limit_exceeded` naming the limit, from the one resolver
+            // that knows the plan, the override and its expiry. Was a bespoke 422 here.
+            $this->limits->assertCanAdd($channelId, 'skus', Product::query()->count());
         }
 
         $this->assertRefs($data);

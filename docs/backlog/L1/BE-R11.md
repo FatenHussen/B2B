@@ -27,9 +27,21 @@ blocked_by: [BE-R01, BE-C03]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] A dry run writes nothing, provably.
-- [ ] Row errors name the exact row and column.
-- [ ] Re-executing with the same key does not double-import.
+- [x] A dry run writes nothing, provably.
+- [x] Row errors name the exact row and column.
+- [x] Re-executing with the same key does not double-import.
+
+## Done — 2026-09-17
+
+CSV only, one entity per file, matched on the natural key (`code` for governorates,
+`governorate_code + name` for zones, `name` for the rest) so a re-import updates rather
+than duplicates. `status` is never a column an import may carry — only the status routes
+disable (rule 12). Currencies are not importable: `ad.refs.import` is not
+`ad.refs.currency` (BE-R08).
+
+Execution refuses the **whole file** when any row is invalid, so a half-imported file
+cannot exist; the client dry-runs, fixes the named rows, then executes. Replay under the
+same idempotency key is the middleware's, proven end to end in `FxRateAndImportTest`.
 
 ## Working rules
 

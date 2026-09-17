@@ -40,7 +40,7 @@ it('returns the six active entities in one payload without a Bearer', function (
         ->assertJsonCount(1, 'data.sale_units')
         ->assertJsonCount(1, 'data.equipments');
 
-    expect(collect($response->json('data.zones'))->pluck('id')->all())->not->toContain($disabledZone->id)
+    expect(collect((array) $response->json('data.zones'))->pluck('id')->all())->not->toContain($disabledZone->id)
         ->and($response->json('meta.sync_cursor'))->toStartWith('c_')
         ->and($response->json('data.sync_cursor'))->toBe($response->json('meta.sync_cursor'));
 });

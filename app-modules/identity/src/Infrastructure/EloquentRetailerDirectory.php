@@ -7,6 +7,8 @@ namespace Modules\Identity\Infrastructure;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\RetailerProfile;
+use Modules\Identity\Domain\Models\RetailerProfileCategory;
+use Modules\Identity\Domain\Models\RetailerProfileEquipment;
 
 final class EloquentRetailerDirectory implements RetailerDirectory
 {
@@ -53,5 +55,31 @@ final class EloquentRetailerDirectory implements RetailerDirectory
         $zoneId = RetailerProfile::query()->whereKey($retailerId)->value('zone_id');
 
         return $zoneId === null ? null : (int) $zoneId;
+    }
+
+    public function countByActivityType(int $activityTypeId): int
+    {
+        return RetailerProfile::query()->where('activity_type_id', $activityTypeId)->count();
+    }
+
+    public function countInGovernorate(int $governorateId): int
+    {
+        return RetailerProfile::query()->where('governorate_id', $governorateId)->count();
+    }
+
+    public function countByEquipment(int $equipmentId): int
+    {
+        return RetailerProfileEquipment::query()
+            ->where('equipment_id', $equipmentId)
+            ->distinct('retailer_profile_id')
+            ->count('retailer_profile_id');
+    }
+
+    public function countByRootCategory(int $rootCategoryId): int
+    {
+        return RetailerProfileCategory::query()
+            ->where('root_category_id', $rootCategoryId)
+            ->distinct('retailer_profile_id')
+            ->count('retailer_profile_id');
     }
 }

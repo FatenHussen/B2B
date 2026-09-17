@@ -51,11 +51,17 @@ class Zone extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Governorate, $this>
+     */
     public function governorate(): BelongsTo
     {
         return $this->belongsTo(Governorate::class);
     }
 
+    /**
+     * @return HasMany<ChannelZone, $this>
+     */
     public function channelZones(): HasMany
     {
         return $this->hasMany(ChannelZone::class);

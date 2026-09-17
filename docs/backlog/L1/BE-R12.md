@@ -26,7 +26,7 @@ blocked_by: [BE-R01, BE-C04]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] A mutation without a reason is refused with 422 — the client cannot bypass it.
+- [x] A mutation without a reason is refused with 422 — the client cannot bypass it.
 
 ## Working rules
 

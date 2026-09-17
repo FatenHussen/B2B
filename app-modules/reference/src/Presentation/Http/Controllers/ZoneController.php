@@ -47,7 +47,7 @@ class ZoneController extends ApiController
             ->when($governorateId !== null && $governorateId !== '', fn ($q) => $q->where('governorate_id', (int) $governorateId))
             ->when($request->filled('filter.status'), function ($q) use ($request): void {
                 $stored = ZoneStatus::fromContract((string) $request->input('filter.status'));
-                $q->where('status', $stored?->value ?? '__none__');
+                $q->where('status', $stored !== null ? $stored->value : '__none__');
             })
             ->when($request->filled('search'), fn ($q) => $q->where('name', 'like', '%'.$request->string('search')->toString().'%'))
             ->orderBy('order')

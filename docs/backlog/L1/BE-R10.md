@@ -31,9 +31,9 @@ unblocks_frontend: [FE-CORE-05, RP-06, RT-07]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] A since= request returns only what changed.
-- [ ] The payload is small enough for a low-end device on 3G.
-- [ ] No channel data leaks through this endpoint under any parameter.
+- [x] A since= request returns only what changed.
+- [x] The payload is small enough for a low-end device on 3G.
+- [x] No channel data leaks through this endpoint under any parameter.
 
 ## Frontend tickets waiting on this
 

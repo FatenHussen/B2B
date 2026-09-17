@@ -10,6 +10,22 @@ use Modules\Tenancy\Presentation\Http\Controllers\SupplyChannelController;
  * publishes two groups instead of one `auth:sanctum` group that served neither.
  */
 
+/*
+ * EP-AD-055 and EP-AD-056 on the catalog's own path. The siblings below still live under
+ * `/admin/channels` and are moving here; these two land where they will end up rather
+ * than adding to what has to move. Both prefixes are the platform guard (GuardTest).
+ */
+Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', 'tenant', SubstituteBindings::class])
+    ->prefix('api/v1/platform/channels')
+    ->group(function () {
+        // BE-T12. `ad.billing.assign_plan` is what the catalog names for a limits override.
+        Route::put('{supplyChannel}/limits', [SupplyChannelController::class, 'overrideLimits'])
+            ->middleware('permission:ad.billing.assign_plan');
+        // BE-T11.
+        Route::get('{supplyChannel}/usage', [SupplyChannelController::class, 'usage'])
+            ->middleware('permission:ad.channels.view');
+    });
+
 // Platform back office.
 Route::middleware(['api', 'auth:platform', 'tenant', SubstituteBindings::class])
     ->prefix('api/v1/admin/channels')

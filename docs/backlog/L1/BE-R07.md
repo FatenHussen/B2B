@@ -28,7 +28,7 @@ unblocks_frontend: [AD-46]
 
 _Write one test per criterion. Name the test after the criterion._
 
-- [ ] The entity follows the shared reference pattern with no bespoke code.
+- [x] The entity follows the shared reference pattern with no bespoke code.
 
 ## Frontend tickets waiting on this
 
