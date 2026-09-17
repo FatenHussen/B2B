@@ -193,6 +193,13 @@ reach a client, and no endpoint ever returns HTML.
 | Permissions | from the DOC-08 catalog, verbatim | `sc.orders.confirm` |
 | Events | past tense | `SubOrderConfirmed` |
 | Jobs and Actions | imperative verb | `GenerateDailySnapshot`, `SubmitOrder` |
+| Migrations | one unique timestamp per file, across every module | `2026_09_17_093000_create_x_table.php` |
+
+**Every migration carries a unique timestamp; no two are equal.** Laravel orders migrations by
+filename, so two files on the same stamp run in alphabetical order of the rest of the name — which
+module sorts first, not which table the other depends on. Sixteen files across six stamps predate
+this rule and stay as they are: renaming a migration that has already run makes every deployed
+database see it as new. Nothing enforces the rule yet; a new file takes the minute it was written.
 
 ### Permission vocabulary — two intersecting sources
 
@@ -204,7 +211,7 @@ DOC-08 and the API catalog **intersect; neither contains the other.**
   DOC-08 does not define — `sc.notify.view` on `EP-SC-092 GET /channel/notifications/log`
   is a real endpoint whose permission the document has not caught up with.
 
-As of 2026-09-05: PermissionCatalog seeds 133 codes. 39 DOC-08 codes are not yet
+As of 2026-09-17: PermissionCatalog seeds 134 codes. 37 DOC-08 codes are not yet
 seeded — a code is added when a route needs it, never speculatively.
 
 On a conflict: **the catalog is the source of the path, DOC-08 is the source of the

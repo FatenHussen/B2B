@@ -134,8 +134,15 @@ final class PermissionCatalog
         'sc.reports.export' => ['name_ar' => 'تصدير تقرير', 'system' => 'channel', 'module' => 'reports', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.reports.margins' => ['name_ar' => 'تقرير الهوامش', 'system' => 'channel', 'module' => 'reports', 'severity' => 'critical', 'dual_approval' => false, 'delegatable' => false],
         'sc.reports.view' => ['name_ar' => 'تقرير القناة', 'system' => 'channel', 'module' => 'reports', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // EP-SC-079 POST /channel/reps/{id}/disable
+        'sc.reps.disable' => ['name_ar' => 'تعطيل مندوب وتحويل مهامه', 'system' => 'channel', 'module' => 'reps', 'severity' => 'critical', 'dual_approval' => false, 'delegatable' => false],
         'sc.reps.settle' => ['name_ar' => 'تسوية عهدة المندوب', 'system' => 'channel', 'module' => 'reps', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
-        'sc.reps.update' => ['name_ar' => 'سقف خصم المندوب', 'system' => 'channel', 'module' => 'reps', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // EP-SC-077/078 approve|reject, EP-SC-035 discount-cap, EP-SC-089/093B decide
+        'sc.reps.update' => ['name_ar' => 'تعديل مناطقه وسقوفه', 'system' => 'channel', 'module' => 'reps', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // EP-SC-075/076 list|show, EP-SC-088/093A queues
+        'sc.reps.view' => ['name_ar' => 'عرض المندوبين وأدائهم', 'system' => 'channel', 'module' => 'reps', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // EP-SC-087 GET /channel/reps/{id}/wallet
+        'sc.reps.wallet' => ['name_ar' => 'الاطلاع على المحفظة', 'system' => 'channel', 'module' => 'reps', 'severity' => 'critical', 'dual_approval' => false, 'delegatable' => false],
         'sc.retailers.credit' => ['name_ar' => 'سقف ائتمان التاجر', 'system' => 'channel', 'module' => 'retailers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.returns.decide' => ['name_ar' => 'قرار الإرجاع', 'system' => 'channel', 'module' => 'returns', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.returns.view' => ['name_ar' => 'طلبات الإرجاع', 'system' => 'channel', 'module' => 'returns', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],

@@ -175,15 +175,20 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // Written when the assertions above were red — a red rule cannot signal the next
     // breach of the same rule, so this one counted instead. They are green now and it
     // still earns its place: it is the assertion that moves when a DOC-08 code is added
-    // to the catalog, which is how the remaining 39 are meant to arrive, one route at a
-    // time. `sc.settings.*` and `sc.zones.*` arrived exactly that way in this batch.
+    // to the catalog, which is how the remaining 37 are meant to arrive, one route at a
+    // time. `sc.settings.*` and `sc.zones.*` arrived exactly that way, and so did the
+    // three `sc.reps.*` codes below.
     $catalog = doc08Codes();
 
-    expect(Permission::query()->count())->toBe(131)
-        ->and(PermissionCatalog::codes())->toHaveCount(131)
-        // 40, up from 39. Adding `sc.notify.view` (catalog-only, EP-SC-092) did not
-        // shrink the unseeded DOC-08 set. It sits in DOC08_EXEMPT.
-        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(40)
+    // 134, up from 131: `sc.reps.view` (EP-SC-075/076 list|show, EP-SC-088/093A queues),
+    // `sc.reps.wallet` (EP-SC-087 GET /channel/reps/{id}/wallet) and `sc.reps.disable`
+    // (EP-SC-079 POST /channel/reps/{id}/disable) arrived with the channel rep surface.
+    // All three are DOC-08 names, so nothing joins DOC08_EXEMPT.
+    expect(Permission::query()->count())->toBe(134)
+        ->and(PermissionCatalog::codes())->toHaveCount(134)
+        // 37, down from 40: the three `sc.reps.*` codes were DOC-08 names waiting for a
+        // route. `sc.notify.view` (catalog-only, EP-SC-092) still sits in DOC08_EXEMPT.
+        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(37)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
         ->toBe(DOC08_EXEMPT);
 })->group('security');
