@@ -6,16 +6,23 @@ namespace Modules\Reference\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
- * One exchange rate for one currency pair over one window of time.
+ * One exchange rate between two currencies, in force from `effective_from` until
+ * `effective_to` (open when null).
  *
- * `rate` is a `bigInteger` at the fixed 10^6 scale — `Money::FX_UNIT` is 1.0. There is no
- * scale column and must never be one: see CLAUDE.md rule 7.
+ * `rate` is a bigInteger at `Money::FX_SCALE` — 1.0 is 1_000_000 — and there is no scale
+ * column, deliberately (CLAUDE.md rule 7). Nothing here divides.
  *
- * Reference data owned by the platform, so no channel scope. Windows are half-open:
- * `effective_from` is inclusive, `effective_to` exclusive, and a null `effective_to` means
- * the rate is still running.
+ * @property int $id
+ * @property int $from_currency_id
+ * @property int $to_currency_id
+ * @property int $rate
+ * @property Carbon $effective_from
+ * @property Carbon|null $effective_to
+ * @property string|null $source
+ * @property int|null $entered_by
  */
 class FxRate extends Model
 {
@@ -27,6 +34,8 @@ class FxRate extends Model
         'rate',
         'effective_from',
         'effective_to',
+        'source',
+        'entered_by',
     ];
 
     protected function casts(): array
@@ -38,11 +47,17 @@ class FxRate extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Currency, $this>
+     */
     public function fromCurrency(): BelongsTo
     {
         return $this->belongsTo(Currency::class, 'from_currency_id');
     }
 
+    /**
+     * @return BelongsTo<Currency, $this>
+     */
     public function toCurrency(): BelongsTo
     {
         return $this->belongsTo(Currency::class, 'to_currency_id');

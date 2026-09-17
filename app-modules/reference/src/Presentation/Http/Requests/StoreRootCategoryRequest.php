@@ -6,7 +6,8 @@ namespace Modules\Reference\Presentation\Http\Requests;
 
 use Modules\Core\Http\ApiFormRequest;
 
-final class StoreZoneRequest extends ApiFormRequest
+/** EP-AD-036B. */
+final class StoreRootCategoryRequest extends ApiFormRequest
 {
     /**
      * @return array<string, mixed>
@@ -14,14 +15,13 @@ final class StoreZoneRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'governorate_id' => ['required', 'integer', 'exists:governorates,id'],
             'name' => ['required', 'string', 'max:191'],
-            'district' => ['nullable', 'string', 'max:191'],
-            'polygon' => ['nullable', 'array'],
+            'icon' => ['nullable', 'string', 'max:64'],
+            'image' => ['nullable', 'string', 'max:255'],
+            'activity_type_ids' => ['nullable', 'array'],
+            'activity_type_ids.*' => ['integer', 'exists:activity_types,id'],
             'order' => ['nullable', 'integer', 'min:0'],
             'reason' => ['nullable', 'string', 'max:500'],
-            // `status` is gone: EP-AD-033's body does not carry it, and a zone's status
-            // moves only through EP-AD-034, which requires a reason.
         ];
     }
 }

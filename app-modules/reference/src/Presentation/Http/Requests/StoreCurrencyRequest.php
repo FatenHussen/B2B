@@ -26,6 +26,7 @@ final class StoreCurrencyRequest extends ApiFormRequest
             'symbol' => ['nullable', 'string', 'max:8'],
             'decimals' => ['required', 'integer', 'min:0', 'max:4'],
             'is_display_currency' => ['sometimes', 'boolean'],
+            'reason' => ['nullable', 'string', 'max:500'],
         ];
     }
 

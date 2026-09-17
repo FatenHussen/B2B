@@ -15,6 +15,8 @@ use Modules\Reference\Domain\Enums\ZoneStatus;
  * @property string $name
  * @property array<string, mixed>|null $polygon
  * @property ZoneStatus $status
+ * @property string|null $district
+ * @property int $order
  */
 class Zone extends Model
 {
@@ -45,6 +47,7 @@ class Zone extends Model
         return [
             'polygon' => 'array',
             'status' => ZoneStatus::class,
+            'order' => 'integer',
         ];
     }
 

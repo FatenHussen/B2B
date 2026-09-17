@@ -56,7 +56,7 @@ final class EloquentReferenceDirectory implements ReferenceDirectory
             return true;
         }
 
-        return Equipment::query()->whereIn('id', $ids)->count() === count(array_unique($ids));
+        return Equipment::query()->whereIn('id', $ids)->where('status', RefStatus::Active)->count() === count(array_unique($ids));
     }
 
     public function allRootCategoriesExist(array $ids): bool
@@ -65,7 +65,7 @@ final class EloquentReferenceDirectory implements ReferenceDirectory
             return true;
         }
 
-        return RootCategory::query()->whereIn('id', $ids)->count() === count(array_unique($ids));
+        return RootCategory::query()->whereIn('id', $ids)->where('status', RefStatus::Active)->count() === count(array_unique($ids));
     }
 
     public function saleUnitExists(int $saleUnitId): bool
@@ -117,7 +117,7 @@ final class EloquentReferenceDirectory implements ReferenceDirectory
             return true;
         }
 
-        return ActivityType::query()->whereIn('id', $ids)->count() === count(array_unique($ids));
+        return ActivityType::query()->whereIn('id', $ids)->where('status', RefStatus::Active)->count() === count(array_unique($ids));
     }
 
     public function allZonesExist(array $ids): bool
@@ -126,7 +126,7 @@ final class EloquentReferenceDirectory implements ReferenceDirectory
             return true;
         }
 
-        return Zone::query()->whereIn('id', $ids)->count() === count(array_unique($ids));
+        return Zone::query()->whereIn('id', $ids)->where('status', ZoneStatus::Active)->count() === count(array_unique($ids));
     }
 
     public function activityTypeName(int $activityTypeId): ?string

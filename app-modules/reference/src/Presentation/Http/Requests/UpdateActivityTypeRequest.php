@@ -6,11 +6,8 @@ namespace Modules\Reference\Presentation\Http\Requests;
 
 use Modules\Core\Http\ApiFormRequest;
 
-/**
- * EP-AD-042B. `reason` is required — BE-R12. `status` is not here: a zone's status moves
- * only through EP-AD-034, which requires a reason and shows the impact.
- */
-final class UpdateZoneRequest extends ApiFormRequest
+/** EP-AD-042C. `reason` is required — BE-R12. */
+final class UpdateActivityTypeRequest extends ApiFormRequest
 {
     /**
      * @return array<string, mixed>
@@ -18,10 +15,11 @@ final class UpdateZoneRequest extends ApiFormRequest
     public function rules(): array
     {
         return [
-            'governorate_id' => ['sometimes', 'integer', 'exists:governorates,id'],
             'name' => ['sometimes', 'string', 'max:191'],
-            'district' => ['sometimes', 'nullable', 'string', 'max:191'],
-            'polygon' => ['nullable', 'array'],
+            'icon' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'suggested_category_ids' => ['sometimes', 'array'],
+            'suggested_category_ids.*' => ['integer', 'exists:root_categories,id'],
             'order' => ['sometimes', 'integer', 'min:0'],
             'reason' => ['required', 'string', 'max:500'],
         ];
