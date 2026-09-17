@@ -26,3 +26,6 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Throwaway inspection scripts. They are analysis, not source, and they fail Pint.
+/tmp-*.php
