@@ -199,7 +199,9 @@ reach a client, and no endpoint ever returns HTML.
 filename, so two files on the same stamp run in alphabetical order of the rest of the name — which
 module sorts first, not which table the other depends on. Sixteen files across six stamps predate
 this rule and stay as they are: renaming a migration that has already run makes every deployed
-database see it as new. Nothing enforces the rule yet; a new file takes the minute it was written.
+database see it as new. `tests/Architecture/MigrationTimestampTest.php` pins those sixteen by name
+and fails on any other shared stamp; `docs/debt-ledger.md` records them. A new file takes the
+minute it was written.
 
 ### Permission vocabulary — two intersecting sources
 
