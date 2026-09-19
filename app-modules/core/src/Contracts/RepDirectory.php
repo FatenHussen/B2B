@@ -10,6 +10,15 @@ interface RepDirectory
 
     public function belongsToChannel(int $repUserId, int $channelId): bool;
 
+    /**
+     * Does this rep belong to the channel AND hold an `active` profile there?
+     *
+     * The question to ask before giving a rep work. {@see self::belongsToChannel()} is
+     * membership regardless of status — right for reading a disabled rep's wallet or
+     * settling it, wrong for assigning them a sub-order.
+     */
+    public function isActiveInChannel(int $repUserId, int $channelId): bool;
+
     public function profileId(int $repUserId): ?int;
 
     public function userIdForProfile(int $profileId): ?int;

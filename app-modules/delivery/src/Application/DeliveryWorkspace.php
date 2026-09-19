@@ -114,12 +114,9 @@ final class DeliveryWorkspace
     /**
      * @return array<string, mixed>
      */
-    public function detail(int $subOrderId, ?object $user = null): array
+    public function detail(int $subOrderId, object $actor): array
     {
-        $header = $this->orders->header($subOrderId);
-        if ($header === null) {
-            throw new DomainException(__('delivery.not_found'), 'not_found', 404);
-        }
+        $header = $this->assertOwned($subOrderId, $actor);
         $delivery = Delivery::query()->where('sub_order_id', $subOrderId)->first()
             ?? $this->ensure($subOrderId, (int) ($header['rep_id'] ?? 0));
         $orderLines = collect($this->orders->lines($subOrderId))->keyBy('id');
@@ -149,6 +146,7 @@ final class DeliveryWorkspace
      */
     public function patchLine(int $subOrderId, int $lineId, array $data, object $actor): array
     {
+        $this->assertOwned($subOrderId, $actor);
         $delivery = Delivery::query()->where('sub_order_id', $subOrderId)->first();
         if ($delivery === null) {
             throw new DomainException(__('delivery.not_found'), 'not_found', 404);
@@ -177,10 +175,10 @@ final class DeliveryWorkspace
      */
     public function complete(int $subOrderId, array $data, object $actor): array
     {
+        $header = $this->assertOwned($subOrderId, $actor);
         if (! $this->handover->isConfirmedForSubOrder($subOrderId)) {
             throw new DomainException(__('delivery.no_handover'), 'illegal_transition', 409);
         }
-        $header = $this->orders->header($subOrderId);
         $delivery = $this->ensure($subOrderId, (int) ($header['rep_id'] ?? $actor->getAuthIdentifier()));
         if ($delivery->status === 'delivered') {
             $invoice = $this->invoices->forSubOrder($subOrderId);
@@ -336,11 +334,29 @@ final class DeliveryWorkspace
         return $total;
     }
 
-    private function assertOwned(int $subOrderId, object $actor): void
+    /**
+     * The sub-order header, if and only if this actor is one of its two parties: the
+     * rep it is assigned to, or the retailer it was placed by. Anyone else — another
+     * rep, another retailer — gets 404, never 403: existence is not disclosed. Every
+     * method that reads or moves a delivery starts here.
+     *
+     * @return array<string, mixed>
+     */
+    private function assertOwned(int $subOrderId, object $actor): array
     {
         $header = $this->orders->header($subOrderId);
-        if ($header === null || (int) ($header['rep_id'] ?? 0) !== (int) $actor->getAuthIdentifier()) {
+        if ($header === null) {
             throw new DomainException(__('delivery.not_found'), 'not_found', 404);
         }
+
+        $owns = $this->shopping->isRetailer($actor)
+            ? (int) $header['retailer_id'] === $this->shopping->for($actor)['retailer_id']
+            : (int) ($header['rep_id'] ?? 0) === (int) $actor->getAuthIdentifier();
+
+        if (! $owns) {
+            throw new DomainException(__('delivery.not_found'), 'not_found', 404);
+        }
+
+        return $header;
     }
 }

@@ -31,7 +31,7 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-09-19T09:31:07+00:00",
+        "generated_at": "2026-09-17T07:35:40+00:00",
         "endpoint_count": 348,
         "surfaces": {
             "retailer_app": {

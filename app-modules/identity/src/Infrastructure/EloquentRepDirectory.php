@@ -44,6 +44,17 @@ final class EloquentRepDirectory implements RepDirectory
             ->exists();
     }
 
+    public function isActiveInChannel(int $repUserId, int $channelId): bool
+    {
+        return AppUser::query()
+            ->whereKey($repUserId)
+            ->where('kind', AppUserKind::Rep)
+            ->whereHas('repProfile', fn ($q) => $q
+                ->where('channel_id', $channelId)
+                ->where('status', ProfileStatus::Active))
+            ->exists();
+    }
+
     public function profileId(int $repUserId): ?int
     {
         $id = RepProfile::query()->where('app_user_id', $repUserId)->value('id');

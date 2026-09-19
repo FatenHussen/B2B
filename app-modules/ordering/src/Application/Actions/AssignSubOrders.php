@@ -37,6 +37,11 @@ final class AssignSubOrders
         if (! $this->reps->belongsToChannel($repId, $channelId)) {
             throw new DomainException(__('ordering.rep_off_coverage'), 'validation_failed', 422);
         }
+        // Membership is not enough: a disabled or still-pending rep is the channel's,
+        // and gets no work.
+        if (! $this->reps->isActiveInChannel($repId, $channelId)) {
+            throw new DomainException(__('ordering.rep_not_active'), 'validation_failed', 422);
+        }
         if (! $this->duty->isOnDuty($repId)) {
             throw new DomainException(__('ordering.rep_off_duty'), 'validation_failed', 422);
         }
