@@ -4,7 +4,7 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 166 | 69 | 7 | 90 | 7 |
+| 166 | 76 | 0 | 90 | 7 |
 
 ## الدخول والملف الشخصي — 16/16
 
@@ -88,25 +88,25 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 | ✅ | EP-AD-043F | SP-03 | `PATCH` | `/platform/refs/currencies/{id}/status` | `ad.refs.currency` | Reference | تعطيل/تفعيل عملة |
 | ✅ | EP-AD-043G | SP-03 | `GET` | `/platform/refs/fx-rates` | `ad.refs.currency` | Reference | أسعار الصرف |
 
-## القنوات — 2/23
+## القنوات — 9/23
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ⚠️ | EP-AD-050 | SP-04 | `GET` | `/platform/channels` | `ad.channels.view` | Tenancy | served on `/admin/channels` — catalog path is `/platform/channels` |
-| ⚠️ | EP-AD-051 | SP-04 | `POST` | `/platform/channels` | `ad.channels.create` | Tenancy | served on `/admin/channels` — catalog path is `/platform/channels` |
-| ⚠️ | EP-AD-052 | SP-04 | `GET` | `/platform/channels/{id}` | `ad.channels.view` | Tenancy | served on `/admin/channels/{id}` — catalog path is `/platform/channels/{id}` |
-| ⚠️ | EP-AD-053 | SP-04 | `POST` | `/platform/channels/{id}/retry-provisioning` | `ad.channels.update` | Tenancy | served on `/admin/channels/{id}/retry-provisioning` — catalog path is `/platform/channels/{id}/retry-provisioning` |
-| ⚠️ | EP-AD-054 | SP-04 | `POST` | `/platform/channels/{id}/transition` | `ad.channels.suspend` | Tenancy | served on `/admin/channels/{id}/transition` — catalog path is `/platform/channels/{id}/transition` |
+| ✅ | EP-AD-050 | SP-04 | `GET` | `/platform/channels` | `ad.channels.view` | Tenancy | قنوات التوريد |
+| ✅ | EP-AD-051 | SP-04 | `POST` | `/platform/channels` | `ad.channels.create` | Tenancy | إنشاء قناة |
+| ✅ | EP-AD-052 | SP-04 | `GET` | `/platform/channels/{id}` | `ad.channels.view` | Tenancy | تفاصيل القناة |
+| ✅ | EP-AD-053 | SP-04 | `POST` | `/platform/channels/{id}/retry-provisioning` | `ad.channels.update` | Tenancy | إعادة التجهيز |
+| ✅ | EP-AD-054 | SP-04 | `POST` | `/platform/channels/{id}/transition` | `ad.channels.suspend` | Tenancy | تغيير حالة القناة |
 | ✅ | EP-AD-055 | SP-04 | `PUT` | `/platform/channels/{id}/limits` | `ad.billing.assign_plan` | Tenancy | حدود القناة |
 | ✅ | EP-AD-056 | SP-04 | `GET` | `/platform/channels/{id}/usage` | `ad.channels.view` | Tenancy | استخدام القناة |
 | ❌ | EP-AD-057 | SP-04 | `POST` | `/platform/channels/{id}/export` | `ad.channels.export` | — | تصدير بيانات القناة |
-| ⚠️ | EP-AD-058 | SP-04 | `DELETE` | `/platform/channels/{id}` | `ad.channels.delete` | Tenancy | served on `/admin/channels/{id}` — catalog path is `/platform/channels/{id}` |
+| ✅ | EP-AD-058 | SP-04 | `DELETE` | `/platform/channels/{id}` | `ad.channels.delete` | Tenancy | حذف قناة |
 | ❌ | EP-AD-059A | SP-04 | `POST` | `/platform/channels/bulk-plan/preview` | `ad.billing.assign_plan` | — | معاينة تغيير الباقة الجماعي |
 | ❌ | EP-AD-059B | SP-04 | `POST` | `/platform/channels/bulk-plan` | `ad.billing.assign_plan` | — | تطبيق تغيير الباقة الجماعي |
 | ❌ | EP-AD-059C | SP-04 | `POST` | `/platform/channels/export` | `ad.channels.export` | — | تصدير قائمة القنوات |
 | ❌ | EP-AD-060 | SP-04 | `GET` | `/platform/channel-applications` | `ad.channels.view` | — | طلبات انضمام القنوات |
 | ❌ | EP-AD-061 | SP-04 | `POST` | `/platform/channel-applications/{id}/decide` | `ad.channels.create` | — | بتّ طلب انضمام قناة |
-| ⚠️ | EP-AD-062 | SP-04 | `PUT` | `/platform/channels/{id}` | `ad.channels.update` | Tenancy | served on `/admin/channels/{id}` — catalog path is `/platform/channels/{id}` |
+| ✅ | EP-AD-062 | SP-04 | `PUT` | `/platform/channels/{id}` | `ad.channels.update` | Tenancy | تعديل بيانات القناة |
 | ❌ | EP-AD-063 | SP-04 | `GET` | `/platform/channels/{id}/users` | `ad.channels.view` | — | مستخدمو القناة وأدوارهم |
 | ❌ | EP-AD-064 | SP-04 | `POST` | `/platform/channels/{id}/manager/reset` | `ad.channels.update` | — | إعادة تعيين حساب مدير القناة |
 | ❌ | EP-AD-065A | SP-04 | `GET` | `/platform/channels/{id}/coverage` | `ad.channels.view` | — | المناطق والتغطية |
