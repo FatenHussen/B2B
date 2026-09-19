@@ -74,7 +74,7 @@ own VirtualHost and certificate before the name is used anywhere.
 
 | Key | Value | Consequence |
 |---|---|---|
-| `APP_ENV` | **`staging`** | This is a production domain. `OtpService` disables the OTP bypass only when `isProduction()`, so with the next line **any 6-character code logs in any phone number**. |
+| `APP_ENV` | **`staging`** | This is a production domain. `OtpService` disables the OTP bypass only when `isProduction()`, so with the next line **any code — or none — logs in any phone number**. |
 | `OTP_BYPASS` | **`true`** | Active, see above. |
 | `OTP_CHANNEL` | `log` | OTP codes are written to `laravel.log` together with the full phone number (`LogOtpChannel`). |
 | `APP_DEBUG` | `false` | Correct. |

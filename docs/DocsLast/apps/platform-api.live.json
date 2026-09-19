@@ -1,0 +1,4036 @@
+{
+    "info": {
+        "title": "Platform admin (السنترال) — live API only",
+        "generated_at": "2026-09-17",
+        "base_path": "/api/v1",
+        "guard": "platform",
+        "x_client": "platform-web",
+        "port": 3000,
+        "seed": "admin@platform.sy / password — role platform_admin, 2FA off",
+        "not": "This is NOT the channel dashboard (guard channel, port 3001).",
+        "rule": "If this file and the catalog disagree, this file wins. Call only live:true. Never call forbidden. Never mock missing GMV/billing/refs-at-contract-path. Keep every moving base path behind ONE constant.",
+        "counts": {
+            "live_endpoints": 90,
+            "matched_catalog": 80,
+            "live_without_catalog": 10,
+            "moving": 13,
+            "forbidden": 91
+        }
+    },
+    "headers": {
+        "Authorization": "Bearer {token} — required except POST /platform/auth/login, POST /platform/auth/2fa/verify, GET /health",
+        "Accept": "application/json",
+        "Accept-Language": "ar — server messages may still be English; map error.code",
+        "X-Client": "platform-web — sent for logs; server ignores it",
+        "X-Idempotency-Key": "UUID per user intent on every write except login and 2fa/verify",
+        "Content-Type": "application/json",
+        "X-Channel-Id": "optional, honoured only for platform_admin when switching tenant context — do not send unless that flow exists",
+        "X-Device-Id": "not required on this guard"
+    },
+    "envelope": {
+        "success": {
+            "data": {},
+            "meta": {
+                "server_time": "..."
+            }
+        },
+        "list": {
+            "data": [],
+            "meta": {
+                "page": 1,
+                "per_page": 25,
+                "total": 0,
+                "last_page": 1
+            }
+        },
+        "error": {
+            "error": {
+                "code": "not_found",
+                "message": "...",
+                "permission": "ad.iam.role_create",
+                "details": {}
+            }
+        },
+        "money": "integer minor units. SYP decimals = 0. Never /100. Do not invent GMV.",
+        "sort": "roles list allows sort=id|name|created_at. Other lists: never send sort unless this file names it.",
+        "not_found": "404 means missing OR not yours — never render forbidden",
+        "two_gates": "permissions[] gate IAM/audit. /admin/channels index+delete also require role platform_admin. Gate::before grants platform_admin every permission.",
+        "moving": "stability=moving lives at a temporary path. One constant per base: CHANNELS_BASE=/admin/channels, REFS_GOV=/governorates, REFS_ZONES=/zones, REFS_FX=/currencies."
+    },
+    "forbidden": [
+        {
+            "method": "GET",
+            "path": "/api/v1/public/app-config",
+            "code": "EP-PB-010",
+            "sprint": "SP-17",
+            "name_ar": "إعداد التطبيق وفحص النسخة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/dashboard",
+            "code": "EP-AD-090",
+            "sprint": "SP-16",
+            "name_ar": "لوحة المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/dashboard/alerts",
+            "code": "EP-AD-094",
+            "sprint": "SP-16",
+            "name_ar": "تنبيهات المنصة اللحظية",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/dashboard/cards/{key}",
+            "code": "EP-AD-095",
+            "sprint": "SP-16",
+            "name_ar": "بطاقة لوحة مستقلة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/dashboard/charts/{key}",
+            "code": "EP-AD-096",
+            "sprint": "SP-16",
+            "name_ar": "رسم لوحة القيادة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/channels/{id}/export",
+            "code": "EP-AD-057",
+            "sprint": "SP-04",
+            "name_ar": "تصدير بيانات القناة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/channels/bulk-plan/preview",
+            "code": "EP-AD-059A",
+            "sprint": "SP-04",
+            "name_ar": "معاينة تغيير الباقة الجماعي",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/channels/bulk-plan",
+            "code": "EP-AD-059B",
+            "sprint": "SP-04",
+            "name_ar": "تطبيق تغيير الباقة الجماعي",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/channels/export",
+            "code": "EP-AD-059C",
+            "sprint": "SP-04",
+            "name_ar": "تصدير قائمة القنوات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/channel-applications",
+            "code": "EP-AD-060",
+            "sprint": "SP-04",
+            "name_ar": "طلبات انضمام القنوات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/channel-applications/{id}/decide",
+            "code": "EP-AD-061",
+            "sprint": "SP-04",
+            "name_ar": "بتّ طلب انضمام قناة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/channels/{id}/users",
+            "code": "EP-AD-063",
+            "sprint": "SP-04",
+            "name_ar": "مستخدمو القناة وأدوارهم",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/channels/{id}/manager/reset",
+            "code": "EP-AD-064",
+            "sprint": "SP-04",
+            "name_ar": "إعادة تعيين حساب مدير القناة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/channels/{id}/coverage",
+            "code": "EP-AD-065A",
+            "sprint": "SP-04",
+            "name_ar": "المناطق والتغطية",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/channels/{id}/coverage",
+            "code": "EP-AD-065B",
+            "sprint": "SP-04",
+            "name_ar": "تحديث تغطية القناة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/channels/{id}/warehouses",
+            "code": "EP-AD-066",
+            "sprint": "SP-04",
+            "name_ar": "مستودعات القناة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/channels/{id}/features",
+            "code": "EP-AD-067",
+            "sprint": "SP-04",
+            "name_ar": "ميزات هذه القناة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/channels/notify-managers",
+            "code": "EP-AD-068",
+            "sprint": "SP-04",
+            "name_ar": "إشعار مديري القنوات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/channels/{id}/plan",
+            "code": "EP-AD-102",
+            "sprint": "SP-17",
+            "name_ar": "تعيين خطة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/plans",
+            "code": "EP-AD-100A",
+            "sprint": "SP-17",
+            "name_ar": "الخطط",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/plans",
+            "code": "EP-AD-100B",
+            "sprint": "SP-17",
+            "name_ar": "إنشاء خطة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/plans/{id}",
+            "code": "EP-AD-100C",
+            "sprint": "SP-17",
+            "name_ar": "تفاصيل الباقة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/plans/{id}",
+            "code": "EP-AD-100D",
+            "sprint": "SP-17",
+            "name_ar": "تعديل باقة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/subscriptions",
+            "code": "EP-AD-101",
+            "sprint": "SP-17",
+            "name_ar": "الاشتراكات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/platform-invoices",
+            "code": "EP-AD-103",
+            "sprint": "SP-17",
+            "name_ar": "فواتير المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/platform-invoices/{id}/waive",
+            "code": "EP-AD-104",
+            "sprint": "SP-17",
+            "name_ar": "إعفاء فاتورة منصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/dunning",
+            "code": "EP-AD-105",
+            "sprint": "SP-17",
+            "name_ar": "تحصيل المتأخرات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/platform-invoices/{id}/credit-note",
+            "code": "EP-AD-106",
+            "sprint": "SP-17",
+            "name_ar": "مذكرة دائنة لفاتورة منصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/billing/revenue",
+            "code": "EP-AD-107",
+            "sprint": "SP-17",
+            "name_ar": "تقرير إيراد المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/features",
+            "code": "EP-AD-110A",
+            "sprint": "SP-17",
+            "name_ar": "مفاتيح الميزات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/features",
+            "code": "EP-AD-110B",
+            "sprint": "SP-17",
+            "name_ar": "إنشاء مفتاح ميزة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/features/{key}/override",
+            "code": "EP-AD-111",
+            "sprint": "SP-17",
+            "name_ar": "تجاوز ميزة لقناة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/app-versions",
+            "code": "EP-AD-112",
+            "sprint": "SP-17",
+            "name_ar": "نشر نسخة تطبيق",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/app-versions/{id}/force-update",
+            "code": "EP-AD-113",
+            "sprint": "SP-17",
+            "name_ar": "فرض التحديث",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/platform/features/{key}/override",
+            "code": "EP-AD-114",
+            "sprint": "SP-17",
+            "name_ar": "إعادة الميزة لقيمة الباقة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/app-versions",
+            "code": "EP-AD-115",
+            "sprint": "SP-17",
+            "name_ar": "سجل إصدارات التطبيقات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/content/legal",
+            "code": "EP-AD-140A",
+            "sprint": "SP-17",
+            "name_ar": "الشروط والخصوصية",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/content/legal",
+            "code": "EP-AD-140B",
+            "sprint": "SP-17",
+            "name_ar": "نشر نسخة شروط/خصوصية",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/content/intro",
+            "code": "EP-AD-141A",
+            "sprint": "SP-17",
+            "name_ar": "الانترو الافتراضي للمنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/content/intro",
+            "code": "EP-AD-141B",
+            "sprint": "SP-17",
+            "name_ar": "تحديث الانترو الافتراضي",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/content/help",
+            "code": "EP-AD-142A",
+            "sprint": "SP-17",
+            "name_ar": "الأدلة والمساعدة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/content/help",
+            "code": "EP-AD-142B",
+            "sprint": "SP-17",
+            "name_ar": "إنشاء مقال مساعدة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/support/search",
+            "code": "EP-AD-120",
+            "sprint": "SP-17",
+            "name_ar": "بحث الدعم",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/support/users/{type}/{id}",
+            "code": "EP-AD-121",
+            "sprint": "SP-17",
+            "name_ar": "بطاقة المستخدم 360",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/support/impersonate",
+            "code": "EP-AD-122",
+            "sprint": "SP-17",
+            "name_ar": "انتحال جلسة دعم",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/support/users/{id}/resend-otp",
+            "code": "EP-AD-123",
+            "sprint": "SP-17",
+            "name_ar": "إعادة OTP لمستخدم",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/support/users/{id}/revoke-sessions",
+            "code": "EP-AD-124",
+            "sprint": "SP-17",
+            "name_ar": "إنهاء جلسات المستخدم",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/support/tickets",
+            "code": "EP-AD-125A",
+            "sprint": "SP-17",
+            "name_ar": "التذاكر",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/support/tickets",
+            "code": "EP-AD-125B",
+            "sprint": "SP-17",
+            "name_ar": "إنشاء تذكرة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/support/users/{id}/disable",
+            "code": "EP-AD-126",
+            "sprint": "SP-17",
+            "name_ar": "تعطيل مستخدم مؤقت",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/support/users/{id}/reset-device",
+            "code": "EP-AD-127",
+            "sprint": "SP-17",
+            "name_ar": "إعادة تعيين جهاز المستخدم",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PATCH",
+            "path": "/api/v1/platform/support/tickets/{id}",
+            "code": "EP-AD-128",
+            "sprint": "SP-17",
+            "name_ar": "تحديث تذكرة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/system/queues",
+            "code": "EP-AD-130",
+            "sprint": "SP-17",
+            "name_ar": "طوابير النظام",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/system/errors",
+            "code": "EP-AD-131",
+            "sprint": "SP-17",
+            "name_ar": "آخر الاستثناءات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/system/sync",
+            "code": "EP-AD-132",
+            "sprint": "SP-17",
+            "name_ar": "صحة المزامنة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/system/integrations",
+            "code": "EP-AD-133",
+            "sprint": "SP-17",
+            "name_ar": "صحة التكاملات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/system/switch-otp-channel",
+            "code": "EP-AD-134",
+            "sprint": "SP-17",
+            "name_ar": "تبديل قناة OTP",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/system/retry-jobs",
+            "code": "EP-AD-135",
+            "sprint": "SP-17",
+            "name_ar": "إعادة مهام فاشلة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/system/maintenance",
+            "code": "EP-AD-136",
+            "sprint": "SP-17",
+            "name_ar": "وضع الصيانة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/system/scheduled-jobs",
+            "code": "EP-AD-137",
+            "sprint": "SP-17",
+            "name_ar": "المهام المجدولة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/system/storage",
+            "code": "EP-AD-138",
+            "sprint": "SP-17",
+            "name_ar": "التخزين والنسخ",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/system/backups",
+            "code": "EP-AD-139C",
+            "sprint": "SP-17",
+            "name_ar": "تشغيل نسخة احتياطية",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/system/backups/restore-test",
+            "code": "EP-AD-139D",
+            "sprint": "SP-17",
+            "name_ar": "اختبار الاستعادة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/reports/{type}",
+            "code": "EP-AD-091",
+            "sprint": "SP-16",
+            "name_ar": "تقرير المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/exports/{jobId}",
+            "code": "EP-AD-092",
+            "sprint": "SP-16",
+            "name_ar": "حالة التصدير",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/reports/{type}/export",
+            "code": "EP-AD-093",
+            "sprint": "SP-16",
+            "name_ar": "تصدير تقرير المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/settings/backup",
+            "code": "EP-AD-139A",
+            "sprint": "SP-17",
+            "name_ar": "سياسة النسخ الاحتياطي",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/settings/backup",
+            "code": "EP-AD-139B",
+            "sprint": "SP-17",
+            "name_ar": "تحديث سياسة النسخ",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/settings/profile",
+            "code": "EP-AD-150A",
+            "sprint": "SP-17",
+            "name_ar": "الملف العام للمنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/settings/profile",
+            "code": "EP-AD-150B",
+            "sprint": "SP-17",
+            "name_ar": "تحديث الملف العام",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/settings/integrations",
+            "code": "EP-AD-151A",
+            "sprint": "SP-17",
+            "name_ar": "مفاتيح التكاملات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/settings/integrations/{provider}",
+            "code": "EP-AD-151B",
+            "sprint": "SP-17",
+            "name_ar": "حفظ مفتاح تكامل",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/settings/integrations/{provider}/test",
+            "code": "EP-AD-152",
+            "sprint": "SP-17",
+            "name_ar": "اختبار اتصال المزوّد",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/settings/channel-defaults",
+            "code": "EP-AD-153A",
+            "sprint": "SP-17",
+            "name_ar": "التهيئة الافتراضية للقنوات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/settings/channel-defaults",
+            "code": "EP-AD-153B",
+            "sprint": "SP-17",
+            "name_ar": "تحديث تهيئة القنوات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/team",
+            "code": "EP-AD-154",
+            "sprint": "SP-17",
+            "name_ar": "فريق المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/team/invites",
+            "code": "EP-AD-155",
+            "sprint": "SP-17",
+            "name_ar": "دعوة عضو للمنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/team/invites",
+            "code": "EP-AD-156",
+            "sprint": "SP-17",
+            "name_ar": "الدعوات المعلّقة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/team/{id}/disable",
+            "code": "EP-AD-157",
+            "sprint": "SP-17",
+            "name_ar": "تعطيل عضو منصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/settings/security",
+            "code": "EP-AD-158A",
+            "sprint": "SP-17",
+            "name_ar": "سياسة أمان المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/settings/security",
+            "code": "EP-AD-158B",
+            "sprint": "SP-17",
+            "name_ar": "تحديث سياسة الأمان",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/team/{id}",
+            "code": "EP-AD-160A",
+            "sprint": "SP-17",
+            "name_ar": "تعديل عضو المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/platform/team/{id}",
+            "code": "EP-AD-160B",
+            "sprint": "SP-17",
+            "name_ar": "حذف عضو المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/notifications/broadcast",
+            "code": "EP-AD-080",
+            "sprint": "SP-14",
+            "name_ar": "بث إشعار المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/notifications",
+            "code": "EP-AD-081",
+            "sprint": "SP-14",
+            "name_ar": "إنشاء إشعار منصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/platform/notifications/preview",
+            "code": "EP-AD-082",
+            "sprint": "SP-14",
+            "name_ar": "تقييم استهداف الإشعار",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/notifications/templates",
+            "code": "EP-AD-083A",
+            "sprint": "SP-14",
+            "name_ar": "قوالب إشعارات المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/platform/notifications/templates",
+            "code": "EP-AD-083B",
+            "sprint": "SP-14",
+            "name_ar": "تحديث قالب منصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/notifications/log",
+            "code": "EP-AD-084",
+            "sprint": "SP-14",
+            "name_ar": "سجل إرسال المنصة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/notifications/campaigns",
+            "code": "EP-AD-085A",
+            "sprint": "SP-14",
+            "name_ar": "حملات الإشعارات",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/platform/notifications/campaigns/{id}",
+            "code": "EP-AD-085B",
+            "sprint": "SP-14",
+            "name_ar": "تفاصيل حملة",
+            "reason": "Catalogued, no route at this path — do not build, do not mock"
+        }
+    ],
+    "gotchas": [
+        "Login expires_at is nominal — Sanctum expiration is null. Trust 401.",
+        "2FA challenge_token lives in React state only, 10 minutes, 5 attempts.",
+        "PUT /platform/me is a full object (name required). PUT /admin/channels/{id} is partial but reason is required. status is prohibited on channel create/update.",
+        "Channel index and DELETE are gated by role platform_admin, not a permission — 403 has no error.permission.",
+        "GET /admin/channels/{id} returns nested channel.allowed_next — drive transition buttons from that list.",
+        "POST /admin/channels returns 201 {id, status:provisioning, provisioning_job_id}. Status starts provisioning. Do not send status.",
+        "POST /admin/channels/{id}/transition and retry-provisioning ARE live on the moving prefix. Limits/usage/coverage/users/warehouses/features/applications/bulk-plan are not.",
+        "DELETE /admin/channels/{id} is 204 empty body, soft delete, no restore.",
+        "created_at on a channel is UTC; other timestamps are Asia/Damascus.",
+        "Replay requires_password_confirm with the SAME idempotency key and body.",
+        "POST /me/api-tokens puts the current password in password_confirmation and checks it inline — not the 15-min window.",
+        "2fa/enable qr_svg is an empty placeholder — render QR from secret (otpauth URI). Recovery codes appear once on confirm.",
+        "POST /iam/assignments partial success is still 200 — render rejected. DELETE /iam/assignments needs a body.",
+        "New roles land as draft. Creator cannot approve (403 sod_violation).",
+        "approval-requests decide: read executed, not status. Review items use keep|revoke.",
+        "GET /iam/reviews/{id} is unpaginated. simulate tenant layer is hardcoded pass.",
+        "audit/export body key is filters (plural); the list uses filter. No job-status route.",
+        "/governorates /zones /currencies are live at the v1 root on a multi-guard list. Contract path is /platform/refs/*. Do not build admin screens on them without one constant. Shape is thinner than SP-03.",
+        "GET /platform/dashboard is 404. Never fake GMV.",
+        "GET/PUT /platform/content/intro is catalog only — no route. Channel intro is /channel/content/intro on the other dashboard."
+    ],
+    "endpoints": [
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/health",
+            "will_become": null,
+            "catalog_path": "/health",
+            "code": "EP-CORE-001",
+            "name": "Health check",
+            "name_ar": "فحص الصحة",
+            "permission": null,
+            "role": null,
+            "guard": "none",
+            "auth": false,
+            "write": false,
+            "idempotency": false,
+            "folder": "00. Health",
+            "query": [],
+            "body": null,
+            "response": {
+                "status": "ok"
+            },
+            "errors": [],
+            "description": "Public liveness. No tenant, no auth.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/auth/2fa/verify",
+            "will_become": null,
+            "catalog_path": "/platform/auth/2fa/verify",
+            "code": "EP-AD-002",
+            "name": "Verify 2FA",
+            "name_ar": "تحقق المصادقة الثنائية",
+            "permission": null,
+            "role": null,
+            "guard": "none",
+            "auth": false,
+            "write": true,
+            "idempotency": false,
+            "folder": "01. Auth",
+            "query": [],
+            "body": {
+                "challenge_token": "cht_8f3a",
+                "code": "123456"
+            },
+            "response": {
+                "token": "1|platform_xxxxx",
+                "user": {
+                    "id": 1,
+                    "name": "منصّة",
+                    "email": "admin@platform.sy",
+                    "roles": [
+                        "platform_admin"
+                    ],
+                    "permissions": [
+                        "ad.iam.view_catalog"
+                    ]
+                },
+                "expires_at": "2026-03-01T21:12:44+03:00"
+            },
+            "errors": {
+                "401": "otp_invalid"
+            },
+            "description": "",
+            "note": "Body {challenge_token, code}. Challenge 10 min / 5 attempts. Idempotency exempt."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/auth/confirm-password",
+            "will_become": null,
+            "catalog_path": "/platform/auth/confirm-password",
+            "code": "EP-AD-005",
+            "name": "Confirm password",
+            "name_ar": "تأكيد كلمة المرور",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "01. Auth",
+            "query": [],
+            "body": {
+                "password": "********"
+            },
+            "response": {
+                "confirmed_until": "2026-03-01T09:27:44+03:00"
+            },
+            "errors": {
+                "401": "unauthenticated",
+                "403": "requires_password_confirm"
+            },
+            "description": "Valid 15 minutes (BR-AD-04). Required before critical actions.",
+            "note": "Opens a 15-minute window used only by PUT /platform/me/password. Replay the original write with the same key."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/auth/login",
+            "will_become": null,
+            "catalog_path": "/platform/auth/login",
+            "code": "EP-AD-001",
+            "name": "Platform login",
+            "name_ar": "دخول المنصة",
+            "permission": null,
+            "role": null,
+            "guard": "none",
+            "auth": false,
+            "write": true,
+            "idempotency": false,
+            "folder": "01. Auth",
+            "query": [],
+            "body": {
+                "email": "admin@platform.sy",
+                "password": "password"
+            },
+            "response": {
+                "token": "1|xxxx",
+                "user": {
+                    "id": 1,
+                    "name": "Platform Admin",
+                    "email": "admin@platform.sy",
+                    "roles": [
+                        "platform_admin"
+                    ],
+                    "permissions": [
+                        "ad.iam.view_catalog"
+                    ]
+                },
+                "expires_at": "2026-09-18T12:00:00+03:00"
+            },
+            "errors": {
+                "401": "unauthenticated",
+                "403": "requires_2fa"
+            },
+            "description": "",
+            "note": "Seeded admin has no 2FA → token. With 2FA: {requires_2fa, challenge_token}. Wrong credentials = generic 401. expires_at is nominal."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/auth/logout",
+            "will_become": null,
+            "catalog_path": "/platform/auth/logout",
+            "code": "EP-AD-003",
+            "name": "Logout",
+            "name_ar": "تسجيل الخروج",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "01. Auth",
+            "query": [],
+            "body": [],
+            "response": {
+                "success": true
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/auth/me",
+            "will_become": null,
+            "catalog_path": "/platform/auth/me",
+            "code": "EP-AD-004",
+            "name": "Current platform user",
+            "name_ar": "المستخدم الحالي",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "01. Auth",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 1,
+                "name": "منصّة",
+                "email": "admin@platform.sy",
+                "roles": [
+                    "platform_admin"
+                ],
+                "permissions": [
+                    "ad.dashboard.view"
+                ],
+                "two_factor_enabled": true,
+                "last_login_at": "2026-03-01T09:12:44+03:00"
+            },
+            "errors": [],
+            "description": "",
+            "note": "Identical to GET /platform/me."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "DELETE",
+            "path": "/api/v1/platform/auth/sessions/{id}",
+            "will_become": null,
+            "catalog_path": "/platform/auth/sessions/{id}",
+            "code": "EP-AD-007",
+            "name": "Revoke session",
+            "name_ar": "إنهاء جلسة",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "01. Auth",
+            "query": [],
+            "body": null,
+            "response": {
+                "success": true
+            },
+            "errors": {
+                "401": "token_revoked"
+            },
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/auth/sessions",
+            "will_become": null,
+            "catalog_path": "/platform/auth/sessions",
+            "code": "EP-AD-006",
+            "name": "List sessions",
+            "name_ar": "جلسات الدخول",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "01. Auth",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": "ses_1",
+                    "ip": "185.1.2.3",
+                    "agent": "Chrome 131",
+                    "last_active_at": "2026-03-01T09:12:44+03:00",
+                    "current": true
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/me/2fa/confirm",
+            "will_become": null,
+            "catalog_path": "/platform/me/2fa/confirm",
+            "code": "EP-AD-159E",
+            "name": "Confirm 2FA setup",
+            "name_ar": "تأكيد التحقق بخطوتين",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. My account",
+            "query": [],
+            "body": {
+                "code": "123456"
+            },
+            "response": {
+                "enabled": true,
+                "recovery_codes": [
+                    "a1b2c3d4",
+                    "e5f6g7h8"
+                ]
+            },
+            "errors": [],
+            "description": "",
+            "note": "8 recovery codes once. Wrong code 401 otp_invalid, 2FA stays off."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/me/2fa/enable",
+            "will_become": null,
+            "catalog_path": "/platform/me/2fa/enable",
+            "code": "EP-AD-159D",
+            "name": "Start 2FA setup",
+            "name_ar": "بدء تفعيل التحقق بخطوتين",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. My account",
+            "query": [],
+            "body": [],
+            "response": {
+                "secret": "otpauth://totp/...",
+                "qr_svg": "<svg/>"
+            },
+            "errors": [],
+            "description": "BR-AD-03: إلزامي لمدير المنصة ولمن يملك انتحال الجلسة.",
+            "note": "secret is otpauth:// URI. qr_svg is an empty <svg/>. 2FA is not on until confirm."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/me/2fa/recovery-codes",
+            "will_become": null,
+            "catalog_path": "/platform/me/2fa/recovery-codes",
+            "code": "EP-AD-159F",
+            "name": "2FA recovery codes",
+            "name_ar": "رموز الاسترداد",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "02. My account",
+            "query": [],
+            "body": null,
+            "response": {
+                "codes_remaining": 8
+            },
+            "errors": [],
+            "description": "الرموز نفسها لا تُعاد قراءتها بعد الإنشاء (BR-AD-21).",
+            "note": "Returns codes_remaining only — never the codes again."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "DELETE",
+            "path": "/api/v1/platform/me/api-tokens/{id}",
+            "will_become": null,
+            "catalog_path": "/platform/me/api-tokens/{id}",
+            "code": "EP-AD-159I",
+            "name": "Revoke API token",
+            "name_ar": "إبطال رمز API",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. My account",
+            "query": [],
+            "body": null,
+            "response": {
+                "success": true
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/me/api-tokens",
+            "will_become": null,
+            "catalog_path": "/platform/me/api-tokens",
+            "code": "EP-AD-159G",
+            "name": "My API tokens",
+            "name_ar": "رموز API",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "02. My account",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 3,
+                    "name": "ci",
+                    "last_used_at": null,
+                    "created_at": "2026-02-01T00:00:00+03:00"
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/me/api-tokens",
+            "will_become": null,
+            "catalog_path": "/platform/me/api-tokens",
+            "code": "EP-AD-159H",
+            "name": "Create API token",
+            "name_ar": "إنشاء رمز API",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. My account",
+            "query": [],
+            "body": {
+                "name": "ci",
+                "password_confirmation": "********"
+            },
+            "response": {
+                "id": 4,
+                "token": "2|shown_once"
+            },
+            "errors": [],
+            "description": "BR-AD-04: تأكيد كلمة المرور. الرمز يُعرض مرة واحدة.",
+            "note": "Current password in password_confirmation. Checked inline, not the 15-min window. Token plaintext once."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/me/password",
+            "will_become": null,
+            "catalog_path": "/platform/me/password",
+            "code": "EP-AD-159C",
+            "name": "Change my password",
+            "name_ar": "تغيير كلمة المرور",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. My account",
+            "query": [],
+            "body": {
+                "current_password": "********",
+                "password": "********",
+                "password_confirmation": "********"
+            },
+            "response": {
+                "updated": true
+            },
+            "errors": {
+                "422": "validation_failed"
+            },
+            "description": "",
+            "note": "Needs confirm-password window. Replay same idempotency key."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/me",
+            "will_become": null,
+            "catalog_path": "/platform/me",
+            "code": "EP-AD-159A",
+            "name": "My platform profile",
+            "name_ar": "ملفي الشخصي",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "02. My account",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 1,
+                "name": "منصّة",
+                "email": "admin@platform.sy",
+                "phone": "+963991000000",
+                "two_factor_enabled": true,
+                "roles": [
+                    "platform_admin"
+                ]
+            },
+            "errors": [],
+            "description": "DOC-07 §4.12 ملفي الشخصي. متاح لكل أدوار المنصة.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/me",
+            "will_become": null,
+            "catalog_path": "/platform/me",
+            "code": "EP-AD-159B",
+            "name": "Update my profile",
+            "name_ar": "تحديث ملفي",
+            "permission": null,
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. My account",
+            "query": [],
+            "body": {
+                "name": "منصّة",
+                "phone": "+963991000000"
+            },
+            "response": {
+                "updated": true
+            },
+            "errors": [],
+            "description": "",
+            "note": "Full object — name required even for a one-field edit. Phone is Syrian, normalised server-side."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/approval-requests/{id}/decide",
+            "will_become": null,
+            "catalog_path": "/platform/iam/approval-requests/{id}/decide",
+            "code": "EP-AD-026",
+            "name": "Decide dual-approval request",
+            "name_ar": "بتّ طلب اعتماد",
+            "permission": "ad.iam.role_approve",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "decision": "approve",
+                "reason": "مراجعة مكتملة"
+            },
+            "response": {
+                "status": "approved",
+                "executed": true
+            },
+            "errors": {
+                "403": "sod_violation"
+            },
+            "description": "Approver cannot be the requester.",
+            "note": "Read executed, not status."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/iam/approval-requests",
+            "will_become": null,
+            "catalog_path": "/platform/iam/approval-requests",
+            "code": "EP-AD-025",
+            "name": "Dual-approval inbox",
+            "name_ar": "طلبات الاعتماد المزدوج",
+            "permission": "ad.iam.view_catalog",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. IAM",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[status]",
+                    "example": "pending"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 19,
+                    "permission": "ad.channels.delete",
+                    "action": "channel.delete",
+                    "requested_by": 1,
+                    "payload": {
+                        "channel_id": 9
+                    },
+                    "status": "pending",
+                    "created_at": "2026-03-01T09:00:00+03:00"
+                }
+            ],
+            "errors": [],
+            "description": "DOC-12E TB-AD-007 / AC-PM-05. The 21 dual-approval permissions create a request instead of executing.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "DELETE",
+            "path": "/api/v1/platform/iam/assignments",
+            "will_become": null,
+            "catalog_path": "/platform/iam/assignments",
+            "code": "EP-AD-017",
+            "name": "Revoke role assignment",
+            "name_ar": "سحب دور",
+            "permission": "ad.iam.role_assign",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "user_id": 10,
+                "role_id": 4,
+                "reason": "انتقال لقناة أخرى"
+            },
+            "response": {
+                "success": true
+            },
+            "errors": [],
+            "description": "",
+            "note": "DELETE with body {user_id, role_id, reason}."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/assignments",
+            "will_become": null,
+            "catalog_path": "/platform/iam/assignments",
+            "code": "EP-AD-016",
+            "name": "Assign roles",
+            "name_ar": "إسناد أدوار",
+            "permission": "ad.iam.role_assign",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "user_ids": [
+                    10,
+                    11
+                ],
+                "role_id": 4,
+                "expires_at": null,
+                "reason": "تعيين مديري قناة جدد"
+            },
+            "response": {
+                "assigned": [
+                    10,
+                    11
+                ],
+                "rejected": []
+            },
+            "errors": [],
+            "description": "Max 50 user_ids per call.",
+            "note": "Max 50 ids. 200 with assigned[] and rejected[]."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/iam/permissions/{code}/holders",
+            "will_become": null,
+            "catalog_path": "/platform/iam/permissions/{code}/holders",
+            "code": "EP-AD-011",
+            "name": "Permission holders",
+            "name_ar": "حاملو الصلاحية",
+            "permission": "ad.iam.view_catalog",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. IAM",
+            "query": [],
+            "body": null,
+            "response": {
+                "roles": [
+                    {
+                        "id": 1,
+                        "key": "platform_admin"
+                    }
+                ],
+                "users": [
+                    {
+                        "id": 1,
+                        "name": "منصّة"
+                    }
+                ],
+                "recent_usage": [
+                    {
+                        "at": "2026-03-01T09:00:00+03:00",
+                        "actor": 1,
+                        "action": "simulate"
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "",
+            "note": "users[].name is \"#id\". Capped at 50. Not a list envelope."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/iam/permissions",
+            "will_become": null,
+            "catalog_path": "/platform/iam/permissions",
+            "code": "EP-AD-010",
+            "name": "Permission catalog",
+            "name_ar": "كتالوج الصلاحيات",
+            "permission": "ad.iam.view_catalog",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. IAM",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[system]",
+                    "example": "platform"
+                },
+                {
+                    "name": "filter[severity]",
+                    "example": "critical"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "code": "ad.channels.delete",
+                    "name_ar": "حذف قناة",
+                    "system": "platform",
+                    "module": "channels",
+                    "severity": "critical",
+                    "dual_approval": true,
+                    "delegatable": false,
+                    "roles_count": 1,
+                    "users_count": 2
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": "133 seeded codes (DOC-08 has 170). Paginated. filter[system] platform|channel|warehouse|app."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/reviews/{id}/items/{itemId}/decide",
+            "will_become": null,
+            "catalog_path": "/platform/iam/reviews/{id}/items/{itemId}/decide",
+            "code": "EP-AD-029",
+            "name": "Decide review item",
+            "name_ar": "تأكيد أو سحب بند المراجعة",
+            "permission": "ad.audit.review",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "decision": "keep",
+                "reason": "ما زال مدير قناة فعّال"
+            },
+            "response": {
+                "item_id": 11,
+                "decision": "keep"
+            },
+            "errors": [],
+            "description": "decision: keep|revoke. DOC-12E TF-AD-115.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/iam/reviews/{id}",
+            "will_become": null,
+            "catalog_path": "/platform/iam/reviews/{id}",
+            "code": "EP-AD-028",
+            "name": "Access-review campaign",
+            "name_ar": "حملة مراجعة الصلاحيات",
+            "permission": "ad.audit.review",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. IAM",
+            "query": [],
+            "body": null,
+            "response": {
+                "campaign_id": 3,
+                "quarter": "2026-Q1",
+                "status": "open",
+                "items": [
+                    {
+                        "id": 11,
+                        "user_id": 4,
+                        "role_id": 2,
+                        "suggestion": "revoke_unused",
+                        "decision": null
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "DOC-12E TB-AD-115/153. Campaign cannot close until every item is decided.",
+            "note": "Unpaginated. Item vocabulary keep|revoke."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/reviews",
+            "will_become": null,
+            "catalog_path": "/platform/iam/reviews",
+            "code": "EP-AD-024",
+            "name": "Start access review",
+            "name_ar": "حملة مراجعة صلاحيات",
+            "permission": "ad.audit.review",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "quarter": "2026-Q1",
+                "scope": "platform"
+            },
+            "response": {
+                "campaign_id": 3,
+                "items_count": 42
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/roles/preview",
+            "will_become": null,
+            "catalog_path": "/platform/iam/roles/preview",
+            "code": "EP-AD-027",
+            "name": "Preview role in business language",
+            "name_ar": "معاينة أثر الدور",
+            "permission": "ad.iam.view_catalog",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "permissions": [
+                    "sc.orders.confirm",
+                    "sc.pricing.update"
+                ]
+            },
+            "response": {
+                "summary_ar": "سيستطيع تأكيد الطلبات وتغيير أسعار المناطق",
+                "sod_conflicts": []
+            },
+            "errors": [],
+            "description": "DOC-12E TB-AD-143.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/roles/{id}/approve",
+            "will_become": null,
+            "catalog_path": "/platform/iam/roles/{id}/approve",
+            "code": "EP-AD-014",
+            "name": "Approve role",
+            "name_ar": "اعتماد الدور",
+            "permission": "ad.iam.role_approve",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "reason": "مراجعة SOD مكتملة"
+            },
+            "response": {
+                "status": "active"
+            },
+            "errors": {
+                "403": "sod_violation"
+            },
+            "description": "Rejected if approver is the creator (SOD-05).",
+            "note": "Creator cannot approve → 403 sod_violation. Never retry."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/iam/roles/{id}/permissions",
+            "will_become": null,
+            "catalog_path": "/platform/iam/roles/{id}/permissions",
+            "code": "EP-AD-015",
+            "name": "Replace role permissions",
+            "name_ar": "تحديث صلاحيات الدور",
+            "permission": "ad.iam.role_create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "permissions": [
+                    "sc.catalog.view",
+                    "sc.catalog.update"
+                ],
+                "reason": "إزالة صلاحية الإنشاء"
+            },
+            "response": {
+                "changed": [
+                    "sc.catalog.create"
+                ],
+                "sod_conflicts": []
+            },
+            "errors": [],
+            "description": "",
+            "note": "Full replacement. Gated on ad.iam.role_create."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/iam/roles",
+            "will_become": null,
+            "catalog_path": "/platform/iam/roles",
+            "code": "EP-AD-012",
+            "name": "List roles",
+            "name_ar": "الأدوار",
+            "permission": "ad.iam.view_catalog",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. IAM",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[system]",
+                    "example": "channel"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 4,
+                    "key": "channel_manager",
+                    "name": "مدير القناة",
+                    "system": "channel",
+                    "status": "active",
+                    "is_builtin": true,
+                    "permissions_count": 80,
+                    "users_count": 12
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/roles",
+            "will_become": null,
+            "catalog_path": "/platform/iam/roles",
+            "code": "EP-AD-013",
+            "name": "Create role",
+            "name_ar": "إنشاء دور",
+            "permission": "ad.iam.role_create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "name": "مشرف كتالوج",
+                "key": "catalog_supervisor",
+                "system": "channel",
+                "description": "صلاحيات الكتالوج دون المالية",
+                "permissions": [
+                    "sc.catalog.view",
+                    "sc.catalog.create",
+                    "sc.catalog.update"
+                ],
+                "copy_from_role_id": null
+            },
+            "response": {
+                "id": 22,
+                "status": "draft",
+                "sod_conflicts": []
+            },
+            "errors": [],
+            "description": "",
+            "note": "201 status=draft. Grants nothing until a second admin approves."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/simulate",
+            "will_become": null,
+            "catalog_path": "/platform/iam/simulate",
+            "code": "EP-AD-018",
+            "name": "Simulate authorization",
+            "name_ar": "محاكاة صلاحية",
+            "permission": "ad.iam.simulate",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "user_type": "channel",
+                "user_id": 10,
+                "permission": "sc.orders.confirm",
+                "resource_type": "sub_order",
+                "resource_id": 9001
+            },
+            "response": {
+                "allowed": true,
+                "decision_path": [
+                    {
+                        "layer": "guard",
+                        "result": "pass",
+                        "reason": "channel"
+                    },
+                    {
+                        "layer": "permission",
+                        "result": "pass",
+                        "reason": "role:channel_manager"
+                    },
+                    {
+                        "layer": "tenant",
+                        "result": "pass",
+                        "reason": "same channel"
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "",
+            "note": "tenant layer is hardcoded pass. allowed = guard && (permission || temp-grant) && !sod."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/iam/sod-rules",
+            "will_become": null,
+            "catalog_path": "/platform/iam/sod-rules",
+            "code": "EP-AD-021",
+            "name": "SoD rules",
+            "name_ar": "قواعد فصل المهام",
+            "permission": "ad.iam.sod_rules",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. IAM",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "code": "SOD-01",
+                    "permission_a": "sc.orders.confirm",
+                    "permission_b": "sc.finance.payment",
+                    "reason": "لا يجتمع تأكيد الطلب مع تسجيل الدفعة",
+                    "exceptions": []
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/temp-grants/{id}/approve",
+            "will_become": null,
+            "catalog_path": "/platform/iam/temp-grants/{id}/approve",
+            "code": "EP-AD-020",
+            "name": "Approve temp grant",
+            "name_ar": "اعتماد المنح المؤقت",
+            "permission": "ad.iam.grant_temp",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "decision": "approve",
+                "reason": "تم التحقق من التذكرة"
+            },
+            "response": {
+                "granted_until": "2026-03-01T10:12:44+03:00"
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/iam/temp-grants",
+            "will_become": null,
+            "catalog_path": "/platform/iam/temp-grants",
+            "code": "EP-AD-019",
+            "name": "Request temp grant",
+            "name_ar": "منح مؤقت",
+            "permission": "ad.iam.grant_temp",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "03. IAM",
+            "query": [],
+            "body": {
+                "user_id": 10,
+                "permission": "sc.finance.void_invoice",
+                "duration_minutes": 60,
+                "reason": "تصحيح فاتورة مكررة بعد حادث مزامنة — تذكرة SUP-441"
+            },
+            "response": {
+                "id": 55,
+                "status": "pending_approval",
+                "expires_request_at": "2026-03-01T13:12:44+03:00"
+            },
+            "errors": [],
+            "description": "duration_minutes ≤ 240. reason ≥ 20 chars.",
+            "note": "reason ≥ 20 chars. duration_minutes 1–240. Requester cannot approve."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/audit/export",
+            "will_become": null,
+            "catalog_path": "/platform/audit/export",
+            "code": "EP-AD-023",
+            "name": "Export audit log",
+            "name_ar": "تصدير التدقيق",
+            "permission": "ad.audit.export",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "04. Audit",
+            "query": [],
+            "body": {
+                "filters": {
+                    "date_from": "2026-09-01",
+                    "date_to": "2026-09-17"
+                }
+            },
+            "response": {
+                "job_id": "01h…"
+            },
+            "errors": [],
+            "description": "The export itself is audited (REQ-AD-062).",
+            "note": "Body key filters (plural). No status poll. Horizon required."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/audit",
+            "will_become": null,
+            "catalog_path": "/platform/audit",
+            "code": "EP-AD-022",
+            "name": "Audit log",
+            "name_ar": "سجل التدقيق",
+            "permission": "ad.audit.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "04. Audit",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[actor]",
+                    "example": "1"
+                },
+                {
+                    "name": "filter[action]",
+                    "example": "role.assign"
+                },
+                {
+                    "name": "filter[channel_id]",
+                    "example": "1"
+                },
+                {
+                    "name": "filter[date_from]",
+                    "example": "2026-02-01"
+                },
+                {
+                    "name": "filter[date_to]",
+                    "example": "2026-03-01"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "at": "2026-03-01T09:12:44+03:00",
+                    "actor": 1,
+                    "action": "role.assign",
+                    "entity_type": "user",
+                    "entity_id": 10,
+                    "before": null,
+                    "after": {
+                        "role_id": 4
+                    },
+                    "ip": "185.1.2.3",
+                    "impersonated": false
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "POST",
+            "path": "/api/v1/admin/channels/{supplyChannel}/retry-provisioning",
+            "will_become": "/api/v1/platform/channels/{supplyChannel}/retry-provisioning",
+            "catalog_path": "/platform/channels/{id}/retry-provisioning",
+            "code": "EP-AD-053",
+            "name": "Retry provisioning",
+            "name_ar": "إعادة التجهيز",
+            "permission": "ad.channels.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Channels (MOVING)",
+            "query": [],
+            "body": {},
+            "response": {
+                "job_id": "…"
+            },
+            "errors": [],
+            "description": "Idempotent (REQ-AD-023).",
+            "note": "LIVE on moving prefix. Returns {job_id}. Safe to repeat. No poll route."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "POST",
+            "path": "/api/v1/admin/channels/{supplyChannel}/transition",
+            "will_become": "/api/v1/platform/channels/{supplyChannel}/transition",
+            "catalog_path": "/platform/channels/{id}/transition",
+            "code": "EP-AD-054",
+            "name": "Transition channel status",
+            "name_ar": "تغيير حالة القناة",
+            "permission": "ad.channels.suspend",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Channels (MOVING)",
+            "query": [],
+            "body": {
+                "to_status": "suspended",
+                "reason": "تأخر سداد فاتورة المنصة"
+            },
+            "response": {
+                "status": "suspended",
+                "allowed_next": [
+                    "active",
+                    "archived"
+                ]
+            },
+            "errors": {
+                "409": "illegal_transition"
+            },
+            "description": "Permission is ad.channels.suspend / ad.channels.archive depending on target.",
+            "note": "LIVE on moving prefix. Body {to_status, reason}. 422 unknown state, 409 illegal_transition. Buttons from allowed_next."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "DELETE",
+            "path": "/api/v1/admin/channels/{supplyChannel}",
+            "will_become": "/api/v1/platform/channels/{supplyChannel}",
+            "catalog_path": "/platform/channels/{id}",
+            "code": "EP-AD-058",
+            "name": "Delete channel",
+            "name_ar": "حذف قناة",
+            "permission": "ad.channels.delete",
+            "role": "platform_admin",
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Channels (MOVING)",
+            "query": [],
+            "body": {
+                "password_confirmation": "********",
+                "otp_code": "123456",
+                "typed_name": "شركة النور",
+                "second_approver_id": 2
+            },
+            "response": {
+                "deletion_request_id": 77
+            },
+            "errors": [],
+            "description": "Archived ≥ 30 days. Dual approval.",
+            "note": "204 no body. Role platform_admin. Soft delete, no restore."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "GET",
+            "path": "/api/v1/admin/channels/{supplyChannel}",
+            "will_become": "/api/v1/platform/channels/{supplyChannel}",
+            "catalog_path": "/platform/channels/{id}",
+            "code": "EP-AD-052",
+            "name": "Channel detail",
+            "name_ar": "تفاصيل القناة",
+            "permission": "ad.channels.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "05. Channels (MOVING)",
+            "query": [],
+            "body": null,
+            "response": {
+                "channel": {
+                    "id": 1,
+                    "name": "شركة النور",
+                    "status": "active"
+                },
+                "manager": {
+                    "id": 10,
+                    "name": "محمد علي",
+                    "phone": "+963944000000"
+                },
+                "subscription": {
+                    "plan": "growth",
+                    "status": "active",
+                    "next_renewal": "2027-03-01"
+                },
+                "kpis": {
+                    "gmv_30d": 1850000000,
+                    "orders_30d": 3100
+                },
+                "timeline": [
+                    {
+                        "at": "2026-01-01T00:00:00+03:00",
+                        "event": "created"
+                    }
+                ],
+                "internal_notes": []
+            },
+            "errors": [],
+            "description": "",
+            "note": "Nested detail with allowed_next, plan, limits, genuine KPI zeros, manager null until BE-T07."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "PUT",
+            "path": "/api/v1/admin/channels/{supplyChannel}",
+            "will_become": "/api/v1/platform/channels/{supplyChannel}",
+            "catalog_path": "/platform/channels/{id}",
+            "code": "EP-AD-062",
+            "name": "Update channel profile",
+            "name_ar": "تعديل بيانات القناة",
+            "permission": "ad.channels.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Channels (MOVING)",
+            "query": [],
+            "body": {
+                "name": "شركة النور للتوزيع",
+                "legal_form": "llc",
+                "cr_number": "C12345",
+                "activity_type_ids": [
+                    3
+                ],
+                "internal_note": "تحديث السجل",
+                "reason": "تصحيح الاسم التجاري"
+            },
+            "response": {
+                "id": 1
+            },
+            "errors": [],
+            "description": "DOC-07 §4.2.7 تبويب نظرة عامة. BR-AD-11: سبب مكتوب إلزامي.",
+            "note": "Partial + required reason. status prohibited — use transition."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "GET",
+            "path": "/api/v1/admin/channels",
+            "will_become": "/api/v1/platform/channels",
+            "catalog_path": "/platform/channels",
+            "code": "EP-AD-050",
+            "name": "List supply channels",
+            "name_ar": "قنوات التوريد",
+            "permission": "ad.channels.view",
+            "role": "platform_admin",
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "05. Channels (MOVING)",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[status]",
+                    "example": "active"
+                },
+                {
+                    "name": "filter[plan_id]",
+                    "example": "2"
+                },
+                {
+                    "name": "filter[governorate_id]",
+                    "example": "1"
+                },
+                {
+                    "name": "filter[subscription_status]",
+                    "example": "active"
+                },
+                {
+                    "name": "filter[over_limit]",
+                    "example": "0"
+                },
+                {
+                    "name": "filter[idle]",
+                    "example": "0"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "name": "شركة النور",
+                    "slug": "al-nour",
+                    "status": "active",
+                    "plan": {
+                        "id": 2,
+                        "key": "growth"
+                    },
+                    "governorates": [
+                        {
+                            "id": 1,
+                            "name": "دمشق"
+                        }
+                    ],
+                    "active_retailers": 420,
+                    "reps": 18,
+                    "orders_30d": 3100,
+                    "gmv": 1850000000,
+                    "subscription_status": "active",
+                    "last_activity_at": "2026-03-01T08:40:00+03:00"
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": "MOVING. Role platform_admin. page/per_page only — no search. created_at UTC."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "POST",
+            "path": "/api/v1/admin/channels",
+            "will_become": "/api/v1/platform/channels",
+            "catalog_path": "/platform/channels",
+            "code": "EP-AD-051",
+            "name": "Create channel",
+            "name_ar": "إنشاء قناة",
+            "permission": "ad.channels.create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Channels (MOVING)",
+            "query": [],
+            "body": {
+                "name": "شركة الشام",
+                "slug": "al-sham",
+                "legal_form": "llc",
+                "cr_number": "C12345",
+                "documents": [],
+                "governorate_ids": [
+                    1
+                ],
+                "zone_ids": [
+                    12
+                ],
+                "activity_type_ids": [
+                    3
+                ],
+                "logo": null,
+                "internal_note": "شراكة تجريبية",
+                "plan_id": 1,
+                "billing_cycle": "yearly",
+                "trial_days": 14,
+                "limits": {
+                    "users": 25,
+                    "warehouses": 2,
+                    "reps": 20,
+                    "skus": 5000,
+                    "storage_mb": 2048
+                },
+                "custom_discount": 0,
+                "manager": {
+                    "name": "محمد علي",
+                    "phone": "+963944000000",
+                    "email": "manager@alsham.sy",
+                    "invite_via": "whatsapp"
+                }
+            },
+            "response": {
+                "id": 2,
+                "status": "provisioning",
+                "provisioning_job_id": "…"
+            },
+            "errors": [],
+            "description": "Must respond under 500ms (AC-AD-03). Provisioning is async.",
+            "note": "MOVING. Catalog body (not name+slug only). status prohibited. Lands in provisioning."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "GET",
+            "path": "/api/v1/currencies/{currency}",
+            "will_become": "/api/v1/platform/refs/currencies/{currency}",
+            "catalog_path": "/currencies/{currency}",
+            "code": null,
+            "name": "GET /currencies/{currency}",
+            "name_ar": "",
+            "permission": null,
+            "role": null,
+            "guard": "platform,channel,warehouse,app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "06. Refs at v1 root (MOVING — do not wire screens yet)",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "GET",
+            "path": "/api/v1/currencies",
+            "will_become": "/api/v1/platform/refs/currencies",
+            "catalog_path": "/platform/refs/currencies",
+            "code": "EP-AD-039A",
+            "name": "List currencies",
+            "name_ar": "العملات",
+            "permission": "ad.refs.currency",
+            "role": null,
+            "guard": "platform,channel,warehouse,app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "06. Refs at v1 root (MOVING — do not wire screens yet)",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "iso": "SYP",
+                    "name": "ليرة سورية",
+                    "decimals": 0,
+                    "is_display_currency": true
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": "MOVING → /platform/refs/currencies. decimals feeds money formatting for every client."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "GET",
+            "path": "/api/v1/governorates/{governorate}",
+            "will_become": "/api/v1/platform/refs/governorates/{governorate}",
+            "catalog_path": "/governorates/{governorate}",
+            "code": null,
+            "name": "GET /governorates/{governorate}",
+            "name_ar": "",
+            "permission": null,
+            "role": null,
+            "guard": "platform,channel,warehouse,app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "06. Refs at v1 root (MOVING — do not wire screens yet)",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "GET",
+            "path": "/api/v1/governorates",
+            "will_become": "/api/v1/platform/refs/governorates",
+            "catalog_path": "/platform/refs/governorates",
+            "code": "EP-AD-030",
+            "name": "List governorates",
+            "name_ar": "المحافظات",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform,channel,warehouse,app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "06. Refs at v1 root (MOVING — do not wire screens yet)",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "name": "دمشق",
+                    "order": 1,
+                    "status": "active",
+                    "zones_count": 18
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": "MOVING → /platform/refs/governorates. Multi-guard. Do not build an admin screen without one constant."
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "GET",
+            "path": "/api/v1/zones/{zone}",
+            "will_become": "/api/v1/platform/refs/zones/{zone}",
+            "catalog_path": "/zones/{zone}",
+            "code": null,
+            "name": "GET /zones/{zone}",
+            "name_ar": "",
+            "permission": null,
+            "role": null,
+            "guard": "platform,channel,warehouse,app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "06. Refs at v1 root (MOVING — do not wire screens yet)",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "moving",
+            "method": "GET",
+            "path": "/api/v1/zones",
+            "will_become": "/api/v1/platform/refs/zones",
+            "catalog_path": "/platform/refs/zones",
+            "code": "EP-AD-032",
+            "name": "List zones",
+            "name_ar": "المناطق",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform,channel,warehouse,app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "06. Refs at v1 root (MOVING — do not wire screens yet)",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[governorate_id]",
+                    "example": "1"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 12,
+                    "name": "المزة",
+                    "governorate": {
+                        "id": 1,
+                        "name": "دمشق"
+                    },
+                    "district": "المزة",
+                    "polygon": null,
+                    "order": 3,
+                    "status": "active",
+                    "retailers_count": 240,
+                    "reps_count": 8,
+                    "channels_count": 4
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": "MOVING → /platform/refs/zones. Same warning."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/channels/{supplyChannel}/limits",
+            "will_become": null,
+            "catalog_path": "/platform/channels/{id}/limits",
+            "code": "EP-AD-055",
+            "name": "Override channel limits",
+            "name_ar": "حدود القناة",
+            "permission": "ad.billing.assign_plan",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "limits": {
+                    "reps": 30,
+                    "skus": 8000
+                },
+                "temporary_until": "2026-04-01T00:00:00+03:00",
+                "reason": "موسم رمضان"
+            },
+            "response": {
+                "limits": {
+                    "users": 25,
+                    "warehouses": 2,
+                    "reps": 30,
+                    "skus": 8000,
+                    "storage_mb": 2048
+                }
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/channels/{supplyChannel}/usage",
+            "will_become": null,
+            "catalog_path": "/platform/channels/{id}/usage",
+            "code": "EP-AD-056",
+            "name": "Channel usage",
+            "name_ar": "استخدام القناة",
+            "permission": "ad.channels.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "range",
+                    "example": "30d"
+                }
+            ],
+            "body": null,
+            "response": {
+                "series": [
+                    {
+                        "day": "2026-02-28",
+                        "orders": 110,
+                        "gmv": 62000000
+                    }
+                ],
+                "limit_usage": {
+                    "reps": {
+                        "used": 18,
+                        "limit": 20
+                    },
+                    "skus": {
+                        "used": 2100,
+                        "limit": 5000
+                    }
+                },
+                "failed_jobs": 2,
+                "sync_status": "healthy"
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PATCH",
+            "path": "/api/v1/platform/refs/activity-types/{activityType}/status",
+            "will_become": null,
+            "catalog_path": "/platform/refs/activity-types/{id}/status",
+            "code": "EP-AD-043B",
+            "name": "Change activity type status",
+            "name_ar": "تعطيل/تفعيل نوع نشاط",
+            "permission": "ad.refs.disable",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "status": "disabled",
+                "reason": "نشاط مهجور"
+            },
+            "response": {
+                "affected": {
+                    "retailers": 40,
+                    "channels": 2
+                }
+            },
+            "errors": [],
+            "description": "تعطيله يخفي المرتبط به ولا يحذف حساباً.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/activity-types/{activityType}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/activity-types/{activityType}",
+            "code": null,
+            "name": "GET /platform/refs/activity-types/{activityType}",
+            "name_ar": "",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/refs/activity-types/{activityType}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/activity-types/{id}",
+            "code": "EP-AD-042C",
+            "name": "Update activity type",
+            "name_ar": "تعديل نوع نشاط",
+            "permission": "ad.refs.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "بقالة",
+                "icon": "grocery",
+                "reason": "تحديث الأيقونة"
+            },
+            "response": {
+                "id": 3
+            },
+            "errors": [],
+            "description": "Hard delete of an in-use ref is rejected (REQ-AD-030).",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/activity-types",
+            "will_become": null,
+            "catalog_path": "/platform/refs/activity-types",
+            "code": "EP-AD-035A",
+            "name": "List activity types",
+            "name_ar": "أنواع النشاط",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 3,
+                    "name": "بقالة",
+                    "icon": "grocery",
+                    "order": 1
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/activity-types",
+            "will_become": null,
+            "catalog_path": "/platform/refs/activity-types",
+            "code": "EP-AD-035B",
+            "name": "Create activity type",
+            "name_ar": "إنشاء نوع نشاط",
+            "permission": "ad.refs.create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "سوبر ماركت",
+                "icon": "supermarket",
+                "description": "محلات تجزئة كبيرة",
+                "suggested_category_ids": [
+                    10,
+                    11
+                ],
+                "order": 2
+            },
+            "response": {
+                "id": 4
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PATCH",
+            "path": "/api/v1/platform/refs/currencies/{currency}/status",
+            "will_become": null,
+            "catalog_path": "/platform/refs/currencies/{id}/status",
+            "code": "EP-AD-043F",
+            "name": "Change currency status",
+            "name_ar": "تعطيل/تفعيل عملة",
+            "permission": "ad.refs.currency",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "status": "disabled",
+                "reason": "عملة لم تعد تُسعَّر"
+            },
+            "response": {
+                "id": 2,
+                "status": "disabled"
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/currencies/{currency}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/currencies/{currency}",
+            "code": null,
+            "name": "GET /platform/refs/currencies/{currency}",
+            "name_ar": "",
+            "permission": "ad.refs.currency",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/refs/currencies/{currency}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/currencies/{id}",
+            "code": "EP-AD-042G",
+            "name": "Update currency",
+            "name_ar": "تعديل عملة",
+            "permission": "ad.refs.currency",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "ليرة سورية",
+                "decimals": 0,
+                "is_display_currency": true,
+                "reason": "تعيين عملة العرض"
+            },
+            "response": {
+                "id": 1
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/currencies",
+            "will_become": null,
+            "catalog_path": "/platform/refs/currencies",
+            "code": "EP-AD-039A",
+            "name": "List currencies",
+            "name_ar": "العملات",
+            "permission": "ad.refs.currency",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "iso": "SYP",
+                    "name": "ليرة سورية",
+                    "decimals": 0,
+                    "is_display_currency": true
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/currencies",
+            "will_become": null,
+            "catalog_path": "/platform/refs/currencies",
+            "code": "EP-AD-039B",
+            "name": "Create currency",
+            "name_ar": "إنشاء عملة",
+            "permission": "ad.refs.currency",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "iso": "USD",
+                "name": "دولار",
+                "decimals": 2,
+                "is_display_currency": false
+            },
+            "response": {
+                "id": 2
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PATCH",
+            "path": "/api/v1/platform/refs/equipments/{equipment}/status",
+            "will_become": null,
+            "catalog_path": "/platform/refs/equipments/{id}/status",
+            "code": "EP-AD-043E",
+            "name": "Change equipment status",
+            "name_ar": "تعطيل/تفعيل تجهيز",
+            "permission": "ad.refs.disable",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "status": "disabled",
+                "reason": "لم يعد يُستهدف"
+            },
+            "response": {
+                "affected": {
+                    "retailers": 8
+                }
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/equipments/{equipment}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/equipments/{equipment}",
+            "code": null,
+            "name": "GET /platform/refs/equipments/{equipment}",
+            "name_ar": "",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/refs/equipments/{equipment}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/equipments/{id}",
+            "code": "EP-AD-042F",
+            "name": "Update equipment",
+            "name_ar": "تعديل تجهيز",
+            "permission": "ad.refs.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "ثلاجة عرض",
+                "icon": "fridge",
+                "reason": "تصحيح"
+            },
+            "response": {
+                "id": 1
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/equipments",
+            "will_become": null,
+            "catalog_path": "/platform/refs/equipments",
+            "code": "EP-AD-038A",
+            "name": "List equipments",
+            "name_ar": "التجهيزات",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "name": "ثلاجة عرض",
+                    "icon": "fridge"
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/equipments",
+            "will_become": null,
+            "catalog_path": "/platform/refs/equipments",
+            "code": "EP-AD-038B",
+            "name": "Create equipment",
+            "name_ar": "إنشاء تجهيز",
+            "permission": "ad.refs.create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "فريزر",
+                "icon": "freezer",
+                "description": "حفظ مجمّد"
+            },
+            "response": {
+                "id": 2
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/fx-rates",
+            "will_become": null,
+            "catalog_path": "/platform/refs/fx-rates",
+            "code": "EP-AD-043G",
+            "name": "List FX rates",
+            "name_ar": "أسعار الصرف",
+            "permission": "ad.refs.currency",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[currency_id]",
+                    "example": "2"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 88,
+                    "currency_id": 2,
+                    "rate": 1500000,
+                    "effective_from": "2026-03-01T00:00:00+03:00",
+                    "source": "manual",
+                    "entered_by": 1
+                }
+            ],
+            "errors": [],
+            "description": "DOC-07 §4.3.2. BR-AD-19: التغيير لا يعيد تسعير طلب قائم.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/fx-rates",
+            "will_become": null,
+            "catalog_path": "/platform/refs/fx-rates",
+            "code": "EP-AD-040",
+            "name": "Post FX rate",
+            "name_ar": "سعر صرف",
+            "permission": "ad.refs.currency",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "currency_id": 2,
+                "rate": 1500000,
+                "effective_from": "2026-03-01T00:00:00+03:00",
+                "source": "manual"
+            },
+            "response": {
+                "id": 88
+            },
+            "errors": [],
+            "description": "Does not reprice open orders (BR-AD-19). rate is integer minor units.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PATCH",
+            "path": "/api/v1/platform/refs/governorates/{governorate}/status",
+            "will_become": null,
+            "catalog_path": "/platform/refs/governorates/{id}/status",
+            "code": "EP-AD-043A",
+            "name": "Change governorate status",
+            "name_ar": "تعطيل/تفعيل محافظة",
+            "permission": "ad.refs.disable",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "status": "disabled",
+                "reason": "إعادة ترسيم إداري"
+            },
+            "response": {
+                "affected": {
+                    "zones": 18,
+                    "retailers": 240,
+                    "channels": 4
+                }
+            },
+            "errors": [],
+            "description": "DOC-07 §4.3.1 — المحافظات لا تُحذف، تُعطَّل فقط. REQ-AD-030 / REQ-AD-031.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/governorates/{governorate}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/governorates/{governorate}",
+            "code": null,
+            "name": "GET /platform/refs/governorates/{governorate}",
+            "name_ar": "",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/refs/governorates/{governorate}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/governorates/{id}",
+            "code": "EP-AD-042A",
+            "name": "Update governorate",
+            "name_ar": "تعديل محافظة",
+            "permission": "ad.refs.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "ريف دمشق",
+                "order": 2,
+                "reason": "تصحيح التسمية"
+            },
+            "response": {
+                "id": 2
+            },
+            "errors": [],
+            "description": "DOC-12E TB-AD-046. Every ref change requires a reason and is audited before/after.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/governorates",
+            "will_become": null,
+            "catalog_path": "/platform/refs/governorates",
+            "code": "EP-AD-030",
+            "name": "List governorates",
+            "name_ar": "المحافظات",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "name": "دمشق",
+                    "order": 1,
+                    "status": "active",
+                    "zones_count": 18
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/governorates",
+            "will_become": null,
+            "catalog_path": "/platform/refs/governorates",
+            "code": "EP-AD-031",
+            "name": "Create governorate",
+            "name_ar": "إنشاء محافظة",
+            "permission": "ad.refs.create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "ريف دمشق",
+                "order": 2
+            },
+            "response": {
+                "id": 2
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/import",
+            "will_become": null,
+            "catalog_path": "/platform/refs/import",
+            "code": "EP-AD-041",
+            "name": "Import references",
+            "name_ar": "استيراد مرجعيات",
+            "permission": "ad.refs.import",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "type": "zones",
+                "file": null,
+                "dry_run": true
+            },
+            "response": {
+                "preview": [
+                    {
+                        "row": 2,
+                        "name": "المزة"
+                    }
+                ],
+                "errors": [
+                    {
+                        "row": 5,
+                        "column": "governorate_id",
+                        "message": "not found"
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PATCH",
+            "path": "/api/v1/platform/refs/root-categories/{rootCategory}/status",
+            "will_become": null,
+            "catalog_path": "/platform/refs/root-categories/{id}/status",
+            "code": "EP-AD-043C",
+            "name": "Change root category status",
+            "name_ar": "تعطيل/تفعيل فئة جذر",
+            "permission": "ad.refs.disable",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "status": "disabled",
+                "reason": "دمج فئات"
+            },
+            "response": {
+                "affected": {
+                    "child_categories": 12,
+                    "active_products": 310
+                }
+            },
+            "errors": {
+                "409": "ref_in_use"
+            },
+            "description": "AC-AD-11: رفض التعطيل إن تحتها فئات أو منتجات نشطة، مع عرض العدد المتأثر.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/root-categories/{rootCategory}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/root-categories/{rootCategory}",
+            "code": null,
+            "name": "GET /platform/refs/root-categories/{rootCategory}",
+            "name_ar": "",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/refs/root-categories/{rootCategory}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/root-categories/{id}",
+            "code": "EP-AD-042D",
+            "name": "Update root category",
+            "name_ar": "تعديل فئة جذر",
+            "permission": "ad.refs.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "مواد غذائية",
+                "order": 1,
+                "reason": "إعادة ترتيب"
+            },
+            "response": {
+                "id": 10
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/root-categories",
+            "will_become": null,
+            "catalog_path": "/platform/refs/root-categories",
+            "code": "EP-AD-036A",
+            "name": "List root categories",
+            "name_ar": "الفئات الجذر",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 10,
+                    "name": "مواد غذائية",
+                    "icon": "food",
+                    "order": 1
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/root-categories",
+            "will_become": null,
+            "catalog_path": "/platform/refs/root-categories",
+            "code": "EP-AD-036B",
+            "name": "Create root category",
+            "name_ar": "إنشاء فئة جذر",
+            "permission": "ad.refs.create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "منظفات",
+                "image": null,
+                "icon": "clean",
+                "activity_type_ids": [
+                    3,
+                    4
+                ],
+                "order": 2
+            },
+            "response": {
+                "id": 11
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PATCH",
+            "path": "/api/v1/platform/refs/sale-units/{saleUnit}/status",
+            "will_become": null,
+            "catalog_path": "/platform/refs/sale-units/{id}/status",
+            "code": "EP-AD-043D",
+            "name": "Change sale unit status",
+            "name_ar": "تعطيل/تفعيل وحدة بيع",
+            "permission": "ad.refs.disable",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "status": "disabled",
+                "reason": "وحدة مهجورة"
+            },
+            "response": {
+                "affected": {
+                    "products": 0
+                }
+            },
+            "errors": {
+                "409": "ref_in_use"
+            },
+            "description": "لا تُحذف وحدة مستخدَمة في أي منتج.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/sale-units/{saleUnit}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/sale-units/{saleUnit}",
+            "code": null,
+            "name": "GET /platform/refs/sale-units/{saleUnit}",
+            "name_ar": "",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/refs/sale-units/{saleUnit}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/sale-units/{id}",
+            "code": "EP-AD-042E",
+            "name": "Update sale unit",
+            "name_ar": "تعديل وحدة بيع",
+            "permission": "ad.refs.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "قطعة",
+                "abbr": "pcs",
+                "default_factor": 1,
+                "reason": "توحيد الاختصار"
+            },
+            "response": {
+                "id": 3
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/sale-units",
+            "will_become": null,
+            "catalog_path": "/platform/refs/sale-units",
+            "code": "EP-AD-037A",
+            "name": "List sale units",
+            "name_ar": "وحدات البيع",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 3,
+                    "name": "قطعة",
+                    "abbr": "pcs",
+                    "default_factor": 1
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/sale-units",
+            "will_become": null,
+            "catalog_path": "/platform/refs/sale-units",
+            "code": "EP-AD-037B",
+            "name": "Create sale unit",
+            "name_ar": "إنشاء وحدة بيع",
+            "permission": "ad.refs.create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "كرتون",
+                "abbr": "ctn",
+                "default_factor": 12
+            },
+            "response": {
+                "id": 5
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PATCH",
+            "path": "/api/v1/platform/refs/zones/{zone}/status",
+            "will_become": null,
+            "catalog_path": "/platform/refs/zones/{id}/status",
+            "code": "EP-AD-034",
+            "name": "Change zone status",
+            "name_ar": "تعطيل/تفعيل منطقة",
+            "permission": "ad.refs.disable",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "status": "disabled",
+                "reason": "إعادة ترسيم الحدود"
+            },
+            "response": {
+                "affected": {
+                    "retailers": 12,
+                    "reps": 2,
+                    "open_orders": 3
+                }
+            },
+            "errors": [],
+            "description": "Impact is returned before confirmation (REQ-AD-031).",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/zones/{zone}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/zones/{zone}",
+            "code": null,
+            "name": "GET /platform/refs/zones/{zone}",
+            "name_ar": "",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/refs/zones/{zone}",
+            "will_become": null,
+            "catalog_path": "/platform/refs/zones/{id}",
+            "code": "EP-AD-042B",
+            "name": "Update zone",
+            "name_ar": "تعديل منطقة",
+            "permission": "ad.refs.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "المزة",
+                "district": "المزة",
+                "polygon": null,
+                "order": 3,
+                "reason": "تعديل الحي"
+            },
+            "response": {
+                "id": 12
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/refs/zones",
+            "will_become": null,
+            "catalog_path": "/platform/refs/zones",
+            "code": "EP-AD-032",
+            "name": "List zones",
+            "name_ar": "المناطق",
+            "permission": "ad.refs.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[governorate_id]",
+                    "example": "1"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 12,
+                    "name": "المزة",
+                    "governorate": {
+                        "id": 1,
+                        "name": "دمشق"
+                    },
+                    "district": "المزة",
+                    "polygon": null,
+                    "order": 3,
+                    "status": "active",
+                    "retailers_count": 240,
+                    "reps_count": 8,
+                    "channels_count": 4
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/refs/zones",
+            "will_become": null,
+            "catalog_path": "/platform/refs/zones",
+            "code": "EP-AD-033",
+            "name": "Create zone",
+            "name_ar": "إنشاء منطقة",
+            "permission": "ad.refs.create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "governorate_id": 1,
+                "name": "كفرسوسة",
+                "district": "كفرسوسة",
+                "polygon": null,
+                "order": 4
+            },
+            "response": {
+                "id": 13
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        }
+    ]
+}

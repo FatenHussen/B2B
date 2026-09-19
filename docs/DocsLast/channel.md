@@ -4,13 +4,13 @@
 |---|---|
 | المستند | مواصفة بناء **Channel Dashboard** (الحارس `channel`) شاشةً شاشة، حقلًا حقلًا |
 | الجمهور | فريق الواجهة (React)، مصمّم المنتج، ومن يراجع القبول |
-| المصدر | `php artisan route:list` + مصدر الـ Controllers/FormRequests/Actions **بتاريخ 2026-09-16** — لا شيء هنا مكتوب من الـ backlog |
-| الملف الشقيق | [channel-web.md](./channel-web.md) — إعداد الخادم، الحزمة البرمجية، `curl`، وجدول المطبّات. **هذا الملف لا يكرّره؛ يبني فوقه** |
-| المسارات الحيّة | **73 مسارًا** تحت `/api/v1/channel` + 3 قراءات مرجعية مشتركة + `/health` |
-| الصلاحيات | **48** رمز `sc.*` مزروع من أصل **70** رمزًا فريدًا في DOC-08 (79 سطرًا في النص منها مكررات SOD) |
+| المصدر | `php artisan route:list` + مصدر الـ Controllers — **حدَّث 2026-09-17** (سطح مندوبين) فوق أساس 2026-09-16 |
+| عقد المسارات | **`channel.json` فقط** — `live:true` · لا تستدعِ `forbidden` |
+| المنفذ / الحارس | **3001** · `channel` · `X-Client: channel-web` · بذرة `+963900000001` / OTP **`000000`** · **لا** `X-Channel-Id` |
+| المسارات الحيّة | **~83** تحت `/api/v1/channel` (+ مندوبون §5.17) + 3 مراجع + `/health` |
 
-> **قاعدة الأولوية عند التعارض:** `route:list` ← مصدر الـ Controller ← هذا الملف ← channel-web.md ← الكتالوج.
-> لو وجدت جملة هنا يخالفها الكود، الكود هو الصحيح والملف هو ما يُصلَّح.
+> **قاعدة الأولوية:** `route:list` ← الكنترولر ← `channel.json` ← هذا الملف.
+> جملة تخالف الكود → الكود يفوز. **ليست** لوحة المنصة (3000).
 
 ---
 
@@ -23,7 +23,7 @@
 | 2 | نظام التصميم | الرموز اللونية، الخط، الشبكة، الهيكل، المكوّنات، الحالات، RTL |
 | 3 | العقد العابر | الغلاف، الترويسات، مفتاح التكرار، خريطة الأخطاء بالعربية، القوائم، التوقيت |
 | 4 | **المال والعملات** | الليرة والدولار معًا، الكسور، `MoneyInput`، سعر الصرف، الاستثناءات |
-| 5 | الشاشات (16 شاشة) | لكل شاشة: الهدف، المسار، الصلاحية، التخطيط، الحقول، الإجراءات، تدفق الـ API، الأخطاء |
+| 5 | الشاشات (17 شاشة) | لكل شاشة: الهدف، المسار، الصلاحية، التخطيط، الحقول، الإجراءات، تدفق الـ API، الأخطاء |
 | 6 | تدفقات الـ API الشاملة | مخططات تسلسل للرحلات المركّبة |
 | 7 | فجوات الواجهة الخلفية | ما لا يمكن بناؤه اليوم، ولماذا، وما التذكرة المقترحة |
 | 8 | مجموعة Postman للقناة | الملف، المجلدات، المتغيرات، ترتيب التشغيل |
@@ -63,13 +63,13 @@
 
 ### 0.3 المكدّس
 
-المكدّس مقفول في [channel-web.md §2.1](./channel-web.md#21-stack-locked): **React 19 + Vite 6، SPA خالص، React Router v7، TanStack Query v5، Tailwind، `<html lang="ar" dir="rtl">`**، والحزمة المشتركة `@b2b/api-client` هي المكان الوحيد الذي يُستدعى فيه `fetch`. هذه المواصفة مكتوبة لذلك المكدّس لكنها لا تعتمد عليه: كل ما فيها قابل للتنفيذ بأي إطار يحترم العقد في §3.
+المكدّس مقفول: **React 19 + Vite 6، SPA خالص، React Router v7، TanStack Query v5، Tailwind، `<html lang="ar" dir="rtl">`**، و`fetch` فقط داخل حزمة عميل واحدة (`@b2b/api-client`). هذه المواصفة مكتوبة لذلك المكدّس لكنها لا تعتمد عليه: كل ما فيها قابل للتنفيذ بأي إطار يحترم العقد في §3.
 
 ### 0.4 ما يُعدّ "حيًّا" هنا
 
-73 مسارًا تحت `/api/v1/channel` مسجَّلة في `docs/api/.live-routes.json` بتاريخ 2026-09-16. القراءات الثلاث `GET /governorates` و`GET /zones` و`GET /currencies` مفتوحة لأي حارس مصادَق. `GET /health` بلا مصادقة.
+73 مسارًا تحت `/api/v1/channel` كانت مسجَّلة بتاريخ 2026-09-16؛ **+10 مسارات مندوب** (قائمة/اعتماد/محفظة/طوابير) منذ **2026-09-17** → **83** تحت القناة في Postman الحي. القراءات الثلاث `GET /governorates` و`GET /zones` و`GET /currencies` مفتوحة لأي حارس مصادَق. `GET /health` بلا مصادقة.
 
-ما **ليس** حيًّا — قائمة التجّار، قائمة المندوبين، قائمة المستودعات، رفع الوسائط، مستخدمو القناة وأدوارها، تفاصيل فاتورة، تفاصيل منتج، تفاصيل عرض — يُذكر في كل شاشة تحتاجه وفي §7. الواجهة **لا تختلق** صفوفًا لهذه القوائم.
+ما **ليس** حيًّا — قائمة التجّار، قائمة المستودعات، رفع الوسائط، مستخدمو القناة وأدوارها، تفاصيل فاتورة، تفاصيل منتج، تفاصيل عرض — يُذكر في كل شاشة تحتاجه وفي §7. **قائمة المندوبين وطلبات المناطق/المحلات حيّة منذ 2026-09-17** — راجع §5.17. الواجهة **لا تختلق** صفوفًا للقوائم الغائبة.
 
 ---
 
@@ -77,9 +77,9 @@
 
 ### 1.1 من يستخدم اللوحة
 
-قناة التوريد (شركة توزيع/مورّد) تدير من هذه اللوحة: كتالوجها، تسعيرها، عروضها، مخزونها، طلبات التجّار، مندوبيها (بالكتابة على معرّف معروف فقط)، مرتجعاتها، ماليتها، ومحتوى تطبيق التاجر الخاص بها. المستخدم يسجّل الدخول بهاتفه (OTP)، ويُحدَّد المستأجر (القناة) من عضويته — **لا يختار القناة من الواجهة** (ترويسة `X-Channel-Id` تُهمَل لمستخدم القناة، §3.2).
+قناة التوريد (شركة توزيع/مورّد) تدير من هذه اللوحة: كتالوجها، تسعيرها، عروضها، مخزونها، طلبات التجّار، **مندوبيها (قائمة واعتمادات §5.17)**، مرتجعاتها، ماليتها، ومحتوى تطبيق التاجر الخاص بها. المستخدم يسجّل الدخول بهاتفه (OTP)، ويُحدَّد المستأجر (القناة) من عضويته — **لا يختار القناة من الواجهة** (ترويسة `X-Channel-Id` تُهمَل لمستخدم القناة، §3.2).
 
-حساب البذرة: هاتف **`+963900000001`**، قناة `demo-channel` (id `1`)، دور `channel_manager`. على staging الرمز `000000`. التفصيل في [channel-web.md §1](./channel-web.md).
+حساب البذرة: هاتف **`+963900000001`**، قناة `demo-channel` (id `1`)، دور `channel_manager`. على staging الرمز `000000`. 
 
 ### 1.2 الأدوار المزروعة — كما في `PermissionCatalog::builtinGrants()` لا كما في DOC-08
 
@@ -88,7 +88,7 @@
 | الدور | المفتاح | ما يفتحه **فعليًا** بعد الزرع |
 |---|---|---|
 | مدير القناة | `channel_manager` | كل رموز `sc.*` المزروعة (**48**) — ويُستثنى من فحص SOD-01 |
-| مدير المبيعات | `sales_manager` | **14 رمزًا:** `sc.dashboard.view` + ثمانية `sc.orders.*` + `sc.pricing.view/update/schedule` + `sc.reps.update` + `sc.reps.settle` |
+| مدير المبيعات | `sales_manager` | وحدات `orders · reps · merchants · promotions · dashboard · pricing` — يشمل الآن `sc.reps.view` / `wallet` / `disable` مع بقية `reps.*` |
 | مدير الكتالوج | `catalog_manager` | **14 رمزًا:** كل `sc.catalog.*` + `sc.content.*` + `sc.offers.*` + `sc.pricing.*` |
 | محاسب | `accountant` | **7 رموز:** خمسة `sc.finance.*` + `sc.returns.view` + `sc.returns.decide` |
 
@@ -129,9 +129,10 @@
 | 14 | الولاء | §5.14 | `sc.loyalty.manage` | `/channel/loyalty/*` | 4 |
 | 15 | التقارير | §5.15 | `sc.reports.view` `export` `margins` | `/channel/reports/*` | 3 |
 | 16 | الإعدادات | §5.16 | `sc.settings.view` / `update` | `GET/PUT /channel` 🔧 | 2 |
+| 17 | المندوبون | §5.17 | `sc.reps.view` / `update` `disable` `wallet` (+ settle في المالية) | `/channel/reps*`, zone/sourced queues | 10 |
 | — | مراجع مشتركة | §5.2.3 | أي توكن قناة | `GET /governorates`, `GET /zones`, `GET /currencies` | 3 |
 
-المجموع: **73** مسار قناة. ⛔ **ليس في القائمة:** مستخدمو القناة وأدوارها (`sc.iam.*` غير مزروعة أصلًا)، قائمة التجّار، قائمة المندوبين، المستودعات، رفع الوسائط، `GET /channel/products/{id}`، `GET /channel/offers/{id}`، `GET /channel/invoices/{id}` — راجع §7 قبل أن ترسم أيًّا منها.
+المجموع: **83** مسار قناة (+ مراجع). ⛔ **ليس في القائمة:** مستخدمو القناة وأدوارها (`sc.iam.*` غير مزروعة أصلًا)، قائمة التجّار، المستودعات، رفع الوسائط، `GET /channel/products/{id}`، `GET /channel/offers/{id}`، `GET /channel/invoices/{id}`، تتبع حيّ — راجع §7.
 
 ---
 
@@ -303,7 +304,7 @@
 | `ZonePicker` | متعدد الاختيار، مجمّع بالمحافظة من `GET /governorates` + `GET /zones`، يعرض **النشطة فقط**، والمعطَّلة المختارة مسبقًا تظهر بشارة "معطَّلة" ولا تُخفى |
 | `CurrencySelect` | من `GET /currencies` النشطة، يعرض `iso` + `symbol` + عدد الكسور |
 | `ProductPicker` | بحث تزايدي على `GET /channel/products?filter[search]=` (300ms debounce)، يعرض `sku` + `name_ar` + شارة الحالة. **لا سعر ولا صورة في صف القائمة** |
-| `IdField` | حقل رقمي لمعرّف لا قائمة له (تاجر، مندوب، مستودع). تسمية واضحة + نص "لا توجد قائمة بعد — أدخل المعرّف إن عرفته". لا autocomplete مختلق |
+| `IdField` | حقل رقمي لمعرّف لا قائمة له (تاجر، مستودع؛ **مندوب فقط إن بلا `sc.reps.view`**). تسمية واضحة + نص "لا توجد قائمة بعد — أدخل المعرّف إن عرفته". لا autocomplete مختلق |
 | `DateTimeField` | يُخرج ISO-8601 بمنطقة `+03:00` دائمًا؛ يعرض بتوقيت دمشق |
 | `TagInput` | للوسوم و`specs` |
 | `Stepper` | لمعالج العرض ومحرّر المنتج (تبويبات أفقية بحالة إتمام لكل خطوة) |
@@ -645,6 +646,7 @@ MoneyInput(currencyId, valueMinor, onChangeMinor)
 | التسعير ▸ قوائم | `sc.pricing.view` | `/pricing/lists` |
 | التسعير ▸ سجل | `sc.pricing.view` | `/pricing/log` |
 | التسعير ▸ سقف مندوب | `sc.reps.update` | `/pricing/rep-cap` |
+| المندوبون | `sc.reps.view` (+ update/disable/wallet) | `/reps` |
 | العروض | `sc.offers.view` | `/offers` |
 | المخزون ▸ أرصدة | `sc.inventory.view` | `/inventory/levels` |
 | المخزون ▸ حركات | `sc.inventory.view` | `/inventory/movements` |
@@ -666,7 +668,7 @@ MoneyInput(currencyId, valueMinor, onChangeMinor)
 | التقارير ▸ هوامش | `sc.reports.margins` | `/reports/margins` |
 | الإعدادات | `sc.settings.view` | `/settings` |
 
-قسم بلا أي صلاحية **يختفي**. لا تضع "تجّار" أو "مندوبين" أو "مستودعات" أو "مستخدمين" في الشريط — مساراتها ⛔.
+قسم بلا أي صلاحية **يختفي**. لا تضع "تجّار" أو "مستودعات" أو "مستخدمين" في الشريط — مساراتها ⛔. **مندوبون** يظهر إن وُجد `sc.reps.view` (§5.17).
 
 خروج: امسح `sessionStorage` للحارس `channel` ووجّه لـ `/login`. **لا مسار logout على حارس القناة.** التوكن يبقى صالحًا على الخادم حتى ينتهي عمر Sanctum — مقبول في هذه المرحلة.
 
@@ -764,7 +766,7 @@ MoneyInput(currencyId, valueMinor, onChangeMinor)
 | `status` | enum الطلب الفرعي | chips |
 | `zone_id` | id | `ZonePicker` واحد |
 | `retailer_id` | id | `IdField` — لا قائمة تجّار |
-| `rep_id` | id | `IdField` — لا قائمة مندوبين |
+| `rep_id` | id | منتقي من `GET /channel/reps` إن `can(sc.reps.view)` — وإلا `IdField` |
 | `source` | `retailer_app` \| `rep_app` | تطبيق التاجر / تطبيق المندوب |
 | `waiting_over_minutes` | int | SLA: `created_at <= now - N دقيقة`. حقل رقم + زر "أقدم من 30 د" يضع 30 |
 
@@ -873,7 +875,7 @@ MoneyInput(currencyId, valueMinor, onChangeMinor)
 | الحقل | المفتاح | النوع | إلزامي | التحقق | ملاحظة |
 |---|---|---|---|---|---|
 | الطلبات | `sub_order_ids` | id[] | ✔ | min 1 | معرّفات غير القابلة تُتخطى صامتًا |
-| المندوب | `rep_id` | id | ✔ | min 1 | `IdField` — لا قائمة |
+| المندوب | `rep_id` | id | ✔ | min 1 | منتقي §5.17 إن `sc.reps.view` — وإلا `IdField` |
 | النمط | `mode` | enum | ○ | `manual\|auto\|bulk_zone` | **يُتحقق ثم يُتجاهل** — لا تعرضه |
 
 نجاح: `{ "assigned": [9, 10] }`. 422 `rep_off_coverage` / `rep_off_duty` على التفاصيل. غير معامل: أعد جلب القائمة بعد أي خطأ.
@@ -1147,7 +1149,7 @@ Stepper: هوية · وصف ووسائط · وحدات · تسعير · مخزو
 
 #### 5.6.6 سقف خصم المندوب ✅🔁 `PUT /channel/reps/{id}/discount-cap` 🔒 `sc.reps.update`
 
-لا قائمة مندوبين. شاشة بنموذج: `IdField` للمندوب + الحقلين.
+إن `can(sc.reps.view)` استخدم منتقيًا من §5.17.1؛ وإلا `IdField`. الحقلان كما يلي.
 
 | الحقل | المفتاح | إلزامي | التحقق | ملاحظة |
 |---|---|---|---|---|
@@ -1315,7 +1317,7 @@ Stepper: هوية · وصف ووسائط · وحدات · تسعير · مخزو
 |---|---|
 | `filter[type]` | `return` \| `exchange` |
 | `filter[status]` | `pending` \| `approved` \| `rejected` \| `sorted` |
-| `filter[rep_id]` | `IdField` |
+| `filter[rep_id]` | منتقي مندوبين أو `IdField` |
 | `filter[zone_id]` | `ZonePicker` |
 
 لا `GET /{id}`. القرار من صف القائمة إن `pending`.
@@ -1632,6 +1634,48 @@ Upsert على `zone_id`: إعادة النشر لمنطقة مغطاة **تحد�
 
 ---
 
+### 5.17 المندوبون ✅ (قائمة + اعتماد + طوابير)
+
+جرد موجز: `id` في كل مسار `/channel/reps/{id}` = **AppUser id**.
+
+#### 5.17.1 القائمة ✅ `GET /channel/reps` 🔒 `sc.reps.view`
+
+مرقّمة. مرشّح `filter[status]` = `pending_review|active|rejected|disabled`. صف: `id`, `name`, `phone`, `status`, `zone_ids[]`, `on_duty`, `max_discount_percent`, `max_cash_hold`.
+
+استبدل `IdField` في الإسناد / السقف / التسوية بمنتقٍ من هذه القائمة عندما `can(sc.reps.view)`.
+
+#### 5.17.2 البطاقة ✅ `GET /channel/reps/{id}` 🔒 `sc.reps.view`
+
+نفس شكل الصف. خارج القناة → **404**.
+
+#### 5.17.3 اعتماد / رفض / تعطيل ✅🔁
+
+| إجراء | مسار | صلاحية | جسد | من → إلى |
+|---|---|---|---|---|
+| اعتماد | `POST …/approve` | `sc.reps.update` | `reason?` | `pending_review` → `active` |
+| رفض | `POST …/reject` | `sc.reps.update` | `reason` ✔ | `pending_review` → `rejected` |
+| تعطيل | `POST …/disable` | `sc.reps.disable` | `reason` ✔ | `active` → `disabled` |
+
+انتقال غير قانوني → **409** `illegal_transition`.
+
+#### 5.17.4 محفظة قراءة ✅ `GET /channel/reps/{id}/wallet` 🔒 `sc.reps.wallet`
+
+نفس شكل `GET /app/rep/wallet` (`net_balance`, `stats`, `today`). التسوية تبقى §5.10.5.
+
+#### 5.17.5 طابور طلبات المناطق ✅
+
+- `GET /channel/rep-zone-requests` 🔒 `sc.reps.view` — صف: `id`, `rep_user_id`, `zone_id`, `note`, `status`
+- `POST …/{id}/decide` 🔒 `sc.reps.update` — `{ decision: approve|reject, reason? }`؛ الموافقة تضيف المنطقة إلى ملف المندوب
+
+#### 5.17.6 طابور محلات ميدانية ✅
+
+- `GET /channel/rep-sourced-shops` 🔒 `sc.reps.view`
+- `POST …/{id}/decide` 🔒 `sc.reps.update` — موافقة → `linked` + تفعيل ملف التاجر؛ رفض → `rejected`
+
+⛔ **ما زال غائبًا:** تتبع حيّ (`sc.reps.track`)، دعوة مندوب BE-T20.
+
+---
+
 ## 6. تدفقات الـ API الشاملة
 
 كلها بعد توكن قناة إلا 6.1. كل كتابة ما عدا OTP تحمل `X-Idempotency-Key`.
@@ -1735,7 +1779,7 @@ POST /catalog/import { … dry_run: false }   key جديد
 | الفجوة | لماذا تظهر في التصميم | الواقع اليوم | ماذا ترسم |
 |---|---|---|---|
 | قائمة تجّار / موافقة / 360 | مرشّحات `retailer_id`، دفعة، ائتمان، عروض | ⛔ لا `GET /channel/retailers`. DOC-08: `sc.retailers.view` إلخ غير مزروعة | `IdField` + "لا قائمة تجّار" |
-| قائمة مندوبين / تتبع / محفظة | إسناد، سقف خصم، تسوية | ⛔ لا `GET /channel/reps`. فقط `discount-cap` و`settle` | `IdField` |
+| تتبع مندوب حيّ / دعوة | خريطة، BE-T20 | ⛔ لا `sc.reps.track` ولا دعوة؛ **القائمة والاعتماد والمحفظة والطوابير ✅** (§5.17) | لا خريطة؛ ابنِ §5.17 |
 | مستودعات | تسوية، تحويل، أرصدة | ⛔ لا `GET /channel/warehouses` (المنصة لها مسار آخر) | `IdField`؛ الاسم في الأرصدة إن عاد |
 | رفع وسائط | منتج، علامة، بنر، انترو، إشعار | ⛔ لا `POST` وسائط على أي حارس في الوحدات | لا `<input type=file>` إلا استيراد الكتالوج؛ `media_id` نص |
 | IAM القناة | مستخدمون وأدوار | ⛔ لا `/channel/iam`. الرموز `sc.iam.*` غير مزروعة | لا عنصر تنقّل |

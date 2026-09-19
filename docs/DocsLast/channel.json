@@ -1,17 +1,17 @@
 {
     "info": {
         "title": "Channel dashboard — live API only",
-        "generated_at": "2026-09-16",
+        "generated_at": "2026-09-17",
         "base_path": "/api/v1",
         "guard": "channel",
         "x_client": "channel-web",
         "seed_phone": "+963900000001",
         "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them.",
         "counts": {
-            "live_endpoints": 77,
-            "matched_catalog": 69,
+            "live_endpoints": 87,
+            "matched_catalog": 79,
             "live_without_catalog": 8,
-            "forbidden": 8
+            "forbidden": 7
         }
     },
     "headers": {
@@ -58,11 +58,6 @@
         },
         {
             "method": "GET",
-            "path": "/api/v1/channel/reps",
-            "reason": "No rep list / CRUD"
-        },
-        {
-            "method": "GET",
             "path": "/api/v1/channel/warehouses",
             "reason": "No warehouse list on this guard"
         },
@@ -95,18 +90,9 @@
     "people_writes_no_list": [
         {
             "method": "PUT",
-            "path": "/api/v1/channel/reps/{id}/discount-cap",
-            "permission": "sc.reps.update"
-        },
-        {
-            "method": "POST",
-            "path": "/api/v1/channel/reps/{id}/settle",
-            "permission": "sc.reps.settle"
-        },
-        {
-            "method": "PUT",
             "path": "/api/v1/channel/retailers/{id}/credit",
-            "permission": "sc.retailers.credit"
+            "permission": "sc.retailers.credit",
+            "note": "Still no GET /channel/retailers — use IdField for retailer_id"
         }
     ],
     "endpoints": [
@@ -2269,6 +2255,202 @@
                     "receipt_pdf_url": "https://files.example/settle-70.pdf",
                     "new_balance": 250000
                 },
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/reps",
+            "permission": "sc.reps.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@index",
+            "catalog": {
+                "code": "EP-SC-075",
+                "name": "List reps",
+                "name_ar": "قائمة المندوبين",
+                "permission": "sc.reps.view",
+                "query": [{"name": "filter[status]", "example": "pending_review"}],
+                "response": [{"id": 70, "name": "أحمد المندوب", "phone": "+963933000070", "status": "active", "zone_ids": [12], "on_duty": true, "max_discount_percent": 5, "max_cash_hold": 5000000}],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/reps/{id}",
+            "permission": "sc.reps.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@show",
+            "catalog": {
+                "code": "EP-SC-076",
+                "name": "Show rep",
+                "name_ar": "بطاقة مندوب",
+                "permission": "sc.reps.view",
+                "response": {"id": 70, "status": "active", "zone_ids": [12], "on_duty": true},
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/reps/{id}/approve",
+            "permission": "sc.reps.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@approve",
+            "catalog": {
+                "code": "EP-SC-077",
+                "name": "Approve rep",
+                "name_ar": "اعتماد مندوب",
+                "permission": "sc.reps.update",
+                "body": {"reason": "ملف مكتمل"},
+                "response": {"id": 70, "status": "active"},
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/reps/{id}/reject",
+            "permission": "sc.reps.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@reject",
+            "catalog": {
+                "code": "EP-SC-078",
+                "name": "Reject rep",
+                "name_ar": "رفض مندوب",
+                "permission": "sc.reps.update",
+                "body": {"reason": "بيانات ناقصة"},
+                "response": {"id": 70, "status": "rejected"},
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/reps/{id}/disable",
+            "permission": "sc.reps.disable",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@disable",
+            "catalog": {
+                "code": "EP-SC-079",
+                "name": "Disable rep",
+                "name_ar": "تعطيل مندوب",
+                "permission": "sc.reps.disable",
+                "body": {"reason": "ترك العمل"},
+                "response": {"id": 70, "status": "disabled"},
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/reps/{id}/wallet",
+            "permission": "sc.reps.wallet",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Finance\\Presentation\\Http\\Controllers\\ChannelFinanceController@wallet",
+            "catalog": {
+                "code": "EP-SC-087",
+                "name": "Rep wallet (channel read)",
+                "name_ar": "محفظة المندوب",
+                "permission": "sc.reps.wallet",
+                "response": {"net_balance": 250000, "stats": {"invoices_delivered": 12, "collected_total": 1750000, "receivables": 48000}, "today": {"invoices": 2, "collected": 90000, "receivables": 12000}},
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/rep-zone-requests",
+            "permission": "sc.reps.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@zoneRequests",
+            "catalog": {
+                "code": "EP-SC-088",
+                "name": "List rep zone requests",
+                "name_ar": "طلبات مناطق المندوبين",
+                "permission": "sc.reps.view",
+                "response": [{"id": 1, "rep_user_id": 70, "zone_id": 12, "status": "pending_approval"}],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/rep-zone-requests/{id}/decide",
+            "permission": "sc.reps.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@decideZoneRequest",
+            "catalog": {
+                "code": "EP-SC-089",
+                "name": "Decide rep zone request",
+                "name_ar": "قرار طلب منطقة مندوب",
+                "permission": "sc.reps.update",
+                "body": {"decision": "approve", "reason": "ضمن التغطية"},
+                "response": {"id": 1, "status": "approved"},
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/rep-sourced-shops",
+            "permission": "sc.reps.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@sourcedShops",
+            "catalog": {
+                "code": "EP-SC-093A",
+                "name": "List rep-sourced shops",
+                "name_ar": "محلات سجّلها المندوب",
+                "permission": "sc.reps.view",
+                "response": [{"id": 490, "rep_user_id": 70, "shop_name": "ميني ماركت الشام", "status": "pending_sync", "retailer_id": 481}],
+                "errors": []
+            }
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/rep-sourced-shops/{id}/decide",
+            "permission": "sc.reps.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "action": "Modules\\Identity\\Presentation\\Http\\Controllers\\ChannelRepOpsController@decideSourcedShop",
+            "catalog": {
+                "code": "EP-SC-093B",
+                "name": "Decide rep-sourced shop",
+                "name_ar": "قرار محل مندوب",
+                "permission": "sc.reps.update",
+                "body": {"decision": "approve", "reason": "تحقق ميداني"},
+                "response": {"id": 490, "status": "linked"},
                 "errors": []
             }
         },

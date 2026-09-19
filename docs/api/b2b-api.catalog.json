@@ -31,8 +31,8 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-08-31T11:38:18+00:00",
-        "endpoint_count": 338,
+        "generated_at": "2026-09-19T07:50:22+00:00",
+        "endpoint_count": 348,
         "surfaces": {
             "retailer_app": {
                 "label": "تطبيق التاجر",
@@ -3965,6 +3965,7 @@
             "body": null,
             "response": [
                 {
+                    "id": 9001,
                     "shop_logo": null,
                     "shop": "بقالية النور",
                     "address": "المزة فيلات شرقية",
@@ -4066,6 +4067,7 @@
                 "count": 2,
                 "orders": [
                     {
+                        "sub_order_id": 9001,
                         "order_no": "SO-9001",
                         "shop": "بقالية النور",
                         "zone": "المزة"
@@ -4777,12 +4779,13 @@
             "auth": true,
             "name": "Shop receivables",
             "name_ar": "ذمم المحلات",
-            "description": "",
+            "description": "Each by_shop row includes retailer_id (RetailerProfile id).",
             "query": [],
             "body": null,
             "response": {
                 "by_shop": [
                     {
+                        "retailer_id": 481,
                         "shop": "بقالية النور",
                         "total": 48000,
                         "invoices": [
@@ -8783,6 +8786,56 @@
             }
         },
         {
+            "code": "EP-SC-087",
+            "sprint": "SP-13",
+            "method": "GET",
+            "path": "/channel/reps/{id}/wallet",
+            "full_path": "/api/v1/channel/reps/{id}/wallet",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.wallet",
+            "auth": true,
+            "name": "Rep wallet (channel read)",
+            "name_ar": "محفظة المندوب",
+            "description": "Same ledger math as GET /app/rep/wallet. Foreign channel → 404.",
+            "query": [],
+            "body": null,
+            "response": {
+                "net_balance": 250000,
+                "stats": {
+                    "invoices_delivered": 12,
+                    "collected_total": 1750000,
+                    "receivables": 48000
+                },
+                "today": {
+                    "invoices": 2,
+                    "collected": 90000,
+                    "receivables": 12000
+                }
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": true,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 10. المالية",
+            "module": "10. المالية",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
             "code": "EP-SC-090",
             "sprint": "SP-14",
             "method": "POST",
@@ -9589,6 +9642,445 @@
             "write": true,
             "folder": "04. لوحة قناة التوريد / 14. النقاط",
             "module": "14. النقاط",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-075",
+            "sprint": "SP-06",
+            "method": "GET",
+            "path": "/channel/reps",
+            "full_path": "/api/v1/channel/reps",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.view",
+            "auth": true,
+            "name": "List reps",
+            "name_ar": "قائمة المندوبين",
+            "description": "id is AppUser id (same as assign / settle / discount-cap). status: pending_review|active|rejected|disabled.",
+            "query": {
+                "page": "1",
+                "per_page": "25",
+                "sort": "-created_at",
+                "search": "",
+                "filter[status]": "pending_review"
+            },
+            "body": null,
+            "response": [
+                {
+                    "id": 70,
+                    "name": "أحمد المندوب",
+                    "phone": "+963933000070",
+                    "status": "active",
+                    "zone_ids": [
+                        12
+                    ],
+                    "on_duty": true,
+                    "max_discount_percent": 5,
+                    "max_cash_hold": 5000000
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
+            "code": "EP-SC-076",
+            "sprint": "SP-06",
+            "method": "GET",
+            "path": "/channel/reps/{id}",
+            "full_path": "/api/v1/channel/reps/{id}",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.view",
+            "auth": true,
+            "name": "Show rep",
+            "name_ar": "بطاقة مندوب",
+            "description": "Foreign channel rep → 404.",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 70,
+                "name": "أحمد المندوب",
+                "phone": "+963933000070",
+                "status": "active",
+                "zone_ids": [
+                    12
+                ],
+                "on_duty": true,
+                "max_discount_percent": 5,
+                "max_cash_hold": 5000000
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
+            "code": "EP-SC-077",
+            "sprint": "SP-06",
+            "method": "POST",
+            "path": "/channel/reps/{id}/approve",
+            "full_path": "/api/v1/channel/reps/{id}/approve",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.update",
+            "auth": true,
+            "name": "Approve rep",
+            "name_ar": "اعتماد مندوب",
+            "description": "pending_review → active. reason optional. Illegal transition → 409.",
+            "query": [],
+            "body": {
+                "reason": "ملف مكتمل"
+            },
+            "response": {
+                "id": 70,
+                "status": "active"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-078",
+            "sprint": "SP-06",
+            "method": "POST",
+            "path": "/channel/reps/{id}/reject",
+            "full_path": "/api/v1/channel/reps/{id}/reject",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.update",
+            "auth": true,
+            "name": "Reject rep",
+            "name_ar": "رفض مندوب",
+            "description": "pending_review → rejected. reason required.",
+            "query": [],
+            "body": {
+                "reason": "بيانات ناقصة"
+            },
+            "response": {
+                "id": 70,
+                "status": "rejected"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-079",
+            "sprint": "SP-06",
+            "method": "POST",
+            "path": "/channel/reps/{id}/disable",
+            "full_path": "/api/v1/channel/reps/{id}/disable",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.disable",
+            "auth": true,
+            "name": "Disable rep",
+            "name_ar": "تعطيل مندوب",
+            "description": "active → disabled. reason required.",
+            "query": [],
+            "body": {
+                "reason": "ترك العمل"
+            },
+            "response": {
+                "id": 70,
+                "status": "disabled"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": true,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-088",
+            "sprint": "SP-06",
+            "method": "GET",
+            "path": "/channel/rep-zone-requests",
+            "full_path": "/api/v1/channel/rep-zone-requests",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.view",
+            "auth": true,
+            "name": "List rep zone requests",
+            "name_ar": "طلبات مناطق المندوبين",
+            "description": "",
+            "query": {
+                "page": "1",
+                "per_page": "25",
+                "sort": "-created_at",
+                "search": "",
+                "filter[status]": "pending_approval"
+            },
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "rep_user_id": 70,
+                    "zone_id": 12,
+                    "note": "تغطية جديدة",
+                    "status": "pending_approval"
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
+            "code": "EP-SC-089",
+            "sprint": "SP-06",
+            "method": "POST",
+            "path": "/channel/rep-zone-requests/{id}/decide",
+            "full_path": "/api/v1/channel/rep-zone-requests/{id}/decide",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.update",
+            "auth": true,
+            "name": "Decide rep zone request",
+            "name_ar": "قرار طلب منطقة مندوب",
+            "description": "decision: approve|reject. Approve attaches zone to RepProfileZone.",
+            "query": [],
+            "body": {
+                "decision": "approve",
+                "reason": "ضمن التغطية"
+            },
+            "response": {
+                "id": 1,
+                "status": "approved"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-093A",
+            "sprint": "SP-06",
+            "method": "GET",
+            "path": "/channel/rep-sourced-shops",
+            "full_path": "/api/v1/channel/rep-sourced-shops",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.view",
+            "auth": true,
+            "name": "List rep-sourced shops",
+            "name_ar": "محلات سجّلها المندوب",
+            "description": "",
+            "query": {
+                "page": "1",
+                "per_page": "25",
+                "sort": "-created_at",
+                "search": "",
+                "filter[status]": "pending_sync"
+            },
+            "body": null,
+            "response": [
+                {
+                    "id": 490,
+                    "rep_user_id": 70,
+                    "shop_name": "ميني ماركت الشام",
+                    "phone": "+963988000000",
+                    "zone_id": 12,
+                    "status": "pending_sync",
+                    "retailer_id": 481
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
+            "code": "EP-SC-093B",
+            "sprint": "SP-06",
+            "method": "POST",
+            "path": "/channel/rep-sourced-shops/{id}/decide",
+            "full_path": "/api/v1/channel/rep-sourced-shops/{id}/decide",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.reps.update",
+            "auth": true,
+            "name": "Decide rep-sourced shop",
+            "name_ar": "قرار محل مندوب",
+            "description": "decision: approve|reject. Approve activates RetailerProfile and marks shop linked.",
+            "query": [],
+            "body": {
+                "decision": "approve",
+                "reason": "تحقق ميداني"
+            },
+            "response": {
+                "id": 490,
+                "status": "linked"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
             "roles": [
                 "channel_manager"
             ],

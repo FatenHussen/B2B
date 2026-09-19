@@ -9039,6 +9039,7 @@
                                 "example": {
                                     "data": [
                                         {
+                                            "id": 9001,
                                             "shop_logo": null,
                                             "shop": "بقالية النور",
                                             "address": "المزة فيلات شرقية",
@@ -9270,6 +9271,7 @@
                                         "count": 2,
                                         "orders": [
                                             {
+                                                "sub_order_id": 9001,
                                                 "order_no": "SO-9001",
                                                 "shop": "بقالية النور",
                                                 "zone": "المزة"
@@ -10924,7 +10926,7 @@
             "get": {
                 "operationId": "EP-RP-064",
                 "summary": "Shop receivables",
-                "description": "ذمم المحلات",
+                "description": "ذمم المحلات\n\nEach by_shop row includes retailer_id (RetailerProfile id).",
                 "tags": [
                     "rep_app",
                     "المندوب"
@@ -10988,6 +10990,7 @@
                                     "data": {
                                         "by_shop": [
                                             {
+                                                "retailer_id": 481,
                                                 "shop": "بقالية النور",
                                                 "total": 48000,
                                                 "invoices": [
@@ -20204,6 +20207,109 @@
                 }
             }
         },
+        "/api/v1/channel/reps/{id}/wallet": {
+            "get": {
+                "operationId": "EP-SC-087",
+                "summary": "Rep wallet (channel read)",
+                "description": "محفظة المندوب\n\nSame ledger math as GET /app/rep/wallet. Foreign channel → 404.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "net_balance": 250000,
+                                        "stats": {
+                                            "invoices_delivered": 12,
+                                            "collected_total": 1750000,
+                                            "receivables": 48000
+                                        },
+                                        "today": {
+                                            "invoices": 2,
+                                            "collected": 90000,
+                                            "receivables": 12000
+                                        }
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.wallet",
+                "x-sprint": "SP-13",
+                "x-code": "EP-SC-087",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/channel/notifications": {
             "post": {
                 "operationId": "EP-SC-090",
@@ -21922,6 +22028,1105 @@
                                 "points_cost": 2000,
                                 "stock": 40,
                                 "expires_at": "2026-12-31"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/channel/reps": {
+            "get": {
+                "operationId": "EP-SC-075",
+                "summary": "List reps",
+                "description": "قائمة المندوبين\n\nid is AppUser id (same as assign / settle / discount-cap). status: pending_review|active|rejected|disabled.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "1"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "25"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "-created_at"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        }
+                    },
+                    {
+                        "name": "filter[status]",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "pending_review"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 70,
+                                            "name": "أحمد المندوب",
+                                            "phone": "+963933000070",
+                                            "status": "active",
+                                            "zone_ids": [
+                                                12
+                                            ],
+                                            "on_duty": true,
+                                            "max_discount_percent": 5,
+                                            "max_cash_hold": 5000000
+                                        }
+                                    ],
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.view",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-075",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/channel/reps/{id}": {
+            "get": {
+                "operationId": "EP-SC-076",
+                "summary": "Show rep",
+                "description": "بطاقة مندوب\n\nForeign channel rep → 404.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 70,
+                                        "name": "أحمد المندوب",
+                                        "phone": "+963933000070",
+                                        "status": "active",
+                                        "zone_ids": [
+                                            12
+                                        ],
+                                        "on_duty": true,
+                                        "max_discount_percent": 5,
+                                        "max_cash_hold": 5000000
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.view",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-076",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/channel/reps/{id}/approve": {
+            "post": {
+                "operationId": "EP-SC-077",
+                "summary": "Approve rep",
+                "description": "اعتماد مندوب\n\npending_review → active. reason optional. Illegal transition → 409.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 70,
+                                        "status": "active"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.update",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-077",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "reason": "ملف مكتمل"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/channel/reps/{id}/reject": {
+            "post": {
+                "operationId": "EP-SC-078",
+                "summary": "Reject rep",
+                "description": "رفض مندوب\n\npending_review → rejected. reason required.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 70,
+                                        "status": "rejected"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.update",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-078",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "reason": "بيانات ناقصة"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/channel/reps/{id}/disable": {
+            "post": {
+                "operationId": "EP-SC-079",
+                "summary": "Disable rep",
+                "description": "تعطيل مندوب\n\nactive → disabled. reason required.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 70,
+                                        "status": "disabled"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.disable",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-079",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "reason": "ترك العمل"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/channel/rep-zone-requests": {
+            "get": {
+                "operationId": "EP-SC-088",
+                "summary": "List rep zone requests",
+                "description": "طلبات مناطق المندوبين",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "1"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "25"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "-created_at"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        }
+                    },
+                    {
+                        "name": "filter[status]",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "pending_approval"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "rep_user_id": 70,
+                                            "zone_id": 12,
+                                            "note": "تغطية جديدة",
+                                            "status": "pending_approval"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.view",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-088",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/channel/rep-zone-requests/{id}/decide": {
+            "post": {
+                "operationId": "EP-SC-089",
+                "summary": "Decide rep zone request",
+                "description": "قرار طلب منطقة مندوب\n\ndecision: approve|reject. Approve attaches zone to RepProfileZone.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 1,
+                                        "status": "approved"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.update",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-089",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "decision": "approve",
+                                "reason": "ضمن التغطية"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/channel/rep-sourced-shops": {
+            "get": {
+                "operationId": "EP-SC-093A",
+                "summary": "List rep-sourced shops",
+                "description": "محلات سجّلها المندوب",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "1"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "25"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "-created_at"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        }
+                    },
+                    {
+                        "name": "filter[status]",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "pending_sync"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 490,
+                                            "rep_user_id": 70,
+                                            "shop_name": "ميني ماركت الشام",
+                                            "phone": "+963988000000",
+                                            "zone_id": 12,
+                                            "status": "pending_sync",
+                                            "retailer_id": 481
+                                        }
+                                    ],
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.view",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-093A",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/channel/rep-sourced-shops/{id}/decide": {
+            "post": {
+                "operationId": "EP-SC-093B",
+                "summary": "Decide rep-sourced shop",
+                "description": "قرار محل مندوب\n\ndecision: approve|reject. Approve activates RetailerProfile and marks shop linked.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 490,
+                                        "status": "linked"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.reps.update",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-093B",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "decision": "approve",
+                                "reason": "تحقق ميداني"
                             }
                         }
                     }
