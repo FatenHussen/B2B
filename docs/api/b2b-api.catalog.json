@@ -31,8 +31,8 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-09-19T13:18:31+00:00",
-        "endpoint_count": 349,
+        "generated_at": "2026-09-19T13:27:19+00:00",
+        "endpoint_count": 350,
         "surfaces": {
             "retailer_app": {
                 "label": "تطبيق التاجر",
@@ -269,7 +269,7 @@
             "auth": true,
             "name": "App session bootstrap",
             "name_ar": "جلسة الإقلاع",
-            "description": "Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081).",
+            "description": "Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}.",
             "query": [],
             "body": null,
             "response": {
@@ -277,7 +277,8 @@
                     "id": 481,
                     "name": "أبو خالد",
                     "user_type": "retailer",
-                    "profile_completed": true
+                    "profile_completed": true,
+                    "avatar": null
                 },
                 "permissions": [
                     "rt.receive.confirm",
@@ -3364,7 +3365,7 @@
             "auth": true,
             "name": "Complete rep registration",
             "name_ar": "إكمال تسجيل المندوب",
-            "description": "Channel must be active; zones must be inside its coverage (TB-RP-010).",
+            "description": "Channel must be active; zones must be inside its coverage (TB-RP-010). No email field — reps authenticate by Syrian mobile only.",
             "query": [],
             "body": {
                 "name": "أحمد العلي",
@@ -4855,6 +4856,63 @@
             "write": false,
             "folder": "02. تطبيق المندوب / 10. المالية",
             "module": "10. المالية",
+            "roles": [
+                "rep"
+            ],
+            "apps": [
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "rep-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}"
+            }
+        },
+        {
+            "code": "EP-RP-002",
+            "sprint": "SP-01",
+            "method": "GET",
+            "path": "/app/rep/home",
+            "full_path": "/api/v1/app/rep/home",
+            "audience": "rep",
+            "guard": "app",
+            "permission": null,
+            "auth": true,
+            "name": "Rep morning home",
+            "name_ar": "رئيسية المندوب",
+            "description": "Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
+            "query": [],
+            "body": null,
+            "response": {
+                "greeting": {
+                    "name": "أحمد العلي",
+                    "avatar": null
+                },
+                "server_time": "2026-03-01T09:12:44+03:00",
+                "on_duty": true,
+                "tracking_enabled": true,
+                "tasks": {
+                    "orders_today": 0,
+                    "deliveries_pending": 3,
+                    "collected_today": 48000,
+                    "assignments": 2,
+                    "scheduled": 1,
+                    "warehouse_receipts": 2
+                },
+                "loyalty": null,
+                "unread_notifications": 0
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "02. تطبيق المندوب / 99. أخرى",
+            "module": "99. أخرى",
             "roles": [
                 "rep"
             ],

@@ -9,8 +9,8 @@
         "seed": "demo reps +963932000001 (عمر الشامي) · +963932000002 · +963932000003 — local OTP_BYPASS=true: any code verifies, rep-* clients get all zeros; production is 6 digits",
         "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.",
         "counts": {
-            "live_endpoints": 41,
-            "matched_catalog": 41,
+            "live_endpoints": 42,
+            "matched_catalog": 42,
             "live_without_catalog": 0,
             "forbidden": 20
         }
@@ -183,7 +183,7 @@
         "max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.",
         "No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.",
         "GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is 404. supply_channel_id still has no directory.",
-        "Intro on the app is GET /public/content/intro (EP-PB-011, no guard). Same singleton PUT /platform/content/intro writes. Returning token skips the screen. Do not call GET/PUT /platform/content/intro or /channel/content/intro (403 wrong_guard). GET /public/app-config is still 404 (force-update only — not intro)."
+        "GET /app/rep/home is the morning snapshot (EP-RP-002). Bind the six task badges from data.tasks. Do not call GET /deliveries from Home — that list materialises delivery rows. loyalty is null (hide the points bar). Guest has no token: 401; skip-register is local chrome with zeros."
     ],
     "endpoints": [
         {
@@ -253,7 +253,7 @@
                 "token": "50|rep_xxxxx"
             },
             "errors": [],
-            "description": "Channel must be active; zones must be inside its coverage (TB-RP-010).",
+            "description": "Channel must be active; zones must be inside its coverage (TB-RP-010). No email field — reps authenticate by Syrian mobile only.",
             "note": "Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null — resolve from GET /public/refs. supply_channel_id has no directory; it comes from the channel team or an invite."
         },
         {
@@ -544,6 +544,45 @@
         },
         {
             "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/home",
+            "catalog_path": "/app/rep/home",
+            "code": "EP-RP-002",
+            "name": "Rep morning home",
+            "name_ar": "رئيسية المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "02. Session & duty",
+            "query": [],
+            "body": null,
+            "response": {
+                "greeting": {
+                    "name": "أحمد العلي",
+                    "avatar": null
+                },
+                "server_time": "2026-03-01T09:12:44+03:00",
+                "on_duty": true,
+                "tracking_enabled": true,
+                "tasks": {
+                    "orders_today": 0,
+                    "deliveries_pending": 3,
+                    "collected_today": 48000,
+                    "assignments": 2,
+                    "scheduled": 1,
+                    "warehouse_receipts": 2
+                },
+                "loyalty": null,
+                "unread_notifications": 0
+            },
+            "errors": [],
+            "description": "Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
+            "note": "Morning snapshot. Bind the six task badges here — do not call GET /deliveries from Home (that list materialises rows). loyalty is null until EP-APP-110 (hide the bar). unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer; guest browse is local."
+        },
+        {
+            "live": true,
             "method": "PATCH",
             "path": "/api/v1/app/rep/status",
             "catalog_path": "/app/rep/status",
@@ -589,7 +628,8 @@
                     "id": 70,
                     "name": "أحمد العلي",
                     "user_type": "rep",
-                    "profile_completed": true
+                    "profile_completed": true,
+                    "avatar": null
                 },
                 "permissions": [
                     "rp.delivery.accept",
@@ -615,11 +655,15 @@
                 "commercial_limits": {
                     "max_discount_percent": 5,
                     "max_cash_hold": 0
+                },
+                "duty": {
+                    "on_duty": false,
+                    "tracking_enabled": false
                 }
             },
             "errors": [],
-            "description": "Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081).",
-            "note": "Rep-only extra: commercial_limits. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them."
+            "description": "Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}.",
+            "note": "Rep-only extras: commercial_limits and duty {on_duty, tracking_enabled}. user.avatar is always null. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them."
         },
         {
             "live": true,

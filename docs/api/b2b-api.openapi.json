@@ -528,7 +528,7 @@
             "get": {
                 "operationId": "EP-CM-004",
                 "summary": "App session bootstrap",
-                "description": "جلسة الإقلاع\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081).",
+                "description": "جلسة الإقلاع\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}.",
                 "tags": [
                     "retailer_app",
                     "rep_app",
@@ -596,7 +596,8 @@
                                             "id": 481,
                                             "name": "أبو خالد",
                                             "user_type": "retailer",
-                                            "profile_completed": true
+                                            "profile_completed": true,
+                                            "avatar": null
                                         },
                                         "permissions": [
                                             "rt.receive.confirm",
@@ -7497,7 +7498,7 @@
             "post": {
                 "operationId": "EP-RP-001",
                 "summary": "Complete rep registration",
-                "description": "إكمال تسجيل المندوب\n\nChannel must be active; zones must be inside its coverage (TB-RP-010).",
+                "description": "إكمال تسجيل المندوب\n\nChannel must be active; zones must be inside its coverage (TB-RP-010). No email field — reps authenticate by Syrian mobile only.",
                 "tags": [
                     "rep_app",
                     "المندوب"
@@ -11098,6 +11099,115 @@
                 "x-permission": "rp.wallet.view",
                 "x-sprint": "SP-13",
                 "x-code": "EP-RP-064",
+                "x-guard": "app",
+                "x-audience": "rep",
+                "x-roles": [
+                    "rep"
+                ],
+                "x-apps": [
+                    "rep_app"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/app/rep/home": {
+            "get": {
+                "operationId": "EP-RP-002",
+                "summary": "Rep morning home",
+                "description": "رئيسية المندوب\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
+                "tags": [
+                    "rep_app",
+                    "المندوب"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "rep-android"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-App-Version",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "greeting": {
+                                            "name": "أحمد العلي",
+                                            "avatar": null
+                                        },
+                                        "server_time": "2026-03-01T09:12:44+03:00",
+                                        "on_duty": true,
+                                        "tracking_enabled": true,
+                                        "tasks": {
+                                            "orders_today": 0,
+                                            "deliveries_pending": 3,
+                                            "collected_today": 48000,
+                                            "assignments": 2,
+                                            "scheduled": 1,
+                                            "warehouse_receipts": 2
+                                        },
+                                        "loyalty": null,
+                                        "unread_notifications": 0
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-sprint": "SP-01",
+                "x-code": "EP-RP-002",
                 "x-guard": "app",
                 "x-audience": "rep",
                 "x-roles": [

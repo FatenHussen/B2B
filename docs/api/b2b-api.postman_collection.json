@@ -648,7 +648,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081)."
+                                "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}."
                             },
                             "response": [
                                 {
@@ -701,7 +701,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081)."
+                                        "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -712,7 +712,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"user\": {\n            \"id\": 481,\n            \"name\": \"أبو خالد\",\n            \"user_type\": \"retailer\",\n            \"profile_completed\": true\n        },\n        \"permissions\": [\n            \"rt.receive.confirm\",\n            \"rt.payment.record\"\n        ],\n        \"feature_flags\": {\n            \"offline_orders\": true,\n            \"loyalty\": true\n        },\n        \"sync_cursor\": \"c_9f2a71\",\n        \"server_time\": \"2026-03-01T09:12:44+03:00\",\n        \"requires_legal_accept\": false,\n        \"legal\": {\n            \"privacy_version\": \"2026-03\",\n            \"terms_version\": \"2026-01\"\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"user\": {\n            \"id\": 481,\n            \"name\": \"أبو خالد\",\n            \"user_type\": \"retailer\",\n            \"profile_completed\": true,\n            \"avatar\": null\n        },\n        \"permissions\": [\n            \"rt.receive.confirm\",\n            \"rt.payment.record\"\n        ],\n        \"feature_flags\": {\n            \"offline_orders\": true,\n            \"loyalty\": true\n        },\n        \"sync_cursor\": \"c_9f2a71\",\n        \"server_time\": \"2026-03-01T09:12:44+03:00\",\n        \"requires_legal_accept\": false,\n        \"legal\": {\n            \"privacy_version\": \"2026-03\",\n            \"terms_version\": \"2026-01\"\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -9153,7 +9153,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081)."
+                                "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}."
                             },
                             "response": [
                                 {
@@ -9206,7 +9206,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081)."
+                                        "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -9217,7 +9217,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"user\": {\n            \"id\": 481,\n            \"name\": \"أبو خالد\",\n            \"user_type\": \"retailer\",\n            \"profile_completed\": true\n        },\n        \"permissions\": [\n            \"rt.receive.confirm\",\n            \"rt.payment.record\"\n        ],\n        \"feature_flags\": {\n            \"offline_orders\": true,\n            \"loyalty\": true\n        },\n        \"sync_cursor\": \"c_9f2a71\",\n        \"server_time\": \"2026-03-01T09:12:44+03:00\",\n        \"requires_legal_accept\": false,\n        \"legal\": {\n            \"privacy_version\": \"2026-03\",\n            \"terms_version\": \"2026-01\"\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"user\": {\n            \"id\": 481,\n            \"name\": \"أبو خالد\",\n            \"user_type\": \"retailer\",\n            \"profile_completed\": true,\n            \"avatar\": null\n        },\n        \"permissions\": [\n            \"rt.receive.confirm\",\n            \"rt.payment.record\"\n        ],\n        \"feature_flags\": {\n            \"offline_orders\": true,\n            \"loyalty\": true\n        },\n        \"sync_cursor\": \"c_9f2a71\",\n        \"server_time\": \"2026-03-01T09:12:44+03:00\",\n        \"requires_legal_accept\": false,\n        \"legal\": {\n            \"privacy_version\": \"2026-03\",\n            \"terms_version\": \"2026-01\"\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -9694,7 +9694,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-001** · SP-01 · إكمال تسجيل المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nChannel must be active; zones must be inside its coverage (TB-RP-010).",
+                                "description": "**EP-RP-001** · SP-01 · إكمال تسجيل المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nChannel must be active; zones must be inside its coverage (TB-RP-010). No email field — reps authenticate by Syrian mobile only.",
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"name\": \"أحمد العلي\",\n    \"supply_channel_id\": 1,\n    \"activity_type_id\": 3,\n    \"zone_ids\": [\n        12,\n        13\n    ],\n    \"note\": \"خبرة سنتين في المزة\"\n}",
@@ -9767,7 +9767,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-001** · SP-01 · إكمال تسجيل المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nChannel must be active; zones must be inside its coverage (TB-RP-010).",
+                                        "description": "**EP-RP-001** · SP-01 · إكمال تسجيل المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nChannel must be active; zones must be inside its coverage (TB-RP-010). No email field — reps authenticate by Syrian mobile only.",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"name\": \"أحمد العلي\",\n    \"supply_channel_id\": 1,\n    \"activity_type_id\": 3,\n    \"zone_ids\": [\n        12,\n        13\n    ],\n    \"note\": \"خبرة سنتين في المزة\"\n}",
@@ -16478,6 +16478,131 @@
                                         }
                                     ],
                                     "body": "{\n    \"data\": {\n        \"redemption_no\": \"LY-88\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "99. أخرى",
+                    "item": [
+                        {
+                            "name": "EP-RP-002 Rep morning home",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/home",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "home"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-RP-002** · SP-01 · رئيسية المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token."
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RP-002",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/rep/home",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "rep",
+                                                "home"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-RP-002** · SP-01 · رئيسية المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token."
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"greeting\": {\n            \"name\": \"أحمد العلي\",\n            \"avatar\": null\n        },\n        \"server_time\": \"2026-03-01T09:12:44+03:00\",\n        \"on_duty\": true,\n        \"tracking_enabled\": true,\n        \"tasks\": {\n            \"orders_today\": 0,\n            \"deliveries_pending\": 3,\n            \"collected_today\": 48000,\n            \"assignments\": 2,\n            \"scheduled\": 1,\n            \"warehouse_receipts\": 2\n        },\n        \"loyalty\": null,\n        \"unread_notifications\": 0\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }

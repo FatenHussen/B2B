@@ -43,7 +43,7 @@ it('reads back the platform default after the back office writes it', function (
         'targeting' => ['activity_type_ids' => [], 'zone_ids' => []],
     ])->assertOk();
 
-    Sanctum::actingAs(null);
+    app('auth')->forgetGuards();
 
     $get = $this->getJson('/api/v1/public/content/intro');
     CatalogAssert::ok($get);
