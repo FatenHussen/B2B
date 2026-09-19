@@ -184,6 +184,7 @@ lib/
    │  └─ services/                        # one per API area, extend GetxService
    │     ├─ health_service.dart
    │     ├─ content_service.dart          # GET /public/content/intro
+     ├─ home_service.dart             # GET /app/rep/home
    │     ├─ refs_service.dart
    │     ├─ auth_service.dart             # OTP + register + session + logout + status
    │     ├─ customer_service.dart         # customers + zones
@@ -214,6 +215,7 @@ Future<void> main() async {
   await Get.putAsync(() => ApiClient().init());
   Get.put(AuthService());
   Get.put(ContentService());
+  Get.put(HomeService());
   Get.put(SessionController(), permanent: true);
   runApp(const RepApp());
 }
@@ -1033,6 +1035,7 @@ Future<RegisterResult> register({required String name, required int channelId, r
       final r = await api.post('/app/rep/register', (d) => RegisterResult.fromJson(d), key: key, body: {
         'name': name, 'supply_channel_id': channelId, 'activity_type_id': activityTypeId,
         'zone_ids': zoneIds, if (note != null && note.isNotEmpty) 'note': note,
+        // never send email — RegisterRepRequest prohibits it
       });
       await Get.find<TokenStorage>().save(r.data.token);          // REPLACE the registration token
       await Get.find<LocalStore>().saveZoneIds(zoneIds);          // the session never returns zones
@@ -1106,6 +1109,56 @@ class DutyState { final bool onDuty, trackingEnabled; /* fromJson */ }
 Future<DutyState> setDuty(bool on) => guard(() async =>
     (await api.patch('/app/rep/status', (d) => DutyState.fromJson(d), body: {'on_duty': on}, key: IdempotencyKey.create())).data);
 ```
+
+---
+
+### 5.5b Morning home
+
+`GET /app/rep/home` — Bearer, no idempotency key. **EP-RP-002 · live.** Bind the morning screen here. **Do not** call `GET /app/rep/deliveries` from Home (that list materialises delivery rows).
+
+```json
+{
+  "greeting": { "name": "عمر الشامي", "avatar": null },
+  "server_time": "2026-09-19T09:12:44+03:00",
+  "on_duty": true,
+  "tracking_enabled": true,
+  "tasks": {
+    "orders_today": 0,
+    "deliveries_pending": 3,
+    "collected_today": 48000,
+    "assignments": 2,
+    "scheduled": 1,
+    "warehouse_receipts": 2
+  },
+  "loyalty": null,
+  "unread_notifications": 0
+}
+```
+
+| Key | UI |
+|---|---|
+| `greeting.name` + `avatar` | «أهلاً بك» + letter avatar (`avatar` is always null) |
+| `server_time` | day + date |
+| `on_duty` | in/out of service switch — write via PATCH /status |
+| `tasks.orders_today` | Register-order badge |
+| `tasks.deliveries_pending` | Deliver-orders badge (drops after a complete + refresh) |
+| `tasks.collected_today` | Collect-payment badge — integer minor units |
+| `tasks.assignments` | Accept orders |
+| `tasks.scheduled` | Scheduled |
+| `tasks.warehouse_receipts` | Warehouse pickup |
+| `loyalty` | `null` → hide points bar. Do not call `GET /app/loyalty` |
+| `unread_notifications` | bell badge (0 until EP-CM-060). Inbox is 404 |
+
+Three circles (products / customers / zones) are local navigation. Bottom nav is **cart — orders — home** (three tabs). Guest: do not call this path; zeros + lock dialog «يجب أن تسجّل حساباً لاستخدام هذه الخدمة». 401 without a bearer.
+
+```dart
+class HomeService extends BaseService {
+  Future<RepHome> snapshot() => guard(() async =>
+      (await api.get('/app/rep/home', (d) => RepHome.fromJson(d as Map<String, dynamic>))).data);
+}
+```
+
+Empty: «لا إسنادات ولا عهدة. ابدأ بزيارة محل.» Pull-to-refresh re-GETs home only.
 
 ---
 
@@ -1749,7 +1802,7 @@ class FinanceService extends BaseService {
 
 ### 6.2 Returning rep
 
-`GET /health` → token present → **skip intro** → `GET /app/session` → Shell → `GET /assignments` + `GET /warehouse-receipts` + `GET /wallet` for the home cards (three parallel calls, `Future.wait`). Home is tasks + route + collections.
+`GET /health` → token present → **skip intro** → `GET /app/session` → Shell → `GET /app/rep/home` for the six task badges, duty switch, greeting. Home is tasks + route + collections. Do **not** `Future.wait` deliveries/wallet/assignments from Home.
 
 ### 6.3 Take an order for a shop
 
@@ -1849,7 +1902,7 @@ HTTP → behaviour summary:
 |---|---|---|
 | `GET /app/notifications`, `POST /app/notifications/read-all`, `DELETE /app/notifications`, `POST /app/devices/push-token` | ❌ 404 | no bell, no FCM registration |
 | `GET /app/sync/pull`, `POST /app/sync/push`, `GET /app/sync/status`, `POST /app/sync/resolve-conflict` | ❌ | online only; retry on reconnect |
-| `GET /app/content/home-blocks` | ❌ | composed home (assignments + receipts + wallet) |
+| `GET /app/content/home-blocks` | ❌ | composed home from `GET /app/rep/home` |
 | `GET /app/loyalty`, `POST /app/loyalty/redeem` | ❌ | no points tab |
 | `GET /public/app-config` | ❌ | no forced update; store review manual. **Not** the intro source |
 | `GET/PUT /platform/content/intro`, `GET/PUT /channel/content/intro` | live on **other** guards | 403 `wrong_guard` — never call. Apps read `GET /public/content/intro` |
@@ -1874,7 +1927,7 @@ Anything in the catalog marked `contract: proposed` is not a route.
 | 3 | `auth/otp` | `OtpController` | verify-otp, resend-otp | — |
 | 4 | `auth/register` | `RegisterController` | refs, register | — |
 | 5 | `shell` | `ShellController` | setDuty (top bar) | — |
-| 6 | `home` | `HomeController` | assignments, warehouse-receipts, wallet | «لا إسنادات ولا عهدة. ابدأ بزيارة محل من تبويب طلب.» |
+| 6 | `home` | `HomeController` | `GET /app/rep/home` only (never deliveries) | «لا إسنادات ولا عهدة. ابدأ بزيارة محل.» |
 | 7 | `customers` (+ new customer sheet) | `CustomersController`, `NewCustomerController` | customers GET/POST, refs | «لا زبائن بعد. أضف محلًا أو افتح منطقة.» |
 | 8 | `zones` (shops per zone + request zone) | `ZoneShopsController`, `RequestZoneController` | zones/{id}/shops, zones POST, refs | «لا محلات في هذه المنطقة.» |
 | 9 | `products` (+ barcode) | `ProductsController` | products, quote | «لا منتجات تطابق البحث.» |

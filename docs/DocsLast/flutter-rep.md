@@ -731,7 +731,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 | المناطق التي يغطيها | قائمة منسدلة **متعددة** (chips) | `refs.zones` مجمّعة بـ `governorate_id` | `zone_ids: [12, 13]` | متعدد، min 1 |
 | ملاحظة | حقل نص اختياري | — | `note` | — |
 
-لا `CheckboxList` لكل سوريا. القيمة دائماً `int` id لا الاسم. زر **«إنهاء التسجيل والدخول»** يستدعي المسار ثم يستبدل التوكن ويدخل الرئيسية.
+لا `CheckboxList` لكل سوريا. القيمة دائماً `int` id لا الاسم. زر **«إنهاء التسجيل والدخول»** يستدعي المسار ثم يستبدل التوكن ويدخل الرئيسية. **لا ترسل `email`** — الخادم يرفضه 422 `validation_failed`.
 
 `POST /api/v1/app/rep/register`
 
