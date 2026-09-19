@@ -247,6 +247,7 @@ it('groups open shop receivables for the collecting rep', function () {
     $list = $this->getJson('/api/v1/app/rep/receivables');
     CatalogAssert::ok($list);
     expect($list->json('data.by_shop'))->toHaveCount(1)
+        ->and($list->json('data.by_shop.0.retailer_id'))->toBe($world['retailer_id'])
         ->and($list->json('data.by_shop.0.invoices.0.no'))->toBe($world['invoice']['no'])
         ->and($list->json('data.by_shop.0.invoices.0.remaining'))->toBe(48000)
         ->and($list->json('data.by_shop.0.total'))->toBe(48000);

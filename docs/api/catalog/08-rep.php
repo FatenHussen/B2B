@@ -352,11 +352,13 @@ return [
         'name_ar' => 'ذمم المحلات',
         'r' => [
             'by_shop' => [[
+                'retailer_id' => 481,
                 'shop' => 'بقالية النور',
                 'total' => 48000,
                 'invoices' => [['no' => 'INV-501', 'total' => 48000, 'paid' => 0, 'remaining' => 48000]],
             ]],
         ],
+        'd' => 'Each by_shop row includes retailer_id (RetailerProfile id).',
     ]),
 
     ep('EP-RP-070A', 'SP-06', 'GET', '/app/rep/customers', 'rep', null, [

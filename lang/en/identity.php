@@ -25,4 +25,10 @@ return [
     'zone_not_found' => 'Zone was not found.',
     'zone_not_covered' => 'This zone is outside your coverage.',
     'retailer_pending_review' => 'Your retailer profile is pending review.',
+    'rep_pending_review' => 'Your rep profile is pending review.',
+    'rep_not_active' => 'Your rep account is not active.',
+    'not_found' => 'Not found.',
+    'illegal_rep_transition' => 'This rep status transition is not allowed.',
+    'illegal_zone_request_transition' => 'Zone request is not pending approval.',
+    'illegal_sourced_shop_transition' => 'Sourced shop is not pending sync.',
 ];

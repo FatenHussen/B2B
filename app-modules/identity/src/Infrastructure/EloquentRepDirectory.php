@@ -6,6 +6,7 @@ namespace Modules\Identity\Infrastructure;
 
 use Modules\Core\Contracts\RepDirectory;
 use Modules\Identity\Domain\Enums\AppUserKind;
+use Modules\Identity\Domain\Enums\ProfileStatus;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\RepProfile;
 
@@ -40,6 +41,17 @@ final class EloquentRepDirectory implements RepDirectory
             ->whereKey($repUserId)
             ->where('kind', AppUserKind::Rep)
             ->whereHas('repProfile', fn ($q) => $q->where('channel_id', $channelId))
+            ->exists();
+    }
+
+    public function isActiveInChannel(int $repUserId, int $channelId): bool
+    {
+        return AppUser::query()
+            ->whereKey($repUserId)
+            ->where('kind', AppUserKind::Rep)
+            ->whereHas('repProfile', fn ($q) => $q
+                ->where('channel_id', $channelId)
+                ->where('status', ProfileStatus::Active))
             ->exists();
     }
 

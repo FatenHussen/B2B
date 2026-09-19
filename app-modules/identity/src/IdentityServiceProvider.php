@@ -49,8 +49,9 @@ class IdentityServiceProvider extends ServiceProvider
             ]);
         }
 
-        // Append after auth on every app route so pending_review is enforced without
-        // each operational module naming the middleware (BE-I06).
+        // Append after auth on every app route so profile status is enforced without
+        // each operational module naming the middleware: pending_review for a retailer
+        // (BE-I06), anything but active for a rep. Each middleware ignores the other kind.
         $this->app->booted(function (): void {
             foreach ($this->app['router']->getRoutes() as $route) {
                 if (! $route instanceof Route) {
@@ -61,7 +62,7 @@ class IdentityServiceProvider extends ServiceProvider
                     continue;
                 }
 
-                $route->middleware('retailer.profile');
+                $route->middleware(['retailer.profile', 'rep.profile']);
             }
         });
     }
