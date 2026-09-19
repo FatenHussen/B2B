@@ -1839,6 +1839,7 @@ class Money {
 | `Receivables` | `by_shop[].retailer_id/shop/total/invoices[]` |
 | `PublicRefs` | الحاكمات، المناطق، الأنشطة، الفئات، الوحدات، التجهيزات، `sync_cursor` |
 | `IntroContent` | `enabled`, `text`, `media_type`, `media_id`, `duration`, `targeting` — من `GET /public/content/intro` |
+| `RepHome` | `greeting.name/avatar`, `on_duty`, `tracking_enabled`, `tasks.*`, `loyalty`, `unread_notifications` |
 
 `explicitToJson` ليس ضرورياً. `fromJson` يدوي مفضّل على codegen إن اختلف الكتالوج عن الحيّ — هذا الملف يوثّق الحيّ.
 
@@ -1887,7 +1888,7 @@ class Money {
 | حاجة المنتج | الخادم اليوم | Flutter |
 |---|---|---|
 | انترو من الأدمن (نص/فيديو/لوغو) | التطبيق ✅ `GET /public/content/intro` (نفس صف `PUT /platform/content/intro`) | `ContentService.intro()` — حساب سابق يتجاوز الشاشة |
-| تخطّي كزائر | لا ضيف | قفل محلي على الكتابة |
+| تخطّي كزائر | لا توكن زائر (401 على `/app/*`) | قفل محلي: «يجب أن تسجّل حساباً لاستخدام هذه الخدمة» |
 | دليل القنوات عند التسجيل | ممنوع في `/public/refs` | دعوة / معرّف تجربة / قناة البذرة `1` |
 | صور منتجات ومحلات | `image` null في قائمة المندوب | placeholder |
 | تفاصيل منتج + متغيرات علي بابا | لا show للمندوب؛ `variant_id` مقبول في السلة | كمية على المنتج؛ sheet فارغ إن لا بيانات |
@@ -1919,8 +1920,8 @@ class Money {
 1. **العميل:** Dio + غلاف + مال int + هاتف سوري + ترويسات + تكرار على الكتابات فقط.
 2. **Splash → `GET /public/content/intro` إن لا توكن → Phone → OTP `"0000"` → session.** توكن موجود يتجاوز الانترو إلى الرئيسية.
 3. **Register:** `GET /public/refs` → نشاط قائمة واحدة + مناطق **متعددة** + قناة قائمة واحدة من الدعوة/define (لا دليل قنوات) + استبدال التوكن. هدف أقل من 60 ثانية. لا بريد.
-4. **Shell** 5 تبويبات + مناوبة + شارة اتصال.
-5. **Home** يجمع العدادات من 5 GET حيّة.
+4. **Shell** 3 تبويبات (سلة / طلبات / رئيسية) + مناوبة في الرأس + شارة اتصال.
+5. **Home:** `GET /app/rep/home` — ستة أزرار من `tasks` + ثلاث دوائر + رأس. لا `GET /deliveries` من الرئيسية.
 6. **Order capture:** منطقة → محل → منتجات → quote → cart lines → شريط عائم → submit.
 7. **Cart tab** حسب المحل + إرسال.
 8. **Assignments / Warehouse / Deliveries / Detail / complete / postpone / fail.**
@@ -1979,6 +1980,7 @@ class Money {
 - ✅ الذمم تُرجع `retailer_id`.
 - ✅ الصحة تُرجع `app` `env` `checks` وقد تكون `degraded`.
 - ✅ انترو التطبيق: `GET /public/content/intro` (EP-PB-011، بلا حارس). الأدمن يحرّر `PUT /platform/content/intro`. التطبيق **لا** يستدعي `/platform` ولا `/channel` (`wrong_guard`). حساب سابق يتجاوز الانترو.
+- ✅ رئيسية المندوب: `GET /app/rep/home` (EP-RP-002). ستة عدّادات صباح بدون `GET /deliveries`. لا بريد على التسجيل (`email` prohibited). زائر محلي — 401 بلا توكن.
 - ⛔ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` ما زالت ناقصة (`plan/apps.md` AP-02…06). `app-config` للتحديث الإجباري فقط، ليس للانترو.
 - هذا الملف يضيف: GetX، موجّه المنتج، زائر، انترو، outbox، علي بابا، PDF محلي، وخريطة صريحة للفجوات.
 
