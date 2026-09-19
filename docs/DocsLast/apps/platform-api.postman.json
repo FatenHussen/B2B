@@ -1999,409 +1999,6 @@
             ]
         },
         {
-            "name": "05. Channels (MOVING)",
-            "item": [
-                {
-                    "name": "POST /api/v1/admin/channels/{supplyChannel}/retry-provisioning",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept-Language",
-                                "value": "{{acceptLanguage}}"
-                            },
-                            {
-                                "key": "X-Client",
-                                "value": "{{client}}"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Idempotency-Key",
-                                "value": "{{$guid}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/channels/{{supplyChannel}}/retry-provisioning",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "channels",
-                                "{{supplyChannel}}",
-                                "retry-provisioning"
-                            ]
-                        },
-                        "description": "**EP-AD-053** · moving\nWill become `/api/v1/platform/channels/{supplyChannel}/retry-provisioning`\n\n| Guard | `platform` |\n| Permission | `ad.channels.update` |\n| Role | `—` |\n\n🟡 LIVE on moving prefix. Returns {job_id}. Safe to repeat. No poll route.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "name": "POST /api/v1/admin/channels/{supplyChannel}/transition",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept-Language",
-                                "value": "{{acceptLanguage}}"
-                            },
-                            {
-                                "key": "X-Client",
-                                "value": "{{client}}"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Idempotency-Key",
-                                "value": "{{$guid}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/channels/{{supplyChannel}}/transition",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "channels",
-                                "{{supplyChannel}}",
-                                "transition"
-                            ]
-                        },
-                        "description": "**EP-AD-054** · moving\nWill become `/api/v1/platform/channels/{supplyChannel}/transition`\n\n| Guard | `platform` |\n| Permission | `ad.channels.suspend` |\n| Role | `—` |\n\n🟡 LIVE on moving prefix. Body {to_status, reason}. 422 unknown state, 409 illegal_transition. Buttons from allowed_next.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"to_status\": \"suspended\",\n    \"reason\": \"تأخر سداد فاتورة المنصة\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "name": "DELETE /api/v1/admin/channels/{supplyChannel}",
-                    "request": {
-                        "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept-Language",
-                                "value": "{{acceptLanguage}}"
-                            },
-                            {
-                                "key": "X-Client",
-                                "value": "{{client}}"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Idempotency-Key",
-                                "value": "{{$guid}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/channels/{{supplyChannel}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "channels",
-                                "{{supplyChannel}}"
-                            ]
-                        },
-                        "description": "**EP-AD-058** · moving\nWill become `/api/v1/platform/channels/{supplyChannel}`\n\n| Guard | `platform` |\n| Permission | `ad.channels.delete` |\n| Role | `platform_admin` |\n\n🟡 204 no body. Role platform_admin. Soft delete, no restore.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"password_confirmation\": \"********\",\n    \"otp_code\": \"123456\",\n    \"typed_name\": \"شركة النور\",\n    \"second_approver_id\": 2\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "name": "GET /api/v1/admin/channels/{supplyChannel}",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept-Language",
-                                "value": "{{acceptLanguage}}"
-                            },
-                            {
-                                "key": "X-Client",
-                                "value": "{{client}}"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/channels/{{supplyChannel}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "channels",
-                                "{{supplyChannel}}"
-                            ]
-                        },
-                        "description": "**EP-AD-052** · moving\nWill become `/api/v1/platform/channels/{supplyChannel}`\n\n| Guard | `platform` |\n| Permission | `ad.channels.view` |\n| Role | `—` |\n\n🟡 Nested detail with allowed_next, plan, limits, genuine KPI zeros, manager null until BE-T07."
-                    }
-                },
-                {
-                    "name": "PUT /api/v1/admin/channels/{supplyChannel}",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept-Language",
-                                "value": "{{acceptLanguage}}"
-                            },
-                            {
-                                "key": "X-Client",
-                                "value": "{{client}}"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Idempotency-Key",
-                                "value": "{{$guid}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/channels/{{supplyChannel}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "channels",
-                                "{{supplyChannel}}"
-                            ]
-                        },
-                        "description": "**EP-AD-062** · moving\nWill become `/api/v1/platform/channels/{supplyChannel}`\n\n| Guard | `platform` |\n| Permission | `ad.channels.update` |\n| Role | `—` |\n\n🟡 Partial + required reason. status prohibited — use transition.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"name\": \"شركة النور للتوزيع\",\n    \"legal_form\": \"llc\",\n    \"cr_number\": \"C12345\",\n    \"activity_type_ids\": [\n        3\n    ],\n    \"internal_note\": \"تحديث السجل\",\n    \"reason\": \"تصحيح الاسم التجاري\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "name": "GET /api/v1/admin/channels",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept-Language",
-                                "value": "{{acceptLanguage}}"
-                            },
-                            {
-                                "key": "X-Client",
-                                "value": "{{client}}"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/channels",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "channels"
-                            ],
-                            "query": [
-                                {
-                                    "key": "page",
-                                    "value": "1",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "per_page",
-                                    "value": "25",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "search",
-                                    "value": "",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "filter[status]",
-                                    "value": "active",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "filter[plan_id]",
-                                    "value": "2",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "filter[governorate_id]",
-                                    "value": "1",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "filter[subscription_status]",
-                                    "value": "active",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "filter[over_limit]",
-                                    "value": "0",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "filter[idle]",
-                                    "value": "0",
-                                    "disabled": true
-                                }
-                            ]
-                        },
-                        "description": "**EP-AD-050** · moving\nWill become `/api/v1/platform/channels`\n\n| Guard | `platform` |\n| Permission | `ad.channels.view` |\n| Role | `platform_admin` |\n\n🟡 MOVING. Role platform_admin. page/per_page only — no search. created_at UTC."
-                    }
-                },
-                {
-                    "name": "POST /api/v1/admin/channels",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept-Language",
-                                "value": "{{acceptLanguage}}"
-                            },
-                            {
-                                "key": "X-Client",
-                                "value": "{{client}}"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Idempotency-Key",
-                                "value": "{{$guid}}"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/channels",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "channels"
-                            ]
-                        },
-                        "description": "**EP-AD-051** · moving\nWill become `/api/v1/platform/channels`\n\n| Guard | `platform` |\n| Permission | `ad.channels.create` |\n| Role | `—` |\n\n🟡 MOVING. Catalog body (not name+slug only). status prohibited. Lands in provisioning.",
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"name\": \"شركة الشام\",\n    \"slug\": \"al-sham\",\n    \"legal_form\": \"llc\",\n    \"cr_number\": \"C12345\",\n    \"documents\": [],\n    \"governorate_ids\": [\n        1\n    ],\n    \"zone_ids\": [\n        12\n    ],\n    \"activity_type_ids\": [\n        3\n    ],\n    \"logo\": null,\n    \"internal_note\": \"شراكة تجريبية\",\n    \"plan_id\": 1,\n    \"billing_cycle\": \"yearly\",\n    \"trial_days\": 14,\n    \"limits\": {\n        \"users\": 25,\n        \"warehouses\": 2,\n        \"reps\": 20,\n        \"skus\": 5000,\n        \"storage_mb\": 2048\n    },\n    \"custom_discount\": 0,\n    \"manager\": {\n        \"name\": \"محمد علي\",\n        \"phone\": \"+963944000000\",\n        \"email\": \"manager@alsham.sy\",\n        \"invite_via\": \"whatsapp\"\n    }\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        }
-                    }
-                }
-            ]
-        },
-        {
             "name": "06. Refs at v1 root (MOVING — do not wire screens yet)",
             "item": [
                 {
@@ -2682,6 +2279,104 @@
             ]
         },
         {
+            "name": "07. Content",
+            "item": [
+                {
+                    "name": "GET /platform/content/intro",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/content/intro",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "content",
+                                "intro"
+                            ]
+                        },
+                        "description": "**EP-AD-141A** · stable\n\n| Guard | `platform` |\n| Permission | `ad.content.view` |\n| Role | `—` |\n\n🟡 Platform default. Vacant store is enabled:false with empty targeting. PUT response is {enabled} only — re-GET to populate the form."
+                    }
+                },
+                {
+                    "name": "PUT /platform/content/intro",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/content/intro",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "content",
+                                "intro"
+                            ]
+                        },
+                        "description": "**EP-AD-141B** · stable\n\n| Guard | `platform` |\n| Permission | `ad.content.manage` |\n| Role | `—` |\n\n🟡 Same body as channel intro. Response is {enabled} only. media_type image|video. duration ≥ 0.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"enabled\": true,\n    \"text\": \"مرحباً في منصة التوزيع\",\n    \"media_type\": \"video\",\n    \"media_id\": \"media_intro_default\",\n    \"duration\": 8,\n    \"targeting\": {\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": []\n    }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
             "name": "99. Other",
             "item": [
                 {
@@ -2741,6 +2436,118 @@
                     }
                 },
                 {
+                    "name": "POST /platform/channels/{id}/retry-provisioning",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/channels/{{supplyChannel}}/retry-provisioning",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "channels",
+                                "{{supplyChannel}}",
+                                "retry-provisioning"
+                            ]
+                        },
+                        "description": "**EP-AD-053** · stable\n\n| Guard | `platform` |\n| Permission | `ad.channels.update` |\n| Role | `—` |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "[]",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "POST /platform/channels/{id}/transition",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/channels/{{supplyChannel}}/transition",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "channels",
+                                "{{supplyChannel}}",
+                                "transition"
+                            ]
+                        },
+                        "description": "**EP-AD-054** · stable\n\n| Guard | `platform` |\n| Permission | `ad.channels.suspend` |\n| Role | `—` |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"to_status\": \"suspended\",\n    \"reason\": \"تأخر سداد فاتورة المنصة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "GET /platform/channels/{id}/usage",
                     "request": {
                         "method": "GET",
@@ -2784,6 +2591,292 @@
                             ]
                         },
                         "description": "**EP-AD-056** · stable\n\n| Guard | `platform` |\n| Permission | `ad.channels.view` |\n| Role | `—` |"
+                    }
+                },
+                {
+                    "name": "DELETE /platform/channels/{id}",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/channels/{{supplyChannel}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "channels",
+                                "{{supplyChannel}}"
+                            ]
+                        },
+                        "description": "**EP-AD-058** · stable\n\n| Guard | `platform` |\n| Permission | `ad.channels.delete` |\n| Role | `—` |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"password_confirmation\": \"********\",\n    \"otp_code\": \"123456\",\n    \"typed_name\": \"شركة النور\",\n    \"second_approver_id\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /platform/channels/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/channels/{{supplyChannel}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "channels",
+                                "{{supplyChannel}}"
+                            ]
+                        },
+                        "description": "**EP-AD-052** · stable\n\n| Guard | `platform` |\n| Permission | `ad.channels.view` |\n| Role | `—` |"
+                    }
+                },
+                {
+                    "name": "PUT /platform/channels/{id}",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/channels/{{supplyChannel}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "channels",
+                                "{{supplyChannel}}"
+                            ]
+                        },
+                        "description": "**EP-AD-062** · stable\n\n| Guard | `platform` |\n| Permission | `ad.channels.update` |\n| Role | `—` |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"شركة النور للتوزيع\",\n    \"legal_form\": \"llc\",\n    \"cr_number\": \"C12345\",\n    \"activity_type_ids\": [\n        3,\n        4\n    ],\n    \"internal_note\": \"تحديث السجل\",\n    \"reason\": \"تصحيح الاسم التجاري\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GET /platform/channels",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/channels",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "channels"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[status]",
+                                    "value": "active",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[plan_id]",
+                                    "value": "2",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[governorate_id]",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[subscription_status]",
+                                    "value": "active",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[over_limit]",
+                                    "value": "0",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[idle]",
+                                    "value": "0",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-AD-050** · stable\n\n| Guard | `platform` |\n| Permission | `ad.channels.view` |\n| Role | `—` |"
+                    }
+                },
+                {
+                    "name": "POST /platform/channels",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/platform/channels",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "platform",
+                                "channels"
+                            ]
+                        },
+                        "description": "**EP-AD-051** · stable\n\n| Guard | `platform` |\n| Permission | `ad.channels.create` |\n| Role | `—` |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"شركة الشام\",\n    \"slug\": \"al-sham\",\n    \"legal_form\": \"llc\",\n    \"cr_number\": \"C12345\",\n    \"documents\": [],\n    \"governorate_ids\": [\n        1\n    ],\n    \"zone_ids\": [\n        12,\n        13\n    ],\n    \"activity_type_ids\": [\n        3,\n        4\n    ],\n    \"logo\": null,\n    \"internal_note\": \"شراكة تجريبية\",\n    \"plan_id\": 2,\n    \"billing_cycle\": \"yearly\",\n    \"trial_days\": 14,\n    \"limits\": {\n        \"users\": 25,\n        \"warehouses\": 2,\n        \"reps\": 20,\n        \"skus\": 5000,\n        \"storage_mb\": 2048\n    },\n    \"custom_discount\": 0,\n    \"manager\": {\n        \"name\": \"محمد علي\",\n        \"phone\": \"+963944000000\",\n        \"email\": \"manager@alsham.sy\",\n        \"invite_via\": \"whatsapp\"\n    }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
                     }
                 },
                 {

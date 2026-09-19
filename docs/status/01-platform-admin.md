@@ -4,7 +4,7 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 166 | 76 | 0 | 90 | 7 |
+| 166 | 78 | 0 | 88 | 7 |
 
 ## الدخول والملف الشخصي — 16/16
 
@@ -199,14 +199,14 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 | ❌ | EP-AD-139C | SP-17 | `POST` | `/platform/system/backups` | `ad.system.backup` | — | تشغيل نسخة احتياطية |
 | ❌ | EP-AD-139D | SP-17 | `POST` | `/platform/system/backups/restore-test` | `ad.system.backup` | — | اختبار الاستعادة |
 
-## المحتوى — 0/6
+## المحتوى — 2/6
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ❌ | EP-AD-140A | SP-17 | `GET` | `/platform/content/legal` | `ad.content.view` | — | الشروط والخصوصية |
 | ❌ | EP-AD-140B | SP-17 | `POST` | `/platform/content/legal` | `ad.content.manage` | — | نشر نسخة شروط/خصوصية |
-| ❌ | EP-AD-141A | SP-17 | `GET` | `/platform/content/intro` | `ad.content.view` | — | الانترو الافتراضي للمنصة |
-| ❌ | EP-AD-141B | SP-17 | `PUT` | `/platform/content/intro` | `ad.content.manage` | — | تحديث الانترو الافتراضي |
+| ✅ | EP-AD-141A | SP-17 | `GET` | `/platform/content/intro` | `ad.content.view` | Content | الانترو الافتراضي للمنصة |
+| ✅ | EP-AD-141B | SP-17 | `PUT` | `/platform/content/intro` | `ad.content.manage` | Content | تحديث الانترو الافتراضي |
 | ❌ | EP-AD-142A | SP-17 | `GET` | `/platform/content/help` | `ad.content.view` | — | الأدلة والمساعدة |
 | ❌ | EP-AD-142B | SP-17 | `POST` | `/platform/content/help` | `ad.content.manage` | — | إنشاء مقال مساعدة |
 

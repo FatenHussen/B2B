@@ -17,7 +17,7 @@
 | PA-09 | نسخ التطبيقات وإعداد التطبيق العام | 4 | Content | PA-08 | ⬜ |
 | PA-10 | الفريق والدعوات | 6 | Identity | — | ⬜ |
 | PA-11 | الإعدادات: الملف، الأمان، النسخ، افتراضات القنوات، التكاملات | 11 | Core + Integration + Tenancy | — | ⬜ |
-| PA-12 | المحتوى العام: الشروط، الانترو، الأدلة | 6 | Content | — | ⬜ |
+| PA-12 | المحتوى العام: الشروط، الانترو، الأدلة | 6 | Content | — | ⬜ (الانترو ✅ 2026-09-19) |
 | PA-13 | إشعارات المنصة والحملات والبث | 9 | Notification | — | ⬜ |
 | PA-14 | الدعم: البحث، بطاقة 360، الانتحال، الجلسات، التذاكر | 10 | Support | PA-10 | ⬜ |
 | PA-15 | صحة النظام والصيانة والمهام | 11 | Integration | — | ⬜ |
@@ -107,7 +107,8 @@
 
 ## PA-12 — المحتوى العام: EP-AD-140A/B, 141A/B, 142A/B
 
-- **وحدة:** Content. `legal_documents` مؤرَّخة بنسخ (type: terms|privacy, version, body_ar, published_at) — النشر يخلق نسخة ولا يعدّل القديمة؛ `platform_intro` (افتراضي تُرجعه القناة إن لم تخصّص) ؛ `help_guides` (audience, title, body, order).
+- **وحدة:** Content. `legal_documents` مؤرَّخة بنسخ (type: terms|privacy, version, body_ar, published_at) — النشر يخلق نسخة ولا يعدّل القديمة؛ `platform_intros` (افتراضي تُرجعه القناة إن لم تخصّص) ؛ `help_guides` (audience, title, body, order).
+- **141A/B الانترو:** ✅ منجز 2026-09-19 — `GET` يعيد الشكل الكامل (كائن واحد، صف شاغر = `enabled:false`)؛ `PUT` يعيد `{enabled}` فقط. صلاحيتان: `ad.content.view` / `ad.content.manage`. المخزن منفصل عن انترو القناة.
 
 ## PA-13 — إشعارات المنصة: EP-AD-080, 081, 082, 083A/B, 084, 085A/B, 068
 

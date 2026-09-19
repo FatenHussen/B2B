@@ -10,11 +10,11 @@
         "not": "This is NOT the channel dashboard (guard channel, port 3001).",
         "rule": "If this file and the catalog disagree, this file wins. Call only live:true. Never call forbidden. Never mock missing GMV/billing/refs-at-contract-path. Keep every moving base path behind ONE constant.",
         "counts": {
-            "live_endpoints": 90,
-            "matched_catalog": 80,
+            "live_endpoints": 92,
+            "matched_catalog": 82,
             "live_without_catalog": 10,
-            "moving": 13,
-            "forbidden": 91
+            "moving": 6,
+            "forbidden": 89
         }
     },
     "headers": {
@@ -360,22 +360,6 @@
             "code": "EP-AD-140B",
             "sprint": "SP-17",
             "name_ar": "نشر نسخة شروط/خصوصية",
-            "reason": "Catalogued, no route at this path — do not build, do not mock"
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/platform/content/intro",
-            "code": "EP-AD-141A",
-            "sprint": "SP-17",
-            "name_ar": "الانترو الافتراضي للمنصة",
-            "reason": "Catalogued, no route at this path — do not build, do not mock"
-        },
-        {
-            "method": "PUT",
-            "path": "/api/v1/platform/content/intro",
-            "code": "EP-AD-141B",
-            "sprint": "SP-17",
-            "name_ar": "تحديث الانترو الافتراضي",
             "reason": "Catalogued, no route at this path — do not build, do not mock"
         },
         {
@@ -807,7 +791,7 @@
         "audit/export body key is filters (plural); the list uses filter. No job-status route.",
         "/governorates /zones /currencies are live at the v1 root on a multi-guard list. Contract path is /platform/refs/*. Do not build admin screens on them without one constant. Shape is thinner than SP-03.",
         "GET /platform/dashboard is 404. Never fake GMV.",
-        "GET/PUT /platform/content/intro is catalog only — no route. Channel intro is /channel/content/intro on the other dashboard."
+        "GET /platform/content/intro is the platform default. Empty store is enabled:false. PUT returns {enabled} only — re-GET for the form. Channel intro is /channel/content/intro on the other dashboard."
     ],
     "endpoints": [
         {
@@ -2129,330 +2113,6 @@
         {
             "live": true,
             "stability": "moving",
-            "method": "POST",
-            "path": "/api/v1/admin/channels/{supplyChannel}/retry-provisioning",
-            "will_become": "/api/v1/platform/channels/{supplyChannel}/retry-provisioning",
-            "catalog_path": "/platform/channels/{id}/retry-provisioning",
-            "code": "EP-AD-053",
-            "name": "Retry provisioning",
-            "name_ar": "إعادة التجهيز",
-            "permission": "ad.channels.update",
-            "role": null,
-            "guard": "platform",
-            "auth": true,
-            "write": true,
-            "idempotency": true,
-            "folder": "05. Channels (MOVING)",
-            "query": [],
-            "body": {},
-            "response": {
-                "job_id": "…"
-            },
-            "errors": [],
-            "description": "Idempotent (REQ-AD-023).",
-            "note": "LIVE on moving prefix. Returns {job_id}. Safe to repeat. No poll route."
-        },
-        {
-            "live": true,
-            "stability": "moving",
-            "method": "POST",
-            "path": "/api/v1/admin/channels/{supplyChannel}/transition",
-            "will_become": "/api/v1/platform/channels/{supplyChannel}/transition",
-            "catalog_path": "/platform/channels/{id}/transition",
-            "code": "EP-AD-054",
-            "name": "Transition channel status",
-            "name_ar": "تغيير حالة القناة",
-            "permission": "ad.channels.suspend",
-            "role": null,
-            "guard": "platform",
-            "auth": true,
-            "write": true,
-            "idempotency": true,
-            "folder": "05. Channels (MOVING)",
-            "query": [],
-            "body": {
-                "to_status": "suspended",
-                "reason": "تأخر سداد فاتورة المنصة"
-            },
-            "response": {
-                "status": "suspended",
-                "allowed_next": [
-                    "active",
-                    "archived"
-                ]
-            },
-            "errors": {
-                "409": "illegal_transition"
-            },
-            "description": "Permission is ad.channels.suspend / ad.channels.archive depending on target.",
-            "note": "LIVE on moving prefix. Body {to_status, reason}. 422 unknown state, 409 illegal_transition. Buttons from allowed_next."
-        },
-        {
-            "live": true,
-            "stability": "moving",
-            "method": "DELETE",
-            "path": "/api/v1/admin/channels/{supplyChannel}",
-            "will_become": "/api/v1/platform/channels/{supplyChannel}",
-            "catalog_path": "/platform/channels/{id}",
-            "code": "EP-AD-058",
-            "name": "Delete channel",
-            "name_ar": "حذف قناة",
-            "permission": "ad.channels.delete",
-            "role": "platform_admin",
-            "guard": "platform",
-            "auth": true,
-            "write": true,
-            "idempotency": true,
-            "folder": "05. Channels (MOVING)",
-            "query": [],
-            "body": {
-                "password_confirmation": "********",
-                "otp_code": "123456",
-                "typed_name": "شركة النور",
-                "second_approver_id": 2
-            },
-            "response": {
-                "deletion_request_id": 77
-            },
-            "errors": [],
-            "description": "Archived ≥ 30 days. Dual approval.",
-            "note": "204 no body. Role platform_admin. Soft delete, no restore."
-        },
-        {
-            "live": true,
-            "stability": "moving",
-            "method": "GET",
-            "path": "/api/v1/admin/channels/{supplyChannel}",
-            "will_become": "/api/v1/platform/channels/{supplyChannel}",
-            "catalog_path": "/platform/channels/{id}",
-            "code": "EP-AD-052",
-            "name": "Channel detail",
-            "name_ar": "تفاصيل القناة",
-            "permission": "ad.channels.view",
-            "role": null,
-            "guard": "platform",
-            "auth": true,
-            "write": false,
-            "idempotency": false,
-            "folder": "05. Channels (MOVING)",
-            "query": [],
-            "body": null,
-            "response": {
-                "channel": {
-                    "id": 1,
-                    "name": "شركة النور",
-                    "status": "active"
-                },
-                "manager": {
-                    "id": 10,
-                    "name": "محمد علي",
-                    "phone": "+963944000000"
-                },
-                "subscription": {
-                    "plan": "growth",
-                    "status": "active",
-                    "next_renewal": "2027-03-01"
-                },
-                "kpis": {
-                    "gmv_30d": 1850000000,
-                    "orders_30d": 3100
-                },
-                "timeline": [
-                    {
-                        "at": "2026-01-01T00:00:00+03:00",
-                        "event": "created"
-                    }
-                ],
-                "internal_notes": []
-            },
-            "errors": [],
-            "description": "",
-            "note": "Nested detail with allowed_next, plan, limits, genuine KPI zeros, manager null until BE-T07."
-        },
-        {
-            "live": true,
-            "stability": "moving",
-            "method": "PUT",
-            "path": "/api/v1/admin/channels/{supplyChannel}",
-            "will_become": "/api/v1/platform/channels/{supplyChannel}",
-            "catalog_path": "/platform/channels/{id}",
-            "code": "EP-AD-062",
-            "name": "Update channel profile",
-            "name_ar": "تعديل بيانات القناة",
-            "permission": "ad.channels.update",
-            "role": null,
-            "guard": "platform",
-            "auth": true,
-            "write": true,
-            "idempotency": true,
-            "folder": "05. Channels (MOVING)",
-            "query": [],
-            "body": {
-                "name": "شركة النور للتوزيع",
-                "legal_form": "llc",
-                "cr_number": "C12345",
-                "activity_type_ids": [
-                    3
-                ],
-                "internal_note": "تحديث السجل",
-                "reason": "تصحيح الاسم التجاري"
-            },
-            "response": {
-                "id": 1
-            },
-            "errors": [],
-            "description": "DOC-07 §4.2.7 تبويب نظرة عامة. BR-AD-11: سبب مكتوب إلزامي.",
-            "note": "Partial + required reason. status prohibited — use transition."
-        },
-        {
-            "live": true,
-            "stability": "moving",
-            "method": "GET",
-            "path": "/api/v1/admin/channels",
-            "will_become": "/api/v1/platform/channels",
-            "catalog_path": "/platform/channels",
-            "code": "EP-AD-050",
-            "name": "List supply channels",
-            "name_ar": "قنوات التوريد",
-            "permission": "ad.channels.view",
-            "role": "platform_admin",
-            "guard": "platform",
-            "auth": true,
-            "write": false,
-            "idempotency": false,
-            "folder": "05. Channels (MOVING)",
-            "query": [
-                {
-                    "name": "page",
-                    "example": "1"
-                },
-                {
-                    "name": "per_page",
-                    "example": "25"
-                },
-                {
-                    "name": "search",
-                    "example": ""
-                },
-                {
-                    "name": "filter[status]",
-                    "example": "active"
-                },
-                {
-                    "name": "filter[plan_id]",
-                    "example": "2"
-                },
-                {
-                    "name": "filter[governorate_id]",
-                    "example": "1"
-                },
-                {
-                    "name": "filter[subscription_status]",
-                    "example": "active"
-                },
-                {
-                    "name": "filter[over_limit]",
-                    "example": "0"
-                },
-                {
-                    "name": "filter[idle]",
-                    "example": "0"
-                }
-            ],
-            "body": null,
-            "response": [
-                {
-                    "id": 1,
-                    "name": "شركة النور",
-                    "slug": "al-nour",
-                    "status": "active",
-                    "plan": {
-                        "id": 2,
-                        "key": "growth"
-                    },
-                    "governorates": [
-                        {
-                            "id": 1,
-                            "name": "دمشق"
-                        }
-                    ],
-                    "active_retailers": 420,
-                    "reps": 18,
-                    "orders_30d": 3100,
-                    "gmv": 1850000000,
-                    "subscription_status": "active",
-                    "last_activity_at": "2026-03-01T08:40:00+03:00"
-                }
-            ],
-            "errors": [],
-            "description": "",
-            "note": "MOVING. Role platform_admin. page/per_page only — no search. created_at UTC."
-        },
-        {
-            "live": true,
-            "stability": "moving",
-            "method": "POST",
-            "path": "/api/v1/admin/channels",
-            "will_become": "/api/v1/platform/channels",
-            "catalog_path": "/platform/channels",
-            "code": "EP-AD-051",
-            "name": "Create channel",
-            "name_ar": "إنشاء قناة",
-            "permission": "ad.channels.create",
-            "role": null,
-            "guard": "platform",
-            "auth": true,
-            "write": true,
-            "idempotency": true,
-            "folder": "05. Channels (MOVING)",
-            "query": [],
-            "body": {
-                "name": "شركة الشام",
-                "slug": "al-sham",
-                "legal_form": "llc",
-                "cr_number": "C12345",
-                "documents": [],
-                "governorate_ids": [
-                    1
-                ],
-                "zone_ids": [
-                    12
-                ],
-                "activity_type_ids": [
-                    3
-                ],
-                "logo": null,
-                "internal_note": "شراكة تجريبية",
-                "plan_id": 1,
-                "billing_cycle": "yearly",
-                "trial_days": 14,
-                "limits": {
-                    "users": 25,
-                    "warehouses": 2,
-                    "reps": 20,
-                    "skus": 5000,
-                    "storage_mb": 2048
-                },
-                "custom_discount": 0,
-                "manager": {
-                    "name": "محمد علي",
-                    "phone": "+963944000000",
-                    "email": "manager@alsham.sy",
-                    "invite_via": "whatsapp"
-                }
-            },
-            "response": {
-                "id": 2,
-                "status": "provisioning",
-                "provisioning_job_id": "…"
-            },
-            "errors": [],
-            "description": "Must respond under 500ms (AC-AD-03). Provisioning is async.",
-            "note": "MOVING. Catalog body (not name+slug only). status prohibited. Lands in provisioning."
-        },
-        {
-            "live": true,
-            "stability": "moving",
             "method": "GET",
             "path": "/api/v1/currencies/{currency}",
             "will_become": "/api/v1/platform/refs/currencies/{currency}",
@@ -2672,6 +2332,78 @@
         {
             "live": true,
             "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/content/intro",
+            "will_become": null,
+            "catalog_path": "/platform/content/intro",
+            "code": "EP-AD-141A",
+            "name": "Default intro",
+            "name_ar": "الانترو الافتراضي للمنصة",
+            "permission": "ad.content.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "07. Content",
+            "query": [],
+            "body": null,
+            "response": {
+                "enabled": true,
+                "media_type": "video",
+                "media_id": "media_intro_default",
+                "targeting": {
+                    "activity_type_ids": [
+                        3
+                    ],
+                    "zone_ids": []
+                }
+            },
+            "errors": [],
+            "description": "DOC-12E TB-AD-082. Used when the channel has no intro.",
+            "note": "Platform default. Vacant store is enabled:false with empty targeting. PUT response is {enabled} only — re-GET to populate the form."
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/content/intro",
+            "will_become": null,
+            "catalog_path": "/platform/content/intro",
+            "code": "EP-AD-141B",
+            "name": "Update default intro",
+            "name_ar": "تحديث الانترو الافتراضي",
+            "permission": "ad.content.manage",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "07. Content",
+            "query": [],
+            "body": {
+                "enabled": true,
+                "text": "مرحباً في منصة التوزيع",
+                "media_type": "video",
+                "media_id": "media_intro_default",
+                "duration": 8,
+                "targeting": {
+                    "activity_type_ids": [
+                        3
+                    ],
+                    "zone_ids": []
+                }
+            },
+            "response": {
+                "enabled": true
+            },
+            "errors": [],
+            "description": "",
+            "note": "Same body as channel intro. Response is {enabled} only. media_type image|video. duration ≥ 0."
+        },
+        {
+            "live": true,
+            "stability": "stable",
             "method": "PUT",
             "path": "/api/v1/platform/channels/{supplyChannel}/limits",
             "will_become": null,
@@ -2706,6 +2438,67 @@
             },
             "errors": [],
             "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/channels/{supplyChannel}/retry-provisioning",
+            "will_become": null,
+            "catalog_path": "/platform/channels/{id}/retry-provisioning",
+            "code": "EP-AD-053",
+            "name": "Retry provisioning",
+            "name_ar": "إعادة التجهيز",
+            "permission": "ad.channels.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": [],
+            "response": {
+                "job_id": "job_prov_9b"
+            },
+            "errors": [],
+            "description": "Idempotent (REQ-AD-023).",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/channels/{supplyChannel}/transition",
+            "will_become": null,
+            "catalog_path": "/platform/channels/{id}/transition",
+            "code": "EP-AD-054",
+            "name": "Transition channel status",
+            "name_ar": "تغيير حالة القناة",
+            "permission": "ad.channels.suspend",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "to_status": "suspended",
+                "reason": "تأخر سداد فاتورة المنصة"
+            },
+            "response": {
+                "status": "suspended",
+                "allowed_next": [
+                    "active",
+                    "archived"
+                ]
+            },
+            "errors": {
+                "409": "illegal_transition"
+            },
+            "description": "Permission is ad.channels.suspend / ad.channels.archive depending on target.",
             "note": null
         },
         {
@@ -2755,6 +2548,272 @@
             },
             "errors": [],
             "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "DELETE",
+            "path": "/api/v1/platform/channels/{supplyChannel}",
+            "will_become": null,
+            "catalog_path": "/platform/channels/{id}",
+            "code": "EP-AD-058",
+            "name": "Delete channel",
+            "name_ar": "حذف قناة",
+            "permission": "ad.channels.delete",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "password_confirmation": "********",
+                "otp_code": "123456",
+                "typed_name": "شركة النور",
+                "second_approver_id": 2
+            },
+            "response": {
+                "deletion_request_id": 77
+            },
+            "errors": [],
+            "description": "Archived ≥ 30 days. Dual approval.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/channels/{supplyChannel}",
+            "will_become": null,
+            "catalog_path": "/platform/channels/{id}",
+            "code": "EP-AD-052",
+            "name": "Channel detail",
+            "name_ar": "تفاصيل القناة",
+            "permission": "ad.channels.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": {
+                "channel": {
+                    "id": 1,
+                    "name": "شركة النور",
+                    "status": "active"
+                },
+                "manager": {
+                    "id": 10,
+                    "name": "محمد علي",
+                    "phone": "+963944000000"
+                },
+                "subscription": {
+                    "plan": "growth",
+                    "status": "active",
+                    "next_renewal": "2027-03-01"
+                },
+                "kpis": {
+                    "gmv_30d": 1850000000,
+                    "orders_30d": 3100
+                },
+                "timeline": [
+                    {
+                        "at": "2026-01-01T00:00:00+03:00",
+                        "event": "created"
+                    }
+                ],
+                "internal_notes": []
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "PUT",
+            "path": "/api/v1/platform/channels/{supplyChannel}",
+            "will_become": null,
+            "catalog_path": "/platform/channels/{id}",
+            "code": "EP-AD-062",
+            "name": "Update channel profile",
+            "name_ar": "تعديل بيانات القناة",
+            "permission": "ad.channels.update",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "شركة النور للتوزيع",
+                "legal_form": "llc",
+                "cr_number": "C12345",
+                "activity_type_ids": [
+                    3,
+                    4
+                ],
+                "internal_note": "تحديث السجل",
+                "reason": "تصحيح الاسم التجاري"
+            },
+            "response": {
+                "id": 1
+            },
+            "errors": [],
+            "description": "DOC-07 §4.2.7 تبويب نظرة عامة. BR-AD-11: سبب مكتوب إلزامي.",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "GET",
+            "path": "/api/v1/platform/channels",
+            "will_become": null,
+            "catalog_path": "/platform/channels",
+            "code": "EP-AD-050",
+            "name": "List supply channels",
+            "name_ar": "قنوات التوريد",
+            "permission": "ad.channels.view",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[status]",
+                    "example": "active"
+                },
+                {
+                    "name": "filter[plan_id]",
+                    "example": "2"
+                },
+                {
+                    "name": "filter[governorate_id]",
+                    "example": "1"
+                },
+                {
+                    "name": "filter[subscription_status]",
+                    "example": "active"
+                },
+                {
+                    "name": "filter[over_limit]",
+                    "example": "0"
+                },
+                {
+                    "name": "filter[idle]",
+                    "example": "0"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "name": "شركة النور",
+                    "slug": "al-nour",
+                    "status": "active",
+                    "plan": {
+                        "id": 2,
+                        "key": "growth"
+                    },
+                    "governorates": [
+                        {
+                            "id": 1,
+                            "name": "دمشق"
+                        }
+                    ],
+                    "active_retailers": 420,
+                    "reps": 18,
+                    "orders_30d": 3100,
+                    "gmv": 1850000000,
+                    "subscription_status": "active",
+                    "last_activity_at": "2026-03-01T08:40:00+03:00"
+                }
+            ],
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "stability": "stable",
+            "method": "POST",
+            "path": "/api/v1/platform/channels",
+            "will_become": null,
+            "catalog_path": "/platform/channels",
+            "code": "EP-AD-051",
+            "name": "Create channel",
+            "name_ar": "إنشاء قناة",
+            "permission": "ad.channels.create",
+            "role": null,
+            "guard": "platform",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "شركة الشام",
+                "slug": "al-sham",
+                "legal_form": "llc",
+                "cr_number": "C12345",
+                "documents": [],
+                "governorate_ids": [
+                    1
+                ],
+                "zone_ids": [
+                    12,
+                    13
+                ],
+                "activity_type_ids": [
+                    3,
+                    4
+                ],
+                "logo": null,
+                "internal_note": "شراكة تجريبية",
+                "plan_id": 2,
+                "billing_cycle": "yearly",
+                "trial_days": 14,
+                "limits": {
+                    "users": 25,
+                    "warehouses": 2,
+                    "reps": 20,
+                    "skus": 5000,
+                    "storage_mb": 2048
+                },
+                "custom_discount": 0,
+                "manager": {
+                    "name": "محمد علي",
+                    "phone": "+963944000000",
+                    "email": "manager@alsham.sy",
+                    "invite_via": "whatsapp"
+                }
+            },
+            "response": {
+                "id": 9,
+                "status": "provisioning",
+                "provisioning_job_id": "job_prov_9"
+            },
+            "errors": [],
+            "description": "Must respond under 500ms (AC-AD-03). Provisioning is async.",
             "note": null
         },
         {

@@ -232,7 +232,7 @@ $pack = [
         'audit/export body key is filters (plural); the list uses filter. No job-status route.',
         '/governorates /zones /currencies are live at the v1 root on a multi-guard list. Contract path is /platform/refs/*. Do not build admin screens on them without one constant. Shape is thinner than SP-03.',
         'GET /platform/dashboard is 404. Never fake GMV.',
-        'GET/PUT /platform/content/intro is catalog only — no route. Channel intro is /channel/content/intro on the other dashboard.',
+        'GET /platform/content/intro is the platform default. Empty store is enabled:false. PUT returns {enabled} only — re-GET for the form. Channel intro is /channel/content/intro on the other dashboard.',
     ],
     'endpoints' => $live,
 ];
@@ -322,6 +322,9 @@ function folder(string $path): string
     }
     if (str_starts_with($path, '/governorates') || str_starts_with($path, '/zones') || str_starts_with($path, '/currencies')) {
         return '06. Refs at v1 root (MOVING — do not wire screens yet)';
+    }
+    if (str_starts_with($path, '/platform/content')) {
+        return '07. Content';
     }
 
     return '99. Other';
@@ -449,6 +452,8 @@ function notes(): array
         'GET /governorates' => 'MOVING → /platform/refs/governorates. Multi-guard. Do not build an admin screen without one constant.',
         'GET /zones' => 'MOVING → /platform/refs/zones. Same warning.',
         'GET /currencies' => 'MOVING → /platform/refs/currencies. decimals feeds money formatting for every client.',
+        'GET /platform/content/intro' => 'Platform default. Vacant store is enabled:false with empty targeting. PUT response is {enabled} only — re-GET to populate the form.',
+        'PUT /platform/content/intro' => 'Same body as channel intro. Response is {enabled} only. media_type image|video. duration ≥ 0.',
     ];
 }
 

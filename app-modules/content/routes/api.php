@@ -5,6 +5,21 @@ declare(strict_types=1);
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 use Modules\Content\Presentation\Http\Controllers\ChannelContentController;
+use Modules\Content\Presentation\Http\Controllers\PlatformContentController;
+
+/*
+ * PA-12 / EP-AD-141A/B — the platform default intro. The prefix names the platform
+ * guard (GuardTest). A channel that never set its own intro is the audience this
+ * row is for; the channel dashboard still reads /channel/content/intro.
+ */
+Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', SubstituteBindings::class])
+    ->prefix('api/v1/platform/content')
+    ->group(function (): void {
+        Route::get('intro', [PlatformContentController::class, 'showIntro'])
+            ->middleware('permission:ad.content.view');
+        Route::put('intro', [PlatformContentController::class, 'updateIntro'])
+            ->middleware('permission:ad.content.manage');
+    });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.tokenable:channel', 'tenant'])
     ->prefix('api/v1/channel/content')
