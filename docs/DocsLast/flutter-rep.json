@@ -1,18 +1,18 @@
 {
     "info": {
         "title": "Field rep app — live API only",
-        "generated_at": "2026-09-16",
+        "generated_at": "2026-09-19",
         "base_path": "/api/v1",
         "guard": "app",
         "kind": "rep",
         "x_client": "rep-android | rep-ios",
-        "seed": "none — OTP any Syrian mobile; staging code 000000",
+        "seed": "demo reps +963932000001 (عمر الشامي) · +963932000002 · +963932000003 — local OTP_BYPASS=true: any code verifies, rep-* clients get all zeros; production is 6 digits",
         "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.",
         "counts": {
-            "live_endpoints": 39,
-            "matched_catalog": 39,
+            "live_endpoints": 40,
+            "matched_catalog": 40,
             "live_without_catalog": 0,
-            "forbidden": 17
+            "forbidden": 16
         }
     },
     "headers": {
@@ -55,12 +55,6 @@
         "permissions": "session.permissions lists rp.* by kind. Routes do not check them. Do not hide screens behind can(rp.*)."
     },
     "forbidden": [
-        {
-            "method": "GET",
-            "path": "/api/v1/public/refs",
-            "code": "EP-PB-001",
-            "reason": "No public reference snapshot — registration cannot list channels, zones or activity types"
-        },
         {
             "method": "GET",
             "path": "/api/v1/public/app-config",
@@ -164,7 +158,7 @@
         "Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.",
         "max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.",
         "No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.",
-        "GET /public/refs and GET /public/app-config are 404. Registration cannot load a channel/zone directory from the API."
+        "GET /public/refs is live (governorates, zones, activity types — never channels). GET /public/app-config is 404. supply_channel_id still has no directory."
     ],
     "endpoints": [
         {
@@ -235,7 +229,7 @@
             },
             "errors": [],
             "description": "Channel must be active; zones must be inside its coverage (TB-RP-010).",
-            "note": "Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null. GET /public/refs is 404 — ids must be known."
+            "note": "Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null — resolve from GET /public/refs. supply_channel_id has no directory; it comes from the channel team or an invite."
         },
         {
             "live": true,
@@ -349,6 +343,76 @@
                 "429": "rate_limited"
             },
             "description": "5 attempts per otp_id. New user returns is_new_user=true without a full profile.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/public/refs",
+            "catalog_path": "/public/refs",
+            "code": "EP-PB-001",
+            "name": "Public reference snapshot",
+            "name_ar": "المرجعيات العامة للتسجيل",
+            "permission": null,
+            "guard": "none",
+            "auth": false,
+            "write": false,
+            "idempotency": false,
+            "folder": "01. Auth & registration",
+            "query": [
+                {
+                    "name": "since",
+                    "example": ""
+                }
+            ],
+            "body": null,
+            "response": {
+                "governorates": [
+                    {
+                        "id": 1,
+                        "name": "دمشق",
+                        "order": 1,
+                        "status": "active"
+                    }
+                ],
+                "zones": [
+                    {
+                        "id": 12,
+                        "name": "المزة",
+                        "governorate_id": 1
+                    }
+                ],
+                "activity_types": [
+                    {
+                        "id": 3,
+                        "name": "بقالة",
+                        "icon": "grocery"
+                    }
+                ],
+                "root_categories": [
+                    {
+                        "id": 10,
+                        "name": "مواد غذائية"
+                    }
+                ],
+                "sale_units": [
+                    {
+                        "id": 3,
+                        "name": "قطعة",
+                        "abbr": "pcs",
+                        "default_factor": 1
+                    }
+                ],
+                "equipments": [
+                    {
+                        "id": 1,
+                        "name": "ثلاجة عرض"
+                    }
+                ],
+                "sync_cursor": "c_9f2a71"
+            },
+            "errors": [],
+            "description": "Registration screens cache this locally and refresh by cursor (REQ-AD-032, REQ-CM-016).",
             "note": null
         },
         {
@@ -1028,6 +1092,7 @@
             "body": null,
             "response": [
                 {
+                    "id": 9001,
                     "shop_logo": null,
                     "shop": "بقالية النور",
                     "address": "المزة فيلات شرقية",
@@ -1454,6 +1519,7 @@
             "response": {
                 "by_shop": [
                     {
+                        "retailer_id": 481,
                         "shop": "بقالية النور",
                         "total": 48000,
                         "invoices": [
@@ -1468,7 +1534,7 @@
                 ]
             },
             "errors": [],
-            "description": "",
+            "description": "Each by_shop row includes retailer_id (RetailerProfile id).",
             "note": null
         },
         {

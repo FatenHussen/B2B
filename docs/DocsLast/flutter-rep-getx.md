@@ -707,7 +707,7 @@ Every `Response` block shows only `data` (the envelope wraps it, §3.1). HTTP st
 | 39 | POST 🔁 | `/app/rep/wallet/withdrawals` | `FinanceService.withdraw()` | 5.20 |
 | 40 | GET | `/app/rep/wallet/withdrawals` | `FinanceService.withdrawals()` | 5.20 |
 
-(40 rows: the 39 of `flutter-rep.json` plus `GET /public/refs`, live since BE-R10.)
+(40 rows — the same 40 `live:true` entries as `flutter-rep.json`, regenerated 2026-09-19; `GET /public/refs` is live since BE-R10.)
 
 ---
 

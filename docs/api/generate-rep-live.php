@@ -4,16 +4,26 @@ declare(strict_types=1);
 
 /**
  * Builds the Flutter-facing live contract for the field-rep app:
- *   docs/DocsLast/apps/rep-api.live.json
- *   docs/DocsLast/apps/rep-api.postman.json
+ *   docs/DocsLast/flutter-rep.json
  *
- * Sources: php artisan route:list JSON + b2b-api.catalog.json.
- * Live overlays come from controllers/actions, not the backlog.
+ * The Postman collection this once wrote beside it (`apps/rep-api.postman.json`) left
+ * the package in 13a1262; `postman()` below stays behind a `--postman` flag and then
+ * writes to docs/api/, not to the client folder.
+ *
+ * Sources: php artisan route:list JSON (refreshed here, as generate-platform-live.php
+ * does) + b2b-api.catalog.json. Live overlays come from controllers/actions, not the backlog.
  */
 
 $api  = __DIR__;
 $root = dirname($api, 2);
-$out  = $root.DIRECTORY_SEPARATOR.'docs'.DIRECTORY_SEPARATOR.'DocsLast'.DIRECTORY_SEPARATOR.'apps';
+$out  = $root.DIRECTORY_SEPARATOR.'docs'.DIRECTORY_SEPARATOR.'DocsLast';
+
+chdir($root);
+$dumped = shell_exec('php artisan route:list --json');
+if (is_string($dumped) && str_starts_with(ltrim($dumped), '[')) {
+    $dumped = preg_replace('/^\xEF\xBB\xBF/', '', $dumped) ?? $dumped;
+    file_put_contents($api.DIRECTORY_SEPARATOR.'.live-routes.json', $dumped);
+}
 
 $routesJson = file_get_contents($api.DIRECTORY_SEPARATOR.'.live-routes.json');
 $routesJson = preg_replace('/^\xEF\xBB\xBF/', '', (string) $routesJson);
@@ -56,7 +66,7 @@ $want = static function (string $path): bool {
     if ($path === '/health') {
         return true;
     }
-    if (str_starts_with($path, '/public/auth/')) {
+    if (str_starts_with($path, '/public/auth/') || $path === '/public/refs') {
         return true;
     }
     if ($path === '/app/session' || $path === '/app/auth/logout') {
@@ -174,12 +184,12 @@ $matched = count(array_filter($live, fn (array $e): bool => $e['code'] !== null)
 $pack = [
     'info' => [
         'title' => 'Field rep app — live API only',
-        'generated_at' => '2026-09-16',
+        'generated_at' => date('Y-m-d'),
         'base_path' => '/api/v1',
         'guard' => 'app',
         'kind' => 'rep',
         'x_client' => 'rep-android | rep-ios',
-        'seed' => 'none — OTP any Syrian mobile; staging code 000000',
+        'seed' => 'demo reps +963932000001 (عمر الشامي) · +963932000002 · +963932000003 — local OTP_BYPASS=true: any code verifies, rep-* clients get all zeros; production is 6 digits',
         'rule' => 'If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.',
         'counts' => [
             'live_endpoints' => count($live),
@@ -215,21 +225,23 @@ $pack = [
         'Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.',
         'max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.',
         'No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.',
-        'GET /public/refs and GET /public/app-config are 404. Registration cannot load a channel/zone directory from the API.',
+        'GET /public/refs is live (governorates, zones, activity types — never channels). GET /public/app-config is 404. supply_channel_id still has no directory.',
     ],
     'endpoints' => $live,
 ];
 
 file_put_contents(
-    $out.'/rep-api.live.json',
+    $out.'/flutter-rep.json',
     json_encode($pack, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n",
 );
 
-$postman = postman($live, $exempt);
-file_put_contents(
-    $out.'/rep-api.postman.json',
-    json_encode($postman, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n",
-);
+if (in_array('--postman', $argv ?? [], true)) {
+    $postman = postman($live, $exempt);
+    file_put_contents(
+        $api.'/b2b-rep.live.postman_collection.json',
+        json_encode($postman, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n",
+    );
+}
 
 echo 'live='.count($live).' matched='.$matched.' forbidden='.count($forbidden).PHP_EOL;
 
@@ -266,7 +278,7 @@ function folder(string $path): string
     if ($path === '/health') {
         return '00. Health';
     }
-    if (str_starts_with($path, '/public/auth') || $path === '/app/rep/register') {
+    if (str_starts_with($path, '/public/auth') || $path === '/public/refs' || $path === '/app/rep/register') {
         return '01. Auth & registration';
     }
     if ($path === '/app/session' || $path === '/app/auth/logout' || $path === '/app/rep/status') {
@@ -461,7 +473,7 @@ function notes(): array
 {
     return [
         'GET /app/session' => 'Rep-only extra: commercial_limits. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them.',
-        'POST /app/rep/register' => 'Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null. GET /public/refs is 404 — ids must be known.',
+        'POST /app/rep/register' => 'Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null — resolve from GET /public/refs. supply_channel_id has no directory; it comes from the channel team or an invite.',
         'GET /app/rep/products' => 'Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Lines have no image/sku.',
         'GET /app/rep/zones/{}/shops' => 'Paginated. Search is top-level `search`, not filter[search]. is_open is hardcoded true. last_order_at is always null. 403 zone_not_covered if the zone is not assigned.',
         'GET /app/rep/customers' => 'Paginated. Search is filter[search]. id is RetailerProfile id — this is retailer_id everywhere else.',
@@ -487,7 +499,6 @@ function notes(): array
 function forbidden(): array
 {
     return [
-        ['method' => 'GET', 'path' => '/api/v1/public/refs', 'code' => 'EP-PB-001', 'reason' => 'No public reference snapshot — registration cannot list channels, zones or activity types'],
         ['method' => 'GET', 'path' => '/api/v1/public/app-config', 'code' => 'EP-PB-010', 'reason' => 'No force-update / maintenance config'],
         ['method' => 'GET', 'path' => '/api/v1/app/sync/pull', 'code' => 'EP-SY-001', 'reason' => 'Offline sync not built — online-first'],
         ['method' => 'POST', 'path' => '/api/v1/app/sync/push', 'code' => 'EP-SY-002', 'reason' => 'No outbox drain'],
