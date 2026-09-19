@@ -24,9 +24,9 @@ final class DeliveryController extends ApiController
         return $this->ok($ops->listForRep($request->user(), $zone !== null ? (int) $zone : null));
     }
 
-    public function show(DeliveryWorkspace $ops, int $id): JsonResponse
+    public function show(Request $request, DeliveryWorkspace $ops, int $id): JsonResponse
     {
-        return $this->ok($ops->detail($id));
+        return $this->ok($ops->detail($id, $request->user()));
     }
 
     public function patchLine(PatchDeliveryLineRequest $request, DeliveryWorkspace $ops, int $id, int $lineId): JsonResponse
@@ -54,9 +54,9 @@ final class DeliveryController extends ApiController
         return $this->ok($ops->ping($request->user(), $request->validated()['pings']));
     }
 
-    public function receipt(DeliveryWorkspace $ops, int $subOrderId): JsonResponse
+    public function receipt(Request $request, DeliveryWorkspace $ops, int $subOrderId): JsonResponse
     {
-        return $this->ok($ops->detail($subOrderId));
+        return $this->ok($ops->detail($subOrderId, $request->user()));
     }
 
     public function patchReceiptLine(PatchDeliveryLineRequest $request, DeliveryWorkspace $ops, int $id, int $lineId): JsonResponse

@@ -9,4 +9,5 @@ return [
     'offer_no_longer_valid' => 'العرض لم يعد صالحاً.',
     'rep_off_duty' => 'المندوب خارج الخدمة.',
     'rep_off_coverage' => 'المندوب خارج منطقة التغطية.',
+    'rep_not_active' => 'حساب المندوب غير نشط.',
 ];

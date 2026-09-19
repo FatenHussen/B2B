@@ -17,6 +17,7 @@ use Modules\Core\Http\Middleware\EnsureIdempotency;
 use Modules\Core\Http\Middleware\ResolveTenant;
 use Modules\Core\Http\Middleware\SetAcceptLanguage;
 use Modules\Identity\Presentation\Http\Middleware\EnforceGuardTokenable;
+use Modules\Identity\Presentation\Http\Middleware\EnsureRepProfileActive;
 use Modules\Identity\Presentation\Http\Middleware\EnsureRetailerProfileActive;
 use Modules\Identity\Presentation\Http\Middleware\RequireAppKind;
 use Modules\Identity\Presentation\Http\Middleware\RequirePasswordConfirmation;
@@ -47,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'password.confirmed' => RequirePasswordConfirmation::class,
             'app.kind' => RequireAppKind::class,
             'retailer.profile' => EnsureRetailerProfileActive::class,
+            'rep.profile' => EnsureRepProfileActive::class,
         ]);
 
         $middleware->api(remove: [SubstituteBindings::class]);
