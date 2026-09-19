@@ -12,6 +12,7 @@ return [
                 'name' => 'أبو خالد',
                 'user_type' => 'retailer',
                 'profile_completed' => true,
+                'avatar' => null,
             ],
             'permissions' => ['rt.receive.confirm', 'rt.payment.record'],
             'feature_flags' => ['offline_orders' => true, 'loyalty' => true],
@@ -20,7 +21,7 @@ return [
             'requires_legal_accept' => false,
             'legal' => ['privacy_version' => '2026-03', 'terms_version' => '2026-01'],
         ],
-        'd' => 'Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081).',
+        'd' => 'Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}.',
     ]),
     ep('EP-CM-005', 'SP-01', 'POST', '/app/auth/logout', 'app', null, [
         'name' => 'App logout',

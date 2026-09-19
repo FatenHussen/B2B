@@ -17,4 +17,14 @@ final class EloquentHandoverGuard implements HandoverGuard
             ->whereHas('handover', fn ($q) => $q->where('status', HandoverStatus::Confirmed))
             ->exists();
     }
+
+    public function pendingReceiptCount(int $repUserId): int
+    {
+        return HandoverItem::query()
+            ->whereHas(
+                'handover',
+                fn ($q) => $q->where('rep_id', $repUserId)->where('status', HandoverStatus::AwaitingRepConfirm),
+            )
+            ->count();
+    }
 }

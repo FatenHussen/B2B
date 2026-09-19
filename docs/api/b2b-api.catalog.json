@@ -31,8 +31,8 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-09-19T11:50:11+00:00",
-        "endpoint_count": 348,
+        "generated_at": "2026-09-19T13:18:31+00:00",
+        "endpoint_count": 349,
         "surfaces": {
             "retailer_app": {
                 "label": "تطبيق التاجر",
@@ -3190,6 +3190,54 @@
                 "Authorization": "Bearer {{token}}",
                 "X-Device-Id": "{{deviceId}}",
                 "X-App-Version": "{{appVersion}}"
+            }
+        },
+        {
+            "code": "EP-PB-011",
+            "sprint": "SP-17",
+            "method": "GET",
+            "path": "/public/content/intro",
+            "full_path": "/api/v1/public/content/intro",
+            "audience": "public",
+            "guard": null,
+            "permission": null,
+            "auth": false,
+            "name": "Public intro (app splash)",
+            "name_ar": "انترو التطبيق",
+            "description": "Same singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists.",
+            "query": [],
+            "body": null,
+            "response": {
+                "enabled": true,
+                "text": "مرحباً بك في شبكة التوزيع",
+                "media_type": "video",
+                "media_id": "media_intro_default",
+                "duration": 8,
+                "targeting": {
+                    "activity_type_ids": [],
+                    "zone_ids": []
+                }
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "01. تطبيق التاجر / 13. المحتوى",
+            "module": "13. المحتوى",
+            "roles": [
+                "retailer",
+                "rep"
+            ],
+            "apps": [
+                "retailer_app",
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "{{client}}"
             }
         },
         {

@@ -143,7 +143,7 @@ OTP المحلي: أرسل `code` **String** `"0000"`. الرقم `0000` كـ `i
 | 9 | قائمة المنتجات | `ProductsView` | ✅ `GET /app/rep/products` + عروض |
 | 10 | قائمة العملاء | `CustomersView` | ✅ `GET /app/rep/customers` |
 | 11 | قائمة المناطق | `ZonesView` | 🟡 مناطق من التسجيل/refs + `GET .../zones/{id}/shops` — **لا** `GET /app/rep/zones` |
-| 12 | شريط النقاط والجوائز | `LoyaltyBar` | ⛔ `GET /app/loyalty` — أخفِ الشريط |
+| 12 | شريط النقاط والجوائز | `LoyaltyBar` | ⛔ `loyalty: null` على `GET /app/rep/home` — أخفِ الشريط |
 
 ---
 
@@ -178,6 +178,7 @@ dependencies:
   speech_to_text: ^7.0.0
   package_info_plus: ^8.1.2
   flutter_svg: ^2.0.16
+  video_player: ^2.9.2          # انترو إن media_type=video و media_id يبدأ بـ http
 
 flutter:
   uses-material-design: true
@@ -218,7 +219,7 @@ lib/
     repositories/                   # واجهة واحدة لكل مجال؛ الشاشة لا ترى Dio
   modules/
     splash/
-    intro/
+    intro/                          # GET /public/content/intro — ليس /platform
     auth/                           # هاتف + OTP
     register/
     shell/                          # BottomNav + AppBar مشترك
@@ -256,7 +257,7 @@ lib/
 5. التنقّل بأسماء فقط: `Get.toNamed(Routes.deliveryDetail, arguments: id)`.
 6. حوارات وأخطاء: `Get.snackbar` للنجاح القصير، `Get.dialog` للتأكيد الخطير (تعذّر، سحب نقد)، `Get.bottomSheet` للمتغيرات (علي بابا).
 7. بعد 401 (ما عدا `otp_invalid` / `otp_expired`): امسح التوكن → `Get.offAllNamed(Routes.phone)`.
-8. الضيف (`skipAuth`): `AuthMiddleware` يسمح بـ products/customers/zones قراءة محلية أو رسالة قفل عند أي كتابة.
+8. الضيف (`prefs.guest`): `AuthMiddleware` يسمح بالصدفة بلا توكن. أي خدمة (طلب/سلة/تسليم/محفظة) → «يجب أن تسجّل حساباً لاستخدام هذه الخدمة».
 
 ### 3.4 خريطة المسارات
 
@@ -286,23 +287,27 @@ lib/
 | `notifications` | `/app/notifications` | Auth |
 | `settings` | `/app/settings` | Auth |
 
-الشريط السفلي **لا يدفع مسارات جديدة** للتبويبات الخمسة — `IndexedStack` داخل `ShellView`.
+الشريط السفلي **لا يدفع مسارات جديدة** للتبويبات الثلاثة — `IndexedStack` داخل `ShellView`.
 
-### 3.5 التبويبات الخمسة (موجّه المنتج)
+### 3.5 الشريط السفلي (ثلاثة تبويبات)
+
+موجّه المنتج: **السلة — الطلبات — الرئيسية.** لا تبويب رابع.
 
 من اليمين لليسار في RTL (الأوسط هو الرئيسية):
 
 | فهرس | التبويب | الشاشة |
 |---|---|---|
 | 0 | السلة | `CartTab` |
-| 1 | الطلبات | `OrdersTab` |
+| 1 | الطلبات | `OrdersTab` (إسنادات + مجدولة + تسليم — لا `GET /app/rep/orders`) |
 | 2 | **الرئيسية** | `HomeTab` |
-| 3 | حسابي | `AccountTab` |
-| 4 | المحفظة | `WalletTab` |
 
-`initialIndex = 2`. أيقونة الرئيسية أكبر قليلاً. لا تبويب سادس.
+`initialIndex = 2`. أيقونة الرئيسية أكبر قليلاً.
 
-اختصارات المهام (تسجيل طلب، تسليم، قبول، …) تفتح مسارات فوق الصدفة (`Get.toNamed`) ثم `Get.back()`.
+الحساب والمحفظة: من رأس الرئيسية (الإعدادات) ومن أزرار المهام (استلام دفعة)، لا من الشريط.
+
+اختصارات المهام تفتح مسارات فوق الصدفة (`Get.toNamed`) ثم `Get.back()`.
+
+زائر: التبويبات ظاهرة؛ أي خدمة → §5.2.
 
 ### 3.6 نظام التصميم (مختصر)
 
@@ -446,20 +451,21 @@ class RemoteNotReady implements Exception {
 
 ## 5. الانترو · التسجيل · الجلسة
 
-### 5.1 الانترو — بيانات الإدارة
+### 5.1 الانترو — من لوحة التحكم، على التطبيق ✅
 
-موجّه المنتج: انترو قصير للّوغو مع رسالة ترحيب، يُدار من لوحة التحكم (تعديل/إضافة نص/فيديو). إن لديه حساب سابق → الرئيسية. وإلا → التسجيل.
+موجّه المنتج: انترو **قصير وسريع** (شعار التطبيق + رسالة ترحيب، فيديو اختياري). يُحرَّر من السنترال (إضافة/تعديل النص والفيديو). **حساب سابق → الرئيسية مباشرة، بلا انترو.** لا حساب → انترو ثم شاشة الهاتف/التسجيل.
 
-**من يحرّر الانترو (لوحات، ليست التطبيق):**
+**مسار التطبيق (هذا ما تستدعيه Flutter):**
 
-| المصدر | المسار | الحارس | الحالة | لتطبيق المندوب |
-|---|---|---|---|---|
-| انترو المنصة الافتراضي | `GET/PUT /platform/content/intro` | `auth:platform` | ✅ حي — إعدادات المحتوى في السنترال | ⛔ `wrong_guard` — لا تستدعِه |
-| انترو القناة | `GET/PUT /channel/content/intro` | `auth:channel` | ✅ حي — لوحة القناة | ⛔ `wrong_guard` — لا تستدعِه |
-| مسار التطبيق البعيد | `GET /public/app-config` | عام | ⛔ `AP-06` / `PA-09` | المصدر المستقبلي الوحيد |
-| بلوكات الرئيسية | `GET /app/content/home-blocks` | `auth:app` | ⛔ `AP-04` | ليست انترو الإقلاع |
+`GET /api/v1/public/content/intro` — 🔓 بلا Bearer، بلا مفتاح تكرار. **EP-PB-011 · حي.** نفس الصف الذي يكتبه الأدمن في `PUT /platform/content/intro`.
 
-`PUT` على لوحة المنصة/القناة يعيد `{ enabled }` فقط؛ شكل القراءة الكامل:
+```
+Splash ──GET /health + GET /public/content/intro──▶
+   توكن؟ ─نعم─▶ GET /app/session ─ profile مكتمل ─▶ الرئيسية (تجاوز الانترو)
+                 └ profile ناقص ─▶ Register
+   لا توكن ─ enabled==true ─▶ IntroView (duration ثوانٍ) ─▶ Phone
+            └ enabled==false ─▶ Phone (ومضة شعار ≤2ث على الـ splash فقط)
+```
 
 ```json
 {
@@ -472,36 +478,66 @@ class RemoteNotReady implements Exception {
 }
 ```
 
-صف شاغر على المنصة: `enabled: false`, `text/media_*: null`, `duration: 0`, targeting فارغ.
+مخزن فارغ (بعد `migrate:fresh` وقبل أن يحفظ الأدمن): `enabled: false`, `text`/`media_*` = `null`, `duration: 0`. هذا **صحيح** — لا تُحاكِ فيديو.
 
-ابنِ `IntroContent.fromJson` على **هذا الشكل حرفياً** حتى يكون الربط لاحقاً استبدال مصدر لا إعادة تصميم. لا `media_url` ولا `logo_url` في العقد — الوسيط `media_id` نص؛ اليوم يُحلّ من `assets/intro/`.
+| المفتاح | ماذا يعرض التطبيق |
+|---|---|
+| `enabled` | `false` → لا شاشة انترو. `true` → اعرض ثم انتقل تلقائياً بعد `duration` (سقف 8 ث) أو لمسة «تخطي» |
+| `text` | جملة الترحيب تحت الشعار. `null` → الشعار فقط |
+| `media_type` | `image` \| `video` \| `null` |
+| `media_id` | نص غامض **ليس URL**. إن بدأ بـ `http` شغّله كرابط؛ وإلا ابحث `assets/intro/{media_id}`؛ وإلا الشعار المحلي فقط. لا رفع وسائط على الخادم اليوم |
+| `duration` | ثوانٍ صحيحة. `0` مع `enabled=true` → اعتبر 3 |
+| `targeting` | **تجاهله** في أول تشغيل — لا منطقة بعد |
 
-اليوم: `IntroLocalSource` من `assets/intro/` (لوغو + نص افتراضي + فيديو اختياري ≤ 8 ث، `duration` كما في JSON أو 2ث إن `enabled=false`). `IntroRemoteSource.fetch()` يرمي `RemoteNotReady('GET /public/app-config','AP-06')` ويُتجاهل — **حتى يصبح app-config حيّاً**. لا تُعوّض باستدعاء `/platform/content/intro`.
+```dart
+class IntroContent {
+  final bool enabled;
+  final String? text, mediaType, mediaId;
+  final int duration;
+  factory IntroContent.fromJson(Map<String, dynamic> j) => IntroContent(
+    enabled: j['enabled'] == true,
+    text: j['text'] as String?,
+    mediaType: j['media_type'] as String?,
+    mediaId: j['media_id'] as String?,
+    duration: (j['duration'] as int?) ?? 0,
+  );
+}
 
-`SplashController` (أول إطار):
+class ContentService extends BaseService {
+  Future<IntroContent> intro() => guard(() async =>
+      (await api.get('/public/content/intro', (d) => IntroContent.fromJson(d as Map<String, dynamic>))).data);
+}
+```
 
-1. اقرأ التوكن.
-2. لا توكن → `IntroView` (مدة `duration` أو 2ث إن `enabled=false`) ثم `PhoneView`.
-3. توكن → `GET /app/session`.
-   - `user_type != rep` → اخرج.
+كاش في `LocalStore` بعد نجاح الجلب؛ إن فشل الشبكة بلا كاش: ومضة الشعار المحلي ≤2ث ثم الهاتف — لا علّق الإقلاع.
+
+**ممنوع من هذا التطبيق:** `GET/PUT /platform/content/intro` و`GET/PUT /channel/content/intro` → 403 `wrong_guard`. الأدمن يحرّر هناك؛ التطبيق **يقرأ** `/public/content/intro` فقط. `GET /public/app-config` ما زال ⛔ (تحديث إجباري) — ليس مصدر الانترو.
+
+`SplashController`:
+
+1. بالتوازي: `GET /health` + إن **لا** توكن `GET /public/content/intro`.
+2. توكن → `GET /app/session` — تجاوز الانترو.
+   - `user_type == retailer` → اخرج («هذا الحساب تاجر»).
    - `profile_completed == false` → `RegisterView`.
-   - وإلا → `ShellView`.
-4. فشل شبكة مع توكن: ادخل الصدفة من كاش الجلسة إن وُجد، شارة رمادي.
+   - وإلا → `ShellView` (المهام والجولة والتحصيل — §6).
+3. لا توكن + `enabled` → `IntroView` ثم `PhoneView`.
+4. شبكة مع توكن: صدفة من كاش الجلسة إن وُجد.
 
-لا شاشة تسويقية طويلة. الشعار + جملة واحدة.
+لا شاشة تسويقية طويلة. شعار + جملة واحدة + فيديو اختياري.
 
 ### 5.2 تخطّي التسجيل (زائر) 🧩
 
-موجّه المنتج: يمكن التخطي والتصفح كزائر؛ أي خدمة تطلب حساباً تعرض «يجب أن تسجّل».
+موجّه المنتج: يمكن تخطّي التسجيل والتصفح **كزائر** للاطلاع على الرئيسية؛ عند طلب أي خدمة تظهر **«يجب أن تسجّل حساباً لاستخدام هذه الخدمة»**.
 
-الخادم **لا يعرف الضيف.** كل `/app/rep/*` و`/app/session` تطلب Bearer.
+الخادم **لا يعرف الضيف.** لا توكن زائر. `GET /app/rep/home` بلا Bearer → 401 `unauthenticated`. كل `/app/rep/*` و`/app/session` تطلب حساباً.
 
 التنفيذ المحلي:
 
-- زر «تصفّح كزائر» على شاشة الهاتف يضبط `prefs.guest = true` ويفتح الصدفة.
-- التبويبات: منتجات/عملاء/مناطق تُظهر رسالة «سجّل لعرض بيانات قناتك» (بلا استدعاء API).
-- أي زر كتابة (`Get.dialog` → `Routes.phone`).
-- لا توكن ضيف. لا `X-Idempotency-Key` بلا جلسة.
+- زر «تصفّح كزائر» على شاشة الهاتف يضبط `prefs.guest = true` ويفتح الصدفة (الرئيسية بعلامات صفر ليتعلّم المهام والجولة والتحصيل).
+- لا تستدعِ أي `/app/*` وأنت زائر.
+- أي خدمة (طلب، سلة، تسليم، محفظة، إضافة محل، داخل الخدمة، الإشعارات): حوار **«يجب أن تسجّل حساباً لاستخدام هذه الخدمة»** ثم `Routes.phone`.
+- الدوائر الثلاث (منتجات / عملاء / مناطق) نفس القفل.
+- لا `X-Idempotency-Key` بلا جلسة.
 
 ### 5.3 طلب OTP ✅ — معفى من التكرار
 
@@ -670,29 +706,32 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 - إن 422 `zone_ids` بعد التسجيل: أزل المعرّفات المرفوضة واشرح «خارج تغطية القناة».
 - إضافة منطقة لاحقاً (`POST /app/rep/zones`) ترسل `zone_id` واحداً لا مصفوفة.
 
-منتقي قناة التوريد في التسجيل (موجّه المنتج يطلبه):
+منتقي قناة التوريد: موجّه المنتج يطلب قائمة منسدلة. **`GET /public/refs` لا يحتوي قنوات** (REQ-IN-06) ولا يوجد `GET /channels`. لا تختلق دليلاً.
 
-1. رابط دعوة `b2b-rep://join?channel_id=1` (و`--dart-define=DEFAULT_CHANNEL_ID=1` للتجربة).
-2. حقل معرّف للقناة خلف ضغط طويل على الشعار — للمختبرين فقط.
-3. إن 409 `conflict` القناة غير نشطة → «القناة غير متاحة».
-4. احفظ آخر `supply_channel_id` نجح.
+الويدجت: `DropdownButton` بعنصر واحد أو أكثر من مصادر حقيقية فقط:
+
+1. رابط دعوة `b2b-rep://join?channel_id=1`.
+2. `--dart-define=DEFAULT_CHANNEL_ID=1` للتجربة بعد الزرع (قناة `demo-channel`).
+3. آخر `supply_channel_id` نجح، محفوظ محلياً.
+
+إن القائمة فارغة: حقل «رمز الانضمام» رقمي يُرسل كما هو. 409 `conflict` → «القناة غير متاحة». **اختيار واحد** (`supply_channel_id` int) — ليست متعددة.
 
 ### 5.7 إكمال التسجيل ✅ 🔁 → 201
 
-تظهر فقط بتوكن قدرة `registration`. الهدف: أقل من 60 ثانية. لا بريد.
+تظهر فقط بتوكن قدرة `registration`. الهدف: **أقل من 60 ثانية**، بلا تعقيد ثانٍ. لا بريد إلكتروني. لا كلمة سر.
 
-**الحقول على الشاشة (من §5.6):**
+**الحقول — قوائم منسدلة حيث يوجد مصدر حي:**
 
-| الشاشة | ويدجت | مصدر refs | يُرسل |
-|---|---|---|---|
-| الاسم | نص | — | `name` |
-| نوع النشاط | قائمة منسدلة **واحدة** | `activity_types` · `id`/`name` | `activity_type_id` |
-| المحافظة | قائمة منسدلة **واحدة** | `governorates` · فلتر فقط | لا يُرسل |
-| مناطق التغطية | قائمة منسدلة **متعددة** | `zones` مجمّعة بـ `governorate_id` | `zone_ids: [12, 13]` min 1 |
-| ملاحظة | نص اختياري | — | `note` |
-| قناة التوريد | دعوة / define / حقل مخفي | ليست في refs | `supply_channel_id` |
+| الشاشة | ويدجت | مصدر | يُرسل | اختيار |
+|---|---|---|---|---|
+| اسم المندوب | حقل نص | — | `name` | — |
+| قناة التوريد | قائمة منسدلة **واحدة** | دعوة / define / آخر نجاح — **ليست** في refs | `supply_channel_id` | واحد |
+| نوع النشاط | قائمة منسدلة **واحدة** | `refs.activity_types` · `id` / `name` | `activity_type_id` | واحد |
+| المحافظة | قائمة منسدلة **واحدة** | `refs.governorates` | لا يُرسل | فلتر للمناطق فقط |
+| المناطق التي يغطيها | قائمة منسدلة **متعددة** (chips) | `refs.zones` مجمّعة بـ `governorate_id` | `zone_ids: [12, 13]` | متعدد، min 1 |
+| ملاحظة | حقل نص اختياري | — | `note` | — |
 
-لا `CheckboxList` طويلة لكل سوريا — `MultiSelect` / chips بعد اختيار المحافظة. القيمة دائماً `int` id لا الاسم.
+لا `CheckboxList` لكل سوريا. القيمة دائماً `int` id لا الاسم. زر **«إنهاء التسجيل والدخول»** يستدعي المسار ثم يستبدل التوكن ويدخل الرئيسية.
 
 `POST /api/v1/app/rep/register`
 
@@ -748,7 +787,8 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
       "id": 70,
       "name": "عمر الشامي",
       "user_type": "rep",
-      "profile_completed": true
+      "profile_completed": true,
+      "avatar": null
     },
     "permissions": [
       "rp.delivery.accept", "rp.delivery.deliver", "rp.delivery.postpone",
@@ -763,7 +803,8 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
     "commercial_limits": {
       "max_discount_percent": 10,
       "max_cash_hold": 5000000
-    }
+    },
+    "duty": { "on_duty": true, "tracking_enabled": true }
   }
 }
 ```
@@ -772,12 +813,14 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 |---|---|
 | `commercial_limits.max_discount_percent` | شريط الخصم في السلة. **0 = أخفِ الحقل** |
 | `max_cash_hold` | سقف التحصيل. **0 = لا سقف** (أخفِ التحذير) |
+| `duty.on_duty` | مفتاح داخل/خارج الخدمة في رأس الرئيسية |
+| `user.avatar` | دائماً `null` — حرف من الاسم |
 | `feature_flags.offline_orders` | اليوم `false` — الطابور المحلي إعادة طلبات حيّة لا sync API |
 | `feature_flags.loyalty` | إن false أخفِ شريط النقاط |
 | `sync_cursor` | سلسلة فارغة — لا شريط مزامنة خادم |
 | `permissions` | لا تخفِ شاشات |
 
-🟡 الجلسة **لا تُرجع المناطق ولا الصورة**. الاسم من هنا. المناطق من التسجيل/refs.
+🟡 الجلسة **لا تُرجع المناطق**. الاسم من هنا. الصورة حرف. المناطق من التسجيل/refs.
 
 ### 5.9 المناوبة ✅ 🔁
 
@@ -818,52 +861,77 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 ## 6. الرئيسية (موجّه المنتج)
 
-الهدف: كل صباح تعطي المندوب مهامه وجولته وتحصيلاته.
+الهدف: الشاشة التي يفتحها المندوب كل صباح. تعطي كل ما يحتاجه: مهامه، جولته، وتحصيلاته (طلبات التجار النقدية وتسجيلها وتسليمها).
 
-### 6.1 الـ AppBar (مشترك للصدفة)
+**مسار التطبيق:** `GET /api/v1/app/rep/home` — **EP-RP-002 · حي.** توكن `app.kind:rep`. بلا مفتاح تكرار. **لا** تستدعِ `GET /deliveries` من هنا (ذلك المسار يخلق صفوف تسليم).
 
-| عنصر المنتج | المصدر |
-|---|---|
-| أهلاً بك + اسم + صورة | `session.user.name` — ⛔ لا صورة من الخادم: حرف من الاسم |
-| اليوم والتاريخ | `server_time` أو ساعة الجهاز إن انقطع |
-| زر الإشعارات | ⛔ صندوق 404 — الشارة 0، الشاشة فارغة صادقة |
-| حالة الاتصال | §4.5 |
-| مزامنة يدوية | إن outbox &gt; 0 |
-| داخل/خارج الخدمة | `PATCH /status` |
-| شريط النقاط | ⛔ أخفه إن `loyalty != true` |
+زائر: لا تستدعِ هذا المسار. اعرض الهيكل بعلامات صفر وقفل §5.2.
 
-### 6.2 بلوك المهام — ستة أزرار
+```json
+{
+  "greeting": { "name": "عمر الشامي", "avatar": null },
+  "server_time": "2026-09-19T09:12:44+03:00",
+  "on_duty": true,
+  "tracking_enabled": true,
+  "tasks": {
+    "orders_today": 0,
+    "deliveries_pending": 3,
+    "collected_today": 48000,
+    "assignments": 2,
+    "scheduled": 1,
+    "warehouse_receipts": 2
+  },
+  "loyalty": null,
+  "unread_notifications": 0
+}
+```
 
-كل زر: أيقونة + كتابة + رقم من الحيّ. لا تُختلق الأرقام.
+`collected_today` عدد صحيح بأصغر وحدة (ل.س). `loyalty: null` → أخفِ شريط النقاط. `unread_notifications` اليوم 0 حتى صندوق الإشعارات (AP-02).
 
-| الزر | العدّاد | النقر |
-|---|---|---|
-| تسجيل طلب | عدد أقسام `GET /cart` اليوم محلياً (إن عُرف) وإلا أخفِ الرقم | `OrderCaptureView` |
-| تسليم طلبات | مجموع `zones[].total - delivered` من `GET /deliveries` | `DeliveriesView` |
-| استلام دفعة | `wallet.today.collected` | `CollectPaymentView` |
-| قبول الطلبات | `assignments.length` | `AssignmentsView` |
-| طلبات مجدولة | `scheduled-orders.length` | `ScheduledOrdersView` |
-| استلام مستودع | `warehouse-receipts.count` | `WarehouseReceiptsView` |
-
-لا تستطلع `GET /deliveries` كل ثانية — له أثر كتابة (يضمن صف تسليم). اسحب-للتحديث أو عند فتح التبويب.
-
-### 6.3 ثلاث دوائر
-
-منتجات · عملاء · مناطق → تبويب/مسار كل منها.
-
-### 6.4 تجميع الرئيسية ✅ (بدون `home-blocks`)
-
-عند `onReady` بالتوازي (`Future.wait`):
-
-1. `GET /app/rep/assignments`
-2. `GET /app/rep/warehouse-receipts`
-3. `GET /app/rep/wallet`
-4. `GET /app/rep/deliveries` (مرة واحدة)
-5. `GET /app/rep/cart` (لعدّاد السلة)
+اسحب-للتحديث يعيد `GET /home` فقط.
 
 فارغ: «لا إسنادات ولا عهدة. ابدأ بزيارة محل.»
 
-⛔ لا بنرات ولا سلايدر من الخادم حتى `AP-04`.
+### 6.1 الرأس (Header)
+
+| عنصر المنتج | المصدر |
+|---|---|
+| أهلاً بك + اسم + صورة البروفايل | `greeting.name` — `avatar` دائماً `null`: حرف من الاسم بجانب الترحيب |
+| اليوم والتاريخ | `server_time` أو ساعة الجهاز إن انقطع |
+| زر الإشعارات | الشارة = `unread_notifications` (0). الشاشة: ⛔ صندوق 404 فارغ صادق |
+| حالة الاتصال | §4.5 أخضر متصل / رمادي غير متصل / أصفر مزامنة معلّقة |
+| مزامنة يدوية | يظهر فقط إن outbox > 0 — يفرّغ الطابور الحيّ. لا `/app/sync/*` |
+| داخل/خارج الخدمة | مفتاح من `on_duty`. الكتابة: `PATCH /app/rep/status` `{on_duty}`. جاهز للعمل أو خارج الخدمة |
+| شريط النقاط والجوائز | ⛔ `loyalty == null` — أخفِ الشريط. لا `GET /app/loyalty` |
+
+### 6.2 بلوك المهام — ستة أزرار
+
+كل زر: أيقونة + كتابة + رقم من `data.tasks`. لا تُختلق الأرقام. زائر: أرقام 0 والقفل عند النقر.
+
+| الزر | العدّاد | النقر |
+|---|---|---|
+| تسجيل طلب | `tasks.orders_today` | `OrderCaptureView` |
+| تسليم طلبات | `tasks.deliveries_pending` (ينقص بعد كل تسليم عند إعادة الجلب) | `DeliveriesView` |
+| استلام دفعة | `tasks.collected_today` (مال) | `CollectPaymentView` |
+| قبول الطلبات | `tasks.assignments` | `AssignmentsView` |
+| طلبات مجدولة | `tasks.scheduled` | `ScheduledOrdersView` |
+| استلام مستودع | `tasks.warehouse_receipts` | `WarehouseReceiptsView` |
+
+شاشات التفاصيل ما زالت تستدعي مساراتها (`GET /assignments`، `GET /deliveries` عند فتح التسليم فقط، …).
+
+### 6.3 ثلاث دوائر — صورة مخصّصة + اسم
+
+| الدائرة | النقر |
+|---|---|
+| المنتجات | `ProductsView` |
+| العملاء | `CustomersView` |
+| المناطق | `ZonesView` |
+
+زائر: نفس رسالة القفل. لا بنرات ولا سلايدر من الخادم حتى `AP-04` (`home-blocks`).
+
+### 6.4 الشريط السفلي
+
+§3.5: السلة — الطلبات — الرئيسية.
 
 ---
 
@@ -1610,7 +1678,8 @@ POST   /app/devices/push-token   { token, platform }
 |---|---|---|---|---|
 | EP-CORE-001 | GET | `/health` | | ✅ |
 | EP-PB-001 | GET | `/public/refs` | | ✅ |
-| EP-PB-010 | GET | `/public/app-config` | | ⛔ |
+| EP-PB-011 | GET | `/public/content/intro` | | ✅ انترو الإقلاع |
+| EP-PB-010 | GET | `/public/app-config` | | ⛔ تحديث إجباري — ليس الانترو |
 | EP-CM-001 | POST | `/public/auth/request-otp` | لا | ✅ |
 | EP-CM-002 | POST | `/public/auth/verify-otp` | لا | ✅ |
 | EP-CM-003 | POST | `/public/auth/resend-otp` | لا | ✅ |
@@ -1630,11 +1699,12 @@ POST   /app/devices/push-token   { token, platform }
 | EP-APP-100 | GET | `/app/content/home-blocks` | | ⛔ |
 | EP-APP-110…111 | * | ولاء | | ⛔ |
 
-### 11.3 مندوب — 29/29 حيّ حسب `status/05-rep-app.md`
+### 11.3 مندوب — حسب `status/05-rep-app.md`
 
 | EP | طريقة | المسار | 🔁 |
 |---|---|---|---|
 | EP-RP-001 | POST | `/app/rep/register` | ✔ |
+| EP-RP-002 | GET | `/app/rep/home` | |
 | EP-RP-034 | PATCH | `/app/rep/status` | ✔ |
 | EP-RP-010 | GET | `/app/rep/products` | |
 | EP-RP-070A | GET | `/app/rep/customers` | |
@@ -1669,8 +1739,8 @@ POST   /app/devices/push-token   { token, platform }
 | المسار | السبب |
 |---|---|
 | أي `/channel/*` `/platform/*` `/warehouse/*` `/app/retailer/*` | حارس خاطئ → 403 `wrong_guard` |
-| `GET/PUT /platform/content/intro` | ✅ حي للسنترال فقط — انترو التطبيق محلي حتى `app-config` |
-| `GET/PUT /channel/content/intro` | ✅ حي للوحة القناة فقط |
+| `GET/PUT /platform/content/intro` | كتابة/قراءة السنترال — التطبيق يقرأ `GET /public/content/intro` |
+| `GET/PUT /channel/content/intro` | لوحة القناة فقط |
 | `GET /app/rep/zones` | غير موجود |
 | `PATCH/DELETE /app/rep/cart/lines/{id}` | غير موجود للمندوب (موجود للتاجر فقط) |
 | `GET /app/rep/products/{id}` | غير موجود |
@@ -1768,6 +1838,7 @@ class Money {
 | `Wallet` | `net_balance`, `stats.*`, `today.*` |
 | `Receivables` | `by_shop[].retailer_id/shop/total/invoices[]` |
 | `PublicRefs` | الحاكمات، المناطق، الأنشطة، الفئات، الوحدات، التجهيزات، `sync_cursor` |
+| `IntroContent` | `enabled`, `text`, `media_type`, `media_id`, `duration`, `targeting` — من `GET /public/content/intro` |
 
 `explicitToJson` ليس ضرورياً. `fromJson` يدوي مفضّل على codegen إن اختلف الكتالوج عن الحيّ — هذا الملف يوثّق الحيّ.
 
@@ -1815,7 +1886,7 @@ class Money {
 
 | حاجة المنتج | الخادم اليوم | Flutter |
 |---|---|---|
-| انترو من الأدمن (نص/فيديو/لوغو) | السنترال ✅ `GET/PUT /platform/content/intro`؛ القناة ✅ `/channel/content/intro`؛ التطبيق ⛔ لا مسار (`app-config`) | `IntroLocalSource` + `IntroContent` بنفس JSON الخادم |
+| انترو من الأدمن (نص/فيديو/لوغو) | التطبيق ✅ `GET /public/content/intro` (نفس صف `PUT /platform/content/intro`) | `ContentService.intro()` — حساب سابق يتجاوز الشاشة |
 | تخطّي كزائر | لا ضيف | قفل محلي على الكتابة |
 | دليل القنوات عند التسجيل | ممنوع في `/public/refs` | دعوة / معرّف تجربة / قناة البذرة `1` |
 | صور منتجات ومحلات | `image` null في قائمة المندوب | placeholder |
@@ -1846,8 +1917,8 @@ class Money {
 اعمل الشاشات الناقصة بهذا الترتيب. لا تبدأ بموضوع ⛔. لا تضف مسارات مخترعة.
 
 1. **العميل:** Dio + غلاف + مال int + هاتف سوري + ترويسات + تكرار على الكتابات فقط.
-2. **Splash → Intro محلي → Phone → OTP 4 خانات `"0000"` → session.**
-3. **Register:** `GET /public/refs` → قائمة نشاط واحدة + قائمة مناطق **متعددة** (`zone_ids`) مجمّعة بالمحافظة + `supply_channel_id` من define/دعوة + استبدال التوكن.
+2. **Splash → `GET /public/content/intro` إن لا توكن → Phone → OTP `"0000"` → session.** توكن موجود يتجاوز الانترو إلى الرئيسية.
+3. **Register:** `GET /public/refs` → نشاط قائمة واحدة + مناطق **متعددة** + قناة قائمة واحدة من الدعوة/define (لا دليل قنوات) + استبدال التوكن. هدف أقل من 60 ثانية. لا بريد.
 4. **Shell** 5 تبويبات + مناوبة + شارة اتصال.
 5. **Home** يجمع العدادات من 5 GET حيّة.
 6. **Order capture:** منطقة → محل → منتجات → quote → cart lines → شريط عائم → submit.
@@ -1858,7 +1929,7 @@ class Money {
 11. **Offers.**
 12. **Location ping** عند on_duty.
 13. **Outbox** لانقطاع الشبكة.
-14. **Notifications / Loyalty / Intro remote / Sync remote:** UI أو إخفاء حسب الجدول، بلا استدعاء 404 في الإنتاج.
+14. **Notifications / Loyalty / Sync remote:** UI أو إخفاء حسب الجدول، بلا استدعاء 404. الانترو **بعيد وحيّ** (`GET /public/content/intro`).
 15. **زائر:** قفل الكتابة.
 16. **خطأ 401** → الهاتف. `otp_*` يبقى. 404 «غير موجود». مال بلا كسور. RTL.
 
@@ -1872,7 +1943,7 @@ class Money {
 
 ### 16.1 أول تشغيل لمندوب البذرة
 
-`health` → هاتف `0932000001` `purpose=login` → OTP `0000` → الرئيسية. المناوبة كما في البذرة (عمر: true).
+`health` + إن لا توكن `GET /public/content/intro` → انترو إن `enabled` → هاتف `0932000001` `purpose=login` → OTP `0000` → الرئيسية (تجاوز الانترو في التشغيل التالي لأن التوكن موجود). المناوبة كما في البذرة (عمر: true).
 
 ### 16.2 رقم جديد
 
@@ -1890,6 +1961,10 @@ class Money {
 
 محفظة → ذمم → سحب برقم المحاسب → سجل + PDF محلي.
 
+### 16.6 زائر
+
+انترو → هاتف → «تصفّح كزائر» → الرئيسية بلا توكن. أي طلب/سلة/تسليم/محفظة: «يجب أن تسجّل حساباً لاستخدام هذه الخدمة» → شاشة الهاتف.
+
 ---
 
 ## 17. صلاحيات الكتالوج (مرجع — غير مفروضة على التطبيق)
@@ -1903,8 +1978,8 @@ class Money {
 - ✅ `GET /public/refs` حي ومُدرج في `flutter-rep.json` `endpoints` (ليس في `forbidden`).
 - ✅ الذمم تُرجع `retailer_id`.
 - ✅ الصحة تُرجع `app` `env` `checks` وقد تكون `degraded`.
-- ✅ انترو المنصة الافتراضي حي على السنترال: `GET/PUT /platform/content/intro` (`ad.content.view` / `ad.content.manage`). انترو القناة حي على `/channel/content/intro`. التطبيق **لا** يستدعي أياً منهما (`wrong_guard`).
-- ⛔ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` ما زالت ناقصة (`plan/apps.md` AP-02…06). انترو التطبيق يبقى محلياً حتى `GET /public/app-config`.
+- ✅ انترو التطبيق: `GET /public/content/intro` (EP-PB-011، بلا حارس). الأدمن يحرّر `PUT /platform/content/intro`. التطبيق **لا** يستدعي `/platform` ولا `/channel` (`wrong_guard`). حساب سابق يتجاوز الانترو.
+- ⛔ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` ما زالت ناقصة (`plan/apps.md` AP-02…06). `app-config` للتحديث الإجباري فقط، ليس للانترو.
 - هذا الملف يضيف: GetX، موجّه المنتج، زائر، انترو، outbox، علي بابا، PDF محلي، وخريطة صريحة للفجوات.
 
 عندما يصل مستودع Flutter: راجع كل شاشة مقابل §15 وهذا الملف، وأكمل الناقص دون اختراع API.

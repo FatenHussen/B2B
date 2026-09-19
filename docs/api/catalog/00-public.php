@@ -29,6 +29,21 @@ return [
         'd' => 'Called on every app launch (REQ-AD-073, 074). Stale X-App-Version → 426.',
     ]),
 
+    ep('EP-PB-011', 'SP-17', 'GET', '/public/content/intro', 'public', null, [
+        'name' => 'Public intro (app splash)',
+        'name_ar' => 'انترو التطبيق',
+        'auth' => false,
+        'r' => [
+            'enabled' => true,
+            'text' => 'مرحباً بك في شبكة التوزيع',
+            'media_type' => 'video',
+            'media_id' => 'media_intro_default',
+            'duration' => 8,
+            'targeting' => ['activity_type_ids' => [], 'zone_ids' => []],
+        ],
+        'd' => 'Same singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists.',
+    ]),
+
     ep('EP-PB-001', 'SP-03', 'GET', '/public/refs', 'public', null, [
         'name' => 'Public reference snapshot',
         'name_ar' => 'المرجعيات العامة للتسجيل',

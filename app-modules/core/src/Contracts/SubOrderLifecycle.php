@@ -61,6 +61,20 @@ interface SubOrderLifecycle
     public function idsForRep(int $repUserId, array $statuses): array;
 
     /**
+     * How many of this rep's sub-orders sit in `$statuses`. A number, never a row —
+     * Identity's morning home (EP-RP-002) must not load Ordering models.
+     *
+     * @param  list<string>  $statuses
+     */
+    public function countForRep(int $repUserId, array $statuses): int;
+
+    /**
+     * Sub-orders this rep submitted from the app today (Damascus calendar). Source
+     * `rep_app` plus the pending event they wrote — not assignments the channel handed them.
+     */
+    public function countRegisteredToday(int $repUserId): int;
+
+    /**
      * Every sub-order id that belongs to a retailer, across channels — the owner side of
      * an app-facing list that must filter in its query rather than after it (BE-C12).
      *

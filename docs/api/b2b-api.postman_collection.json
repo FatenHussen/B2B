@@ -8200,6 +8200,122 @@
                                     "body": "{\n    \"data\": {\n        \"banners\": [\n            {\n                \"id\": 9,\n                \"image\": \"https://cdn.example/b/9.jpg\",\n                \"link\": {\n                    \"type\": \"offer\",\n                    \"target\": 44\n                }\n            }\n        ],\n        \"sliders\": [\n            {\n                \"key\": \"best_selling\",\n                \"title\": \"الأكثر مبيعاً\",\n                \"items\": [],\n                \"show_all\": true\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
+                        },
+                        {
+                            "name": "EP-PB-011 Public intro (app splash)",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "retailer-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/public/content/intro",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "public",
+                                        "content",
+                                        "intro"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-PB-011** · SP-17 · انترو التطبيق\n\nالدور: **التاجر** (`retailer`)\n\nSame singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists.",
+                                "auth": {
+                                    "type": "noauth"
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-PB-011",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "retailer-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/public/content/intro",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "public",
+                                                "content",
+                                                "intro"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-PB-011** · SP-17 · انترو التطبيق\n\nالدور: **التاجر** (`retailer`)\n\nSame singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists.",
+                                        "auth": {
+                                            "type": "noauth"
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"enabled\": true,\n        \"text\": \"مرحباً بك في شبكة التوزيع\",\n        \"media_type\": \"video\",\n        \"media_id\": \"media_intro_default\",\n        \"duration\": 8,\n        \"targeting\": {\n            \"activity_type_ids\": [],\n            \"zone_ids\": []\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -15965,6 +16081,122 @@
                                         }
                                     ],
                                     "body": "{\n    \"data\": {\n        \"banners\": [\n            {\n                \"id\": 9,\n                \"image\": \"https://cdn.example/b/9.jpg\",\n                \"link\": {\n                    \"type\": \"offer\",\n                    \"target\": 44\n                }\n            }\n        ],\n        \"sliders\": [\n            {\n                \"key\": \"best_selling\",\n                \"title\": \"الأكثر مبيعاً\",\n                \"items\": [],\n                \"show_all\": true\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-PB-011 Public intro (app splash)",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/public/content/intro",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "public",
+                                        "content",
+                                        "intro"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-PB-011** · SP-17 · انترو التطبيق\n\nالدور: **المندوب** (`rep`)\n\nSame singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists.",
+                                "auth": {
+                                    "type": "noauth"
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-PB-011",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/public/content/intro",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "public",
+                                                "content",
+                                                "intro"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-PB-011** · SP-17 · انترو التطبيق\n\nالدور: **المندوب** (`rep`)\n\nSame singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists.",
+                                        "auth": {
+                                            "type": "noauth"
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"enabled\": true,\n        \"text\": \"مرحباً بك في شبكة التوزيع\",\n        \"media_type\": \"video\",\n        \"media_id\": \"media_intro_default\",\n        \"duration\": 8,\n        \"targeting\": {\n            \"activity_type_ids\": [],\n            \"zone_ids\": []\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }

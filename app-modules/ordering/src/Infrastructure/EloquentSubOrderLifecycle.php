@@ -14,6 +14,7 @@ use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\Tenant;
+use Modules\Ordering\Domain\Enums\OrderSource;
 use Modules\Ordering\Domain\Models\SubOrder;
 use Modules\Ordering\Domain\Models\SubOrderEvent;
 use Modules\Ordering\Domain\SubOrderStateMachine;
@@ -187,6 +188,29 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all());
+    }
+
+    public function countForRep(int $repUserId, array $statuses): int
+    {
+        return Tenant::withoutScope(fn () => SubOrder::query()
+            ->where('rep_id', $repUserId)
+            ->whereIn('status', $statuses)
+            ->count());
+    }
+
+    public function countRegisteredToday(int $repUserId): int
+    {
+        $start = now('Asia/Damascus')->startOfDay()->timezone('UTC');
+        $end = now('Asia/Damascus')->endOfDay()->timezone('UTC');
+
+        return Tenant::withoutScope(fn () => SubOrder::query()
+            ->where('source', OrderSource::RepApp)
+            ->whereBetween('created_at', [$start, $end])
+            ->whereHas(
+                'events',
+                fn ($q) => $q->where('actor_id', $repUserId)->where('stage', 'pending'),
+            )
+            ->count());
     }
 
     public function idsForRetailer(int $retailerId): array

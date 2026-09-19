@@ -34,6 +34,11 @@ class OrderingServiceProvider extends ServiceProvider
                 {
                     return false;
                 }
+
+                public function pendingReceiptCount(int $repUserId): int
+                {
+                    return 0;
+                }
             });
         }
 

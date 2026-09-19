@@ -19,7 +19,9 @@ it('exposes the rep commercial limits on session', function () {
     $empty = $this->getJson('/api/v1/app/session');
     CatalogAssert::ok($empty, ['user', 'permissions', 'feature_flags', 'commercial_limits']);
     expect($empty->json('data.commercial_limits.max_discount_percent'))->toBe(0)
-        ->and($empty->json('data.commercial_limits.max_cash_hold'))->toBe(0);
+        ->and($empty->json('data.commercial_limits.max_cash_hold'))->toBe(0)
+        ->and($empty->json('data.duty.on_duty'))->toBeFalse()
+        ->and($empty->json('data.user.avatar'))->toBeNull();
 
     $manager = ChannelUser::factory()->forChannel($channel)->create();
     $manager->assignRole('channel_manager');

@@ -7,6 +7,7 @@ namespace Modules\Identity\Application\Queries;
 use Modules\Core\Contracts\AccessCatalog;
 use Modules\Core\Contracts\RepCommercialLimits;
 use Modules\Core\Contracts\RepDirectory;
+use Modules\Core\Contracts\RepDutyLookup;
 use Modules\Identity\Domain\Enums\AppUserKind;
 use Modules\Identity\Domain\Models\AppUser;
 
@@ -16,6 +17,7 @@ final class AppSession
         private readonly AccessCatalog $access,
         private readonly RepDirectory $reps,
         private readonly RepCommercialLimits $limits,
+        private readonly RepDutyLookup $duty,
     ) {}
 
     /**
@@ -31,6 +33,7 @@ final class AppSession
                 'name' => $user->name,
                 'user_type' => $user->kind?->value,
                 'profile_completed' => $user->profileCompleted(),
+                'avatar' => null,
             ],
             'permissions' => $this->access->permissionsFor($user),
             'feature_flags' => config('app.feature_flags', [
@@ -51,6 +54,10 @@ final class AppSession
             $payload['commercial_limits'] = [
                 'max_discount_percent' => $channelId === null ? 0 : $this->limits->maxDiscountPercent($channelId, (int) $user->id),
                 'max_cash_hold' => $channelId === null ? 0 : $this->limits->maxCashHold($channelId, (int) $user->id),
+            ];
+            $payload['duty'] = [
+                'on_duty' => $this->duty->isOnDuty((int) $user->id),
+                'tracking_enabled' => $this->duty->trackingEnabled((int) $user->id),
             ];
         }
 

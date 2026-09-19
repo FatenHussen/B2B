@@ -7149,6 +7149,89 @@
                 ]
             }
         },
+        "/api/v1/public/content/intro": {
+            "get": {
+                "operationId": "EP-PB-011",
+                "summary": "Public intro (app splash)",
+                "description": "انترو التطبيق\n\nSame singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists.",
+                "tags": [
+                    "retailer_app",
+                    "rep_app",
+                    "التاجر",
+                    "المندوب"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "enabled": true,
+                                        "text": "مرحباً بك في شبكة التوزيع",
+                                        "media_type": "video",
+                                        "media_id": "media_intro_default",
+                                        "duration": 8,
+                                        "targeting": {
+                                            "activity_type_ids": [],
+                                            "zone_ids": []
+                                        }
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-sprint": "SP-17",
+                "x-code": "EP-PB-011",
+                "x-guard": null,
+                "x-audience": "public",
+                "x-roles": [
+                    "retailer",
+                    "rep"
+                ],
+                "x-apps": [
+                    "retailer_app",
+                    "rep_app"
+                ],
+                "security": []
+            }
+        },
         "/api/v1/app/loyalty": {
             "get": {
                 "operationId": "EP-APP-110",

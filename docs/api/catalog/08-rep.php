@@ -23,7 +23,29 @@ return [
             ],
             'token' => '50|rep_xxxxx',
         ],
-        'd' => 'Channel must be active; zones must be inside its coverage (TB-RP-010).',
+        'd' => 'Channel must be active; zones must be inside its coverage (TB-RP-010). No email field — reps authenticate by Syrian mobile only.',
+    ]),
+
+    ep('EP-RP-002', 'SP-01', 'GET', '/app/rep/home', 'rep', null, [
+        'name' => 'Rep morning home',
+        'name_ar' => 'رئيسية المندوب',
+        'r' => [
+            'greeting' => ['name' => 'أحمد العلي', 'avatar' => null],
+            'server_time' => '2026-03-01T09:12:44+03:00',
+            'on_duty' => true,
+            'tracking_enabled' => true,
+            'tasks' => [
+                'orders_today' => 0,
+                'deliveries_pending' => 3,
+                'collected_today' => 48000,
+                'assignments' => 2,
+                'scheduled' => 1,
+                'warehouse_receipts' => 2,
+            ],
+            'loyalty' => null,
+            'unread_notifications' => 0,
+        ],
+        'd' => 'Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.',
     ]),
 
     ep('EP-RP-010', 'SP-06', 'GET', '/app/rep/products', 'rep', null, [

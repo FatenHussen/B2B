@@ -9,14 +9,14 @@
         "seed": "demo reps +963932000001 (عمر الشامي) · +963932000002 · +963932000003 — local OTP_BYPASS=true: any code verifies, rep-* clients get all zeros; production is 6 digits",
         "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.",
         "counts": {
-            "live_endpoints": 40,
-            "matched_catalog": 40,
+            "live_endpoints": 41,
+            "matched_catalog": 41,
             "live_without_catalog": 0,
             "forbidden": 20
         }
     },
     "headers": {
-        "Authorization": "Bearer {token} — required except GET /health and POST /public/auth/*",
+        "Authorization": "Bearer {token} — required except GET /health, GET /public/refs, GET /public/content/intro, POST /public/auth/*",
         "Accept": "application/json",
         "Accept-Language": "ar — server messages may still be English; map error.code in the UI",
         "X-Client": "rep-android or rep-ios",
@@ -155,7 +155,7 @@
             "method": "GET",
             "path": "/api/v1/platform/content/intro",
             "code": "EP-AD-141A",
-            "reason": "Platform admin settings — 403 wrong_guard on the app. Local intro until GET /public/app-config"
+            "reason": "Platform admin GET — 403 wrong_guard. The app reads GET /public/content/intro (EP-PB-011)"
         },
         {
             "method": "PUT",
@@ -182,8 +182,8 @@
         "Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.",
         "max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.",
         "No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.",
-        "GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/app-config is 404. supply_channel_id still has no directory.",
-        "Intro is edited on the dashboards: GET/PUT /platform/content/intro (platform, EP-AD-141A/B) and GET/PUT /channel/content/intro. The app must not call either (403 wrong_guard). Until GET /public/app-config is live, use a local IntroContent with the same JSON shape: enabled, text, media_type, media_id, duration, targeting."
+        "GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is 404. supply_channel_id still has no directory.",
+        "Intro on the app is GET /public/content/intro (EP-PB-011, no guard). Same singleton PUT /platform/content/intro writes. Returning token skips the screen. Do not call GET/PUT /platform/content/intro or /channel/content/intro (403 wrong_guard). GET /public/app-config is still 404 (force-update only — not intro)."
     ],
     "endpoints": [
         {
@@ -369,6 +369,37 @@
             },
             "description": "5 attempts per otp_id. New user returns is_new_user=true without a full profile.",
             "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/public/content/intro",
+            "catalog_path": "/public/content/intro",
+            "code": "EP-PB-011",
+            "name": "Public intro (app splash)",
+            "name_ar": "انترو التطبيق",
+            "permission": null,
+            "guard": "none",
+            "auth": false,
+            "write": false,
+            "idempotency": false,
+            "folder": "01. Auth & registration",
+            "query": [],
+            "body": null,
+            "response": {
+                "enabled": true,
+                "text": "مرحباً بك في شبكة التوزيع",
+                "media_type": "video",
+                "media_id": "media_intro_default",
+                "duration": 8,
+                "targeting": {
+                    "activity_type_ids": [],
+                    "zone_ids": []
+                }
+            },
+            "errors": [],
+            "description": "Same singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists.",
+            "note": "No auth. Same singleton PUT /platform/content/intro writes. Vacant store: enabled false, text/media null, duration 0 — that is correct, do not fake a video. Returning token skips this screen. media_id is opaque, not a URL (http → play; else assets/intro/{id}; else logo+text). Ignore targeting on first run. Do not call /platform or /channel intro (wrong_guard)."
         },
         {
             "live": true,

@@ -825,7 +825,7 @@ PUT:
 
 `targeting.activity_type_ids` و`targeting.zone_ids` قوائم أعداد — في السنترال قوائم متعددة من `GET /platform/refs/activity-types` و`GET /platform/refs/zones` (تجميع بالمحافظة). مصفوفة فارغة = بلا تقييد.
 
-هذا **ليس** `GET /channel/content/intro` (لوحة القناة). تطبيق المندوب **لا** يستدعي `/platform/content/intro` (`wrong_guard`) — انترو التطبيق محلي حتى `GET /public/app-config`.
+هذا **ليس** `GET /channel/content/intro` (لوحة القناة). التطبيقات **لا** تستدعي `/platform/content/intro` (`wrong_guard`) — تقرأ `GET /public/content/intro` (EP-PB-011، بلا حارس). حساب سابق يتجاوز الشاشة.
 
 ✅ `status/01` EP-AD-141A/B حيّان (Content). قانوني/مساعدة/نسخ ما زالت ⛔.
 

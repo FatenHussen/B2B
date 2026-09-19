@@ -21,7 +21,7 @@
 | 2 | Project layout (GetX) and `pubspec.yaml` |
 | 3 | Core: envelope, errors, Dio client, interceptors, idempotency, storage, money, time |
 | 4 | Auth & session flow (state machine, route guard, controllers) |
-| 5 | Endpoint reference — 39 live routes, each with JSON + Dart |
+| 5 | Endpoint reference — live routes, each with JSON + Dart |
 | 6 | Composite journeys (sequence of calls) |
 | 7 | Error catalogue → Arabic UI strings |
 | 8 | What is NOT live (do not build, do not mock) |
@@ -82,7 +82,7 @@ Release: `--dart-define=API_HOST=https://api.sentraxsy.com --dart-define=OTP_LEN
 |---|---|---|
 | `Accept` | `application/json` | always |
 | `Content-Type` | `application/json` | writes |
-| `Authorization` | `Bearer <token>` | everything except `GET /health`, `GET /public/refs`, `POST /public/auth/*` |
+| `Authorization` | `Bearer <token>` | everything except `GET /health`, `GET /public/refs`, `GET /public/content/intro`, `POST /public/auth/*` |
 | `X-Client` | `rep-android` \| `rep-ios` | always — **must start with `rep-`** (it is what makes the local OTP code all zeros) |
 | `X-Device-Id` | stable UUID per install | always (rate-limit key on OTP; matches `device_id` in verify) |
 | `X-App-Version` | `1.0.0 (1)` | always |
@@ -145,6 +145,7 @@ dependencies:
   pin_code_fields: ^8.0.1
   mobile_scanner: ^6.0.2      # barcode → GET /app/rep/products?barcode=
   signature: ^5.5.0           # optional — complete.signature data-URL
+  video_player: ^2.9.2        # intro when media_type=video and media_id is http
   google_fonts: ^6.2.1
 
 dev_dependencies:
@@ -182,6 +183,7 @@ lib/
    │  ├─ models/                          # one file per aggregate (session, product, cart, delivery …)
    │  └─ services/                        # one per API area, extend GetxService
    │     ├─ health_service.dart
+   │     ├─ content_service.dart          # GET /public/content/intro
    │     ├─ refs_service.dart
    │     ├─ auth_service.dart             # OTP + register + session + logout + status
    │     ├─ customer_service.dart         # customers + zones
@@ -211,6 +213,7 @@ Future<void> main() async {
   await Get.putAsync(() => LocalStore().init());
   await Get.putAsync(() => ApiClient().init());
   Get.put(AuthService());
+  Get.put(ContentService());
   Get.put(SessionController(), permanent: true);
   runApp(const RepApp());
 }
@@ -581,16 +584,32 @@ class Phone {
 ### 4.1 State machine
 
 ```
-Splash ──GET /health──▶ (token?) ─no─▶ Intro (local assets, same JSON as /platform/content/intro) ─▶ Phone ─▶ OTP ─verify─▶ ┐
-                          │yes                                  │
-                          ▼                                     ▼
-                    GET /app/session ──▶ user_type=='retailer' ─▶ wrong app → sign out
-                          │              profile_completed==false ─▶ Register ─▶ replace token ─▶ session again
+Splash ──GET /health──▶ (token?) ─yes─▶ GET /app/session ──▶ user_type=='retailer' ─▶ wrong app → sign out
+                          │                                    profile_completed==false ─▶ Register ─▶ replace token ─▶ session
+                          │                                    else ─▶ Shell (skip intro)
+                          │no
                           ▼
-                       Shell (home / route / order / wallet / more)
+              GET /public/content/intro
+                          │
+             enabled==true ─▶ IntroView (logo + text + optional video, duration s, Skip) ─▶ Phone
+             enabled==false ─▶ Phone (splash logo ≤2s)
+                          │
+                          ▼
+                    Phone ─▶ OTP ─verify─▶ ┐
+                                           ▼
+                    is_new / profile incomplete ─▶ Register
+                    existing complete rep ─▶ Shell
 ```
 
-Do **not** call `GET /platform/content/intro` or `GET /channel/content/intro` from this app (`wrong_guard`). Remote intro waits on `GET /public/app-config` (`EP-PB-010`, still 404).
+The app **reads** `GET /public/content/intro` (EP-PB-011, no Bearer). Same singleton the back office writes with `PUT /platform/content/intro`.
+
+Do **not** call `GET /platform/content/intro` or `GET /channel/content/intro` (`403 wrong_guard`). `GET /public/app-config` is still 404 — force-update, **not** intro.
+
+Vacant store after `migrate:fresh`: `{enabled:false, text:null, media_type:null, media_id:null, duration:0, targeting:{…:[]}}`. That is correct — do not fake a video.
+
+`media_id` is an opaque string, not a URL. If it starts with `http`, play it; else look up `assets/intro/{media_id}`; else logo + `text`. Ignore `targeting` on first run (no zone yet). Cap display at 8 seconds; `duration==0` with `enabled` → 3s. Cache the payload; network fail with no cache → logo flash then Phone — do not block launch.
+
+Guest is **local only** (the server has no guest token). Phone screen «تصفّح كزائر» sets `prefs.guest=true` and opens Shell so the rep can see the home (tasks / route / collections). Any service (order, cart, delivery, wallet, add shop) → dialog **«يجب أن تسجّل حساباً لاستخدام هذه الخدمة»** → Phone. Do not call `/app/rep/*` without a Bearer.
 
 Decision table after `verify-otp`:
 
@@ -611,9 +630,9 @@ class SessionController extends GetxController {
   bool get signedIn => Get.find<TokenStorage>().token != null;
   bool get ready => session.value?.user.profileCompleted == true;
 
-  /// Called on splash and on app resume.
+  /// Called on splash when a token exists, and on app resume.
   Future<void> bootstrap() async {
-    if (!signedIn) return Get.offAllNamed(AppRoutes.intro);
+    if (!signedIn) return Get.offAllNamed(AppRoutes.phone);
     try {
       final s = await auth.session();
       if (s.user.userType == 'retailer') return forceSignOut('wrong_app');
@@ -648,12 +667,18 @@ class AuthMiddleware extends GetMiddleware {
   @override
   RouteSettings? redirect(String? route) {
     final s = Get.find<SessionController>();
-    if (!s.signedIn) return const RouteSettings(name: AppRoutes.phone);
+    final guest = Get.find<LocalStore>().guest;
+    if (!s.signedIn) {
+      if (guest && route == AppRoutes.shell) return null;
+      return const RouteSettings(name: AppRoutes.phone);
+    }
     if (!s.ready && route != AppRoutes.register) return const RouteSettings(name: AppRoutes.register);
     return null;
   }
 }
 // AppPages: every route under the shell gets `middlewares: [AuthMiddleware()]`.
+// Guest: Shell is allowed; every write button / remote tab shows
+// «يجب أن تسجّل حساباً لاستخدام هذه الخدمة» then AppRoutes.phone.
 ```
 
 ---
@@ -669,6 +694,7 @@ Every `Response` block shows only `data` (the envelope wraps it, §3.1). HTTP st
 | # | Method | Path | Service method | Section |
 |---|---|---|---|---|
 | 1 | GET 🔓 | `/health` | `HealthService.check()` | 5.1 |
+| 1b | GET 🔓 | `/public/content/intro` | `ContentService.intro()` | 5.1b |
 | 2 | GET 🔓 | `/public/refs` | `RefsService.snapshot()` | 5.2 |
 | 3 | POST 🔓 | `/public/auth/request-otp` | `AuthService.requestOtp()` | 5.3 |
 | 4 | POST 🔓 | `/public/auth/verify-otp` | `AuthService.verifyOtp()` | 5.3 |
@@ -709,7 +735,7 @@ Every `Response` block shows only `data` (the envelope wraps it, §3.1). HTTP st
 | 39 | POST 🔁 | `/app/rep/wallet/withdrawals` | `FinanceService.withdraw()` | 5.20 |
 | 40 | GET | `/app/rep/wallet/withdrawals` | `FinanceService.withdrawals()` | 5.20 |
 
-(40 rows — the same 40 `live:true` entries as `flutter-rep.json`, regenerated 2026-09-19; `GET /public/refs` is live since BE-R10.)
+(41 rows after adding EP-PB-011; regenerate `flutter-rep.json` with `php docs/api/generate-rep-live.php`.)
 
 ---
 
@@ -732,6 +758,55 @@ class HealthService extends BaseService {
       });
 }
 ```
+
+---
+
+### 5.1b Public intro 🔓 — first-run splash
+
+`GET /public/content/intro` — no auth, no idempotency key. **EP-PB-011 · live.** Same row `PUT /platform/content/intro` writes.
+
+```json
+{
+  "enabled": true,
+  "text": "مرحباً بك في شبكة التوزيع",
+  "media_type": "video",
+  "media_id": "media_intro_default",
+  "duration": 8,
+  "targeting": { "activity_type_ids": [], "zone_ids": [] }
+}
+```
+
+| Key | App |
+|---|---|
+| `enabled` | `false` → no Intro screen. `true` → show, then auto-advance after `duration` (cap 8s) or Skip |
+| `text` | Welcome line under the logo. `null` → logo only |
+| `media_type` | `image` \| `video` \| `null` |
+| `media_id` | Opaque. `http…` → play URL; else `assets/intro/{id}`; else logo + text |
+| `duration` | Seconds. `0` + `enabled` → treat as 3 |
+| `targeting` | **Ignore** on first run |
+
+```dart
+class IntroContent {
+  final bool enabled;
+  final String? text, mediaType, mediaId;
+  final int duration;
+  factory IntroContent.fromJson(Map<String, dynamic> j) => IntroContent(
+    enabled: j['enabled'] == true,
+    text: j['text'] as String?,
+    mediaType: j['media_type'] as String?,
+    mediaId: j['media_id'] as String?,
+    duration: (j['duration'] as int?) ?? 0,
+  );
+}
+
+class ContentService extends BaseService {
+  Future<IntroContent> intro() => guard(() async =>
+      (await api.get('/public/content/intro',
+          (d) => IntroContent.fromJson(d as Map<String, dynamic>))).data);
+}
+```
+
+`SplashController`: `Future.wait([health.check(), if (!signedIn) content.intro()])`. Token present → `SessionController.bootstrap()` (skip intro). No token + `enabled` → `IntroView` then Phone. Phone copy: logo + one welcome line + optional video. No marketing carousel.
 
 ---
 
@@ -829,6 +904,8 @@ Response:
 
 Errors: `422 validation_failed` (phone) · `429 rate_limited` (cooldown or hourly limit; message says the seconds).
 
+**UI:** one Syrian field, visible `+963` prefix, numeric keyboard. Note under the field: «يجب أن يكون واتساب مفعّلاً على هذا الرقم لإرسال رمز التحقق». No email. Target: register in under 60 seconds.
+
 #### Verify
 
 `POST /public/auth/verify-otp`
@@ -920,7 +997,7 @@ class AuthService extends BaseService {
 | Field | Rule |
 |---|---|
 | `name` | required ≤120 |
-| `supply_channel_id` | required int — **no public channel directory exists**; comes from the channel team / an invite (see ⚠️) |
+| `supply_channel_id` | required int — **single** dropdown. No `GET /channels`; bind one item from invite / `--dart-define=DEFAULT_CHANNEL_ID` / last successful id. Empty list → numeric «رمز الانضمام» field, still POSTed as this int |
 | `activity_type_id` | required, must exist → **single** dropdown from `/public/refs.activity_types` (`id`/`name`) |
 | `zone_ids` | required, ≥1, all inside the channel's coverage → **multi-select** dropdown from `/public/refs.zones`, grouped by `governorate_id`. Governorate dropdown is a filter only — never POSTed |
 | `note` | optional ≤500 |
@@ -945,7 +1022,7 @@ Response 201:
 | `422` · `details.phone` | this phone already belongs to a retailer |
 | `423 plan_limit_exceeded` | the channel's rep quota is full |
 
-⚠️ `supply_channel_id`: there is no `GET /channels`. For QA use the demo channel id (1 after a fresh demo seed — confirm with the backend team). For production the product decision is a join code / invite link that has **no API today** — build the field as a numeric input behind a «رمز الانضمام» label and do not invent a channel list.
+⚠️ `supply_channel_id`: there is no `GET /channels` (REQ-IN-06). Product wants a dropdown — bind a **one-item** list from the invite / QA define / last success. Do **not** invent a channel directory. If the list is empty, a numeric «رمز الانضمام» field. 409 `conflict` → «القناة غير متاحة». Single select, never multi.
 
 ```dart
 class RegisterResult { final int repId; final String status, token; final int channelId; final String? channelName; /* fromJson */ }
@@ -1665,11 +1742,11 @@ class FinanceService extends BaseService {
 
 ### 6.1 First run (new rep)
 
-`GET /health` → `GET /public/refs` (cache) → `request-otp(register)` → `verify-otp` (token: registration) → Register screen (activity **single** dropdown + zones **multi-select** grouped by governorate from refs, channel id from invite) → `POST /app/rep/register` → **replace token**, save `zone_ids` → `GET /app/session` → Shell. Duty is off until the rep flips it.
+`GET /health` + `GET /public/content/intro` → Intro if `enabled` → Phone (WhatsApp note, `+963`) → `GET /public/refs` (cache) → `request-otp(register)` → `verify-otp` (token: registration) → Register (name + channel **single** dropdown from invite/define + activity **single** + zones **multi-select** grouped by governorate + optional note; no email) → `POST /app/rep/register` → **replace token**, save `zone_ids` → `GET /app/session` → Shell. Duty is off until the rep flips it. Target: under 60 seconds.
 
 ### 6.2 Returning rep
 
-`GET /health` → token present → `GET /app/session` → Shell → `GET /assignments` + `GET /warehouse-receipts` + `GET /wallet` for the home cards (three parallel calls, `Future.wait`).
+`GET /health` → token present → **skip intro** → `GET /app/session` → Shell → `GET /assignments` + `GET /warehouse-receipts` + `GET /wallet` for the home cards (three parallel calls, `Future.wait`). Home is tasks + route + collections.
 
 ### 6.3 Take an order for a shop
 
@@ -1683,6 +1760,10 @@ Shop closed → `postpone` (date + reason). Refused → `fail` (reason, double c
 ### 6.5 End of day
 
 Wallet → receivables (reserve receipt → collect) → withdrawal with the accountant's `operation_no` → withdrawals list for the paper signature.
+
+### 6.6 Guest (local)
+
+Intro → Phone → «تصفّح كزائر» (`prefs.guest=true`) → Shell with no Bearer. Home is visible so the rep can learn tasks/route/collections. Any service tap: **«يجب أن تسجّل حساباً لاستخدام هذه الخدمة»** → Phone. Never call `/app/rep/*` or send `X-Idempotency-Key` without a session.
 
 ---
 
@@ -1767,8 +1848,8 @@ HTTP → behaviour summary:
 | `GET /app/sync/pull`, `POST /app/sync/push`, `GET /app/sync/status`, `POST /app/sync/resolve-conflict` | ❌ | online only; retry on reconnect |
 | `GET /app/content/home-blocks` | ❌ | composed home (assignments + receipts + wallet) |
 | `GET /app/loyalty`, `POST /app/loyalty/redeem` | ❌ | no points tab |
-| `GET /public/app-config` | ❌ | no forced update; store review manual; intro stays local |
-| `GET/PUT /platform/content/intro`, `GET/PUT /channel/content/intro` | live on **other** guards | 403 `wrong_guard` — never call; `IntroLocalSource` from `assets/intro/` with `{enabled, text, media_type, media_id, duration, targeting}` |
+| `GET /public/app-config` | ❌ | no forced update; store review manual. **Not** the intro source |
+| `GET/PUT /platform/content/intro`, `GET/PUT /channel/content/intro` | live on **other** guards | 403 `wrong_guard` — never call. Apps read `GET /public/content/intro` |
 | `GET /channels` (any channel directory) | never planned for the app | channel id from invite / QA constant |
 | `GET /app/rep/zones` (my coverage) | ❌ | `LocalStore.zoneIds` |
 | `PATCH`/`DELETE /app/rep/cart/lines/{id}` | ❌ | qty only goes up; honest message |
@@ -1784,8 +1865,8 @@ Anything in the catalog marked `contract: proposed` is not a route.
 
 | # | Screen (module) | Controller | Calls | Empty state (ar) |
 |---|---|---|---|---|
-| 1 | `splash` | `SplashController` | health → local intro if no token, else session bootstrap | — |
-| 1b | `intro` | `IntroController` | `IntroLocalSource` only — never `/platform/content/intro` | — |
+| 1 | `splash` | `SplashController` | health + (if no token) `GET /public/content/intro`; token → session bootstrap (skip intro) | — |
+| 1b | `intro` | `IntroController` | payload from splash; `ContentService.intro()` — never `/platform` or `/channel` intro | — |
 | 2 | `auth/phone` | `PhoneController` | request-otp | — |
 | 3 | `auth/otp` | `OtpController` | verify-otp, resend-otp | — |
 | 4 | `auth/register` | `RegisterController` | refs, register | — |

@@ -6,6 +6,9 @@ namespace Modules\Identity\Presentation\Http\Requests;
 
 use Modules\Core\Http\ApiFormRequest;
 
+/**
+ * Reps authenticate with a Syrian mobile. Email is prohibited (not optional).
+ */
 final class RegisterRepRequest extends ApiFormRequest
 {
     /**
@@ -20,6 +23,7 @@ final class RegisterRepRequest extends ApiFormRequest
             'zone_ids' => ['required', 'array', 'min:1'],
             'zone_ids.*' => ['integer'],
             'note' => ['nullable', 'string', 'max:500'],
+            'email' => ['prohibited'],
         ];
     }
 }

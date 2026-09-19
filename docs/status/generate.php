@@ -134,6 +134,7 @@ $sections = [
     ],
     'rep' => [
         ['التسجيل والحالة', '#^/app/rep/(register|status)#'],
+        ['الرئيسية', '#^/app/rep/home#'],
         ['الكتالوج والعملاء والمناطق', '#^/app/rep/(products|customers|zones)#'],
         ['السلة', '#^/app/rep/cart#'],
         ['قبول الطلبات والمجدولة', '#^/app/rep/(assignments|scheduled-orders)#'],
@@ -151,7 +152,7 @@ $sections = [
     ],
     'public' => [
         ['التحقق (OTP)', '#^/public/auth#'],
-        ['المرجعيات وإعداد التطبيق', '#^/public/(refs|app-config)#'],
+        ['المرجعيات وإعداد التطبيق', '#^/public/(refs|app-config|content)#'],
     ],
     'other' => [
         ['صحة الخدمة', '#^/health#'],

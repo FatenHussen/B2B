@@ -66,7 +66,7 @@ $want = static function (string $path): bool {
     if ($path === '/health') {
         return true;
     }
-    if (str_starts_with($path, '/public/auth/') || $path === '/public/refs') {
+    if (str_starts_with($path, '/public/auth/') || $path === '/public/refs' || $path === '/public/content/intro') {
         return true;
     }
     if ($path === '/app/session' || $path === '/app/auth/logout') {
@@ -199,7 +199,7 @@ $pack = [
         ],
     ],
     'headers' => [
-        'Authorization' => 'Bearer {token} — required except GET /health and POST /public/auth/*',
+        'Authorization' => 'Bearer {token} — required except GET /health, GET /public/refs, GET /public/content/intro, POST /public/auth/*',
         'Accept' => 'application/json',
         'Accept-Language' => 'ar — server messages may still be English; map error.code in the UI',
         'X-Client' => 'rep-android or rep-ios',
@@ -225,8 +225,8 @@ $pack = [
         'Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.',
         'max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.',
         'No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.',
-        'GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/app-config is 404. supply_channel_id still has no directory.',
-        'Intro is edited on the dashboards: GET/PUT /platform/content/intro (platform, EP-AD-141A/B) and GET/PUT /channel/content/intro. The app must not call either (403 wrong_guard). Until GET /public/app-config is live, use a local IntroContent with the same JSON shape: enabled, text, media_type, media_id, duration, targeting.',
+        'GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is 404. supply_channel_id still has no directory.',
+        'GET /app/rep/home is the morning snapshot (EP-RP-002). Bind the six task badges from data.tasks. Do not call GET /deliveries from Home — that list materialises delivery rows. loyalty is null (hide the points bar). Guest has no token: 401; skip-register is local chrome with zeros.',
     ],
     'endpoints' => $live,
 ];
@@ -279,10 +279,10 @@ function folder(string $path): string
     if ($path === '/health') {
         return '00. Health';
     }
-    if (str_starts_with($path, '/public/auth') || $path === '/public/refs' || $path === '/app/rep/register') {
+    if (str_starts_with($path, '/public/auth') || $path === '/public/refs' || $path === '/public/content/intro' || $path === '/app/rep/register') {
         return '01. Auth & registration';
     }
-    if ($path === '/app/session' || $path === '/app/auth/logout' || $path === '/app/rep/status') {
+    if ($path === '/app/session' || $path === '/app/auth/logout' || $path === '/app/rep/status' || $path === '/app/rep/home') {
         return '02. Session & duty';
     }
     if (str_starts_with($path, '/app/rep/customers') || str_starts_with($path, '/app/rep/zones')) {
@@ -320,6 +320,16 @@ function folderRank(string $folder): int
 function overlays(): array
 {
     return [
+        'GET /public/content/intro' => [
+            'response' => [
+                'enabled' => true,
+                'text' => 'مرحباً بك في شبكة التوزيع',
+                'media_type' => 'video',
+                'media_id' => 'media_intro_default',
+                'duration' => 8,
+                'targeting' => ['activity_type_ids' => [], 'zone_ids' => []],
+            ],
+        ],
         'GET /public/refs' => [
             'response' => [
                 'governorates' => [
@@ -380,6 +390,7 @@ function overlays(): array
                     'name' => 'أحمد العلي',
                     'user_type' => 'rep',
                     'profile_completed' => true,
+                    'avatar' => null,
                 ],
                 'permissions' => [
                     'rp.delivery.accept',
@@ -406,6 +417,28 @@ function overlays(): array
                     'max_discount_percent' => 5,
                     'max_cash_hold' => 0,
                 ],
+                'duty' => [
+                    'on_duty' => false,
+                    'tracking_enabled' => false,
+                ],
+            ],
+        ],
+        'GET /app/rep/home' => [
+            'response' => [
+                'greeting' => ['name' => 'أحمد العلي', 'avatar' => null],
+                'server_time' => '2026-03-01T09:12:44+03:00',
+                'on_duty' => true,
+                'tracking_enabled' => true,
+                'tasks' => [
+                    'orders_today' => 0,
+                    'deliveries_pending' => 3,
+                    'collected_today' => 48000,
+                    'assignments' => 2,
+                    'scheduled' => 1,
+                    'warehouse_receipts' => 2,
+                ],
+                'loyalty' => null,
+                'unread_notifications' => 0,
             ],
         ],
         'GET /app/rep/cart' => [
@@ -500,7 +533,9 @@ function overlays(): array
 function notes(): array
 {
     return [
-        'GET /app/session' => 'Rep-only extra: commercial_limits. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them.',
+        'GET /app/session' => 'Rep-only extras: commercial_limits and duty {on_duty, tracking_enabled}. user.avatar is always null. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them.',
+        'GET /app/rep/home' => 'Morning snapshot. Bind the six task badges here — do not call GET /deliveries from Home (that list materialises rows). loyalty is null until EP-APP-110 (hide the bar). unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer; guest browse is local.',
+        'GET /public/content/intro' => 'No auth. Same singleton PUT /platform/content/intro writes. Vacant store: enabled false, text/media null, duration 0 — that is correct, do not fake a video. Returning token skips this screen. media_id is opaque, not a URL (http → play; else assets/intro/{id}; else logo+text). Ignore targeting on first run. Do not call /platform or /channel intro (wrong_guard).',
         'GET /public/refs' => 'Flat arrays, not nested. Flutter dropdowns: governorates = single-select FILTER (do not POST). zones = multi-select, value=id, label=name, group by governorate_id, POST as zone_ids:[12,13] (min 1). activity_types = single-select → activity_type_id. Hide status!=active. Channels are never here.',
         'POST /app/rep/register' => 'Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null — resolve from GET /public/refs. supply_channel_id has no directory; it comes from the channel team or an invite.',
         'GET /app/rep/products' => 'Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Lines have no image/sku.',
@@ -544,7 +579,7 @@ function forbidden(): array
         ['method' => 'PATCH', 'path' => '/api/v1/app/rep/cart/lines/{id}', 'code' => null, 'reason' => 'No update/delete cart line for the rep'],
         ['method' => 'GET', 'path' => '/api/v1/app/rep/return-requests', 'code' => null, 'reason' => 'Create only — no list or detail'],
         ['method' => 'GET', 'path' => '/api/v1/app/rep/discount-cap', 'code' => null, 'reason' => 'Cap is session.commercial_limits.max_discount_percent — no dedicated GET'],
-        ['method' => 'GET', 'path' => '/api/v1/platform/content/intro', 'code' => 'EP-AD-141A', 'reason' => 'Platform admin settings — 403 wrong_guard on the app. Local intro until GET /public/app-config'],
+        ['method' => 'GET', 'path' => '/api/v1/platform/content/intro', 'code' => 'EP-AD-141A', 'reason' => 'Platform admin GET — 403 wrong_guard. The app reads GET /public/content/intro (EP-PB-011)'],
         ['method' => 'PUT', 'path' => '/api/v1/platform/content/intro', 'code' => 'EP-AD-141B', 'reason' => 'Platform admin write — never call from the app'],
         ['method' => 'GET', 'path' => '/api/v1/channel/content/intro', 'code' => 'EP-SC-100A', 'reason' => 'Channel dashboard — 403 wrong_guard on the app'],
         ['method' => 'PUT', 'path' => '/api/v1/channel/content/intro', 'code' => 'EP-SC-100B', 'reason' => 'Channel dashboard write — never call from the app'],

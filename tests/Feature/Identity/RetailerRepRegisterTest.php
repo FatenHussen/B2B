@@ -129,6 +129,26 @@ it('registers a rep inside channel coverage', function () {
     expect($response->json('data.rep.status'))->toBe(ProfileStatus::PendingReview->value);
 });
 
+it('rejects an email on rep registration — reps do not use email', function () {
+    $refs = seedRetailerRefs();
+    $channel = SupplyChannel::factory()->create(['status' => 'active']);
+    Tenant::as($channel->id, fn () => ChannelZone::query()->create(['zone_id' => $refs['zone']->id]));
+
+    $token = registrationToken('+963966000003');
+
+    CatalogAssert::error(
+        $this->postJson('/api/v1/app/rep/register', [
+            'name' => 'أحمد العلي',
+            'supply_channel_id' => $channel->id,
+            'activity_type_id' => $refs['activity']->id,
+            'zone_ids' => [$refs['zone']->id],
+            'email' => 'rep@example.com',
+        ], ['Authorization' => "Bearer {$token}"]),
+        422,
+        'validation_failed',
+    );
+});
+
 it('rejects a rep zone outside channel coverage', function () {
     $refs = seedRetailerRefs();
     $channel = SupplyChannel::factory()->create(['status' => 'active']);

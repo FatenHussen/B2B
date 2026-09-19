@@ -734,6 +734,8 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 `PUT /channel/content/intro` 🔁 — `enabled` إلزامي. `media_type` ∈ `image|video`. **الاستجابة `{ enabled }` فقط** — أعد الجلب للنموذج.
 
+تطبيق المندوب **لا** يستدعي هذا المسار (`wrong_guard`). يقرأ `GET /public/content/intro` (انترو المنصة الافتراضي).
+
 `GET /channel/content/banners` 📄 → `{ id, media_type, placements }`.
 
 `POST /channel/content/banners` 🔁 → `{ id }`. `media_id` سلسلة. `placements` مصفوفة ≥1. لا تحديث ولا حذف.

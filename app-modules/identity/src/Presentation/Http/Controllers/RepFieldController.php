@@ -12,6 +12,7 @@ use Modules\Identity\Application\Actions\RequestRepZone;
 use Modules\Identity\Application\Actions\SetRepDutyStatus;
 use Modules\Identity\Application\Queries\ListRepCustomers;
 use Modules\Identity\Application\Queries\ListZoneShops;
+use Modules\Identity\Application\Queries\ShowRepHome;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Presentation\Http\Requests\StoreRepCustomerRequest;
 use Modules\Identity\Presentation\Http\Requests\StoreRepZoneRequest;
@@ -65,6 +66,14 @@ final class RepFieldController extends ApiController
                 'last_order_at' => null,
             ];
         });
+    }
+
+    public function home(Request $request, ShowRepHome $query): JsonResponse
+    {
+        /** @var AppUser $user */
+        $user = $request->user();
+
+        return $this->ok($query($user));
     }
 
     public function status(UpdateRepStatusRequest $request, SetRepDutyStatus $action): JsonResponse

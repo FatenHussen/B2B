@@ -68,6 +68,7 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::post('app/rep/customers', [RepFieldController::class, 'storeCustomer']);
         Route::post('app/rep/zones', [RepFieldController::class, 'requestZone']);
         Route::get('app/rep/zones/{id}/shops', [RepFieldController::class, 'shops']);
+        Route::get('app/rep/home', [RepFieldController::class, 'home']);
         Route::patch('app/rep/status', [RepFieldController::class, 'status']);
     });
 
