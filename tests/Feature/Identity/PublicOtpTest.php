@@ -190,7 +190,7 @@ it('issues a fixed all-zero code for rep clients outside production', function (
     CatalogAssert::ok($response, ['otp_id']);
 
     /** @var FakeOtpChannel $fake */
-    $fake = $this->otp;
+    $fake = app(OtpChannel::class);
     expect($fake->codeFor('+963912345678'))->toBe('000000');
 
     $verify = $this->postJson('/api/v1/public/auth/verify-otp', [
@@ -235,7 +235,7 @@ it('gives rep clients a real code in production no matter what the env says', fu
     $otpId = $response->json('data.otp_id');
 
     /** @var FakeOtpChannel $fake */
-    $fake = $this->otp;
+    $fake = app(OtpChannel::class);
     $sent = $fake->codeFor('+963932000002');
     expect($sent)->toBeString()->toHaveLength(6);
 
@@ -288,7 +288,7 @@ it('gives rep clients a real code in production, and neither 000000 nor 0000 ver
     $otpId = $response->json('data.otp_id');
 
     /** @var FakeOtpChannel $fake */
-    $fake = $this->otp;
+    $fake = app(OtpChannel::class);
     $sent = $fake->codeFor('+963932000002');
     expect($sent)->toMatch('/^\d{6}$/');
     // random_int lands on 000000 once in a million; the assertion is deliberate.

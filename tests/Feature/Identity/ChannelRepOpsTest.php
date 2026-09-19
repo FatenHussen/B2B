@@ -34,7 +34,7 @@ function channelRepManager(SupplyChannel $channel): ChannelUser
 }
 
 /**
- * @return array{rep_id: int, profile_id: int, activity_id: int, zone_id: int}
+ * @return array{rep_id: int, profile_id: int, activity_id: int, zone_id: int, gov_id: int}
  */
 function channelRepPerson(SupplyChannel $channel, ProfileStatus $status = ProfileStatus::PendingReview): array
 {
@@ -73,7 +73,7 @@ it('lists reps scoped to the channel', function () {
     $response = $this->getJson('/api/v1/channel/reps');
     CatalogAssert::ok($response);
 
-    $ids = collect($response->json('data'))->pluck('id')->all();
+    $ids = $response->json('data.*.id');
     expect($ids)->toContain($mine['rep_id'])
         ->and(count($ids))->toBe(1);
 });
@@ -183,7 +183,7 @@ it('approves a pending zone request onto the profile', function () {
     Sanctum::actingAs(channelRepManager($channel), ['*'], 'channel');
     $list = $this->getJson('/api/v1/channel/rep-zone-requests?filter[status]=pending_approval');
     CatalogAssert::ok($list);
-    expect(collect($list->json('data'))->pluck('id'))->toContain($request->id);
+    expect($list->json('data.*.id'))->toContain($request->id);
 
     $decide = $this->postJson('/api/v1/channel/rep-zone-requests/'.$request->id.'/decide', [
         'decision' => 'approve',
