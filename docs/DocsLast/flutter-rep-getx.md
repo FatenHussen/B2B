@@ -701,6 +701,7 @@ Every `Response` block shows only `data` (the envelope wraps it, §3.1). HTTP st
 | 5 | POST 🔓 | `/public/auth/resend-otp` | `AuthService.resendOtp()` | 5.3 |
 | 6 | POST 🔁 | `/app/rep/register` | `AuthService.register()` | 5.4 |
 | 7 | GET | `/app/session` | `AuthService.session()` | 5.5 |
+| 7b | GET | `/app/rep/home` | `HomeService.snapshot()` | 5.5b |
 | 8 | POST 🔁 | `/app/auth/logout` | `AuthService.logout()` | 5.5 |
 | 9 | PATCH 🔁 | `/app/rep/status` | `AuthService.setDuty()` | 5.6 |
 | 10 | GET 📄 | `/app/rep/customers` | `CustomerService.list()` | 5.7 |
@@ -735,7 +736,7 @@ Every `Response` block shows only `data` (the envelope wraps it, §3.1). HTTP st
 | 39 | POST 🔁 | `/app/rep/wallet/withdrawals` | `FinanceService.withdraw()` | 5.20 |
 | 40 | GET | `/app/rep/wallet/withdrawals` | `FinanceService.withdrawals()` | 5.20 |
 
-(41 rows after adding EP-PB-011; regenerate `flutter-rep.json` with `php docs/api/generate-rep-live.php`.)
+(42 rows after adding EP-PB-011 and EP-RP-002; regenerate `flutter-rep.json` with `php docs/api/generate-rep-live.php`.)
 
 ---
 
@@ -1039,7 +1040,7 @@ Future<RegisterResult> register({required String name, required int channelId, r
     });
 ```
 
-After success → `SessionController.bootstrap()`. A rep in `pending_review` is **not** blocked from operational routes today (only retailers are) — show a «قيد المراجعة» badge in Settings, nothing more.
+After success → `SessionController.bootstrap()`. A rep in `pending_review` is **blocked** from `/app/rep/*` (403 `insufficient_permission`) including home; session and logout stay open. Show a «قيد المراجعة» badge — do not fake home counts.
 
 ---
 
@@ -1049,7 +1050,7 @@ After success → `SessionController.bootstrap()`. A rep in `pending_review` is 
 
 ```json
 {
-  "user": { "id": 7, "name": "عمر الشامي", "user_type": "rep", "profile_completed": true },
+  "user": { "id": 7, "name": "عمر الشامي", "user_type": "rep", "profile_completed": true, "avatar": null },
   "permissions": ["rp.delivery.accept","rp.delivery.deliver","rp.delivery.postpone","rp.delivery.return_request",
                   "rp.payment.collect","rp.payment.withdraw","rp.wallet.view","rp.warehouse.receive"],
   "feature_flags": { "offline_orders": false, "loyalty": false },
@@ -1057,7 +1058,8 @@ After success → `SessionController.bootstrap()`. A rep in `pending_review` is 
   "server_time": "2026-09-19T11:41:00+03:00",
   "requires_legal_accept": false,
   "legal": { "privacy_version": "2026-03", "terms_version": "2026-01" },
-  "commercial_limits": { "max_discount_percent": 10, "max_cash_hold": 5000000 }
+  "commercial_limits": { "max_discount_percent": 10, "max_cash_hold": 5000000 },
+  "duty": { "on_duty": true, "tracking_enabled": true }
 }
 ```
 
@@ -1068,7 +1070,8 @@ After success → `SessionController.bootstrap()`. A rep in `pending_review` is 
 | `permissions` | informational only — do not hide screens |
 | `commercial_limits.max_discount_percent` | cap for the cart discount slider; `0` → hide the discount field |
 | `commercial_limits.max_cash_hold` | `0` = no cap; else block a collection locally when `net_balance + amount > cap` |
-| `feature_flags.*`, `sync_cursor`, `requires_legal_accept` | ignore (all off today) |
+| `user.avatar` | always `null` — letter avatar next to «أهلاً بك» |
+| `duty.on_duty` | header in/out-of-service switch (write is PATCH /status) |
 
 ⚠️ The session does **not** return the rep's zones. Use `LocalStore.zoneIds` (saved at registration) or `zone_id` values seen on customers.
 
