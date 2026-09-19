@@ -19,7 +19,7 @@ final class ListRepReceivables
     ) {}
 
     /**
-     * @return array{by_shop: list<array{shop: string|null, total: int, invoices: list<array{no: string, total: int, paid: int, remaining: int}>}>}
+     * @return array{by_shop: list<array{retailer_id: int, shop: string|null, total: int, invoices: list<array{no: string, total: int, paid: int, remaining: int}>}>}
      */
     public function __invoke(object $user): array
     {
@@ -47,6 +47,7 @@ final class ListRepReceivables
                     'remaining' => $invoice->remaining(),
                 ])->values()->all();
                 $byShop[] = [
+                    'retailer_id' => (int) $retailerId,
                     'shop' => $shop['shop_name'] ?? null,
                     'total' => (int) $invoices->sum(fn (Invoice $invoice) => $invoice->remaining()),
                     'invoices' => $lines,
