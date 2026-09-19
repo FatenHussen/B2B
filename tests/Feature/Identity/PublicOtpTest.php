@@ -179,3 +179,147 @@ it('resends over sms after the cooldown window', function () {
     CatalogAssert::ok($response, ['channel_used', 'resend_after']);
     expect($response->json('data.channel_used'))->toBe('sms');
 });
+
+it('issues a fixed all-zero code for rep clients outside production', function () {
+    config(['otp.bypass' => false]);
+
+    $response = $this->withHeaders(['X-Client' => 'rep-android'])->postJson('/api/v1/public/auth/request-otp', [
+        'phone' => '+963912345678',
+        'purpose' => 'register',
+    ]);
+    CatalogAssert::ok($response, ['otp_id']);
+
+    /** @var FakeOtpChannel $fake */
+    $fake = $this->otp;
+    expect($fake->codeFor('+963912345678'))->toBe('000000');
+
+    $verify = $this->postJson('/api/v1/public/auth/verify-otp', [
+        'otp_id' => $response->json('data.otp_id'),
+        'code' => '000000',
+        'device_id' => 'rep-device-1',
+        'platform' => 'android',
+    ]);
+    CatalogAssert::ok($verify, ['token']);
+});
+
+it('accepts a four-zero code for rep clients outside production', function () {
+    config(['otp.bypass' => false]);
+
+    $response = $this->withHeaders(['X-Client' => 'rep-android'])->postJson('/api/v1/public/auth/request-otp', [
+        'phone' => '+963932000001',
+        'purpose' => 'login',
+    ]);
+    CatalogAssert::ok($response, ['otp_id']);
+
+    $verify = $this->postJson('/api/v1/public/auth/verify-otp', [
+        'otp_id' => $response->json('data.otp_id'),
+        'code' => '0000',
+        'device_id' => 'rep-device-4',
+        'platform' => 'android',
+    ]);
+    CatalogAssert::ok($verify, ['token']);
+});
+
+it('gives rep clients a real code in production no matter what the env says', function () {
+    // The fixed-zero shortcut is a development convenience like otp.bypass, and it
+    // is switched off the same way: by APP_ENV, not by anything a client sends.
+    $this->app['env'] = 'production';
+    config(['otp.bypass' => true]);
+
+    $response = $this->withHeaders(['X-Client' => 'rep-android'])->postJson('/api/v1/public/auth/request-otp', [
+        'phone' => '+963932000002',
+        'purpose' => 'login',
+        'client' => 'rep-ios',
+    ]);
+    CatalogAssert::ok($response, ['otp_id']);
+    $otpId = $response->json('data.otp_id');
+
+    /** @var FakeOtpChannel $fake */
+    $fake = $this->otp;
+    $sent = $fake->codeFor('+963932000002');
+    expect($sent)->toBeString()->toHaveLength(6);
+
+    // Four zeros is not even the right shape in production.
+    CatalogAssert::error(
+        $this->postJson('/api/v1/public/auth/verify-otp', [
+            'otp_id' => $otpId,
+            'code' => '0000',
+            'device_id' => 'rep-device-5',
+        ]),
+        422,
+        'validation_failed',
+    );
+
+    // Six zeros is a guess like any other — one in a million — and the all-zero
+    // fallback in codeMatches() does not rescue it.
+    CatalogAssert::error(
+        $this->postJson('/api/v1/public/auth/verify-otp', [
+            'otp_id' => $otpId,
+            'code' => $sent === '000000' ? '111111' : '000000',
+            'device_id' => 'rep-device-5',
+        ]),
+        401,
+        'otp_invalid',
+    );
+
+    // The code that was actually sent still logs the rep in.
+    CatalogAssert::ok(
+        $this->postJson('/api/v1/public/auth/verify-otp', [
+            'otp_id' => $otpId,
+            'code' => $sent,
+            'device_id' => 'rep-device-5',
+        ]),
+        ['token'],
+    );
+});
+
+it('gives rep clients a real code in production, and neither 000000 nor 0000 verifies', function () {
+    // The rep convenience above is a development tool. Without this guard it is a
+    // back door: an env file copied from staging would let anyone log in as any rep
+    // with six zeros. Same shape as OtpBypassTest "ignored in production".
+    $this->app['env'] = 'production';
+    config(['otp.bypass' => false]);
+
+    $response = $this->withHeaders(['X-Client' => 'rep-android'])->postJson('/api/v1/public/auth/request-otp', [
+        'phone' => '+963932000002',
+        'purpose' => 'login',
+    ]);
+    CatalogAssert::ok($response, ['otp_id']);
+    $otpId = $response->json('data.otp_id');
+
+    /** @var FakeOtpChannel $fake */
+    $fake = $this->otp;
+    $sent = $fake->codeFor('+963932000002');
+    expect($sent)->toMatch('/^\d{6}$/');
+    // random_int lands on 000000 once in a million; the assertion is deliberate.
+    expect($sent)->not->toBe('000000');
+
+    // Four zeros: production validates the shape again — exactly six characters.
+    CatalogAssert::error(
+        $this->postJson('/api/v1/public/auth/verify-otp', [
+            'otp_id' => $otpId,
+            'code' => '0000',
+            'device_id' => 'rep-device-5',
+        ]),
+        422,
+        'validation_failed',
+    );
+
+    // Six zeros: not the code that was sent, and the all-zero fallback is off.
+    CatalogAssert::error(
+        $this->postJson('/api/v1/public/auth/verify-otp', [
+            'otp_id' => $otpId,
+            'code' => '000000',
+            'device_id' => 'rep-device-5',
+        ]),
+        401,
+        'otp_invalid',
+    );
+
+    // The code that was actually sent still works.
+    CatalogAssert::ok($this->postJson('/api/v1/public/auth/verify-otp', [
+        'otp_id' => $otpId,
+        'code' => $sent,
+        'device_id' => 'rep-device-5',
+    ]), ['token']);
+});

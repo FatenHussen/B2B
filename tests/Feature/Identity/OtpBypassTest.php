@@ -7,8 +7,9 @@ declare(strict_types=1);
  *
  * The flow, the endpoints and the payloads do not change: request-otp still hands
  * out an otp_id and verify-otp still needs it. What changes is that the code is
- * never sent or checked, and the cooldown and rate limits are off. The last test
- * pins the only thing that matters about the switch — production ignores it.
+ * never sent, checked or even validated — any value or none — and the cooldown and
+ * rate limits are off. The last test pins the only thing that matters about the
+ * switch — production ignores it.
  */
 
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
@@ -53,6 +54,19 @@ it('verifies any six-character code and never sends one', function () {
 
     CatalogAssert::ok($response, ['token']);
     expect($response->json('data.user_type'))->toBe('retailer');
+});
+
+it('accepts a code of any shape, or no code at all', function () {
+    AppUser::factory()->retailer()->create(['phone' => '+963912345678']);
+
+    foreach (['0000', 'abc', 1234, null] as $code) {
+        $payload = ['otp_id' => requestBypassedOtp(), 'device_id' => 'device-1'];
+        if ($code !== null) {
+            $payload['code'] = $code;
+        }
+
+        CatalogAssert::ok($this->postJson('/api/v1/public/auth/verify-otp', $payload), ['token']);
+    }
 });
 
 it('still requires an otp_id that exists and has not been used', function () {
@@ -113,7 +127,7 @@ it('applies to channel login as well', function () {
 
     $verified = $this->postJson('/api/v1/channel/auth/verify-otp', [
         'otp_id' => $requested->json('data.otp_id'),
-        'code' => '999999',
+        'code' => '1',
     ]);
 
     CatalogAssert::ok($verified, ['token', 'channels']);
@@ -129,6 +143,17 @@ it('is ignored in production no matter what the env says', function () {
     $fake = $this->otp;
     $sent = $fake->codeFor('+963912345678');
     expect($sent)->not->toBeNull();
+
+    // The shape is validated again too: production wants exactly six characters.
+    CatalogAssert::error(
+        $this->postJson('/api/v1/public/auth/verify-otp', [
+            'otp_id' => $otpId,
+            'code' => '1',
+            'device_id' => 'device-1',
+        ]),
+        422,
+        'validation_failed',
+    );
 
     CatalogAssert::error(
         $this->postJson('/api/v1/public/auth/verify-otp', [

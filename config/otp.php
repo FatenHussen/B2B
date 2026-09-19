@@ -28,8 +28,8 @@ return [
     | While the clients are being built nobody can read a code out of the log on a
     | shared server, and three requests per phone per hour is burned in a minute of
     | testing. With `bypass` on the flow is unchanged (request-otp → verify-otp, same
-    | payloads, same otp_id) but the code is never sent or checked: any 6-character
-    | `code` verifies, and the cooldown and rate limits are skipped.
+    | payloads, same otp_id) but the code is never sent, checked or validated: any
+    | `code` verifies — or none at all — and the cooldown and rate limits are skipped.
     |
     | It is ignored when APP_ENV=production, whatever the env file says — an OTP that
     | accepts every code is not a login. Flip OTP_BYPASS=false to turn OTP back on.

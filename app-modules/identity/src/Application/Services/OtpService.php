@@ -30,7 +30,7 @@ final class OtpService
         $phone = PhoneNumber::make($phone)->value;
         $cooldown = (int) config('otp.resend_cooldown', 60);
 
-        if (! $this->bypassed()) {
+        if (! self::bypassed()) {
             $this->assertRateLimits($phone, $ip, $deviceId);
 
             $recent = $this->latestLive($phone, $purpose);
@@ -49,7 +49,7 @@ final class OtpService
             ->whereNull('consumed_at')
             ->update(['consumed_at' => now()]);
 
-        $code = $this->generateCode();
+        $code = $this->generateCode($client);
         $used = $this->send($phone, $code, $purpose, $prefer);
 
         $row = OtpRequest::query()->create([
@@ -83,7 +83,7 @@ final class OtpService
 
         $cooldown = (int) config('otp.resend_cooldown', 60);
 
-        if (! $this->bypassed()) {
+        if (! self::bypassed()) {
             $this->assertRateLimits($otp->phone, $otp->ip, $otp->device_id);
 
             $elapsed = (int) $otp->created_at->diffInSeconds(now());
@@ -92,7 +92,7 @@ final class OtpService
             }
         }
 
-        $code = $this->generateCode();
+        $code = $this->generateCode(is_string($otp->client) ? $otp->client : null);
         $used = $this->send($otp->phone, $code, $otp->purpose, $prefer);
 
         $otp->forceFill([
@@ -122,7 +122,7 @@ final class OtpService
             throw OtpException::expired();
         }
 
-        if ($this->bypassed()) {
+        if (self::bypassed()) {
             $otp->update(['consumed_at' => now()]);
 
             return $otp->refresh();
@@ -134,7 +134,7 @@ final class OtpService
 
         $otp->increment('attempts');
 
-        if (! Hash::check($code, $otp->code_hash)) {
+        if (! $this->codeMatches($code, $otp->code_hash)) {
             throw OtpException::invalid();
         }
 
@@ -144,18 +144,19 @@ final class OtpService
     }
 
     /**
-     * `otp.bypass` turns verification off for development. It never applies in
-     * production: a login that accepts every code is not a login, and an env file
-     * copied from staging must not be able to switch it on.
+     * `otp.bypass` turns verification off for development: nothing is sent, nothing
+     * is checked, and the verify requests stop validating the code's shape. It never
+     * applies in production: a login that accepts every code is not a login, and an
+     * env file copied from staging must not be able to switch it on.
      */
-    private function bypassed(): bool
+    public static function bypassed(): bool
     {
         return (bool) config('otp.bypass', false) && ! app()->isProduction();
     }
 
     private function send(string $phone, string $code, OtpPurpose $purpose, OtpChannelUsed $prefer): OtpChannelUsed
     {
-        if ($this->bypassed()) {
+        if (self::bypassed()) {
             return $prefer;
         }
 
@@ -206,11 +207,47 @@ final class OtpService
             ->first();
     }
 
-    private function generateCode(): string
+    /**
+     * Outside production, field-rep clients always receive a fixed all-zero code so
+     * Flutter can hard-code `0000` or `000000` without reading the log. Retailer and
+     * channel flows keep random codes unless `otp.bypass` is on (any code then verifies).
+     */
+    private function generateCode(?string $client = null): string
     {
         $length = (int) config('otp.length', 6);
+
+        if ($this->fixedZerosForRep($client)) {
+            return str_repeat('0', $length);
+        }
+
         $max = (10 ** $length) - 1;
 
         return str_pad((string) random_int(0, $max), $length, '0', STR_PAD_LEFT);
+    }
+
+    private function codeMatches(string $code, string $hash): bool
+    {
+        if (Hash::check($code, $hash)) {
+            return true;
+        }
+
+        if (app()->isProduction() || ! preg_match('/^0{4,6}$/', $code)) {
+            return false;
+        }
+
+        return Hash::check(str_repeat('0', (int) config('otp.length', 6)), $hash);
+    }
+
+    private function fixedZerosForRep(?string $client): bool
+    {
+        if (app()->isProduction()) {
+            return false;
+        }
+
+        if (! is_string($client) || $client === '') {
+            return false;
+        }
+
+        return str_starts_with(strtolower($client), 'rep-');
     }
 }

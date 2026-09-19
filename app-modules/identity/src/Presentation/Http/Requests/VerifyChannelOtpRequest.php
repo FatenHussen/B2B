@@ -15,7 +15,8 @@ final class VerifyChannelOtpRequest extends ApiFormRequest
     {
         return [
             'otp_id' => ['required', 'string'],
-            'code' => ['required', 'string', 'size:6'],
+            // Same shape as the app flow: unchecked while OTP is bypassed.
+            'code' => VerifyPublicOtpRequest::codeRule(),
         ];
     }
 }
