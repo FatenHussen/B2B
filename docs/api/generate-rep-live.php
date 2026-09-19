@@ -225,7 +225,8 @@ $pack = [
         'Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.',
         'max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.',
         'No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.',
-        'GET /public/refs is live (governorates, zones, activity types — never channels). GET /public/app-config is 404. supply_channel_id still has no directory.',
+        'GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/app-config is 404. supply_channel_id still has no directory.',
+        'Intro is edited on the dashboards: GET/PUT /platform/content/intro (platform, EP-AD-141A/B) and GET/PUT /channel/content/intro. The app must not call either (403 wrong_guard). Until GET /public/app-config is live, use a local IntroContent with the same JSON shape: enabled, text, media_type, media_id, duration, targeting.',
     ],
     'endpoints' => $live,
 ];
@@ -319,6 +320,33 @@ function folderRank(string $folder): int
 function overlays(): array
 {
     return [
+        'GET /public/refs' => [
+            'response' => [
+                'governorates' => [
+                    ['id' => 1, 'name' => 'دمشق', 'order' => 1, 'status' => 'active'],
+                    ['id' => 2, 'name' => 'ريف دمشق', 'order' => 2, 'status' => 'active'],
+                ],
+                'zones' => [
+                    ['id' => 12, 'name' => 'المزة', 'governorate_id' => 1, 'district' => 'المزة', 'order' => 1, 'status' => 'active'],
+                    ['id' => 13, 'name' => 'المالكي', 'governorate_id' => 1, 'district' => 'المالكي', 'order' => 2, 'status' => 'active'],
+                    ['id' => 21, 'name' => 'جرمانا', 'governorate_id' => 2, 'district' => 'جرمانا', 'order' => 1, 'status' => 'active'],
+                ],
+                'activity_types' => [
+                    ['id' => 3, 'name' => 'بقالة', 'icon' => 'grocery', 'order' => 1, 'status' => 'active', 'suggested_category_ids' => [10]],
+                    ['id' => 2, 'name' => 'سوبر ماركت', 'icon' => 'cart', 'order' => 2, 'status' => 'active', 'suggested_category_ids' => [10]],
+                ],
+                'root_categories' => [
+                    ['id' => 10, 'name' => 'مواد غذائية', 'icon' => null, 'image' => null, 'order' => 1, 'status' => 'active'],
+                ],
+                'sale_units' => [
+                    ['id' => 3, 'name' => 'قطعة', 'abbr' => 'pcs', 'default_factor' => 1, 'status' => 'active'],
+                ],
+                'equipments' => [
+                    ['id' => 1, 'name' => 'ثلاجة عرض', 'icon' => null, 'order' => 1, 'status' => 'active'],
+                ],
+                'sync_cursor' => 'c_20260919100000',
+            ],
+        ],
         'GET /app/rep/products' => [
             'query' => [
                 ['name' => 'page', 'example' => '1'],
@@ -473,6 +501,7 @@ function notes(): array
 {
     return [
         'GET /app/session' => 'Rep-only extra: commercial_limits. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them.',
+        'GET /public/refs' => 'Flat arrays, not nested. Flutter dropdowns: governorates = single-select FILTER (do not POST). zones = multi-select, value=id, label=name, group by governorate_id, POST as zone_ids:[12,13] (min 1). activity_types = single-select → activity_type_id. Hide status!=active. Channels are never here.',
         'POST /app/rep/register' => 'Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null — resolve from GET /public/refs. supply_channel_id has no directory; it comes from the channel team or an invite.',
         'GET /app/rep/products' => 'Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Lines have no image/sku.',
         'GET /app/rep/zones/{}/shops' => 'Paginated. Search is top-level `search`, not filter[search]. is_open is hardcoded true. last_order_at is always null. 403 zone_not_covered if the zone is not assigned.',
@@ -515,6 +544,10 @@ function forbidden(): array
         ['method' => 'PATCH', 'path' => '/api/v1/app/rep/cart/lines/{id}', 'code' => null, 'reason' => 'No update/delete cart line for the rep'],
         ['method' => 'GET', 'path' => '/api/v1/app/rep/return-requests', 'code' => null, 'reason' => 'Create only — no list or detail'],
         ['method' => 'GET', 'path' => '/api/v1/app/rep/discount-cap', 'code' => null, 'reason' => 'Cap is session.commercial_limits.max_discount_percent — no dedicated GET'],
+        ['method' => 'GET', 'path' => '/api/v1/platform/content/intro', 'code' => 'EP-AD-141A', 'reason' => 'Platform admin settings — 403 wrong_guard on the app. Local intro until GET /public/app-config'],
+        ['method' => 'PUT', 'path' => '/api/v1/platform/content/intro', 'code' => 'EP-AD-141B', 'reason' => 'Platform admin write — never call from the app'],
+        ['method' => 'GET', 'path' => '/api/v1/channel/content/intro', 'code' => 'EP-SC-100A', 'reason' => 'Channel dashboard — 403 wrong_guard on the app'],
+        ['method' => 'PUT', 'path' => '/api/v1/channel/content/intro', 'code' => 'EP-SC-100B', 'reason' => 'Channel dashboard write — never call from the app'],
     ];
 }
 

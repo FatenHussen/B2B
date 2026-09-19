@@ -823,9 +823,11 @@ PUT:
 
 `media_type`: `image|video`. **PUT يعيد `{ enabled }` فقط** — أعد GET للنموذج.
 
-هذا **ليس** `GET /channel/content/intro` (لوحة القناة). تطبيقات الموبايل لا تقرأ هذا المسار بحارس `app` بعد — عندما يُبنى `home-blocks`/`app-config` يُستهلك الافتراضي من هنا.
+`targeting.activity_type_ids` و`targeting.zone_ids` قوائم أعداد — في السنترال قوائم متعددة من `GET /platform/refs/activity-types` و`GET /platform/refs/zones` (تجميع بالمحافظة). مصفوفة فارغة = بلا تقييد.
 
-🟡 `status/01` قد يظهر الانترو ❌ إن لم يُعد توليد الحالة بعد إضافة المسار. **الـ route موجود** في `content/routes/api.php` — ابنِ عليه.
+هذا **ليس** `GET /channel/content/intro` (لوحة القناة). تطبيق المندوب **لا** يستدعي `/platform/content/intro` (`wrong_guard`) — انترو التطبيق محلي حتى `GET /public/app-config`.
+
+✅ `status/01` EP-AD-141A/B حيّان (Content). قانوني/مساعدة/نسخ ما زالت ⛔.
 
 ⛔ قانوني، مساعدة، نسخ تطبيقات: §10.
 
@@ -901,7 +903,7 @@ PUT:
 
 ## 11. جدول المسارات
 
-الأساس `/api/v1`. 🔁 = مفتاح تكرار. الحالة من الكود الحي 2026-09-19 (76✅ كتالوج + انترو + 7 GET refs/{id} خارج الكتالوج). `status/01` يقول 76/166 و90 ناقص — طابقه بعد `php docs/status/generate.php`.
+الأساس `/api/v1`. 🔁 = مفتاح تكرار. الحالة من الكود الحي 2026-09-19: **78✅** كتالوج على `/platform` (منها انترو 141A/B) + 7 GET refs/{id} خارج الكتالوج. `status/01`: 78 حيّ / 88 ناقص / 0 منحرف.
 
 ### 11.1 دخول وملف — 16/16 ✅
 

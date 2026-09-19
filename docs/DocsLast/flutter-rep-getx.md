@@ -192,7 +192,7 @@ lib/
    │     ├─ delivery_service.dart         # deliveries + ping + return-requests
    │     └─ finance_service.dart          # wallet, payments, receipts, withdrawals, receivables
    ├─ modules/                            # one folder per screen: binding + controller + view
-   │  ├─ splash/  auth/phone/  auth/otp/  auth/register/
+   │  ├─ splash/  intro/  auth/phone/  auth/otp/  auth/register/
    │  ├─ shell/   home/   customers/  zones/  products/  offers/  cart/
    │  ├─ assignments/  scheduled/  warehouse/  deliveries/  delivery_detail/
    │  ├─ returns/  wallet/  collect_payment/  receivables/  withdrawals/  settings/
@@ -581,7 +581,7 @@ class Phone {
 ### 4.1 State machine
 
 ```
-Splash ──GET /health──▶ (token?) ─no─▶ Phone ─▶ OTP ─verify─▶ ┐
+Splash ──GET /health──▶ (token?) ─no─▶ Intro (local assets, same JSON as /platform/content/intro) ─▶ Phone ─▶ OTP ─verify─▶ ┐
                           │yes                                  │
                           ▼                                     ▼
                     GET /app/session ──▶ user_type=='retailer' ─▶ wrong app → sign out
@@ -589,6 +589,8 @@ Splash ──GET /health──▶ (token?) ─no─▶ Phone ─▶ OTP ─verif
                           ▼
                        Shell (home / route / order / wallet / more)
 ```
+
+Do **not** call `GET /platform/content/intro` or `GET /channel/content/intro` from this app (`wrong_guard`). Remote intro waits on `GET /public/app-config` (`EP-PB-010`, still 404).
 
 Decision table after `verify-otp`:
 
@@ -611,7 +613,7 @@ class SessionController extends GetxController {
 
   /// Called on splash and on app resume.
   Future<void> bootstrap() async {
-    if (!signedIn) return Get.offAllNamed(AppRoutes.phone);
+    if (!signedIn) return Get.offAllNamed(AppRoutes.intro);
     try {
       final s = await auth.session();
       if (s.user.userType == 'retailer') return forceSignOut('wrong_app');
@@ -735,17 +737,35 @@ class HealthService extends BaseService {
 
 ### 5.2 Public reference data 🔓
 
-`GET /public/refs?since=<cursor>` — no auth, no key. Feeds the **register** and **new-customer** pickers (zones, activity types). Channels are **never** here (REQ-IN-06).
+`GET /public/refs?since=<cursor>` — no auth, no key. Feeds the **register** and **new-customer** pickers as dropdowns. Channels are **never** here (REQ-IN-06).
+
+| Widget | Source array | Select | Submit |
+|---|---|---|---|
+| Governorate | `governorates` | **single** (filter only) | do **not** POST |
+| Zones | `zones` where `governorate_id` matches (or all) | **multi** — `value=id`, `label=name` | `zone_ids: [12, 13]` ints, min 1 |
+| Activity | `activity_types` | **single** | `activity_type_id: 3` |
+
+The server does **not** nest zones inside governorates. Group on the device. Hide `status != 'active'`.
 
 ```json
 {
-  "governorates": [ { "id": 1, "name": "دمشق", "order": 1, "status": "active" } ],
-  "zones": [ { "id": 12, "name": "المزة", "governorate_id": 1, "district": "المزة", "order": 3, "status": "active" } ],
-  "activity_types": [ { "id": 2, "name": "سوبر ماركت", "icon": "cart", "order": 1, "status": "active", "suggested_category_ids": [1, 3] } ],
-  "root_categories": [ { "id": 1, "name": "مواد غذائية", "icon": null, "image": null, "order": 1, "status": "active" } ],
-  "sale_units": [ { "id": 1, "name": "قطعة", "abbr": "ق", "default_factor": 1, "status": "active" } ],
-  "equipments": [ { "id": 1, "name": "براد عرض", "icon": null, "order": 1, "status": "active" } ],
-  "sync_cursor": "c_20260919084100"
+  "governorates": [
+    { "id": 1, "name": "دمشق", "order": 1, "status": "active" },
+    { "id": 2, "name": "ريف دمشق", "order": 2, "status": "active" }
+  ],
+  "zones": [
+    { "id": 12, "name": "المزة", "governorate_id": 1, "district": "المزة", "order": 1, "status": "active" },
+    { "id": 13, "name": "المالكي", "governorate_id": 1, "district": "المالكي", "order": 2, "status": "active" },
+    { "id": 21, "name": "جرمانا", "governorate_id": 2, "district": "جرمانا", "order": 1, "status": "active" }
+  ],
+  "activity_types": [
+    { "id": 3, "name": "بقالة", "icon": "grocery", "order": 1, "status": "active", "suggested_category_ids": [10] },
+    { "id": 2, "name": "سوبر ماركت", "icon": "cart", "order": 2, "status": "active", "suggested_category_ids": [10] }
+  ],
+  "root_categories": [ { "id": 10, "name": "مواد غذائية", "icon": null, "image": null, "order": 1, "status": "active" } ],
+  "sale_units": [ { "id": 3, "name": "قطعة", "abbr": "pcs", "default_factor": 1, "status": "active" } ],
+  "equipments": [ { "id": 1, "name": "ثلاجة عرض", "icon": null, "order": 1, "status": "active" } ],
+  "sync_cursor": "c_20260919100000"
 }
 ```
 
@@ -763,6 +783,23 @@ class RefsService extends BaseService {
       });
 }
 ```
+
+```dart
+/// Group active zones for a MultiSelect grouped by governorate name.
+List<Map<String, dynamic>> zoneDropdownItems(Map<String, dynamic> refs) {
+  final govs = { for (final g in (refs['governorates'] as List)) g['id']: g['name'] };
+  return (refs['zones'] as List)
+      .where((z) => z['status'] == 'active')
+      .map((z) => {
+            'id': z['id'],
+            'label': z['name'],
+            'group': govs[z['governorate_id']] ?? '',
+          })
+      .toList();
+}
+```
+
+Register selected ids as `List<int> selectedZoneIds` → body `'zone_ids': selectedZoneIds`.
 
 Merge rule (in a `RefsController`): `merged[entity] = {...old by id, ...new by id}` then remove entries whose `status != 'active'`.
 
@@ -884,8 +921,8 @@ class AuthService extends BaseService {
 |---|---|
 | `name` | required ≤120 |
 | `supply_channel_id` | required int — **no public channel directory exists**; comes from the channel team / an invite (see ⚠️) |
-| `activity_type_id` | required, must exist → pick from `/public/refs.activity_types` |
-| `zone_ids` | required, ≥1, all inside the channel's coverage → pick from `/public/refs.zones` |
+| `activity_type_id` | required, must exist → **single** dropdown from `/public/refs.activity_types` (`id`/`name`) |
+| `zone_ids` | required, ≥1, all inside the channel's coverage → **multi-select** dropdown from `/public/refs.zones`, grouped by `governorate_id`. Governorate dropdown is a filter only — never POSTed |
 | `note` | optional ≤500 |
 
 Response 201:
@@ -1022,8 +1059,8 @@ Future<DutyState> setDuty(bool on) => guard(() async =>
 | `shop_name` | required ≤160 |
 | `owner_name` | required ≤120 |
 | `phone` | required, Syrian mobile |
-| `zone_id` | required, active and inside the channel coverage |
-| `activity_type_id` | required, exists |
+| `zone_id` | required, active and inside the channel coverage → **single** dropdown from `/public/refs.zones` |
+| `activity_type_id` | required, exists → **single** dropdown from `/public/refs.activity_types` |
 | `lat`/`lng` | optional numeric (from GPS) |
 | `client_op_id` | required ≤80 — generate a UUID **before** the first attempt; same value = same row (server-side dedupe, independent of the idempotency key) |
 
@@ -1092,7 +1129,7 @@ Errors: `403 insufficient_permission` → zone not in the rep's coverage → «�
 
 `POST /app/rep/zones` — `{ "zone_id": 17, "note": "أزور المنطقة أسبوعياً" }` → `{ "status": "pending_approval" }`.
 
-No list of past requests exists. Toast «طلبك قيد الموافقة» and pop. Errors: `422 zone_id` (`zone_not_found` / `zone_outside_coverage`).
+Picker: governorate **filter** (not posted) then a **single** zone dropdown from refs, excluding `LocalStore.zoneIds`. No list of past requests exists. Toast «طلبك قيد الموافقة» and pop. Errors: `422 zone_id` (`zone_not_found` / `zone_outside_coverage`).
 
 ```dart
 class ZoneShop { final int id; final String shopName; final String? address; final bool isActive; /* fromJson */ }
@@ -1628,7 +1665,7 @@ class FinanceService extends BaseService {
 
 ### 6.1 First run (new rep)
 
-`GET /health` → `GET /public/refs` (cache) → `request-otp(register)` → `verify-otp` (token: registration) → Register screen (zones + activity from refs, channel id from invite) → `POST /app/rep/register` → **replace token**, save `zone_ids` → `GET /app/session` → Shell. Duty is off until the rep flips it.
+`GET /health` → `GET /public/refs` (cache) → `request-otp(register)` → `verify-otp` (token: registration) → Register screen (activity **single** dropdown + zones **multi-select** grouped by governorate from refs, channel id from invite) → `POST /app/rep/register` → **replace token**, save `zone_ids` → `GET /app/session` → Shell. Duty is off until the rep flips it.
 
 ### 6.2 Returning rep
 
@@ -1730,7 +1767,8 @@ HTTP → behaviour summary:
 | `GET /app/sync/pull`, `POST /app/sync/push`, `GET /app/sync/status`, `POST /app/sync/resolve-conflict` | ❌ | online only; retry on reconnect |
 | `GET /app/content/home-blocks` | ❌ | composed home (assignments + receipts + wallet) |
 | `GET /app/loyalty`, `POST /app/loyalty/redeem` | ❌ | no points tab |
-| `GET /public/app-config` | ❌ | no forced update; store review manual |
+| `GET /public/app-config` | ❌ | no forced update; store review manual; intro stays local |
+| `GET/PUT /platform/content/intro`, `GET/PUT /channel/content/intro` | live on **other** guards | 403 `wrong_guard` — never call; `IntroLocalSource` from `assets/intro/` with `{enabled, text, media_type, media_id, duration, targeting}` |
 | `GET /channels` (any channel directory) | never planned for the app | channel id from invite / QA constant |
 | `GET /app/rep/zones` (my coverage) | ❌ | `LocalStore.zoneIds` |
 | `PATCH`/`DELETE /app/rep/cart/lines/{id}` | ❌ | qty only goes up; honest message |
@@ -1746,7 +1784,8 @@ Anything in the catalog marked `contract: proposed` is not a route.
 
 | # | Screen (module) | Controller | Calls | Empty state (ar) |
 |---|---|---|---|---|
-| 1 | `splash` | `SplashController` | health → session bootstrap | — |
+| 1 | `splash` | `SplashController` | health → local intro if no token, else session bootstrap | — |
+| 1b | `intro` | `IntroController` | `IntroLocalSource` only — never `/platform/content/intro` | — |
 | 2 | `auth/phone` | `PhoneController` | request-otp | — |
 | 3 | `auth/otp` | `OtpController` | verify-otp, resend-otp | — |
 | 4 | `auth/register` | `RegisterController` | refs, register | — |

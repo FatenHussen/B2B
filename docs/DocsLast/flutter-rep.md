@@ -7,7 +7,7 @@
 | الحارس | `auth:app` + `app.kind:rep` · `X-Client: rep-android` أو `rep-ios` · **لا** `X-Channel-Id` |
 | الأساس | `/api/v1` |
 | التاريخ | 2026-09-19 — من الكنترولر الحي + الكتالوج + `docs/status/` + موجّه المنتج (لوحة الإدارة) |
-| JSON الحي | `docs/DocsLast/flutter-rep.json` (أُنشئ 2026-09-16 — إن تعارض مع هذا الملف **هذا الملف يفوز** لأن `GET /public/refs` أصبح حيّاً) |
+| JSON الحي | `docs/DocsLast/flutter-rep.json` — يُولَّد بـ `php docs/api/generate-rep-live.php`. مسار `live:true` في JSON يفوز على جملة هنا؛ هذا الملف يفوز على الشكل والشاشات |
 
 > **قاعدة الأولوية (لا تُكسر):** الكود الحي في `app-modules/` ← `docs/status/05-rep-app.md` + `06-shared-app.md` + `07-public.md` ← الكتالوج `docs/api/catalog/08-rep.php` + `09-shared-app.php` + `00-public.php` ← هذا الملف.
 > جملة هنا تخالف الكنترولر → الكنترولر يفوز وهذا الملف يُصلَّح.
@@ -450,30 +450,33 @@ class RemoteNotReady implements Exception {
 
 موجّه المنتج: انترو قصير للّوغو مع رسالة ترحيب، يُدار من لوحة التحكم (تعديل/إضافة نص/فيديو). إن لديه حساب سابق → الرئيسية. وإلا → التسجيل.
 
-**الواقع على الخادم اليوم:**
+**من يحرّر الانترو (لوحات، ليست التطبيق):**
 
-| مصدر الإدارة | المسار | الحارس | لتطبيق المندوب |
-|---|---|---|---|
-| انترو القناة | `GET/PUT /channel/content/intro` | `auth:channel` | ⛔ لا تستدعِه من التطبيق |
-| انترو المنصة الافتراضي | `GET/PUT /platform/content/intro` | `auth:platform` | ⛔ لوحة المنصة — لا تستدعِه من التطبيق |
-| بلوكات الرئيسية | `GET /app/content/home-blocks` | `auth:app` | ⛔ `AP-04` |
-| إعداد التطبيق | `GET /public/app-config` | عام | ⛔ `AP-06` / `PA-09` |
+| المصدر | المسار | الحارس | الحالة | لتطبيق المندوب |
+|---|---|---|---|---|
+| انترو المنصة الافتراضي | `GET/PUT /platform/content/intro` | `auth:platform` | ✅ حي — إعدادات المحتوى في السنترال | ⛔ `wrong_guard` — لا تستدعِه |
+| انترو القناة | `GET/PUT /channel/content/intro` | `auth:channel` | ✅ حي — لوحة القناة | ⛔ `wrong_guard` — لا تستدعِه |
+| مسار التطبيق البعيد | `GET /public/app-config` | عام | ⛔ `AP-06` / `PA-09` | المصدر المستقبلي الوحيد |
+| بلوكات الرئيسية | `GET /app/content/home-blocks` | `auth:app` | ⛔ `AP-04` | ليست انترو الإقلاع |
 
-ابنِ `IntroContent` بنفس شكل انترو القناة حتى يكون الربط لاحقاً استبدال مصدر لا إعادة تصميم:
+`PUT` على لوحة المنصة/القناة يعيد `{ enabled }` فقط؛ شكل القراءة الكامل:
 
 ```json
 {
   "enabled": true,
   "text": "مرحباً بك في شبكة التوزيع",
   "media_type": "video",
-  "media_url": null,
-  "media_id": null,
+  "media_id": "media_intro_default",
   "duration": 8,
-  "logo_url": null
+  "targeting": { "activity_type_ids": [], "zone_ids": [] }
 }
 ```
 
-اليوم: `IntroLocalSource` من `assets/intro/` (لوغو + نص افتراضي + فيديو اختياري ≤ 8 ث). `IntroRemoteSource.fetch()` يرمي `RemoteNotReady('GET /public/app-config','AP-06')` ويُتجاهل.
+صف شاغر على المنصة: `enabled: false`, `text/media_*: null`, `duration: 0`, targeting فارغ.
+
+ابنِ `IntroContent.fromJson` على **هذا الشكل حرفياً** حتى يكون الربط لاحقاً استبدال مصدر لا إعادة تصميم. لا `media_url` ولا `logo_url` في العقد — الوسيط `media_id` نص؛ اليوم يُحلّ من `assets/intro/`.
+
+اليوم: `IntroLocalSource` من `assets/intro/` (لوغو + نص افتراضي + فيديو اختياري ≤ 8 ث، `duration` كما في JSON أو 2ث إن `enabled=false`). `IntroRemoteSource.fetch()` يرمي `RemoteNotReady('GET /public/app-config','AP-06')` ويُتجاهل — **حتى يصبح app-config حيّاً**. لا تُعوّض باستدعاء `/platform/content/intro`.
 
 `SplashController` (أول إطار):
 
@@ -617,15 +620,19 @@ X-Device-Id: 11111111-1111-1111-1111-111111111111
 ```json
 {
   "data": {
-    "governorates": [{ "id": 1, "name": "دمشق", "order": 1, "status": "active" }],
-    "zones": [{
-      "id": 12, "name": "المزة", "governorate_id": 1,
-      "district": null, "order": 1, "status": "active"
-    }],
-    "activity_types": [{
-      "id": 3, "name": "بقالة", "icon": "grocery",
-      "order": 1, "status": "active", "suggested_category_ids": [10]
-    }],
+    "governorates": [
+      { "id": 1, "name": "دمشق", "order": 1, "status": "active" },
+      { "id": 2, "name": "ريف دمشق", "order": 2, "status": "active" }
+    ],
+    "zones": [
+      { "id": 12, "name": "المزة", "governorate_id": 1, "district": "المزة", "order": 1, "status": "active" },
+      { "id": 13, "name": "المالكي", "governorate_id": 1, "district": "المالكي", "order": 2, "status": "active" },
+      { "id": 21, "name": "جرمانا", "governorate_id": 2, "district": "جرمانا", "order": 1, "status": "active" }
+    ],
+    "activity_types": [
+      { "id": 3, "name": "بقالة", "icon": "grocery", "order": 1, "status": "active", "suggested_category_ids": [10] },
+      { "id": 2, "name": "سوبر ماركت", "icon": "cart", "order": 2, "status": "active", "suggested_category_ids": [10] }
+    ],
     "root_categories": [{ "id": 10, "name": "مواد غذائية", "icon": null, "image": null, "order": 1, "status": "active" }],
     "sale_units": [{ "id": 3, "name": "قطعة", "abbr": "pcs", "default_factor": 1, "status": "active" }],
     "equipments": [{ "id": 1, "name": "ثلاجة عرض", "icon": null, "order": 1, "status": "active" }],
@@ -637,6 +644,32 @@ X-Device-Id: 11111111-1111-1111-1111-111111111111
 
 **القنوات ليست هنا** (قاعدة إخفاء الشركة حتى تأكيد الطلب). لا تختلق `GET /public/channels`.
 
+**قوائم منسدلة في Flutter — من هذه المصفوفات المسطّحة:**
+
+| الحقل في الواجهة | المصدر | نوع الاختيار | ما يُرسل |
+|---|---|---|---|
+| المحافظة | `governorates` | قائمة واحدة (فلتر فقط) | **لا شيء** — ليست في جسم التسجيل |
+| المناطق | `zones` حيث `governorate_id` = المحافظة المختارة، أو الكل | **متعدد** (`MultiSelect`) · `value = id` · `label = name` | `zone_ids: [12, 13]` أعداد صحيحة، min 1 |
+| نوع النشاط | `activity_types` | قائمة واحدة | `activity_type_id: 3` |
+
+جمّع المناطق بالمحافظة على الجهاز:
+
+```dart
+Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
+  final map = <int, List<Map<String, dynamic>>>{};
+  for (final z in zones) {
+    if (z['status'] != 'active') continue;
+    map.putIfAbsent(z['governorate_id'] as int, () => []).add(z);
+  }
+  return map;
+}
+```
+
+- لا تُعشّش الخادم المناطق داخل المحافظة — الربط بـ `governorate_id`.
+- أخفِ `status != 'active'`. إن اختيرت منطقة ثم عادت `inactive` في `since` احذفها من الاختيار.
+- إن 422 `zone_ids` بعد التسجيل: أزل المعرّفات المرفوضة واشرح «خارج تغطية القناة».
+- إضافة منطقة لاحقاً (`POST /app/rep/zones`) ترسل `zone_id` واحداً لا مصفوفة.
+
 منتقي قناة التوريد في التسجيل (موجّه المنتج يطلبه):
 
 1. رابط دعوة `b2b-rep://join?channel_id=1` (و`--dart-define=DEFAULT_CHANNEL_ID=1` للتجربة).
@@ -644,11 +677,22 @@ X-Device-Id: 11111111-1111-1111-1111-111111111111
 3. إن 409 `conflict` القناة غير نشطة → «القناة غير متاحة».
 4. احفظ آخر `supply_channel_id` نجح.
 
-المناطق المعروضة: كل `zones` النشطة من refs. إن 422 `zone_outside_coverage` أزلها من الاختيار واشرح «خارج تغطية القناة».
-
 ### 5.7 إكمال التسجيل ✅ 🔁 → 201
 
 تظهر فقط بتوكن قدرة `registration`. الهدف: أقل من 60 ثانية. لا بريد.
+
+**الحقول على الشاشة (من §5.6):**
+
+| الشاشة | ويدجت | مصدر refs | يُرسل |
+|---|---|---|---|
+| الاسم | نص | — | `name` |
+| نوع النشاط | قائمة منسدلة **واحدة** | `activity_types` · `id`/`name` | `activity_type_id` |
+| المحافظة | قائمة منسدلة **واحدة** | `governorates` · فلتر فقط | لا يُرسل |
+| مناطق التغطية | قائمة منسدلة **متعددة** | `zones` مجمّعة بـ `governorate_id` | `zone_ids: [12, 13]` min 1 |
+| ملاحظة | نص اختياري | — | `note` |
+| قناة التوريد | دعوة / define / حقل مخفي | ليست في refs | `supply_channel_id` |
+
+لا `CheckboxList` طويلة لكل سوريا — `MultiSelect` / chips بعد اختيار المحافظة. القيمة دائماً `int` id لا الاسم.
 
 `POST /api/v1/app/rep/register`
 
@@ -1461,13 +1505,20 @@ UI:
 
 `lat` `lng` من GPS اختياريان. `client_op_id` ✔ ولّده قبل الإرسال.
 
+قوائم منسدلة من كاش refs (نفس §5.6، اختيار **واحد** هنا لا متعدد):
+
+| الحقل | ويدجت | يُرسل |
+|---|---|---|
+| المنطقة | قائمة واحدة من `zones` (فلتر محافظة اختياري) | `zone_id: 12` |
+| نوع النشاط | قائمة واحدة من `activity_types` | `activity_type_id: 3` |
+
+الفئات/التجهيزات من refs للعرض فقط حتى يتوسع العقد. خريطة اختيار الموقع تكتب `lat`/`lng`.
+
 ```json
 { "data": { "id": 490, "status": "pending_sync" } }
 ```
 
-🟡 `id` العائد = صف `RepSourcedShop` **لا** تستخدمه كـ `retailer_id`. أعد `GET /customers` وخذ `id` من القائمة.
-
-خريطة اختيار الموقع: اكتب `lat`/`lng`. الفئات/التجهيزات من refs للعرض فقط حتى يتوسع العقد.
+🟡 `id` العائد = صف `RepSourcedShop` **لا** تستخدمه كـ `retailer_id`. أعد `GET /customers` وخذ `id` من القائمة. لا تُرسل فئات أو تجهيزات.
 
 ### 10.3 المناطق 🟡
 
@@ -1481,7 +1532,9 @@ UI:
 { "zone_id": 14, "note": "طلب تغطية كفرسوسة" }
 ```
 
-→ `{ "status": "pending_approval" }`. لا قائمة طلبات لاحقة. توست «طلبك قيد الموافقة». منتقي المحافظة → مناطق refs. 422 خارج التغطية.
+→ `{ "status": "pending_approval" }`. لا قائمة طلبات لاحقة. توست «طلبك قيد الموافقة».
+
+منتقي الإضافة = نفس قوائم §5.6 لكن **منطقة واحدة**: محافظة (فلتر) ثم `zones` التي ليست في `zone_ids` المحفوظة. يُرسل `{ "zone_id": 14, "note": "…" }`. 422 خارج التغطية.
 
 ### 10.4 تبويب الطلبات 🧩
 
@@ -1616,6 +1669,8 @@ POST   /app/devices/push-token   { token, platform }
 | المسار | السبب |
 |---|---|
 | أي `/channel/*` `/platform/*` `/warehouse/*` `/app/retailer/*` | حارس خاطئ → 403 `wrong_guard` |
+| `GET/PUT /platform/content/intro` | ✅ حي للسنترال فقط — انترو التطبيق محلي حتى `app-config` |
+| `GET/PUT /channel/content/intro` | ✅ حي للوحة القناة فقط |
 | `GET /app/rep/zones` | غير موجود |
 | `PATCH/DELETE /app/rep/cart/lines/{id}` | غير موجود للمندوب (موجود للتاجر فقط) |
 | `GET /app/rep/products/{id}` | غير موجود |
@@ -1760,7 +1815,7 @@ class Money {
 
 | حاجة المنتج | الخادم اليوم | Flutter |
 |---|---|---|
-| انترو من الأدمن (نص/فيديو/لوغو) | انترو قناة/منصة ليسا لحارس `app`؛ المنصة ⛔ | أصول محلية + نموذج جاهز |
+| انترو من الأدمن (نص/فيديو/لوغو) | السنترال ✅ `GET/PUT /platform/content/intro`؛ القناة ✅ `/channel/content/intro`؛ التطبيق ⛔ لا مسار (`app-config`) | `IntroLocalSource` + `IntroContent` بنفس JSON الخادم |
 | تخطّي كزائر | لا ضيف | قفل محلي على الكتابة |
 | دليل القنوات عند التسجيل | ممنوع في `/public/refs` | دعوة / معرّف تجربة / قناة البذرة `1` |
 | صور منتجات ومحلات | `image` null في قائمة المندوب | placeholder |
@@ -1792,7 +1847,7 @@ class Money {
 
 1. **العميل:** Dio + غلاف + مال int + هاتف سوري + ترويسات + تكرار على الكتابات فقط.
 2. **Splash → Intro محلي → Phone → OTP 4 خانات `"0000"` → session.**
-3. **Register** من refs (أنشطة، مناطق) + `supply_channel_id` من define/دعوة + استبدال التوكن.
+3. **Register:** `GET /public/refs` → قائمة نشاط واحدة + قائمة مناطق **متعددة** (`zone_ids`) مجمّعة بالمحافظة + `supply_channel_id` من define/دعوة + استبدال التوكن.
 4. **Shell** 5 تبويبات + مناوبة + شارة اتصال.
 5. **Home** يجمع العدادات من 5 GET حيّة.
 6. **Order capture:** منطقة → محل → منتجات → quote → cart lines → شريط عائم → submit.
@@ -1821,7 +1876,7 @@ class Money {
 
 ### 16.2 رقم جديد
 
-`purpose=register` → OTP → register (قناة 1 + نشاط من refs + منطقة تغطيها القناة) → استبدال توكن → session → شارة قيد المراجعة.
+`purpose=register` → OTP → register (قناة 1 + قائمة نشاط واحدة + **مناطق متعددة** من refs تغطيها القناة) → استبدال توكن → session → شارة قيد المراجعة.
 
 ### 16.3 طلب محل
 
@@ -1845,10 +1900,11 @@ class Money {
 
 ## 18. ما تغيّر منذ مواصفة 2026-09-16
 
-- ✅ `GET /public/refs` حي — JSON القديم ما زال يدرجه في `forbidden`؛ **تجاهل ذلك**.
+- ✅ `GET /public/refs` حي ومُدرج في `flutter-rep.json` `endpoints` (ليس في `forbidden`).
 - ✅ الذمم تُرجع `retailer_id`.
 - ✅ الصحة تُرجع `app` `env` `checks` وقد تكون `degraded`.
-- ⛔ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` ما زالت ناقصة (`plan/apps.md` AP-02…06).
+- ✅ انترو المنصة الافتراضي حي على السنترال: `GET/PUT /platform/content/intro` (`ad.content.view` / `ad.content.manage`). انترو القناة حي على `/channel/content/intro`. التطبيق **لا** يستدعي أياً منهما (`wrong_guard`).
+- ⛔ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` ما زالت ناقصة (`plan/apps.md` AP-02…06). انترو التطبيق يبقى محلياً حتى `GET /public/app-config`.
 - هذا الملف يضيف: GetX، موجّه المنتج، زائر، انترو، outbox، علي بابا، PDF محلي، وخريطة صريحة للفجوات.
 
 عندما يصل مستودع Flutter: راجع كل شاشة مقابل §15 وهذا الملف، وأكمل الناقص دون اختراع API.
