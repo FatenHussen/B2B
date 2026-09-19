@@ -76,7 +76,7 @@ function createProvisioningChannel(): array
         ],
     ];
 
-    $response = test()->postJson('/api/v1/admin/channels', $body)->assertCreated();
+    $response = test()->postJson('/api/v1/platform/channels', $body)->assertCreated();
 
     return [
         'id' => (int) $response->json('data.id'),
@@ -135,7 +135,7 @@ it('a retry after a partial failure completes the remaining steps without duplic
 
     Event::assertNotDispatched(ChannelManagerInvited::class);
 
-    $retryId = (string) $this->postJson("/api/v1/admin/channels/{$created['id']}/retry-provisioning")
+    $retryId = (string) $this->postJson("/api/v1/platform/channels/{$created['id']}/retry-provisioning")
         ->assertOk()
         ->json('data.job_id');
 
@@ -173,7 +173,7 @@ it('returns the same job_id when retrying an already active channel', function (
     $created = createProvisioningChannel();
     app(RunProvisioning::class)($created['job_id']);
 
-    $this->postJson("/api/v1/admin/channels/{$created['id']}/retry-provisioning")
+    $this->postJson("/api/v1/platform/channels/{$created['id']}/retry-provisioning")
         ->assertOk()
         ->assertJsonPath('data.job_id', $created['job_id']);
 
@@ -189,7 +189,7 @@ it('names ad.channels.update on a 403 for a platform user without it', function 
     $user = PlatformUser::factory()->create();
     Sanctum::actingAs($user, ['*'], 'platform');
 
-    $this->postJson("/api/v1/admin/channels/{$created['id']}/retry-provisioning")
+    $this->postJson("/api/v1/platform/channels/{$created['id']}/retry-provisioning")
         ->assertForbidden()
         ->assertJsonPath('error.code', 'insufficient_permission')
         ->assertJsonPath('error.permission', 'ad.channels.update');

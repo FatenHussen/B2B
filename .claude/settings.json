@@ -16,7 +16,15 @@
       "Bash(echo \"grep-exit=$?\")",
       "PowerShell(./vendor/bin/pint --test 2>&1)",
       "PowerShell(./vendor/bin/phpstan analyse --no-progress --memory-limit=1G 2>&1)",
-      "Bash(./vendor/bin/pint --test docs/api/generate-live-postman.php)"
+      "Bash(./vendor/bin/pint --test docs/api/generate-live-postman.php)",
+      "Bash(./vendor/bin/pest tests/Feature/Security/PermissionVocabularyTest.php)",
+      "Bash(grep -nE 'function codes|array_merge|\\\\+ \\\\$|spread|\\\\.\\\\.\\\\.' app-modules/access/src/Domain/PermissionCatalog.php)",
+      "Bash(grep -nB2 \"'sc.reps.view'\\\\|'sc.reps.wallet'\\\\|'sc.reps.disable'\" app-modules/access/src/Domain/PermissionCatalog.php)",
+      "Bash(./vendor/bin/pint --test tests/Feature/Security/PermissionVocabularyTest.php app-modules/access/src/Domain/PermissionCatalog.php)",
+      "PowerShell(Get-Process php -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{n='cmd';e={\\(Get-CimInstance Win32_Process -Filter \"ProcessId=$\\($_.Id\\)\"\\).CommandLine}} | Format-List; Select-String -Path phpunit.xml -Pattern 'DB_')",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"Name='php.exe'\" | Select-Object ProcessId,CreationDate,@{n='cmd';e={$_.CommandLine.Substring\\(0,[Math]::Min\\(160,$_.CommandLine.Length\\)\\)}} | Format-List)",
+      "Bash(grep -n '$fake = $this->otp' tests/Feature/Identity/PublicOtpTest.php)",
+      "PowerShell(Get-ChildItem docs/plan, docs/DocsLast, docs/sprints, docs/backlog -Recurse -File | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\(\"C:\\\\Users\\\\FATEN\\\\Desktop\\\\B2BPROJECT\\\\\", \"\"\\) }; git show --stat HEAD | Select-Object -First 40)"
     ]
   }
 }

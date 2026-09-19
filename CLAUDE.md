@@ -44,7 +44,8 @@ Pattern: modular monolith, API-first.
 
 - `app/` is deliberately thin: Kernel, Providers and Console only. **No controller, model or service here.**
 - `app-modules/` holds every piece of business logic, one local Composer path repository per module.
-- `docs/backlog/` holds one markdown file per ticket. Implement a ticket by reading its file.
+- `docs/plan/` holds the remaining work as ordered tickets (`platform-admin.md`, `apps.md`);
+  `docs/status/` is generated and says, route by route, what is live. `docs/README.md` is the index.
 
 ## The four layers and the dependency direction
 
@@ -254,7 +255,7 @@ composer deptrac                          # module boundaries
 
 **Five gates must pass.** A ticket is not done because the feature works.
 
-**The Larastan gate runs against a baseline since 2026-09-16** (BE-F11). It had never
+**The Larastan gate runs against a baseline since 2026-09-16.** It had never
 passed before that date — 1184 findings, of which configuration alone accounted for 812:
 the analyser read no module migrations, typed `$this` in a Pest closure as Pest's call
 object, and read `casts()`'s declared return type instead of its body. What remained —
@@ -263,25 +264,27 @@ declarations without a related type are the cause of 173 of the rest, and hiding
 while freezing its symptoms is not a baseline — is in `phpstan-baseline.neon`, pinned
 exactly at 475 by `tests/Architecture/PhpstanBaselineTest.php`: the number only falls,
 and a fall lowers the pin in the same commit. A new finding in new code is fixed, never added to the
-baseline — the gate is green for new code and red for regressions. BE-F11 owns the
-pay-down, one module per ticket; its table is the work list.
+baseline — the gate is green for new code and red for regressions. The pay-down is one
+module per commit; its table is in `docs/debt-ledger.md`.
 
 A sixth gate is specified but does not exist yet: `php artisan openapi:generate --check`.
-The `openapi` package registers no artisan commands in this repository — see BE-F06.
+The `openapi` package registers no artisan commands in this repository (`docs/debt-ledger.md`).
 Until it lands, state any response-shape change explicitly in the pull request.
 
 ## How to work a ticket
 
-1. Read `docs/backlog/L{n}/{TICKET-ID}.md` in full, including its front matter.
-2. Read the `Working rules` section: it names the only directories you may touch.
-3. Do not implement anything outside that ticket. If a dependency is missing, stop and say so.
-4. Write a test for every acceptance criterion before declaring completion.
-5. Run the five gates above.
+1. Find it in `docs/plan/platform-admin.md` or `docs/plan/apps.md`. The ticket names the module,
+   the tables, the permissions, what it depends on and its acceptance lines.
+2. Read the catalog entry (`docs/api/catalog/*.php`) for every `EP-` it names. That is the request
+   and response contract; the plan never repeats it. Do not invent a path, a body or a shape.
+3. Check `docs/status/` to confirm the route is still ❌ — another branch may have landed it.
+4. Do not implement anything outside that ticket. If a dependency is missing, stop and say so.
+5. Write a test for every acceptance line before declaring completion.
+6. Run the five gates above, then `php docs/api/generate.php && php docs/status/generate.php`
+   and flip the ticket to ✅ with the date.
 
 ## Contract status
 
-Tickets in `docs/backlog/L1/` carry real `EP-ID` values from the API catalog. **They are implementable.**
-
-Tickets in `L2`, `L3` and `L4` have `contract: proposed`. Their endpoints do not exist in the catalog yet.
-Do not invent a path, a request body or a response shape. If asked to implement one, stop and say the
-contract is not fixed.
+Every endpoint in `docs/plan/` has a real `EP-ID` in the catalog and is implementable. A route that
+the catalog does not name does not get built: add it to the catalog first, with `b`/`r`/`e`, in its
+own commit, and say so.

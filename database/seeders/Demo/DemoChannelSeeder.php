@@ -12,6 +12,8 @@ use Modules\Identity\Domain\Models\WarehouseDevice;
 use Modules\Identity\Domain\Models\WarehouseUser;
 use Modules\Reference\Domain\Models\ChannelZone;
 use Modules\Tenancy\Domain\Enums\WarehouseStatus;
+use Modules\Tenancy\Domain\Models\ChannelLimit;
+use Modules\Tenancy\Domain\Models\ChannelPlan;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 use Modules\Tenancy\Domain\Models\Warehouse;
 use Spatie\Permission\PermissionRegistrar;
@@ -77,6 +79,10 @@ final class DemoChannelSeeder extends DemoSeeder
             'legal_name' => $channel->legal_name ?? 'شركة القناة التجريبية للتوزيع م.م',
             'tax_number' => $channel->tax_number ?? '011-2345678',
             'email' => $channel->email ?? 'ops@demo-channel.sy',
+            // DatabaseSeeder creates the channel with no plan; the back office detail
+            // shows a subscription only when there is one.
+            'plan_id' => $channel->plan_id ?? ChannelPlan::query()->where('key', 'growth')->value('id'),
+            'billing_cycle' => $channel->billing_cycle ?? 'yearly',
             'settings' => $channel->settings ?: [
                 'locale' => 'ar',
                 'timezone' => 'Asia/Damascus',
@@ -88,6 +94,14 @@ final class DemoChannelSeeder extends DemoSeeder
                 'support_phone' => '+963911000000',
             ],
         ]);
+
+        // The limits row provisioning would have written from the plan (BE-T04), so the
+        // detail's `limits` and the usage's `limit_usage` read the same numbers.
+        $plan = ChannelPlan::query()->findOrFail($channel->fresh()->plan_id);
+        ChannelLimit::query()->firstOrCreate(
+            ['channel_id' => $channel->id],
+            ['channel_id' => $channel->id] + $plan->limits,
+        );
     }
 
     private function seedWarehouses(): void

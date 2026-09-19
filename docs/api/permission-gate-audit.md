@@ -107,7 +107,8 @@ families the catalog does not describe: `sc.retailers.*` (5), `sc.reps.*` (5), `
 
 **Decision: recorded for FE3-CH03/04.** The channel routes already live that have no
 catalog entry — `channel/zones` and `channel` — are the same gap seen from the other side,
-and are tracked in `docs/backlog/L1/BE-F06.md`.
+and are tracked in `docs/debt-ledger.md` (row dated 2026-09-18) and listed on every run of
+`docs/status/generate.php`.
 
 ---
 

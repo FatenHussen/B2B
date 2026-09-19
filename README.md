@@ -16,29 +16,30 @@ php artisan serve
 curl http://127.0.0.1:8000/api/v1/health
 ```
 
-Full steps (MySQL port, OTP log, seed users, warehouse device): **[docs/DocsLast/_shared/00-install-the-api.md](docs/DocsLast/_shared/00-install-the-api.md)**
+Requires PHP 8.3 and MySQL 8 on port 3308 (`.env.example`, `phpunit.xml` and CI agree).
 
 Local platform login after seed: `admin@platform.sy` / `password`.  
-OTP (dev): switched off with `OTP_BYPASS=true` — any 6-character code verifies, no cooldown, no rate limit;
+OTP (dev): switched off with `OTP_BYPASS=true` — any code, or none, verifies; no cooldown, no rate limit;
 ignored under `APP_ENV=production`. Set it back to `false` at release. With it off, codes go to
 `storage/logs/laravel.log` (`OTP_CHANNEL=log`).
 
-## Frontend briefs
+## Documentation
 
-**[docs/DocsLast/README.md](docs/DocsLast/README.md)** — Flutter apps and web dashboards, one folder each, `L1.md`…`L4.md` per sprint.
+**[docs/README.md](docs/README.md)** is the index. The short version:
 
-- Flutter kit: [docs/DocsLast/_shared/flutter-client.md](docs/DocsLast/_shared/flutter-client.md)
-- React kit: [docs/DocsLast/_shared/react-client.md](docs/DocsLast/_shared/react-client.md)
-
-## Backend specs
-
-| File | Contents |
+| Question | Where |
 |---|---|
-| [docs/sprints/L1-foundation-backend-spec.md](docs/sprints/L1-foundation-backend-spec.md) | Layer 1 build contract |
-| [docs/sprints/L1-ready-apis.md](docs/sprints/L1-ready-apis.md) | Live L1 request/response shapes |
-| [docs/api/catalog/](docs/api/catalog/) | Binding API catalog |
+| What is the contract for an endpoint? | [docs/api/catalog/](docs/api/catalog/) — binding, one `ep()` per route |
+| What is live, per client? | [docs/status/00-overview.md](docs/status/00-overview.md) — generated from the catalog and `route:list` |
+| What is left to build, in what order? | [docs/plan/platform-admin.md](docs/plan/platform-admin.md), [docs/plan/apps.md](docs/plan/apps.md) |
+| What does a frontend developer read? | [docs/DocsLast/](docs/DocsLast/) — one spec and one live JSON per client |
+| The rules every PR is judged against | [CLAUDE.md](CLAUDE.md) |
 
-Requires PHP 8.3 and MySQL 8.
+Regenerate the generated pages after any route change:
+
+```bash
+php docs/api/generate.php && php docs/status/generate.php
+```
 
 ## Docker is not used
 

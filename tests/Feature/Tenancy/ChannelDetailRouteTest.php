@@ -30,7 +30,7 @@ it('a brand-new channel returns genuine zeros, not placeholder values', function
     $channel = SupplyChannel::factory()->create();
     detailActingAsAdmin();
 
-    $this->getJson("/api/v1/admin/channels/{$channel->id}")
+    $this->getJson("/api/v1/platform/channels/{$channel->id}")
         ->assertOk()
         ->assertJsonPath('data.channel.id', $channel->id)
         ->assertJsonPath('data.channel.status', $channel->status->value)
@@ -40,7 +40,7 @@ it('a brand-new channel returns genuine zeros, not placeholder values', function
         ->assertJsonPath('data.limits.users', 0)
         ->assertJsonPath('data.limits.skus', 0);
 
-    $kpis = $this->getJson("/api/v1/admin/channels/{$channel->id}")->json('data.kpis');
+    $kpis = $this->getJson("/api/v1/platform/channels/{$channel->id}")->json('data.kpis');
 
     expect($kpis['gmv_30d'])->toBe(0)
         ->and($kpis['orders_30d'])->toBe(0)
@@ -51,7 +51,7 @@ it('the update is refused without a reason', function () {
     $channel = SupplyChannel::factory()->create(['name' => 'شركة النور']);
     detailActingAsAdmin();
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", [
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", [
         'name' => 'شركة النور للتوزيع',
         'legal_form' => 'llc',
     ])
@@ -65,7 +65,7 @@ it('updates the profile when a reason is given and writes an audit row', functio
     $channel = SupplyChannel::factory()->create(['name' => 'شركة النور']);
     $admin = detailActingAsAdmin();
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", [
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", [
         'name' => 'شركة النور للتوزيع',
         'legal_form' => 'llc',
         'cr_number' => 'C12345',
@@ -88,7 +88,7 @@ it('names ad.channels.view on a 403 for a platform user without it', function ()
     $user = PlatformUser::factory()->create();
     Sanctum::actingAs($user, ['*'], 'platform');
 
-    $this->getJson("/api/v1/admin/channels/{$channel->id}")
+    $this->getJson("/api/v1/platform/channels/{$channel->id}")
         ->assertForbidden()
         ->assertJsonPath('error.code', 'insufficient_permission')
         ->assertJsonPath('error.permission', 'ad.channels.view');

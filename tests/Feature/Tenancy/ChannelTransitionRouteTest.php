@@ -3,17 +3,13 @@
 declare(strict_types=1);
 
 /**
- * BE-T13 — EP-AD-054, `POST /admin/channels/{id}/transition`.
+ * BE-T13 — EP-AD-054, `POST /platform/channels/{id}/transition`.
  *
  * The lifecycle and its matrix are proved in ChannelLifecycleTest. This file proves the
  * route: that it reaches the lifecycle and nothing else, answers what the catalog says
  * (`status` and `allowed_next`), refuses with the codes the catalog names, is gated on
  * the permission the catalog names — `ad.channels.suspend`, and `ad.channels.archive`
  * when the target is `archived` — and that a suspension leaves an order in flight alone.
- *
- * The path is `/admin/channels`, beside its five siblings, and is MOVING to
- * `/platform/channels` with them. A sixth route on the catalog prefix while five sit on
- * the temporary one would split the single constant the frontend keeps them behind.
  *
  * One HTTP request per test unless the guards are forgotten in between, per the
  * guard-caching hazard recorded in CrossGuardTest.
@@ -39,7 +35,7 @@ beforeEach(fn () => $this->seed(RolesPermissionsSeeder::class));
 
 function transitionUrl(SupplyChannel $channel): string
 {
-    return "/api/v1/admin/channels/{$channel->id}/transition";
+    return "/api/v1/platform/channels/{$channel->id}/transition";
 }
 
 function channelAt(string $status): SupplyChannel
@@ -190,7 +186,7 @@ it('requires a reason', function () {
 it('answers 404 for a channel that does not exist', function () {
     actingAsPlatformAdmin();
 
-    $this->postJson('/api/v1/admin/channels/999999/transition', ['to_status' => 'suspended', 'reason' => 'x'])
+    $this->postJson('/api/v1/platform/channels/999999/transition', ['to_status' => 'suspended', 'reason' => 'x'])
         ->assertNotFound()
         ->assertJsonPath('error.code', 'not_found');
 });

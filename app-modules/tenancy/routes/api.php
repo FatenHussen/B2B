@@ -11,31 +11,24 @@ use Modules\Tenancy\Presentation\Http\Controllers\SupplyChannelController;
  */
 
 /*
- * EP-AD-055 and EP-AD-056 on the catalog's own path. The siblings below still live under
- * `/admin/channels` and are moving here; these two land where they will end up rather
- * than adding to what has to move. Both prefixes are the platform guard (GuardTest).
+ * Platform back office — EP-AD-050..056, 058, 062 on the catalog's path. The nine routes
+ * sat on two prefixes until PA-01 (2026-09-19): seven on a temporary `/admin/channels`
+ * and two here. One group, one constant on the frontend. Every gate is the permission
+ * the catalog names, so a 403 carries `error.permission`; the platform_admin role still
+ * passes every one of them through Gate::before.
  */
 Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', 'tenant', SubstituteBindings::class])
     ->prefix('api/v1/platform/channels')
     ->group(function () {
-        // BE-T12. `ad.billing.assign_plan` is what the catalog names for a limits override.
-        Route::put('{supplyChannel}/limits', [SupplyChannelController::class, 'overrideLimits'])
-            ->middleware('permission:ad.billing.assign_plan');
-        // BE-T11.
-        Route::get('{supplyChannel}/usage', [SupplyChannelController::class, 'usage'])
+        // EP-AD-050.
+        Route::get('/', [SupplyChannelController::class, 'index'])
             ->middleware('permission:ad.channels.view');
-    });
 
-// Platform back office.
-Route::middleware(['api', 'auth:platform', 'tenant', SubstituteBindings::class])
-    ->prefix('api/v1/admin/channels')
-    ->group(function () {
-        Route::middleware('role:platform_admin')->group(function () {
-            Route::get('/', [SupplyChannelController::class, 'index']);
-            Route::delete('{supplyChannel}', [SupplyChannelController::class, 'destroy']);
-        });
+        // EP-AD-051 (BE-T04).
+        Route::post('/', [SupplyChannelController::class, 'store'])
+            ->middleware('permission:ad.channels.create');
 
-        // EP-AD-052 (BE-T06). Catalog permission, not the admin role.
+        // EP-AD-052 (BE-T06).
         Route::get('{supplyChannel}', [SupplyChannelController::class, 'show'])
             ->middleware('permission:ad.channels.view');
 
@@ -43,26 +36,27 @@ Route::middleware(['api', 'auth:platform', 'tenant', SubstituteBindings::class])
         Route::put('{supplyChannel}', [SupplyChannelController::class, 'update'])
             ->middleware('permission:ad.channels.update');
 
-        // EP-AD-051 (BE-T04). Catalog permission, not the role the siblings use, so a 403
-        // carries `error.permission`. On `/admin/channels` beside them, and MOVING to
-        // `/platform/channels` with them.
-        Route::post('/', [SupplyChannelController::class, 'store'])
-            ->middleware('permission:ad.channels.create');
+        // EP-AD-058. A direct delete today; the catalog's archived-30-days + password +
+        // OTP + typed-name + second-approver flow is PA-18 (docs/debt-ledger.md).
+        Route::delete('{supplyChannel}', [SupplyChannelController::class, 'destroy'])
+            ->middleware('permission:ad.channels.delete');
 
         // EP-AD-053 (BE-T05). Catalog permission is ad.channels.update ("إعادة التجهيز").
         Route::post('{supplyChannel}/retry-provisioning', [SupplyChannelController::class, 'retryProvisioning'])
             ->middleware('permission:ad.channels.update');
 
-        // EP-AD-054 (BE-T13). On `/admin/channels` beside its five siblings, and MOVING
-        // to `/platform/channels/{id}/transition` with them: one route on the catalog
-        // prefix while five sit on the temporary one would split the single constant
-        // the frontend keeps them behind.
-        //
-        // Gated on the permission the catalog names, not the role the siblings use, so
-        // the 403 carries `error.permission`. `ad.channels.archive` is checked in the
-        // action, where the target is known.
+        // EP-AD-054 (BE-T13). `ad.channels.archive` is checked in the action, where the
+        // target is known.
         Route::post('{supplyChannel}/transition', [SupplyChannelController::class, 'transition'])
             ->middleware('permission:ad.channels.suspend');
+
+        // EP-AD-055 (BE-T12). `ad.billing.assign_plan` is what the catalog names for a limits override.
+        Route::put('{supplyChannel}/limits', [SupplyChannelController::class, 'overrideLimits'])
+            ->middleware('permission:ad.billing.assign_plan');
+
+        // EP-AD-056 (BE-T11).
+        Route::get('{supplyChannel}/usage', [SupplyChannelController::class, 'usage'])
+            ->middleware('permission:ad.channels.view');
     });
 
 // A channel manager reading and editing their own channel.

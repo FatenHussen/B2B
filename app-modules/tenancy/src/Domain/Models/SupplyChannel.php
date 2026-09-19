@@ -36,7 +36,7 @@ class SupplyChannel extends Model
 
     /**
      * `status` is absent on purpose (rule 8). Until BE-T01 it was here, and
-     * `PUT /admin/channels/{id}` could suspend a channel as a side effect of renaming
+     * `PUT /platform/channels/{id}` could suspend a channel as a side effect of renaming
      * it, with no reason, no actor and no record. It now moves only through
      * `ChannelLifecycle`, which checks the transition and writes the event.
      */

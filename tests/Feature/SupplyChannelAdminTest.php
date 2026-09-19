@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Admin roster and cross-guard checks for `/admin/channels`. Create-shape and
+ * Admin roster and cross-guard checks for `/platform/channels`. Create-shape and
  * EP-AD-051 acceptance criteria live in ChannelCreateRouteTest (BE-T04).
  */
 
@@ -33,7 +33,7 @@ it('lets a platform admin list every channel', function () {
     $admin->assignRole('platform_admin');
     Sanctum::actingAs($admin, ['*'], 'platform');
 
-    $this->getJson('/api/v1/admin/channels')->assertOk()->assertJsonCount(3, 'data');
+    $this->getJson('/api/v1/platform/channels')->assertOk()->assertJsonCount(3, 'data');
 });
 
 it('lets a platform admin create a channel', function () {
@@ -53,7 +53,7 @@ it('lets a platform admin create a channel', function () {
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    $this->postJson('/api/v1/admin/channels', [
+    $this->postJson('/api/v1/platform/channels', [
         'name' => 'Fresh Foods',
         'slug' => 'fresh-foods',
         'legal_form' => 'llc',
@@ -101,15 +101,13 @@ it('blocks a channel manager from reading the admin roster even though they hold
     // The holder carries every channel code in the catalog, and none of it matters here:
     // `auth:platform` rejects a channel token before any gate runs. Since BE-C02 the
     // answer names the reason, 403 `wrong_guard`, instead of 401 `unauthenticated`.
-    // This route never depended on the permission vocabulary — it is `role:platform_admin`
-    // behind a single-guard prefix, which is why the vocabulary batch did not touch it.
-    $this->getJson('/api/v1/admin/channels', channelManagerBearer())
+    $this->getJson('/api/v1/platform/channels', channelManagerBearer())
         ->assertForbidden()
         ->assertJsonPath('error.code', 'wrong_guard');
 });
 
 it('blocks a channel manager from creating a channel', function () {
-    $this->postJson('/api/v1/admin/channels', ['name' => 'x', 'slug' => 'x'], channelManagerBearer())
+    $this->postJson('/api/v1/platform/channels', ['name' => 'x', 'slug' => 'x'], channelManagerBearer())
         ->assertForbidden()
         ->assertJsonPath('error.code', 'wrong_guard');
 
@@ -123,7 +121,7 @@ it('lets a platform admin delete a channel', function () {
     $admin->assignRole('platform_admin');
     Sanctum::actingAs($admin, ['*'], 'platform');
 
-    $this->deleteJson("/api/v1/admin/channels/{$channel->id}")->assertNoContent();
+    $this->deleteJson("/api/v1/platform/channels/{$channel->id}")->assertNoContent();
 
     expect(SupplyChannel::find($channel->id))->toBeNull();
 });

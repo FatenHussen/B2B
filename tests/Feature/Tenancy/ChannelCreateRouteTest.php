@@ -3,13 +3,10 @@
 declare(strict_types=1);
 
 /**
- * BE-T04 — EP-AD-051, `POST /admin/channels`.
+ * BE-T04 — EP-AD-051, `POST /platform/channels`.
  *
  * Creates a channel in `provisioning`, returns under 500ms with `provisioning_job_id`,
  * and is idempotent. Does not wait for `active` — that move is BE-T05.
- *
- * The path is `/admin/channels`, beside its siblings, and is MOVING to
- * `/platform/channels` with them.
  *
  * One HTTP request per test unless the guards are forgotten in between, per the
  * guard-caching hazard recorded in CrossGuardTest. Idempotency replay is the exception:
@@ -43,7 +40,7 @@ beforeEach(function () {
 
 function createChannelUrl(): string
 {
-    return '/api/v1/admin/channels';
+    return '/api/v1/platform/channels';
 }
 
 /**

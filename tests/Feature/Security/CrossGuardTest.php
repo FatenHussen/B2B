@@ -31,11 +31,12 @@ use Modules\Identity\Domain\Models\WarehouseUser;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 
 /**
- * One protected route per guard, plus a second for platform and channel: `platform/me`
- * and `channel/brands` carry `guard.tokenable`, while `admin/channels` and `channel` do
+ * One protected route per guard, plus a second for platform and channel: `platform/me`,
+ * `platform/channels` and `channel/brands` carry `guard.tokenable`, while `channel` does
  * not. Both wirings are measured so the table shows whether that middleware changes the
  * answer — it does not, and never did: both throw the same AuthenticationException, and
  * the handler names the code from the token, not from the middleware that rejected it.
+ * (`platform/channels` was `admin/channels` without the middleware until PA-01.)
  */
 const CROSSINGS = [
     // target guard, uri, token guard, observed status, observed error.code
@@ -43,9 +44,9 @@ const CROSSINGS = [
     ['platform', 'api/v1/platform/me', 'warehouse', 403, 'wrong_guard'],
     ['platform', 'api/v1/platform/me', 'app', 403, 'wrong_guard'],
 
-    ['platform', 'api/v1/admin/channels', 'channel', 403, 'wrong_guard'],
-    ['platform', 'api/v1/admin/channels', 'warehouse', 403, 'wrong_guard'],
-    ['platform', 'api/v1/admin/channels', 'app', 403, 'wrong_guard'],
+    ['platform', 'api/v1/platform/channels', 'channel', 403, 'wrong_guard'],
+    ['platform', 'api/v1/platform/channels', 'warehouse', 403, 'wrong_guard'],
+    ['platform', 'api/v1/platform/channels', 'app', 403, 'wrong_guard'],
 
     ['channel', 'api/v1/channel/brands', 'platform', 403, 'wrong_guard'],
     ['channel', 'api/v1/channel/brands', 'warehouse', 403, 'wrong_guard'],
@@ -67,7 +68,7 @@ const CROSSINGS = [
 /** The same six routes reached by their own guard, proving each one is alive. */
 const OWN_GUARD_CONTROLS = [
     ['platform', 'api/v1/platform/me'],
-    ['platform', 'api/v1/admin/channels'],
+    ['platform', 'api/v1/platform/channels'],
     ['channel', 'api/v1/channel/brands'],
     ['channel', 'api/v1/channel'],
     ['warehouse', 'api/v1/warehouse/queues'],

@@ -134,7 +134,7 @@ it('omits archived from allowed_next while the channel is active', function () {
     $channel = channelIn('active');
     Sanctum::actingAs(platformActor(), ['*'], 'platform');
 
-    $allowed = $this->getJson("/api/v1/admin/channels/{$channel->id}")
+    $allowed = $this->getJson("/api/v1/platform/channels/{$channel->id}")
         ->assertOk()
         ->assertJsonPath('data.channel.status', 'active')
         ->json('data.channel.allowed_next');
@@ -149,7 +149,7 @@ it('returns allowed_next on the channel resource', function (string $status, arr
     $channel = channelIn($status);
     Sanctum::actingAs(platformActor(), ['*'], 'platform');
 
-    $this->getJson("/api/v1/admin/channels/{$channel->id}")
+    $this->getJson("/api/v1/platform/channels/{$channel->id}")
         ->assertOk()
         ->assertJsonPath('data.channel.status', $status)
         ->assertJsonPath('data.channel.allowed_next', $expected);
@@ -266,7 +266,7 @@ it('rejects status on channel creation with 422', function () {
     // that stayed active.
     Sanctum::actingAs(platformActor(), ['*'], 'platform');
 
-    $this->postJson('/api/v1/admin/channels', [
+    $this->postJson('/api/v1/platform/channels', [
         'name' => 'شركة جديدة',
         'slug' => 'brand-new',
         'status' => 'suspended',
@@ -281,7 +281,7 @@ it('rejects status on channel update with 422 and leaves the status alone', func
     $channel = channelIn('active');
     Sanctum::actingAs(platformActor(), ['*'], 'platform');
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", ['status' => 'suspended'])
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", ['status' => 'suspended'])
         ->assertUnprocessable()
         ->assertJsonPath('error.code', 'validation_failed');
 

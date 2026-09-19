@@ -67,10 +67,11 @@ final class DemoOrderingSeeder extends DemoSeeder
 
     /**
      * The stages a sub-order passed through to reach each status, oldest first.
+     * `DemoOrderHistorySeeder` writes the same journeys on the generated history.
      *
      * @var array<string, list<string>>
      */
-    private const JOURNEYS = [
+    public const JOURNEYS = [
         'pending' => ['pending'],
         'confirmed' => ['pending', 'confirmed'],
         'assigned' => ['pending', 'confirmed', 'assigned'],

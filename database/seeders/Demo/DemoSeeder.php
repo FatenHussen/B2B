@@ -10,6 +10,7 @@ use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Reference\Domain\Models\ActivityType;
+use Modules\Reference\Domain\Models\ChannelZone;
 use Modules\Reference\Domain\Models\Currency;
 use Modules\Reference\Domain\Models\Governorate;
 use Modules\Reference\Domain\Models\RootCategory;
@@ -106,11 +107,22 @@ abstract class DemoSeeder extends Seeder
     }
 
     /**
+     * The zones the current tenant covers, from its `channel_zone` rows — so the catalog
+     * and people seeders work for any channel whose coverage has been written, not only
+     * the demo channel's `COVERED_ZONES`. `DemoChannelSeeder` (demo) and
+     * `DemoPlatformSeeder` (the others) write coverage before anything reads it.
+     *
      * @return list<int>
      */
     protected function coveredZoneIds(): array
     {
-        return array_map(fn (array $pair) => $this->zoneId($pair[0], $pair[1]), self::COVERED_ZONES);
+        $ids = ChannelZone::query()->orderBy('zone_id')->pluck('zone_id')->map(fn ($id) => (int) $id)->all();
+
+        if ($ids === []) {
+            throw new RuntimeException('Channel '.$this->channelId().' has no coverage — seed its channel_zone rows first.');
+        }
+
+        return $ids;
     }
 
     protected function warehouseId(string $name): int

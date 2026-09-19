@@ -29,9 +29,12 @@ final class DemoPricingSeeder extends DemoSeeder
     /**
      * SKU → base price, with optional tiers as `[from_qty, to_qty|null, price]`.
      *
+     * Public because `DemoPlatformSeeder` prices the same catalog in the other demo
+     * channels through `seedBasePrices()`, without their price lists and change log.
+     *
      * @var array<string, array{price: int, tiers?: list<array{0: int, 1: int|null, 2: int}>}>
      */
-    private const PRICES = [
+    public const PRICES = [
         'SUG-1KG' => ['price' => 12_000, 'tiers' => [[1, 49, 12_000], [50, 99, 11_500], [100, null, 11_000]]],
         'RICE-5KG' => ['price' => 85_000],
         'OIL-1L' => ['price' => 38_000, 'tiers' => [[1, 23, 38_000], [24, 59, 36_500], [60, null, 35_000]]],
@@ -86,7 +89,11 @@ final class DemoPricingSeeder extends DemoSeeder
         $this->seedChangeLog();
     }
 
-    private function seedBasePrices(): void
+    /**
+     * Prices for whichever channel is the tenant. Public so the other demo channels get
+     * the same price book without the demo-channel-specific lists below.
+     */
+    public function seedBasePrices(): void
     {
         $currencyId = $this->baseCurrencyId();
 
