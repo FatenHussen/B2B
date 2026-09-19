@@ -86,6 +86,10 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
    with actor, reason and time. An illegal transition throws and maps to 409.
 9. **Every write accepts `X-Idempotency-Key`.** Known and complete replays the stored response; known and
    in flight returns 409 `operation_in_progress`; new executes and stores for 24 hours.
+   **Known means known to the same caller**: a row is keyed by (guard, user_id, key) and the
+   middleware runs after `auth:*` through the priority list, so the same key from another user, or
+   from no user, is that caller's own first request (BE-C13). An in-flight row is held for
+   `core.idempotency_lock_seconds`; past that a retry takes it over rather than waiting out the day.
 10. **Every channel-owned model carries a channel column** with a composite index starting on it, and
     `BelongsToChannel` applied automatically. Hand-written
     `->where(channel_column, Tenant::currentId())` in a query is **not** isolation: it protects only

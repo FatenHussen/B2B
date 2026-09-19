@@ -3,11 +3,14 @@
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\Domain\Enums\ErrorCode;
 use Modules\Core\Domain\Exceptions\DomainException;
@@ -56,6 +59,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(append: [
             EnsureIdempotency::class,
         ]);
+
+        // Appending to the group is not enough. Group middleware runs ahead of route
+        // middleware, so idempotency answered before `auth:*` had asked who was calling,
+        // and a stored response went to whoever presented its key next (BE-C13). The
+        // priority list moves it behind authentication on every guarded route — and
+        // behind the throttle, should one ever join the group, so a replay still counts
+        // as a request. Exempt paths are unaffected: the middleware still runs on them
+        // and still lets them through, they simply carry no guard to wait for.
+        $middleware->appendToPriorityList(
+            [AuthenticatesRequests::class, ThrottleRequests::class, ThrottleRequestsWithRedis::class],
+            EnsureIdempotency::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

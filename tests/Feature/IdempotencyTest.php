@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Modules\Core\Domain\Models\IdempotencyKey;
+use Modules\Identity\Domain\Models\AppUser;
 
 describe('X-Idempotency-Key', function () {
     beforeEach(function () {
@@ -85,18 +86,23 @@ describe('the idempotency exemption list', function () {
             ->assertJsonPath('error.code', 'validation_failed');
 
         /*
-         * 422 and not 400 is the whole assertion. `EnsureIdempotency` is appended to the
-         * `api` group, so it runs ahead of every route middleware: an empty body reaching
-         * the form request can only mean the request passed through it. Asserting merely
-         * "not 400" would also pass on a 404, which is how an exemption aimed at a path
-         * that has since moved would go unnoticed.
+         * 422 and not 400 is the whole assertion. `EnsureIdempotency` is in the `api`
+         * group, so it runs on every one of these routes ahead of the form request: an
+         * empty body reaching validation can only mean the request passed through it.
+         * Asserting merely "not 400" would also pass on a 404, which is how an exemption
+         * aimed at a path that has since moved would go unnoticed.
          */
         expect(IdempotencyKey::count())->toBe(0);
     })->with('exempt write paths');
 
     it('still demands a key on a write that is not exempt', function () {
+        // A real credential, because the middleware now runs behind `auth:*` (BE-C13):
+        // with no token this route answers 401 before the key is ever looked for. Until
+        // BE-C13 this test sent nothing and got its 400 — the order it pinned was the bug.
+        $token = AppUser::factory()->create()->createToken('registration', ['registration'])->plainTextToken;
+
         $this->withoutIdempotencyKey()
-            ->postJson('/api/v1/app/retailer/register')
+            ->postJson('/api/v1/app/retailer/register', [], ['Authorization' => 'Bearer '.$token])
             ->assertStatus(400)
             ->assertJsonPath('error.code', 'idempotency_key_required');
 

@@ -7,6 +7,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Idempotency lock
+    |--------------------------------------------------------------------------
+    |
+    | BE-C13. A row in `processing` is held by the worker running the request
+    | for this many seconds. A worker that dies mid-request — a fatal error, a
+    | killed process — never writes the completion, and its row used to answer
+    | 409 to every retry for the full 24-hour TTL. Once the lock has lapsed the
+    | next retry takes the row over and runs. Longer than any request is allowed
+    | to execute (PHP's default max_execution_time is 30 seconds); shorter than
+    | a person's patience.
+    |
+    */
+    'idempotency_lock_seconds' => (int) env('IDEMPOTENCY_LOCK_SECONDS', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Idempotency exemption list
     |--------------------------------------------------------------------------
     |
