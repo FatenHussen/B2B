@@ -1,47 +1,514 @@
-# تطبيق المندوب — المواصفة الكاملة للواجهات والحقول وتدفقات الـ API
+# تطبيق المندوب — مواصفة Flutter (GetX) + عقد الـ API
 
 | | |
 |---|---|
-| المستند | مواصفة بناء **تطبيق المندوب** (الحارس `app`، النوع `rep`) شاشةً شاشة، حقلًا حقلًا |
-| الجمهور | فريق Flutter، مصمّم المنتج، ومن يراجع القبول |
-| المصدر | `php artisan route:list` + الكنترولر/FormRequest **بتاريخ 2026-09-16** — لا شيء هنا مكتوب من الـ backlog |
-| عقد المسارات | **`flutter-rep.json` فقط** — `live:true` · لا تستدعِ `forbidden` |
-| الحارس | `app` + `app.kind:rep` · `X-Client: rep-android|rep-ios` · OTP محلي **`0000`** (4 خانات) · **لا** `X-Channel-Id` |
+| المستند | **العقد الوحيد** لبناء وإكمال تطبيق المندوب الميداني (Flutter + GetX) على واجهة Laravel هذه |
+| الجمهور | مطوّر Flutter، وCursor AI عند إكمال الجوانب الناقصة، ومراجع القبول |
+| الحارس | `auth:app` + `app.kind:rep` · `X-Client: rep-android` أو `rep-ios` · **لا** `X-Channel-Id` |
+| الأساس | `/api/v1` |
+| التاريخ | 2026-09-19 — من الكنترولر الحي + الكتالوج + `docs/status/` + موجّه المنتج (لوحة الإدارة) |
+| JSON الحي | `docs/DocsLast/flutter-rep.json` (أُنشئ 2026-09-16 — إن تعارض مع هذا الملف **هذا الملف يفوز** لأن `GET /public/refs` أصبح حيّاً) |
 
-> **قاعدة الأولوية:** `route:list` ← الكنترولر ← `flutter-rep.json` ← هذا الملف.
-> جملة تخالف الكود → الكود يفوز وهذا الملف يُصلَّح.
+> **قاعدة الأولوية (لا تُكسر):** الكود الحي في `app-modules/` ← `docs/status/05-rep-app.md` + `06-shared-app.md` + `07-public.md` ← الكتالوج `docs/api/catalog/08-rep.php` + `09-shared-app.php` + `00-public.php` ← هذا الملف.
+> جملة هنا تخالف الكنترولر → الكنترولر يفوز وهذا الملف يُصلَّح.
+> شاشة في موجّه المنتج بلا مسار حي → ابنِ الواجهة، اربط المصدر بـ `RemoteNotReady`، **لا تخترع مساراً**.
+
+هذا الملف كافٍ لـ Cursor لإكمال كل شاشة ناقصة في تطبيق المندوب عندما يصل مستودع Flutter لاحقاً. لا تعتمد على ذاكرة المحادثة — اعتمد على الجداول والعقود أدناه.
 
 ---
 
-## تعديل Flutter — شاشة الدخول (انسخ وابنِ)
+## المحتويات
 
-ما في إيميل ولا كلمة سر. الدخول: **هاتف + OTP فقط**.
+| § | العنوان |
+|---|---|
+| 0 | كيف تقرأ الرموز والمال والبيئة |
+| 1 | فهم المندوب — موجّه المنتج |
+| 2 | المهام الرئيسية الاثنتا عشرة |
+| 3 | معمارية GetX (مجلدات، حزم، حقن، تنقّل) |
+| 4 | العقد العابر (غلاف، ترويسات، تكرار، أخطاء، اتصال) |
+| 5 | الانترو والتسجيل والجلسة |
+| 6 | الصدفة: الرئيسية + الشريط السفلي |
+| 7 | تسجيل الطلب (السلة كمحل) |
+| 8 | التسليم / القبول / المجدولة / المستودع / المرتجع |
+| 9 | التحصيل والمحفظة |
+| 10 | المنتجات · العملاء · المناطق · الطلبات · الحساب · الإشعارات |
+| 11 | كتالوج المسارات — عيّنات JSON كما يعيدها الخادم اليوم |
+| 12 | نماذج Dart + عميل Dio |
+| 13 | دون اتصال والطابور المحلي |
+| 14 | فجوات المنتج مقابل الخادم — ماذا تبني / ماذا تؤجّل |
+| 15 | قائمة قبول Cursor |
+| 16 | بذور QA |
 
-### شاشة الرمز: **4 خانات** مو 6
+---
 
-- UI: `PinCode` / OTP بـ **4 خانات**
-- أرسل `code` كـ **String** `"0000"` — لا `int` (الرقم `0000` يصير `0` ويُرفض)
-- `keyboardType: number` و`dir: ltr`
-- محليًا الرمز الثابت: **`0000`** (`000000` ما زال يُقبل). الإنتاج يبقى 6 خانات
+## 0. كيف تقرأ هذا الملف
 
-### الترويسات — بدونها الرمز لا يكون أصفارًا
+### 0.1 الرموز
 
-على **كل** طلب:
+| رمز | المعنى | ماذا تفعل في Flutter |
+|---|---|---|
+| ✅ | حي على المسار المتعاقد | Dio حقيقي، لا mock |
+| 🟡 | حي بتحفّظ مكتوب | ابنِ، واقرأ التحفّظ |
+| ⛔ | غير مبني (404) | **لا تستدعِه.** UI + `RemoteNotReady` أو كاش محلي |
+| 🔁 | يحتاج `X-Idempotency-Key` | UUID واحد لكل ضغطة تأكيد |
+| 🧩 | شاشة المنتج موجودة والخادم ناقص | ابنِ الواجهة؛ أغلق الأزرار التي تكتب |
+
+لا تفحص `rp.*` لإخفاء شاشات. `session.permissions` قائمة نوع المستخدم. بعد اكتمال الملف **كل شاشات المندوب ظاهرة**.
+
+### 0.2 المال
+
+كل مبلغ `int` بأصغر وحدة. الليرة السورية `decimals = 0`:
+
+- الخادم: `12000`
+- العرض: `12,000 ل.س`
+- **لا تقسم على 100.** لا `double`. لا `num` في نماذج المال — `int`.
+- التنسيق: `NumberFormat.decimalPattern('ar')` + لاحقة `ل.س`، أرقام غربية 0–9، `FontFeature.tabularFigures()`.
+
+### 0.3 الوقت
+
+`Asia/Damascus` (`+03:00`). اعرض `server_time` و`scheduled_at` و`paid_at` كما هي. لا تحوّل لمنطقة الجهاز في المال والتسليم.
+
+### 0.4 البيئة
+
+| مفتاح | قيمة محلية |
+|---|---|
+| `BASE_URL` | `http://127.0.0.1:8000` (محاكي Android: `http://10.0.2.2:8000`) |
+| `X-Client` | `rep-android` / `rep-ios` |
+| `X-Device-Id` | UUID ثابت لكل تثبيت (FlutterSecureStorage) |
+| `X-App-Version` | مثال `1.0.0 (1)` |
+| OTP محلي | `"0000"` كنص من 4 خانات. الإنتاج 6 خانات |
+| لا إيميل | لا كلمة سر |
+
+`--dart-define=BASE_URL=...` و`--dart-define=ENV=dev|staging|prod`.
+
+### 0.5 الهاتف السوري
+
+حقل واحد. طبّع قبل الإرسال (الخادم يطبّع أيضاً):
+
+| إدخال المستخدم | يُرسل |
+|---|---|
+| `0932000001` | `+963932000001` |
+| `932000001` | `+963932000001` |
+| `+963932000001` | كما هو |
+
+القاعدة: `^\+9639\d{8}$`. لوحة مفاتيح رقمية، اتجاه LTR داخل الحقل.
+
+---
+
+## 1. فهم المندوب — موجّه المنتج
+
+المندوب **عامل ميداني** وليس «مستخدم تكنولوجيا». يقضي ساعات 8–10 في الشارع، يحمل البضاعة، ويتعامل يومياً مع عشرات التجار. لا وقت للتعلّم ولا للتجربة.
+
+التطبيق يجب أن يكون:
+
+1. **سريعاً جداً** — الطلب يُسجَّل في أقل من 30 ثانية. الجولة تُدار بـ 3 نقرات.
+2. **يعمل بدون إنترنت** — السوق السوري يعاني انقطاعاً مستمراً. أونلاين-أول اليوم (المزامنة ⛔)، مع طابور محلي وإعادة عند عودة الشبكة. لا تَعِد بمزامنة خادم حتى يُبنى `AP-03`.
+3. **بسيطاً جداً** — لا شاشة «تعلّم». المندوب يستخدمه أول مرة وينجح.
+4. **يحاكي الواقع** — يحسّن الـ workflow ولا يغيّره.
+5. **لا يقلّل من قيمة المندوب** — يظهر كأداة تمكين لا كأداة استبدال. المندوب يخشى أن يصبح التطبيق بديلاً عنه.
+
+### 1.1 من هو المستخدم تقنياً
+
+- حساب تطبيق `app` نوع `rep`.
+- بعد التسجيل ينتمي إلى **قناة توريد واحدة** (`rep_profiles.channel_id`).
+- هاتف واحد = نوع واحد. إن `user_type === "retailer"` هذا تطبيق خاطئ — اخرج فوراً. لا مبدّل أدوار.
+- ملف جديد: `status = pending_review`. الخادم **لا يحجب** المسارات التشغيلية بانتظار الموافقة. أظهر شارة «قيد المراجعة» في الحساب فقط.
+
+### 1.2 حسابات البذرة (بعد `php artisan db:seed`)
+
+| هاتف | الاسم | ملاحظة |
+|---|---|---|
+| `+963932000001` / `0932000001` | عمر الشامي | ملف مكتمل، في الخدمة، سقف خصم 10٪، سقف نقد 5,000,000 |
+| `+963932000002` | ياسر حمود | في الخدمة |
+| `+963932000003` | نور الدين حلبي | خارج الخدمة |
+
+OTP المحلي: أرسل `code` **String** `"0000"`. الرقم `0000` كـ `int` يصبح `0` ويُرفض.
+
+تجار بذرة للسلة: `+963931000001` سوبر ماركت الأمانة (المزة)، `+963931000002` بقالية النور.
+
+---
+
+## 2. المهام الرئيسية (موجّه المنتج → شاشة GetX → مسار حي)
+
+| # | مهمة المنتج | شاشة GetX | مصدر حي |
+|---|---|---|---|
+| 1 | تسجيل طلب مبيعات | `OrderCaptureView` + `CartView` | ✅ سلة + quote + منتجات |
+| 2 | تسليم طلب | `DeliveriesView` + `DeliveryDetailView` | ✅ `/app/rep/deliveries*` |
+| 3 | استلام من المستودع | `WarehouseReceiptsView` | ✅ `/app/rep/warehouse-receipts*` |
+| 4 | إضافة محل جديد | `AddCustomerView` | ✅ `POST /app/rep/customers` |
+| 5 | طلبات مجدولة | `ScheduledOrdersView` | ✅ `GET /app/rep/scheduled-orders` |
+| 6 | قبول الطلب | `AssignmentsView` | ✅ `/app/rep/assignments*` |
+| 7 | استلام دفعة | `CollectPaymentView` | ✅ `POST /app/rep/payments` + حجز وصل |
+| 8 | تسليم مبلغ للمحاسب | `WithdrawView` | ✅ `POST /app/rep/wallet/withdrawals` |
+| 9 | قائمة المنتجات | `ProductsView` | ✅ `GET /app/rep/products` + عروض |
+| 10 | قائمة العملاء | `CustomersView` | ✅ `GET /app/rep/customers` |
+| 11 | قائمة المناطق | `ZonesView` | 🟡 مناطق من التسجيل/refs + `GET .../zones/{id}/shops` — **لا** `GET /app/rep/zones` |
+| 12 | شريط النقاط والجوائز | `LoyaltyBar` | ⛔ `GET /app/loyalty` — أخفِ الشريط |
+
+---
+
+## 3. معمارية GetX
+
+### 3.1 الحزم (`pubspec.yaml`)
+
+ثبّت هذه فقط. لا GetX + Bloc معاً. لا `http` بجانب Dio.
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.6
+  get_storage: ^2.1.1
+  dio: ^5.7.0
+  flutter_secure_storage: ^9.2.2
+  connectivity_plus: ^6.1.0
+  uuid: ^4.5.1
+  intl: ^0.19.0
+  cached_network_image: ^3.4.1
+  pin_code_fields: ^8.0.1
+  mobile_scanner: ^6.0.2
+  geolocator: ^13.0.2
+  google_maps_flutter: ^2.10.0   # أو flutter_map إن رُفض Google Play
+  url_launcher: ^6.3.1
+  permission_handler: ^11.3.1
+  share_plus: ^10.1.4
+  pdf: ^3.11.1
+  printing: ^5.13.4
+  image_picker: ^1.1.2
+  speech_to_text: ^7.0.0
+  package_info_plus: ^8.1.2
+  flutter_svg: ^2.0.16
+
+flutter:
+  uses-material-design: true
+  generate: true
+```
+
+RTL: `locale: Locale('ar')` + `Directionality` من `GetMaterialApp`. لا `flutter_localizations` بدون `delegate`.
+
+### 3.2 هيكل المجلدات — لا تحد عنه
+
+```
+lib/
+  main.dart
+  app.dart
+  core/
+    env.dart
+    theme/
+      app_theme.dart
+      tokens.dart
+    money/money.dart
+    phone/syrian_phone.dart
+    errors/api_exception.dart
+    errors/error_messages.dart      # map error.code → عربي
+    network/
+      api_client.dart               # GetxService + Dio
+      interceptors.dart             # auth, device, idempotency, envelope
+      connectivity_service.dart
+    storage/
+      secure_store.dart             # token, device_id
+      prefs.dart                    # GetStorage: session, refs, outbox
+    widgets/                        # أزرار إبهام، بطاقة، هيكل عظمي، مال، شارة حالة
+  data/
+    models/                         # fromJson يطابق الخادم حرفياً
+    dto/                            # أجسام الطلب
+    sources/
+      remote/                       # *Remote: استدعاءات Dio فقط
+      local/                        # *Local: GetStorage / outbox
+    repositories/                   # واجهة واحدة لكل مجال؛ الشاشة لا ترى Dio
+  modules/
+    splash/
+    intro/
+    auth/                           # هاتف + OTP
+    register/
+    shell/                          # BottomNav + AppBar مشترك
+    home/
+    order_capture/
+    products/
+    customers/
+    zones/
+    cart/
+    orders/                         # طلبات المندوب المسجَّلة (كاش محلي + تسليم)
+    assignments/
+    scheduled/
+    warehouse/
+    deliveries/
+    payments/
+    wallet/
+    account/
+    notifications/                  # UI جاهز، remote ⛔
+    loyalty/                        # ويدجت شريط فقط، remote ⛔
+  routes/
+    app_pages.dart
+    app_routes.dart
+    auth_middleware.dart
+    guest_middleware.dart
+```
+
+كل وحدة: `*_binding.dart` + `*_controller.dart` + `*_view.dart` + اختياري `widgets/`.
+
+### 3.3 قواعد GetX
+
+1. **Controller واحد لكل شاشة.** لا `Get.find` داخل `build` بلا `GetBuilder`/`Obx`.
+2. الحالة الظاهرة `Rx*`. لا `setState`.
+3. المستودعات `GetxService` دائمة (`permanent: true`) تُسجَّل في `main()` قبل `runApp`.
+4. الـ Binding يحقن كنترولر الشاشة فقط. لا Binding يخلق Dio ثانٍ.
+5. التنقّل بأسماء فقط: `Get.toNamed(Routes.deliveryDetail, arguments: id)`.
+6. حوارات وأخطاء: `Get.snackbar` للنجاح القصير، `Get.dialog` للتأكيد الخطير (تعذّر، سحب نقد)، `Get.bottomSheet` للمتغيرات (علي بابا).
+7. بعد 401 (ما عدا `otp_invalid` / `otp_expired`): امسح التوكن → `Get.offAllNamed(Routes.phone)`.
+8. الضيف (`skipAuth`): `AuthMiddleware` يسمح بـ products/customers/zones قراءة محلية أو رسالة قفل عند أي كتابة.
+
+### 3.4 خريطة المسارات
+
+| `Routes.` | المسار | وسطاء |
+|---|---|---|
+| `splash` | `/` | — |
+| `intro` | `/intro` | — |
+| `phone` | `/auth/phone` | Guest |
+| `otp` | `/auth/otp` | Guest |
+| `register` | `/auth/register` | Token + `profile_completed == false` |
+| `shell` | `/app` | Auth |
+| `orderCapture` | `/app/order-capture` | Auth |
+| `addCustomer` | `/app/customers/new` | Auth |
+| `customerDetail` | `/app/customers/:id` | Auth |
+| `addZone` | `/app/zones/new` | Auth |
+| `zoneShops` | `/app/zones/:id/shops` | Auth |
+| `productDetail` | `/app/products/:id` | Auth |
+| `assignments` | `/app/assignments` | Auth |
+| `scheduled` | `/app/scheduled` | Auth |
+| `warehouse` | `/app/warehouse` | Auth |
+| `deliveries` | `/app/deliveries` | Auth |
+| `deliveryDetail` | `/app/deliveries/:id` | Auth |
+| `collect` | `/app/collect` | Auth |
+| `withdraw` | `/app/wallet/withdraw` | Auth |
+| `withdrawals` | `/app/wallet/withdrawals` | Auth |
+| `receivables` | `/app/wallet/receivables` | Auth |
+| `notifications` | `/app/notifications` | Auth |
+| `settings` | `/app/settings` | Auth |
+
+الشريط السفلي **لا يدفع مسارات جديدة** للتبويبات الخمسة — `IndexedStack` داخل `ShellView`.
+
+### 3.5 التبويبات الخمسة (موجّه المنتج)
+
+من اليمين لليسار في RTL (الأوسط هو الرئيسية):
+
+| فهرس | التبويب | الشاشة |
+|---|---|---|
+| 0 | السلة | `CartTab` |
+| 1 | الطلبات | `OrdersTab` |
+| 2 | **الرئيسية** | `HomeTab` |
+| 3 | حسابي | `AccountTab` |
+| 4 | المحفظة | `WalletTab` |
+
+`initialIndex = 2`. أيقونة الرئيسية أكبر قليلاً. لا تبويب سادس.
+
+اختصارات المهام (تسجيل طلب، تسليم، قبول، …) تفتح مسارات فوق الصدفة (`Get.toNamed`) ثم `Get.back()`.
+
+### 3.6 نظام التصميم (مختصر)
+
+إبهام أولًا: أزرار ≥ 48dp. بطاقة = نقرة واحدة. الإجراء الخطير تأكيد بخطوة ثانية.
+
+| الرمز | فاتح | استعمال |
+|---|---|---|
+| `--primary` | `#0F766E` | إجراء أساسي |
+| `--success` | `#15803D` | مسلَّم، في الخدمة |
+| `--warning` | `#B45309` | مؤجَّل |
+| `--danger` | `#B91C1C` | ملغى / تعذّر / دين |
+| `--info` | `#1D4ED8` | في الطريق / قبول |
+| `--money` | `#111827` | مبلغ — بلا لون إلا الدين والرصيد |
+
+حدود التسليم من الخادم `border_color`: `green` مسلَّم في الطريق · `blue` مقبول · `gray` مسلَّم اليوم · `red` تعذّر · المجدولة `amber`.
+
+RTL أصيل. الهواتف والمعرّفات والأرقام LTR داخل النص العربي. خط عربي: IBM Plex Sans Arabic أو Noto Sans Arabic.
+
+---
+
+## 4. العقد العابر
+
+### 4.1 الغلاف
+
+نجاح:
+
+```json
+{
+  "data": {},
+  "meta": { "server_time": "2026-09-19T13:00:00+03:00" }
+}
+```
+
+قائمة صفحات (`products`, `customers`, `offers`, `zones/{id}/shops`):
+
+```json
+{
+  "data": [],
+  "meta": {
+    "page": 1,
+    "per_page": 25,
+    "total": 412,
+    "last_page": 17,
+    "server_time": "..."
+  }
+}
+```
+
+`per_page` افتراضي 25، سقف 100 يُقصّ بصمت. لا ترسل `sort`.
+
+قوائم **بلا صفحات** (كائن أو مصفوفة داخل `data`): `assignments`, `scheduled-orders`, `deliveries`, `cart`, `wallet`, `receivables`, `warehouse-receipts`, `session`.
+
+خطأ — **لا** payload تحقق Laravel النيء:
+
+```json
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "...",
+    "details": { "phone": ["..."] }
+  }
+}
+```
+
+`ApiClient` يرمي `ApiException(code, message, details, httpStatus)`. الواجهة تعرض الترجمة من `error.code` لا `message` الإنجليزي.
+
+### 4.2 الترويسات — على كل طلب
 
 ```
 Accept: application/json
-Content-Type: application/json
+Accept-Language: ar
+Content-Type: application/json          # الكتابات فقط
 X-Client: rep-android
-X-Device-Id: <UUID ثابت للتثبيت>
+X-Device-Id: <UUID التثبيت>
+X-App-Version: 1.0.0 (1)
+Authorization: Bearer <token>           # ما عدا /health و /public/*
+X-Idempotency-Key: <uuid>               # كل كتابة ما عدا OTP الثلاثة
 ```
 
-- `X-Client`: `rep-android` أو `rep-ios` — لازم يبدأ بـ `rep-`
-- **لا ترسل** `X-Channel-Id`
-- مسارات OTP الثلاثة: **لا** `X-Idempotency-Key`
+**لا ترسل** `X-Channel-Id`. مسارات `/app/rep` لا تضبط مستأجراً.
 
-### طلب الرمز
+مسارات OTP الثلاثة **معفاة** من مفتاح التكرار. إن أرسلته قد يُرفض أو يُخزَّن خطأً — لا ترسله.
+
+### 4.3 مفتاح التكرار 🔁
+
+ولّده عند ضغط المستخدم «تأكيد»، وأعده حرفياً مع كل إعادة لنفس النيّة، واستبدله فقط عندما يبدأ من جديد.
+
+| الخادم | المعنى |
+|---|---|
+| نفس المفتاح + نفس الجسم | يعيد الرد المخزَّن (24 ساعة) — اعتبره نجاحاً |
+| نفس المفتاح + جسم مختلف | `409 idempotency_key_conflict` |
+| معروف وقيد التنفيذ | `409 operation_in_progress` |
+
+`client_op_id` في التحصيل وإضافة محل **مستقل** عن مفتاح التكرار. ولّدهما معاً واحفظهما حتى ينجح الرد.
+
+### 4.4 خريطة الأخطاء
+
+| HTTP | `code` | عربي | سلوك GetX |
+|---|---|---|---|
+| 401 | `unauthenticated` `token_revoked` | انتهت الجلسة | اخرج للهاتف |
+| 401 | `otp_invalid` `otp_expired` | الرمز غير صحيح / انتهت صلاحيته | ابقَ على OTP |
+| 403 | `wrong_guard` | توكن لوحة على تطبيق | اخرج |
+| 403 | `insufficient_permission` | نوع/منطقة لا تطابق | رسالة |
+| 403 | `discount_cap_exceeded` | الخصم أعلى من سقفه | رسالة على حقل الخصم |
+| 403 | `cash_cap_exceeded` | تجاوزت سقف حيازة النقد | 🟡 **403 لا 423** |
+| 404 | `not_found` | غير موجود — أو ليس لك | لا تكشف 403 |
+| 409 | `illegal_transition` | الخطوة غير مسموحة الآن | حوار |
+| 409 | `duplicate_receipt_no` | رقم الوصل مستخدم | حوار |
+| 409 | `idempotency_key_conflict` | مفتاح مكرر بجسم مختلف | ولّد مفتاحاً جديداً فقط إن غيّر المستخدم النية |
+| 409 | `operation_in_progress` | العملية ما زالت تجري | انتظر وأعد بنفس المفتاح |
+| 422 | `validation_failed` | تفاصيل الحقول | أبرز `error.details` |
+| 429 | `rate_limited` | انتظر | OTP أو نبضة &lt; 30ث |
+| 426 | `upgrade_required` | حدّث التطبيق | ⛔ المسار غير حي — لا تعتمد عليه |
+| 503 | `maintenance_mode` | صيانة | شاشة ثابتة |
+
+### 4.5 حالة الاتصال (شريط الرئيسية)
+
+| لون | معنى محلي | متى |
+|---|---|---|
+| أخضر | متصل | `connectivity` + آخر طلب 2xx |
+| رمادي | غير متصل | لا شبكة |
+| أصفر | مزامنة معلّقة | outbox غير فارغ |
+
+زر «مزامنة يدوية» يظهر فقط إن outbox غير فارغ. اليوم يفرّغ الطابور بإعادة POST للمسارات الحيّة (تحصيل، محل، سلة). لا تستدعِ `/app/sync/*` (⛔).
+
+### 4.6 `RemoteNotReady`
+
+كلاس واحد:
+
+```dart
+class RemoteNotReady implements Exception {
+  RemoteNotReady(this.endpoint, this.ticket);
+  final String endpoint; // e.g. GET /app/notifications
+  final String ticket;   // AP-02
+}
+```
+
+الكنترولر يمسكها ويعرض حالة فارغة صادقة: «قريباً من الخادم» لا بيانات مختلقة.
+
+---
+
+## 5. الانترو · التسجيل · الجلسة
+
+### 5.1 الانترو — بيانات الإدارة
+
+موجّه المنتج: انترو قصير للّوغو مع رسالة ترحيب، يُدار من لوحة التحكم (تعديل/إضافة نص/فيديو). إن لديه حساب سابق → الرئيسية. وإلا → التسجيل.
+
+**الواقع على الخادم اليوم:**
+
+| مصدر الإدارة | المسار | الحارس | لتطبيق المندوب |
+|---|---|---|---|
+| انترو القناة | `GET/PUT /channel/content/intro` | `auth:channel` | ⛔ لا تستدعِه من التطبيق |
+| انترو المنصة الافتراضي | `GET/PUT /platform/content/intro` | `auth:platform` | ⛔ لوحة المنصة — لا تستدعِه من التطبيق |
+| بلوكات الرئيسية | `GET /app/content/home-blocks` | `auth:app` | ⛔ `AP-04` |
+| إعداد التطبيق | `GET /public/app-config` | عام | ⛔ `AP-06` / `PA-09` |
+
+ابنِ `IntroContent` بنفس شكل انترو القناة حتى يكون الربط لاحقاً استبدال مصدر لا إعادة تصميم:
+
+```json
+{
+  "enabled": true,
+  "text": "مرحباً بك في شبكة التوزيع",
+  "media_type": "video",
+  "media_url": null,
+  "media_id": null,
+  "duration": 8,
+  "logo_url": null
+}
+```
+
+اليوم: `IntroLocalSource` من `assets/intro/` (لوغو + نص افتراضي + فيديو اختياري ≤ 8 ث). `IntroRemoteSource.fetch()` يرمي `RemoteNotReady('GET /public/app-config','AP-06')` ويُتجاهل.
+
+`SplashController` (أول إطار):
+
+1. اقرأ التوكن.
+2. لا توكن → `IntroView` (مدة `duration` أو 2ث إن `enabled=false`) ثم `PhoneView`.
+3. توكن → `GET /app/session`.
+   - `user_type != rep` → اخرج.
+   - `profile_completed == false` → `RegisterView`.
+   - وإلا → `ShellView`.
+4. فشل شبكة مع توكن: ادخل الصدفة من كاش الجلسة إن وُجد، شارة رمادي.
+
+لا شاشة تسويقية طويلة. الشعار + جملة واحدة.
+
+### 5.2 تخطّي التسجيل (زائر) 🧩
+
+موجّه المنتج: يمكن التخطي والتصفح كزائر؛ أي خدمة تطلب حساباً تعرض «يجب أن تسجّل».
+
+الخادم **لا يعرف الضيف.** كل `/app/rep/*` و`/app/session` تطلب Bearer.
+
+التنفيذ المحلي:
+
+- زر «تصفّح كزائر» على شاشة الهاتف يضبط `prefs.guest = true` ويفتح الصدفة.
+- التبويبات: منتجات/عملاء/مناطق تُظهر رسالة «سجّل لعرض بيانات قناتك» (بلا استدعاء API).
+- أي زر كتابة (`Get.dialog` → `Routes.phone`).
+- لا توكن ضيف. لا `X-Idempotency-Key` بلا جلسة.
+
+### 5.3 طلب OTP ✅ — معفى من التكرار
 
 `POST /api/v1/public/auth/request-otp`
+
+```http
+POST /api/v1/public/auth/request-otp
+X-Client: rep-android
+X-Device-Id: 11111111-1111-1111-1111-111111111111
+```
 
 ```json
 {
@@ -53,14 +520,31 @@ X-Device-Id: <UUID ثابت للتثبيت>
 
 | | |
 |---|---|
-| حساب البذرة | **`0932000001`** / `+963932000001` — عمر الشامي، ملف مكتمل |
-| مندوبان آخران | `0932000002` · `0932000003` — نفس الرمز |
-| هاتف جديد | `purpose: "register"` |
-| بعد `migrate:fresh` | اطلب `otp_id` جديد — لا تعِد استخدام القديم |
+| رقم جديد | `purpose: "register"` |
+| عائد | `purpose: "login"` |
+| إن 422 على login لرقم مجهول | أعد بـ `register` |
 
-احفظ `data.otp_id`.
+رد:
 
-### التحقق
+```json
+{
+  "data": {
+    "otp_id": "otp_9f2a71",
+    "channel_used": "whatsapp",
+    "expires_in": 300,
+    "resend_after": 60
+  },
+  "meta": { "server_time": "..." }
+}
+```
+
+احفظ `otp_id`. مؤقّت إعادة الإرسال = `resend_after` من الرد لا 60 ثابتة. تنويه الواجهة: «سيصلك الرمز على واتساب».
+
+429: 3/ساعة للهاتف. أظهر العدّاد.
+
+شاشة الهاتف: حقل واحد، بادئة ظاهرة `+963` غير قابلة للحذف، لا إيميل.
+
+### 5.4 تحقق OTP ✅ — معفى
 
 `POST /api/v1/public/auth/verify-otp`
 
@@ -68,947 +552,1303 @@ X-Device-Id: <UUID ثابت للتثبيت>
 {
   "otp_id": "<من الرد السابق>",
   "code": "0000",
-  "device_id": "<نفس X-Device-Id>",
+  "device_id": "11111111-1111-1111-1111-111111111111",
   "device_name": "Redmi Note 13",
   "platform": "android"
 }
 ```
 
-| بعد النجاح | ماذا تفعل |
+`code` **String**. UI محلي: **4 خانات**. إنتاج: 6. `keyboardType: number`، `textDirection: ltr`.
+
+مستخدم جديد:
+
+```json
+{
+  "data": {
+    "token": "12|xxxxx",
+    "is_new_user": true,
+    "user_type": null,
+    "profile_completed": false,
+    "user": { "id": 99, "name": "", "phone": "+9639..." }
+  }
+}
+```
+
+مندوب مكتمل:
+
+```json
+{
+  "data": {
+    "token": "12|xxxxx",
+    "is_new_user": false,
+    "user_type": "rep",
+    "profile_completed": true,
+    "user": { "id": 70, "name": "عمر الشامي", "phone": "+963932000001" }
+  }
+}
+```
+
+🟡 `user` للمندوب **بلا مناطق**. احفظ التوكن فوراً في SecureStorage.
+
+| بعد النجاح | |
 |---|---|
-| `token` | خزّنه فورًا → `Authorization: Bearer` |
 | `user_type === "retailer"` | تطبيق خاطئ — اخرج |
-| `is_new_user` أو `profile_completed === false` | `POST /app/rep/register` |
-| `user_type === "rep"` و`profile_completed === true` | الرئيسية |
+| `is_new_user` أو `profile_completed === false` | `RegisterView` — التوكن قدرة `registration` فقط |
+| `user_type === "rep"` وملف مكتمل | `ShellView` |
 
-`otp_invalid` / `otp_expired`: ابقَ على شاشة الرمز. لا تسجّل خروج.
+`otp_invalid` / `otp_expired`: ابقَ هنا. 5 محاولات لكل `otp_id`. لا «تسجيل خروج».
 
-### ما يسبب `invalid`
+### 5.5 إعادة الإرسال ✅ — معفى
 
-1. 6 خانات وما زلت تبعث 4، أو العكس على سيرفر قديم — حدّث الـ API وأعد تشغيل `php artisan serve`
-2. `code` رقم مو نص
-3. بدون `X-Client: rep-android`
-4. `otp_id` قديم بعد `migrate:fresh`
-5. شاشة إيميل/باسورد — احذفها
+`POST /api/v1/public/auth/resend-otp`
 
----
-
-## المحتويات
-
-| § | العنوان | ماذا يجيب |
-|---|---|---|
-| — | تعديل Flutter — شاشة الدخول | 4 خانات، بذرة، ترويسات، أجسام JSON |
-| 0 | كيف تقرأ هذا الملف | الرموز، أعمدة جداول الحقول، ما هو حيّ |
-| 1 | النطاق والمستخدم | بوابة النوع، خريطة الشاشات ↔ المسارات |
-| 2 | نظام التصميم | الرموز اللونية، الخط، الهيكل، RTL، الإبهام |
-| 3 | العقد العابر | الغلاف، الترويسات، مفتاح التكرار، الأخطاء |
-| 4 | المال | الليرة أعداد صحيحة، السقف، الوصل |
-| 5 | الشاشات (18) | الهدف، التخطيط، الحقول، تدفق الـ API، الأخطاء |
-| 6 | الرحلات المركّبة | تسجيل → يوم ميداني → تحصيل → تسليم نقدية |
-| 7 | فجوات الواجهة الخلفية | ما لا يُبنى، ولماذا |
-| 8 | مجموعة JSON/Postman | المجلدات وترتيب التشغيل |
-| 9 | ملاحق | enums، رموز أخطاء، قائمة قبول |
-
----
-
-## 0. كيف تقرأ هذا الملف
-
-### 0.1 الرموز
-
-| رمز | المعنى | ماذا تفعل |
-|---|---|---|
-| ✅ | حيّ على المسار المتعاقد عليه | ابنِ عليه |
-| 🟡 | حيّ لكن بتحفّظ مكتوب بجانبه | ابنِ، واقرأ التحفّظ |
-| ⛔ | **غير مبني** — يرجع 404 | **لا تبنِه ولا تحاكِه.** اعرض حالة فارغة |
-| 🔁 | يحتاج `X-Idempotency-Key` | مفتاح واحد لكل نيّة مستخدم (§3.3) |
-
-لا رمز 🔒 على الشاشات: مسارات `/app/rep` **لا تفحص** صلاحيات Spatie `rp.*`. الجلسة تُرجع قائمة `rp.*` حسب نوع المستخدم فقط.
-
-### 0.2 أعمدة جداول الحقول
-
-| العمود | المعنى |
-|---|---|
-| الحقل | التسمية الظاهرة (عربي) |
-| المفتاح | اسم JSON حرفيًا |
-| النوع | `string` / `int` / `money` / `bool` / `enum` / `date` / `id` / `id[]` / `object` |
-| إلزامي | ✔ · ○ · ◐ شرطي |
-| التحقق | قواعد الـ FormRequest |
-| ملاحظة | مطبّ أو قيمة تُهمَل |
-
-`money` = عدد صحيح بأصغر وحدة. الليرة **لا كسور** — الرقم المعروض هو نفسه.
-
-### 0.3 المكدّس
-
-Flutter + Material 3 + `locale: ar` + RTL أصيل. عميل HTTP واحد. التوكن في تخزين آمن. هذه المواصفة لا تعتمد على حزمة بعينها.
-
-### 0.4 ما يُعدّ حيًّا هنا
-
-39 مسارًا في `flutter-rep.json`. ما ليس حيًّا — مزامنة، إشعارات، ولاء، بلوكات الرئيسية، المراجع العامة — في كل شاشة تحتاجه وفي §7.
-
----
-
-## 1. النطاق والمستخدم
-
-### 1.1 من يستخدم التطبيق
-
-مندوب ميداني لقناة توريد واحدة (بعد التسجيل). يفتح محلات منطقته، يبني طلبًا لكل محل، يستلم عهدة من المستودع، يسلّم، يحصّل نقدًا، ويسلّم النقدية للمحاسب برقم عملية.
-
-حساب البذرة: هاتف **`+963932000001`** (`0932000001`)، رمز محلي **`0000`**. أي رقم سوري + OTP للتسجيل. الإنتاج: 6 خانات.
-
-هاتف واحد = نوع واحد. إن `user_type=retailer` هذا تطبيق خاطئ — اخرج. لا مبدّل.
-
-### 1.2 ما لا تبنيه على اسم الدور
-
-`session.permissions` قائمة `rp.*` الثمانية من الكتالوج، لأنها `permissionsForAppKind('rep')` وليست منح Spatie. **كل شاشات المندوب ظاهرة** بعد اكتمال الملف. لا `if (can('rp.wallet.view'))`.
-
-### 1.3 خريطة الشاشات ↔ المسارات
-
-| # | الشاشة | القسم | المسارات | عدد |
-|---|---|---|---|---:|
-| 1 | وصول | §5.1 | `GET /health` | 1 |
-| 2 | OTP | §5.2 | `POST /public/auth/request-otp` `verify-otp` `resend-otp` | 3 |
-| 3 | تسجيل | §5.3 | `POST /app/rep/register` | 1 |
-| 4 | جلسة + مناوبة | §5.4 | `GET /app/session` `PATCH /app/rep/status` `POST /app/auth/logout` | 3 |
-| 5 | الرئيسية | §5.5 | تجميع: إسنادات + تسليم + محفظة | — |
-| 6 | مناطق/محلات | §5.6 | `GET /app/rep/zones/{id}/shops` `POST /app/rep/zones` | 2 |
-| 7 | زبائن | §5.7 | `GET/POST /app/rep/customers` | 2 |
-| 8 | منتجات | §5.8 | `GET /app/rep/products` `POST /app/pricing/quote` | 2 |
-| 9 | عروض | §5.9 | `GET /app/offers` `GET /app/offers/{id}` | 2 |
-| 10 | سلة | §5.10 | `GET/POST cart` `POST .../submit` | 3 |
-| 11 | إسنادات | §5.11 | `GET assignments` accept/reject | 3 |
-| 12 | مجدولة | §5.12 | `GET /app/rep/scheduled-orders` | 1 |
-| 13 | عهدة | §5.13 | warehouse-receipts + confirm | 2 |
-| 14 | تسليم قائمة | §5.14 | `GET /app/rep/deliveries` | 1 |
-| 15 | تسليم تفاصيل | §5.15 | show, patch, complete, postpone, fail, ping | 6 |
-| 16 | مرتجع | §5.16 | `POST /app/rep/return-requests` | 1 |
-| 17 | محفظة | §5.17 | reserve, payments, wallet, withdrawals, receivables | 6 |
-| 18 | إعدادات | §5.18 | logout (من §5.4) | — |
-
-⛔ ليس في القائمة: مزامنة، إشعارات، ولاء، `home-blocks`، `GET /public/refs`.
-
----
-
-## 2. نظام التصميم
-
-### 2.1 المبادئ
-
-1. **إبهام أولًا.** أزرار الإجراءات ≥ 48dp. البطاقة تُفتح بنقرة واحدة. الإجراء الخطير (تعذّر التسليم، تسليم نقدية) تأكيد بخطوة ثانية.
-2. **الحالة قبل الزينة.** لون الحدود ثابت المعنى في كل الشاشات (§2.4).
-3. **المال لا يُقرَّب.** ما يعيده الخادم هو الحقيقة.
-4. **لا تعِد بما لا يفعله الخادم.** إن لم تُحفظ الكمية تنازليًا لا تُظهر «حذفنا البند».
-5. **الفراغ صادق.** قائمة فارغة أفضل من أرقام مختلقة.
-6. **RTL أصيل.** الأرقام والأكواد والهواتف والمعرّفات LTR داخل النص العربي.
-
-### 2.2 الرموز (Design tokens)
-
-تُعرَّف في `ThemeExtension` / `ColorScheme`. الأسماء نهائية.
-
-#### 2.2.1 الألوان
-
-| الرمز | فاتح | داكن | الاستعمال |
-|---|---|---|---|
-| `--bg` | `#F6F7F9` | `#0E1116` | أرضية |
-| `--surface` | `#FFFFFF` | `#161B22` | بطاقات |
-| `--surface-2` | `#F0F2F5` | `#1D242D` | شريط، حقل معطّل |
-| `--border` | `#E3E6EB` | `#2A323D` | 1px |
-| `--text` | `#111827` | `#E6E9EF` | أساسي |
-| `--text-2` | `#5B6472` | `#9AA4B2` | تسميات |
-| `--primary` | `#0F766E` | `#2DD4BF` | إجراء أساسي |
-| `--primary-soft` | `#E6F4F1` | `#0F3B37` | تبويب محدَّد |
-| `--success` | `#15803D` | `#4ADE80` | مسلَّم، في الخدمة |
-| `--warning` | `#B45309` | `#FBBF24` | مؤجَّل، amber |
-| `--danger` | `#B91C1C` | `#F87171` | تعذّر، سقف كاش |
-| `--info` | `#1D4ED8` | `#60A5FA` | في الطريق |
-| `--money` | `#111827` | `#E6E9EF` | المبلغ — **لا لون** إلا الدين (`--danger`) والرصيد (`--success`) |
-
-تباين النص ≥ 4.5:1. الشارات ≥ 3:1 مع وزن 600.
-
-#### 2.2.2 الخط والأرقام
-
-| | |
-|---|---|
-| عربي | IBM Plex Sans Arabic / Noto Sans Arabic |
-| أحادي | IBM Plex Mono — أرقام الطلبات، SKU، الوصل |
-| أرقام | غربية 0–9، `FontFeature.tabularFigures()` في المال |
-| مقاسات | 12 / 14 (أساسي) / 16 / 20 / 24 |
-| أوزان | 400 نص، 500 تسمية، 600 عنوان وشارة، 700 KPI |
-
-#### 2.2.3 المسافات
-
-شبكة 4. فراغات: `4 8 12 16 20 24 32`. زوايا البطاقات 12. ظل خفيف للبطاقة فقط. حركة 150ms. احترم `disableAnimations`.
-
-### 2.3 الهيكل (App shell)
-
-بعد اكتمال الملف، شريط سفلي ثابت (5 بنود) + شريط علوي فيه مفتاح المناوبة:
-
-```
-┌─────────────────────────────────────┐
-│ [اسم المندوب]          [مناوبة ●]   │
-├─────────────────────────────────────┤
-│                                     │
-│           محتوى الشاشة              │
-│                                     │
-├─────────────────────────────────────┤
-│ الرئيسية │ مسار │ طلب │ محفظة │ المزيد │
-└─────────────────────────────────────┘
+```json
+{ "otp_id": "...", "prefer_channel": "whatsapp" }
 ```
 
-| تبويب | يفتح | مصدر الحيّ |
-|---|---|---|
-| الرئيسية | §5.5 | إسنادات + عهدة بانتظار التأكيد + KPI محفظة اليوم |
-| مسار | §5.14 | `GET /deliveries` |
-| طلب | §5.6→5.10 | محل → منتجات → سلة |
-| محفظة | §5.17 | `GET /wallet` |
-| المزيد | زبائن، مجدولة، مرتجع، عروض، خروج | |
+`prefer_channel`: `whatsapp` \| `sms`. رد: `channel_used`, `resend_after`.
 
-لا جرس. لا نقطة إشعارات.
+### 5.6 المرجعيات العامة ✅ (كان ⛔ في JSON القديم)
 
-### 2.4 ألوان الحدود (التسليم)
+`GET /api/v1/public/refs?since=`
 
-من `border_color` و`status` كما يعيدها الخادم:
+بلا Bearer. استدعِه على شاشة التسجيل وقبل إضافة محل/منطقة. كاشّه في GetStorage. أعده بـ `since=<data.sync_cursor>` لاحقاً.
 
-| القيمة | اللون | متى |
-|---|---|---|
-| `green` | `--success` | `on_the_way` |
-| `blue` | `--info` | `accepted` (قبل التأكيد؟ القائمة تُظهر accepted بالأزرق) |
-| `gray` | `--text-2` | `delivered` اليوم |
-| `red` | `--danger` | `undelivered` (من `fail`) |
-| `amber` | `--warning` | المجدولة `color: amber` |
+```json
+{
+  "data": {
+    "governorates": [{ "id": 1, "name": "دمشق", "order": 1, "status": "active" }],
+    "zones": [{
+      "id": 12, "name": "المزة", "governorate_id": 1,
+      "district": null, "order": 1, "status": "active"
+    }],
+    "activity_types": [{
+      "id": 3, "name": "بقالة", "icon": "grocery",
+      "order": 1, "status": "active", "suggested_category_ids": [10]
+    }],
+    "root_categories": [{ "id": 10, "name": "مواد غذائية", "icon": null, "image": null, "order": 1, "status": "active" }],
+    "sale_units": [{ "id": 3, "name": "قطعة", "abbr": "pcs", "default_factor": 1, "status": "active" }],
+    "equipments": [{ "id": 1, "name": "ثلاجة عرض", "icon": null, "order": 1, "status": "active" }],
+    "sync_cursor": "c_20260919100000"
+  },
+  "meta": { "sync_cursor": "c_20260919100000", "server_time": "..." }
+}
+```
 
-لا تخترع لونًا رابعًا.
+**القنوات ليست هنا** (قاعدة إخفاء الشركة حتى تأكيد الطلب). لا تختلق `GET /public/channels`.
 
-### 2.5 الحالات المشتركة
+منتقي قناة التوريد في التسجيل (موجّه المنتج يطلبه):
 
-| الحالة | الواجهة |
-|---|---|
-| تحميل أول | هيكل عظمي 3 بطاقات، لا سبنر وسط الشاشة أكثر من 400ms |
-| فارغ | أيقونة + جملة تقول الخطوة التالية (§5 لكل شاشة) |
-| خطأ شبكة | شريط سفلي «تعذّر الاتصال» + إعادة |
-| 422 | أبرز الحقل من `error.details` |
-| 409 | حوار بالنص المترجم لـ `error.code` |
-| 401 | امسح التوكن → شاشة الهاتف. **ما عدا** `otp_invalid` على شاشة الرمز |
+1. رابط دعوة `b2b-rep://join?channel_id=1` (و`--dart-define=DEFAULT_CHANNEL_ID=1` للتجربة).
+2. حقل معرّف للقناة خلف ضغط طويل على الشعار — للمختبرين فقط.
+3. إن 409 `conflict` القناة غير نشطة → «القناة غير متاحة».
+4. احفظ آخر `supply_channel_id` نجح.
 
----
+المناطق المعروضة: كل `zones` النشطة من refs. إن 422 `zone_outside_coverage` أزلها من الاختيار واشرح «خارج تغطية القناة».
 
-## 3. العقد العابر
+### 5.7 إكمال التسجيل ✅ 🔁 → 201
 
-### 3.1 الغلاف
-
-نجاح: `{ "data": …, "meta": { "server_time": "…+03:00" } }`  
-قائمة صفحات: `meta.page / per_page / total / last_page`  
-خطأ: `{ "error": { "code", "message", "details?" } }`
-
-قوائم **بلا صفحات** (مصفوفة داخل `data` أو كائن): `assignments`, `scheduled-orders`, `deliveries`, `cart`, `wallet`, `receivables`, `warehouse-receipts`.
-
-`per_page` افتراضي 25، سقف **100** يُقصّ بصمت.
-
-### 3.2 الترويسات
-
-| ترويسة | متى |
-|---|---|
-| `Accept: application/json` | دائمًا |
-| `Authorization: Bearer` | كل شيء ما عدا `/health` و`/public/auth/*` |
-| `X-Client` | `rep-android` أو `rep-ios` |
-| `X-Device-Id` | UUID التثبيت — على `/public/*` و`/app/*` |
-| `X-App-Version` | مثال `1.4.2 (142)` |
-| `X-Idempotency-Key` | كل كتابة ما عدا OTP الثلاثة |
-| `Content-Type: application/json` | الكتابات |
-| `X-Channel-Id` | **لا ترسل** |
-
-⛔ `GET /public/app-config` — لا فرض تحديث من الخادم. نسخة قديمة لا تُرفض بـ 426 اليوم.
-
-### 3.3 مفتاح التكرار
-
-يُولَّد عند ضغط المستخدم «تأكيد»، ويُعاد حرفيًا مع كل إعادة لنفس النيّة، ويُستبدل فقط عندما يبدأ من جديد. إعادة بنفس المفتاح + نفس الجسم = الرد المخزَّن (24 ساعة). مفتاح معروف وجسم مختلف = `409 idempotency_key_conflict`. عملية قيد التنفيذ = `409 operation_in_progress`.
-
-### 3.4 خريطة الأخطاء (اعرض المترجم لا `message` النيء)
-
-| HTTP | code | عربي مقترح |
-|---|---|---|
-| 401 | `unauthenticated` `token_revoked` | انتهت الجلسة |
-| 401 | `otp_invalid` `otp_expired` | الرمز غير صحيح / انتهت صلاحيته |
-| 403 | `wrong_guard` | توكن لوحة على تطبيق — اخرج |
-| 403 | `insufficient_permission` | نوع المستخدم لا يطابق (تاجر على تطبيق مندوب، أو منطقة غير مغطاة) |
-| 403 | `discount_cap_exceeded` | الخصم أعلى من سقفه |
-| 403 | `cash_cap_exceeded` | تجاوز سقف حيازة النقد |
-| 404 | `not_found` | غير موجود — أو ليس لك |
-| 409 | `illegal_transition` | الخطوة غير مسموحة الآن (لا عهدة، إسناد غادر `assigned`) |
-| 409 | `duplicate_receipt_no` | رقم الوصل مستخدم |
-| 409 | `idempotency_key_conflict` | مفتاح مكرر بجسم مختلف |
-| 409 | `operation_in_progress` | العملية ما زالت تجري |
-| 422 | `validation_failed` | تفاصيل الحقول |
-| 429 | `rate_limited` | انتظر (OTP أو نبضة &lt; 30ث) |
-
-🟡 `cash_cap_exceeded` هو **403** لا 423.
-
-### 3.5 الوقت
-
-`server_time` و`scheduled_at` و`paid_at` بمنطقة **Asia/Damascus** (`+03:00`). اعرض الوقت كما هو. لا تحوّل لجهاز المستخدم في المال والتسليم.
-
----
-
-## 4. المال
-
-- كل مبلغ `int`. الليرة: `12000` تُعرض `12,000 ل.س` لا `120.00`.
-- `POST /payments` و`POST /wallet/withdrawals`: `amount` عدد صحيح ≥ 1.
-- محفظة المندوب: `net_balance = SUM(collected) − SUM(settled)` (AC-06). اعرض `net_balance` كما هو.
-- `max_cash_hold` من الجلسة: **`0` = لا سقف.** إن &gt; 0 امنع الإرسال محليًا عندما `net_balance + amount > cap`، والخادم ما زال يرفض بـ 403.
-- `max_discount_percent` من الجلسة. لا `GET` مخصَّص للسقف.
-- الوصل: الخادم يولّده (`complete` أو `POST /app/receipts/reserve`). المستخدم **لا يكتب** رقم وصل.
-- دفعة المكتب (`source=office`) لا تدخل المحفظة — لن تراها هنا.
-
----
-
-## 5. الشاشات
-
-### 5.1 وصول / صحة ✅
-
-**الهدف:** معرفة أن الخادم يصل قبل شاشة الهاتف.
-
-| | |
-|---|---|
-| مسار | `GET /api/v1/health` |
-| مصادقة | لا |
-| نجاح | `data.status = "ok"` |
-
-لا تبنِ شاشة تسويقية. شعار + «جاري الاتصال» ثم ادفع لـ §5.2. فشل الشبكة: «تعذّر الوصول للخدمة» + إعادة.
-
----
-
-### 5.2 الهاتف ورمز واتساب ✅
-
-**تخطيط:** شاشة 1 رقم الهاتف. شاشة 2 **أربع خانات** + عدّاد إعادة الإرسال. (الإنتاج: ست خانات.)
-
-#### 5.2.1 طلب الرمز 🔁 لا — **معفى من مفتاح التكرار**
-
-`POST /api/v1/public/auth/request-otp`
-
-| الحقل | المفتاح | النوع | إلزامي | التحقق | ملاحظة |
-|---|---|---|---|---|---|
-| الهاتف | `phone` | string | ✔ | جوال سوري E.164 | اعرضه LTR. طبّع إلى `+9639…` |
-| الغرض | `purpose` | enum | ✔ | `login` \| `register` | مستخدم جديد → `register`؛ عائد → `login` |
-| العميل | `client` | string | ○ | max 64 | `rep-android` / `rep-ios` |
-
-رد: `otp_id`, `channel_used`, `expires_in` (300), `resend_after` (60).
-
-أخطاء: 422، 429 `rate_limited` (3/ساعة للهاتف).
-
-مؤقّت إعادة الإرسال = `resend_after` من الرد، لا 60 ثابتة إن اختلفت.
-
-#### 5.2.2 التحقق — معفى
-
-`POST /api/v1/public/auth/verify-otp`
-
-| الحقل | المفتاح | النوع | إلزامي | التحقق | ملاحظة |
-|---|---|---|---|---|---|
-| معرّف الطلب | `otp_id` | string | ✔ | | من الشاشة السابقة |
-| الرمز | `code` | string | ✔ | محلي **4 أرقام** `"0000"` · إنتاج `size:6` | `keyboardType: number` · **String لا int** |
-| الجهاز | `device_id` | string | ✔ | max 64 | نفس `X-Device-Id` |
-| الاسم | `device_name` | string | ○ | max 128 | مثال `Redmi Note 13` |
-| المنصة | `platform` | string | ○ | max 32 | `android` / `ios` |
-
-رد مهم:
-
-| الحقل | المعنى |
-|---|---|
-| `token` | احفظه فورًا |
-| `is_new_user` | `true` → التسجيل. التوكن بقدرة `registration` فقط |
-| `user_type` | `rep` / `retailer` / `null` |
-| `profile_completed` | `false` → التسجيل حتى لو ليس جديدًا |
-| `user` | للمندوب غالبًا `id, name, phone` فقط — **بلا مناطق** |
-
-`otp_invalid` / `otp_expired`: ابقَ هنا. لا «تسجيل خروج». 5 محاولات لكل `otp_id`.
-
-#### 5.2.3 إعادة الإرسال — معفى
-
-`POST /api/v1/public/auth/resend-otp` — `{ otp_id, prefer_channel: "whatsapp"|"sms" }`.
-
----
-
-### 5.3 إكمال التسجيل ✅ 🔁
-
-تظهر فقط إذا التوكن بقدرة `registration`.
-
-⛔ **لا دليل قنوات/مناطق/أنواع نشاط من الخادم** (`GET /public/refs` 404). للتجربة: قناة البذرة `supply_channel_id=1` ومناطق معروفة من فريق القناة. في الإنتاج: المواصفات تمنع اختلاق الدليل — إمّا شاشة «تواصل مع قناتك للحصول على رمز الانضمام» أو قيم تُمرَّر من رابط دعوة **ليس له API اليوم**. لا تخترع `GET /channels`.
+تظهر فقط بتوكن قدرة `registration`. الهدف: أقل من 60 ثانية. لا بريد.
 
 `POST /api/v1/app/rep/register`
 
-| الحقل | المفتاح | النوع | إلزامي | التحقق | ملاحظة |
-|---|---|---|---|---|---|
-| الاسم | `name` | string | ✔ | max 120 | |
-| القناة | `supply_channel_id` | int | ✔ | | قناة نشطة وإلا 409 |
-| نوع النشاط | `activity_type_id` | int | ✔ | موجود في المرجعية | 422 إن مجهول |
-| المناطق | `zone_ids` | id[] | ✔ | min 1، كلها ضمن تغطية القناة | 422 `zone_outside_coverage` |
-| ملاحظة | `note` | string | ○ | max 500 | |
+```json
+{
+  "name": "أحمد العلي",
+  "supply_channel_id": 1,
+  "activity_type_id": 3,
+  "zone_ids": [12, 13],
+  "note": "خبرة سنتين في المزة"
+}
+```
 
-رد: `rep.id` (**معرّف مستخدم التطبيق**), `rep.channel`, `rep.zones[]` (`name` غالبًا **null**), `rep.status` = `pending_review`, **`token` جديد بقدرة `*`**.
+| الحقل | إلزامي | قواعد |
+|---|---|---|
+| `name` | ✔ | max 120 |
+| `supply_channel_id` | ✔ | قناة نشطة وإلا 409 |
+| `activity_type_id` | ✔ | من refs وإلا 422 |
+| `zone_ids` | ✔ | min 1، كلها ضمن تغطية القناة |
+| `note` | ○ | max 500 |
 
-🟡 **استبدل التوكن المخزَّن فورًا.** إن أبقيت توكن التسجيل، كل `/app/rep/*` يفشل. لا حاجة لـ OTP ثانٍ إذا حفظت هذا التوكن.
+رد:
 
-احفظ `zone_ids` محليًا — لا `GET /app/rep/zones` لاحقًا.
+```json
+{
+  "data": {
+    "rep": {
+      "id": 70,
+      "name": "أحمد العلي",
+      "channel": { "id": 1, "name": "شركة النور" },
+      "zones": [{ "id": 12, "name": null }],
+      "status": "pending_review"
+    },
+    "token": "50|rep_xxxxx"
+  }
+}
+```
 
-حالة الملف `pending_review`: اسمح بالاستخدام التشغيلي كما يفعل الخادم اليوم (المسارات لا تنتظر الموافقة). أظهر شارة «قيد المراجعة» في المزيد إن `status` كذلك، ولا تبنِ شاشة انتظار كاملة ما لم يطلب المنتج.
+🟡 **استبدل التوكن المخزَّن فوراً.** توكن التسجيل يفشل على `/app/rep/*`. `rep.id` = معرّف مستخدم التطبيق. `zones[].name` غالباً **null** — اربط الاسم من كاش refs. احفظ `zone_ids` محلياً — لا `GET /app/rep/zones` لاحقاً.
 
----
+ثم `GET /app/session`.
 
-### 5.4 الجلسة والمناوبة ✅
-
-#### 5.4.1 الإقلاع — عند كل فتح
+### 5.8 الجلسة ✅ — عند كل فتح بارد
 
 `GET /api/v1/app/session`
 
-| الحقل في `data` | استعمال الواجهة |
+مندوب:
+
+```json
+{
+  "data": {
+    "user": {
+      "id": 70,
+      "name": "عمر الشامي",
+      "user_type": "rep",
+      "profile_completed": true
+    },
+    "permissions": [
+      "rp.delivery.accept", "rp.delivery.deliver", "rp.delivery.postpone",
+      "rp.delivery.return_request", "rp.payment.collect", "rp.payment.withdraw",
+      "rp.wallet.view", "rp.warehouse.receive"
+    ],
+    "feature_flags": { "offline_orders": false, "loyalty": false },
+    "sync_cursor": "",
+    "server_time": "2026-09-19T13:00:00+03:00",
+    "requires_legal_accept": false,
+    "legal": { "privacy_version": "2026-03", "terms_version": "2026-01" },
+    "commercial_limits": {
+      "max_discount_percent": 10,
+      "max_cash_hold": 5000000
+    }
+  }
+}
+```
+
+| حقل | استعمال |
 |---|---|
-| `user.user_type` | يجب `rep` وإلا اخرج |
-| `user.profile_completed` | `false` → §5.3 |
-| `user.name` / `id` | الشريط العلوي |
-| `commercial_limits.max_discount_percent` | شريط الخصم في السلة |
-| `commercial_limits.max_cash_hold` | شريط التحصيل. `0` = أخفِ تحذير السقف |
-| `permissions` | **لا تخفِ شاشات** |
-| `feature_flags.offline_orders` | اليوم `false` — لا تبنِ وضعًا دون اتصال |
-| `feature_flags.loyalty` | تجاهل |
-| `sync_cursor` | سلسلة فارغة — لا شريط مزامنة |
-| `requires_legal_accept` | اليوم `false` |
-| `legal.*` | شاشة قانونية ثابتة في المزيد إن لزم، بلا API قبول |
+| `commercial_limits.max_discount_percent` | شريط الخصم في السلة. **0 = أخفِ الحقل** |
+| `max_cash_hold` | سقف التحصيل. **0 = لا سقف** (أخفِ التحذير) |
+| `feature_flags.offline_orders` | اليوم `false` — الطابور المحلي إعادة طلبات حيّة لا sync API |
+| `feature_flags.loyalty` | إن false أخفِ شريط النقاط |
+| `sync_cursor` | سلسلة فارغة — لا شريط مزامنة خادم |
+| `permissions` | لا تخفِ شاشات |
 
-🟡 الجلسة **لا تُرجع المناطق**. استخدم المحفوظ من التسجيل أو `zone_id` من الزبائن.
+🟡 الجلسة **لا تُرجع المناطق ولا الصورة**. الاسم من هنا. المناطق من التسجيل/refs.
 
-#### 5.4.2 المناوبة 🔁
+### 5.9 المناوبة ✅ 🔁
 
-`PATCH /api/v1/app/rep/status` — `{ "on_duty": true }`
+`PATCH /api/v1/app/rep/status`
 
-رد: `{ on_duty, tracking_enabled }`.
+```json
+{ "on_duty": true }
+```
 
-- مفتاح في الشريط العلوي. لون `--success` إن في الخدمة.
-- `on_duty=false` يوقف نبضات §5.15.6 (وإلا 422).
-- لا تبدأ المسار اليومي قبل `true`.
+```json
+{ "data": { "on_duty": true, "tracking_enabled": true } }
+```
 
-#### 5.4.3 الخروج 🔁
+مفتاح في الـ AppBar. `--success` إن في الخدمة. `on_duty=false` يوقف النبضات (وإلا 422). لا تبدأ مسار التسليم الميداني قبل `true`.
 
-`POST /api/v1/app/auth/logout` — جسم `{}`. امسح التخزين الآمن والكاش. لا تعتمد على الخادم إن فشل الشبكة — امسح محليًا أيضًا.
+### 5.10 الخروج ✅ 🔁
+
+`POST /api/v1/app/auth/logout` جسم `{}` → `{ "success": true }`. امسح SecureStorage + GetStorage. إن فشلت الشبكة امسح محلياً أيضاً.
+
+### 5.11 الصحة ✅
+
+`GET /api/v1/health` بلا مصادقة.
+
+```json
+{
+  "data": {
+    "status": "ok",
+    "app": "...",
+    "env": "local",
+    "checks": { "database": "ok", "cache": "ok", "queue": "ok" }
+  }
+}
+```
+
+`status` قد يكون `degraded` مع 200. لا تبنِ شاشة؛ فشل النقل: «تعذّر الوصول للخدمة» + إعادة.
 
 ---
 
-### 5.5 الرئيسية ✅ (تركيب — ⛔ بلا `home-blocks`)
+## 6. الرئيسية (موجّه المنتج)
 
-لا بنرات ولا سلايدر. أربعة أشرطة:
+الهدف: كل صباح تعطي المندوب مهامه وجولته وتحصيلاته.
 
-1. بطاقة مناوبة + اسم.
-2. **بانتظارك:** عدد `GET /assignments` + عدد طلبات `GET /warehouse-receipts`.
-3. **اليوم:** من `GET /wallet` → `today.invoices / collected / receivables` ومن `GET /deliveries` عدّاد البطاقات.
-4. اختصارات: محل جديد، تحصيل، تسليم نقدية.
+### 6.1 الـ AppBar (مشترك للصدفة)
 
-فارغ: «لا إسنادات ولا عهدة. ابدأ بزيارة محل من تبويب طلب.»
+| عنصر المنتج | المصدر |
+|---|---|
+| أهلاً بك + اسم + صورة | `session.user.name` — ⛔ لا صورة من الخادم: حرف من الاسم |
+| اليوم والتاريخ | `server_time` أو ساعة الجهاز إن انقطع |
+| زر الإشعارات | ⛔ صندوق 404 — الشارة 0، الشاشة فارغة صادقة |
+| حالة الاتصال | §4.5 |
+| مزامنة يدوية | إن outbox &gt; 0 |
+| داخل/خارج الخدمة | `PATCH /status` |
+| شريط النقاط | ⛔ أخفه إن `loyalty != true` |
 
-لا تستطلع `GET /deliveries` كل ثانية — له أثر كتابة (§5.14).
+### 6.2 بلوك المهام — ستة أزرار
 
----
+كل زر: أيقونة + كتابة + رقم من الحيّ. لا تُختلق الأرقام.
 
-### 5.6 المناطق والمحلات ✅
-
-#### قائمة المحلات
-
-`GET /api/v1/app/rep/zones/{id}/shops?search=&page=1&per_page=25`
-
-🟡 `search` **علوي** لا `filter[search]`. النتيجة **صفحات**.
-
-| الحقل الظاهر | المفتاح | ملاحظة |
+| الزر | العدّاد | النقر |
 |---|---|---|
-| اسم المحل | `shop_name` | |
-| العنوان | `address` | قد يكون null |
-| مفتوح | `is_open` | 🟡 **دائمًا true** — لا شارة إغلاق صادقة |
-| نشط | `is_active` | |
-| آخر طلب | `last_order_at` | 🟡 **دائمًا null** — أخفِ الصف |
+| تسجيل طلب | عدد أقسام `GET /cart` اليوم محلياً (إن عُرف) وإلا أخفِ الرقم | `OrderCaptureView` |
+| تسليم طلبات | مجموع `zones[].total - delivered` من `GET /deliveries` | `DeliveriesView` |
+| استلام دفعة | `wallet.today.collected` | `CollectPaymentView` |
+| قبول الطلبات | `assignments.length` | `AssignmentsView` |
+| طلبات مجدولة | `scheduled-orders.length` | `ScheduledOrdersView` |
+| استلام مستودع | `warehouse-receipts.count` | `WarehouseReceiptsView` |
 
-403 `insufficient_permission` إن المنطقة ليست للمندوب → «ليست ضمن تغطيتك».
+لا تستطلع `GET /deliveries` كل ثانية — له أثر كتابة (يضمن صف تسليم). اسحب-للتحديث أو عند فتح التبويب.
 
-فارغ: «لا محلات في هذه المنطقة. سجّل محلًا من الزبائن.»
+### 6.3 ثلاث دوائر
 
-#### طلب منطقة إضافية 🔁
+منتجات · عملاء · مناطق → تبويب/مسار كل منها.
 
-`POST /api/v1/app/rep/zones` — `{ zone_id, note? }` → `{ status: "pending_approval" }`.
+### 6.4 تجميع الرئيسية ✅ (بدون `home-blocks`)
 
-لا قائمة طلبات لاحقة. أظهر «طلبك قيد الموافقة» توست واخرج.
+عند `onReady` بالتوازي (`Future.wait`):
 
-⛔ لا منتقي مناطق من الخادم. `zone_id` من المحفوظ أو إدخال يدوي للمختبرين.
+1. `GET /app/rep/assignments`
+2. `GET /app/rep/warehouse-receipts`
+3. `GET /app/rep/wallet`
+4. `GET /app/rep/deliveries` (مرة واحدة)
+5. `GET /app/rep/cart` (لعدّاد السلة)
 
----
+فارغ: «لا إسنادات ولا عهدة. ابدأ بزيارة محل.»
 
-### 5.7 الزبائن ✅
-
-`GET /api/v1/app/rep/customers?filter[search]=&page=&per_page=`
-
-🟡 البحث `filter[search]` على `shop_name` فقط. **صفحات.**
-
-| الظاهر | المفتاح | ملاحظة |
-|---|---|---|
-| الاسم | `shop_name` | |
-| المنطقة | `zone_id` | رقم — اربطه بأسماء محفوظة إن وُجدت |
-| نشط | `is_active` | `false` = قيد المراجعة. اسمح بالعرض؛ السلة قد تفشل إن رُفض لاحقًا |
-| المعرّف | `id` | **هذا `retailer_id` في السلة والدفع** |
-
-#### تسجيل محل ميداني 🔁
-
-`POST /api/v1/app/rep/customers`
-
-| الحقل | المفتاح | النوع | إلزامي | التحقق | ملاحظة |
-|---|---|---|---|---|---|
-| اسم المحل | `shop_name` | string | ✔ | max 160 | |
-| صاحب المحل | `owner_name` | string | ✔ | max 120 | |
-| الهاتف | `phone` | string | ✔ | جوال سوري | LTR |
-| المنطقة | `zone_id` | id | ✔ | ضمن تغطية القناة ونشطة | |
-| النشاط | `activity_type_id` | id | ✔ | | |
-| خط العرض | `lat` | number | ○ | | من GPS |
-| خط الطول | `lng` | number | ○ | | |
-| معرّف العملية | `client_op_id` | string | ✔ | max 80 | ولّده قبل الإرسال. إعادة بنفس القيمة = نفس الصف |
-
-رد: `{ id, status }` حيث `id` = صف `RepSourcedShop` و`status` غالبًا `pending_sync`.
-
-🟡 **لا تستخدم `id` العائد كـ `retailer_id`.** أعد `GET /customers` وخذ `id` من القائمة.
-
-فارغ: «لا زبائن بعد. أضف محلًا أو افتح منطقة.»
+⛔ لا بنرات ولا سلايدر من الخادم حتى `AP-04`.
 
 ---
 
-### 5.8 المنتجات والتسعير ✅
+## 7. تسجيل طلب مبيعات
+
+أهم وظيفة. مسار المنتج:
+
+1. اختيار المنطقة  
+2. اختيار اسم المحل  
+3. بحث منتجات المندوب  
+4. شريط فئات إن وُجد  
+5. سلايدر الأكثر طلباً  
+6. سلايدر العروض  
+7. كل المنتجات  
+8. متغيرات كالـ AliExpress/Alibaba: كل متغير له عدّاد فوقه، إضافة مستمرة للسلة  
+9. شريط عائم «قائمة المنتجات والعروض المختارة» → مراجعة باسم المحل قبل الإرسال  
+
+### 7.1 المنطقة والمحل
+
+المناطق: المحفوظة من التسجيل. المحلات: `GET /api/v1/app/rep/zones/{id}/shops?search=&page=1&per_page=25`
+
+🟡 `search` **علوي** لا `filter[search]`. النتيجة صفحات.
+
+```json
+{
+  "data": [{
+    "id": 481,
+    "shop_name": "بقالية النور",
+    "address": "المزة فيلات شرقية",
+    "is_open": true,
+    "is_active": true,
+    "last_order_at": null
+  }],
+  "meta": { "page": 1, "per_page": 25, "total": 1, "last_page": 1 }
+}
+```
+
+🟡 `is_open` **دائماً true** — لا شارة إغلاق صادقة. `last_order_at` **دائماً null** — أخفِ الصف. `id` = `retailer_id` في السلة والدفع.
+
+403 `insufficient_permission`: «ليست ضمن تغطيتك».
+
+بديل: ابدأ من `GET /app/rep/customers` ثم ثبّت `retailer_id` + `zone_id`.
+
+### 7.2 المنتجات ✅
 
 `GET /api/v1/app/rep/products`
 
 | استعلام | مثال | ملاحظة |
 |---|---|---|
 | `page` `per_page` | 1 / 25 | سقف 100 |
-| `filter[search]` | زيت | اسم عربي أو SKU — ليس `search` العلوي |
+| `filter[search]` | زيت | اسم عربي أو SKU — **ليس** `search` العلوي |
 | `filter[category_id]` | | |
 | `filter[brand_id]` | | |
 | `filter[channel_id]` | | قناة المندوب |
-| `barcode` | | علوي |
-| `zone` | 12 | **لتسعير الكمية 1.** لا `filter[zone_id]` — Spatie يرمي |
+| `barcode` | | **علوي** — بعد مسح QR |
+| `zone` | 12 | تسعير الكمية 1 **لمنطقة المحل**. لا `filter[zone_id]` |
 
 ⛔ لا ترسل `sort` ولا `filter[offer_only]` ولا `filter[available_only]`.
 
-بطاقة المنتج:
+بطاقة كما يعيدها الخادم — **بلا صورة ولا SKU ولا متغيرات**:
 
-| الظاهر | المفتاح | ملاحظة |
-|---|---|---|
-| الاسم | `name` | عربي فقط |
-| القناة | `channel.id` `channel.name` | أظهر اسم القناة |
-| السعر | `price.value` | money عند كمية 1 |
-| نوع السعر | `price.type` `price.label` | شريحة؟ |
-| التوفر | `availability` | نص تصنيف — لا تخترع ألوانًا بلا قاموس ثابت: اعرض النص |
+```json
+{
+  "id": 880,
+  "name": "زيت دوار الشمس 1 لتر",
+  "channel": { "id": 1, "name": "شركة النور" },
+  "price": { "type": "tiered", "value": 12000, "label": "السعر حسب الكمية" },
+  "availability": "in_stock"
+}
+```
 
-لا صورة ولا SKU في الرد. امسح باركود → `barcode=`.
+اعرض `availability` نصاً. Placeholder للصورة (حرف الاسم).
 
-قبل تثبيت الكمية في السلة: `POST /api/v1/app/pricing/quote` 🔁
+⛔ لا `GET /app/rep/products/{id}`. لا تستدعِ `GET /app/retailer/products/{id}` (حارس تاجر → 403).
 
-| الحقل | المفتاح | إلزامي | ملاحظة |
-|---|---|---|---|
-| البنود | `lines[].product_id` `qty` | ✔ | `variant_id` ○ |
-| المنطقة | `zone_id` | ✔ | **منطقة المحل** لا منطقة المندوب الافتراضية إن اختلفا |
+شريط الفئات: ⛔ لا شجرة فئات للمندوب. أخفِ الشريط أو ابنِه من `root_categories` في refs للفلترة اليدوية بـ `filter[category_id]` إن عُرف المعرّف.
 
-لا ترسل `unit_price`. رد: `lines[].unit_price` `line_total` `subtotal` `currency`.
+الأكثر طلباً / منتجات جديدة / سلايدرات القناة: ⛔ `home-blocks`. أخفِ السلايدر أو كرّر أول صفحة منتجات بعنوان «المنتجات» فقط — لا تختلق «الأكثر مبيعاً».
 
----
+بحث صوتي: `speech_to_text` محلي → يملأ `filter[search]`. QR: `mobile_scanner` → `barcode=`.
 
-### 5.9 العروض ✅
+### 7.3 المتغيرات (علي بابا) 🧩
 
-`GET /api/v1/app/offers?filter[zone_id]=&filter[activity_type_id]=` — **صفحات.**
+موجّه المنتج يريد عدّاداً فوق كل متغير وإضافة مستمرة.
 
-قد ترجع قائمة فارغة إن لا عرض يطابق قناة/منطقة/نشاط المندوب — هذا صحيح لا عطل.
+الخادم يقبل `variant_id` على `POST /cart/lines` و`POST /pricing/quote`، لكن قائمة المنتجات **لا تُرجع المتغيرات**.
 
-`GET /app/offers/{id}` للتفاصيل. `company` يبقى مخفيًا حتى تأكيد طلب (قاعدة الكتالوج). لا تعتمد على صور إن `image` null.
+UI:
 
-أضف للسلة بنفس `POST /cart/lines` مع `product_id` من مكوّنات العرض بعد quote.
+- بطاقة منتج بكمية +/- وزر إضافة → `variant_id` يُحذف (null).
+- إن ظهرت متغيرات لاحقاً: `Get.bottomSheet` شبكة متغيرات، كل خلية `RxInt qty`، الزر العائم يجمع الإضافات.
+- لا تخترع قائمة متغيرات.
 
----
+### 7.4 تسعير الخادم ✅ 🔁 قبل تثبيت الكمية
 
-### 5.10 السلة وإرسال طلب محل ✅ 🔁
+`POST /api/v1/app/pricing/quote`
 
-مسار المستخدم: اختر محلًا (`retailer_id`) → أضف منتجات → راجع → خصم اختياري + ملاحظة → إرسال.
+```json
+{
+  "lines": [{ "product_id": 880, "variant_id": 1, "qty": 6 }],
+  "zone_id": 12
+}
+```
+
+`zone_id` = **منطقة المحل** لا منطقة المندوب الافتراضية إن اختلفا. **لا ترسل** `unit_price`.
+
+```json
+{
+  "data": {
+    "lines": [{
+      "product_id": 880,
+      "unit_price": 11500,
+      "applied_rule": { "type": "qty_tier", "id": 3, "label": "شريحة 5–9" },
+      "tier": { "from": 5, "to": 9 },
+      "discount": 0,
+      "line_total": 69000
+    }],
+    "subtotal": 69000,
+    "currency": "SYP"
+  }
+}
+```
+
+### 7.5 العروض ✅
+
+`GET /api/v1/app/offers?filter[zone_id]=12&filter[activity_type_id]=3` — صفحات.
+
+`company` دائماً `null` حتى تأكيد طلب. أضف للسلة بـ `product_id` من `components` بعد quote.
+
+`GET /app/offers/{id}` للتفاصيل. قائمة فارغة = لا عروض مطابقة — هذا صحيح.
+
+### 7.6 إضافة للسلة ✅ 🔁
 
 `POST /api/v1/app/rep/cart/lines`
 
-| الحقل | المفتاح | إلزامي | ملاحظة |
-|---|---|---|---|
-| المحل | `retailer_id` | ✔ | من قائمة الزبائن/المحلات |
-| المنتج | `product_id` | ✔ | |
-| المتغير | `variant_id` | ○ | |
-| الكمية | `qty` | ✔ | min 1. 🟡 **تُضاف** إلى كمية موجودة لنفس المنتج/المتغير |
+```json
+{
+  "retailer_id": 481,
+  "product_id": 880,
+  "variant_id": 1,
+  "qty": 4
+}
+```
 
-⛔ لا `PATCH` ولا `DELETE` للبند. إن أخطأ المندوب بالكمية: أظهر «لا يمكن الإنقاص من الخادم. أرسل الطلب الحالي أو تواصل مع القناة.» لا تختلق حذفًا محليًا يضلّل — الخادم ما زال يحمل الكمية.
+`variant_id` اختياري. `qty` min 1.
 
-`GET /api/v1/app/rep/cart` → `{ sections[] }`
+🟡 الكمية **تُضاف** إلى سطر موجود لنفس المنتج/المتغير. لا PATCH ولا DELETE. إن أخطأ المندوب: «لا يمكن الإنقاص من الخادم. أرسل الطلب أو تواصل مع القناة.» لا حذف محلي يضلّل.
 
-| المفتاح | ملاحظة |
-|---|---|
-| `sections[].retailer.id` | يُستخدم في مسار الإرسال |
-| `sections[].retailer.shop_name` | |
-| `sections[].lines[].id` | معرّف البند — لا مسار عليه |
-| `lines[].product_id` `qty` `unit_price` | **لا اسم ولا صورة ولا line_total** — اربط الاسم من كاش المنتجات |
-| `sections[].total` `discount` | money |
+الرد = شكل السلة كاملاً (§7.7).
 
-لا ملخص أعلى السلة من الخادم — اجمع `total` محليًا للعرض فقط.
+### 7.7 قراءة السلة ✅
+
+`GET /api/v1/app/rep/cart`
+
+```json
+{
+  "data": {
+    "sections": [{
+      "retailer": { "id": 481, "shop_name": "بقالية النور" },
+      "lines": [{
+        "id": 11,
+        "product_id": 880,
+        "qty": 4,
+        "unit_price": 12000
+      }],
+      "total": 48000,
+      "discount": 0
+    }]
+  }
+}
+```
+
+🟡 البنود **بلا اسم ولا صورة ولا line_total**. اربط الاسم من كاش المنتجات. الشريط العائم يجمع `sections` حيث `retailer.id ==` المحل الحالي. تبويب السلة يعرض **كل** المحلات.
+
+### 7.8 إرسال طلب محل ✅ 🔁
 
 `POST /api/v1/app/rep/cart/sections/{retailer_id}/submit`
 
-| الحقل | المفتاح | إلزامي | ملاحظة |
-|---|---|---|---|
-| ملاحظة | `note` | ○ | ✅ تُحفظ على قسم الطلب |
-| خصم ٪ | `discount_percent` | ○ | 0–100. إن &gt; `max_discount_percent` → 403 `discount_cap_exceeded` |
+```json
+{ "note": "توصيل صباحي", "discount_percent": 2 }
+```
 
-سقف الخصم الافتراضي بلا صف قناة = **0** → أي خصم &gt; 0 يفشل. أخفِ حقل الخصم إن السقف 0.
+`discount_percent` 0–100. إن &gt; سقف الجلسة → 403 `discount_cap_exceeded`. سقف 0 → أخفِ الحقل. أي خصم &gt; 0 يفشل.
 
-نجاح: `{ sub_order: { id, sub_order_no, status: "pending", total } }`. امسح قسم هذا المحل من الواجهة (الخادم يحذف القسم).
+```json
+{
+  "data": {
+    "sub_order": {
+      "id": 9001,
+      "sub_order_no": "SO-9001",
+      "status": "pending",
+      "total": 47040
+    }
+  }
+}
+```
 
-422 `validation_failed` إن القسم فارغ. 404 محل مجهول.
-
----
-
-### 5.11 الإسنادات ✅
-
-`GET /api/v1/app/rep/assignments` — **مصفوفة بلا صفحات.** `invoice_no` دائمًا null.
-
-| الظاهر | المفتاح |
-|---|---|
-| رقم الطلب | `sub_order_no` |
-| المحل | `shop` |
-| المنطقة | `zone` |
-| القناة | `channel` |
-| الوقت | `created_at` |
-| المعرّف | `id` = `sub_order_id` |
-
-قبول 🔁: `POST /assignments/{id}/accept` جسم `{}` → `{ status: "accepted" }`. البطاقة تنتقل لمسار التسليم بعد العهدة.
-
-رفض 🔁: `POST /assignments/{id}/reject` — `{ reason }` max 255 → `{ status: "unassigned" }`. 🟡 `unassigned` تسمية مرحلة لا تستخدمها كـ enum حالة محلية للمسار.
-
-409 إن غادر الطلب `assigned`. 404 إن ليس لك.
-
-فارغ: «لا إسنادات تنتظر قبولك.»
+الخادم يحذف قسم هذا المحل. احفظ `sub_order` في كاش «طلباتي» المحلي (لا `GET /app/rep/orders`). 422 قسم فارغ. 404 محل مجهول.
 
 ---
 
-### 5.12 الطلبات المجدولة ✅
+## 8. القبول · المستودع · التسليم · المجدولة · المرتجع
 
-`GET /api/v1/app/rep/scheduled-orders?date=2026-03-02` — مصفوفة. بدون `date` = كل المؤجَّل.
+### 8.1 قبول الطلبات ✅
 
-| المفتاح | ملاحظة |
-|---|---|
-| `id` | ✅ `sub_order_id` — افتح تفاصيل التسليم |
-| `shop` `address` `phone` | `shop_logo` دائمًا null — أخفِ |
-| `scheduled_at` | ISO دمشق |
-| `status` | `postponed` |
-| `color` | دائمًا `amber` |
+`GET /api/v1/app/rep/assignments` — مصفوفة بلا صفحات. `invoice_no` دائماً null.
 
-فارغ لذلك اليوم: «لا طلبات مؤجَّلة.»
+```json
+{
+  "data": [{
+    "id": 9001,
+    "sub_order_no": "SO-9001",
+    "shop": "بقالية النور",
+    "zone": "المزة",
+    "channel": "شركة النور",
+    "invoice_no": null,
+    "created_at": "2026-03-01T10:00:00+03:00"
+  }]
+}
+```
 
----
+تجميع الواجهة حسب `zone`. `id` = `sub_order_id`.
 
-### 5.13 استلام العهدة ✅
+قبول 🔁: `POST /assignments/{id}/accept` جسم `{}` → `{ "status": "accepted" }`.
 
-**بوابة التسليم.** بلا تأكيد العهدة، `complete` يرجع 409.
+رفض 🔁: `POST /assignments/{id}/reject` `{ "reason": "خارج مساري اليوم" }` max 255 → `{ "status": "unassigned" }`.
 
-`GET /api/v1/app/rep/warehouse-receipts?date=`
+409 إن غادر `assigned`. 404 إن ليس لك.
 
-| المفتاح | ملاحظة |
-|---|---|
-| `date` `rep_name` `count` | `count` = عدد بنود الطلبات لا عدد الحوالات |
-| `orders[].sub_order_id` | |
-| `orders[].order_no` `shop` `zone` | |
-| `orders[].handover_id` | ✅ **هذا** ما يدخل مسار التأكيد |
+### 8.2 استلام مستودع ✅ — بوابة التسليم
 
-تجميع الواجهة حسب `handover_id`: بطاقة حوالة فيها المحلات، حقل رمز 4 خانات، زر تأكيد.
+بلا تأكيد عهدة، `complete` يرجع 409 `illegal_transition`.
 
-`POST /api/v1/app/rep/warehouse-receipts/{handoverId}/confirm` 🔁 — `{ temp_code }` **size 4**.
+`GET /api/v1/app/rep/warehouse-receipts?date=2026-03-01`
 
-نجاح: `{ status: "on_the_way", tracking_enabled: true }` — ابدأ النبضات إن المناوبة شغّالة.
+```json
+{
+  "data": {
+    "date": "2026-03-01",
+    "rep_name": "عمر الشامي",
+    "count": 2,
+    "orders": [{
+      "sub_order_id": 9001,
+      "order_no": "SO-9001",
+      "shop": "بقالية النور",
+      "zone": "المزة",
+      "handover_id": 44
+    }]
+  }
+}
+```
 
-| خطأ | المعنى |
+`count` = عدد بنود الطلبات لا عدد الحوالات. تجميع حسب `handover_id`. حقل رمز **4 خانات** + تأكيد.
+
+`POST /app/rep/warehouse-receipts/{handoverId}/confirm` 🔁
+
+```json
+{ "temp_code": "7391" }
+```
+
+`temp_code` size 4. نجاح: `{ "status": "on_the_way", "tracking_enabled": true }` — ابدأ النبضات إن المناوبة شغّالة.
+
+| خطأ | |
 |---|---|
 | 422 | رمز خاطئ |
-| 409 `illegal_transition` | 🟡 معرّف حوالة مجهول أو ليس لك — **ليس 404** |
-| إعادة تأكيد | حوالة مؤكَّدة مسبقًا تعيد نفس نجاح `on_the_way` حتى لو الرمز خاطئ — لا تعتمد على ذلك في QA كفحص رمز |
+| 409 `illegal_transition` | 🟡 حوالة مجهولة أو ليست لك — **ليس 404** |
+| إعادة تأكيد | حوالة مؤكَّدة تعيد نفس النجاح حتى لو الرمز خاطئ |
 
-فارغ: «لا عهدة بانتظارك. راجع المستودع.»
+### 8.3 قائمة التسليم ✅
 
----
+`GET /api/v1/app/rep/deliveries?filter[zone_id]=12`
 
-### 5.14 قائمة التسليم ✅
+🟡 **أثر كتابة.** اسحب-للتحديث فقط.
 
-`GET /api/v1/app/rep/deliveries?filter[zone_id]=`
+```json
+{
+  "data": {
+    "zones": [{
+      "name": "المزة",
+      "total": 4,
+      "delivered": 1,
+      "cards": [{
+        "id": 9001,
+        "shop": "بقالية النور",
+        "zone": "المزة",
+        "channel": "شركة النور",
+        "invoice_no": "INV-501",
+        "ordered_at": "2026-03-01T09:10:00+03:00",
+        "status": "accepted",
+        "border_color": "blue"
+      }]
+    }]
+  }
+}
+```
 
-🟡 **له أثر كتابة** (يضمن صف تسليم). لا polling كل ثانية. اسحب-للتحديث يدويًا.
+`status`: `accepted` (أزرق) · `on_the_way` (أخضر) · `delivered` اليوم (رمادي). المسلَّم في أيام سابقة **لا يظهر**.
 
-شكل `data`: `{ zones: [{ name, total, delivered, cards[] }] }`
+موجّه المنتج يريد أيضاً إلغاء (أحمر) وتأجيل (أزرق إطار). بعد `fail`/`postpone` البطاقة تغادر هذه القائمة إلى المجدولة أو تختفي — حدّث من الخادم ولا تلوّن محلياً ضد `border_color`.
 
-| بطاقة | ملاحظة |
+### 8.4 تفاصيل التسليم ✅
+
+`GET /api/v1/app/rep/deliveries/{id}` — `{id}` = `sub_order_id`.
+
+```json
+{
+  "data": {
+    "lines": [{
+      "id": 1,
+      "image": null,
+      "name": "زيت دوار الشمس 1 لتر",
+      "brand": "نور",
+      "variant": null,
+      "qty": 4,
+      "qty_delivered": 0,
+      "price": 12000,
+      "status": "pending"
+    }],
+    "invoice_total": 48000
+  }
+}
+```
+
+`lines[].id` = بند **التسليم** لـ PATCH وcomplete. `qty` متوقع. `status` ثم `accept`/`adjust`/`return`/`exchange`.
+
+أزرار المنتج على البطاقة:
+
+| زر المنتج | مسار |
 |---|---|
-| `id` | sub_order_id |
-| `shop` `zone` `channel` | |
-| `invoice_no` | قد يكون null قبل الإنهاء |
-| `ordered_at` | ✅ من رأس الطلب |
-| `status` | `on_the_way` / `accepted` / `delivered` |
-| `border_color` | green / blue / gray |
-| `zones[].delivered` | ✅ عدد بطاقات **اليوم** المسلَّمة في المنطقة |
+| تعديل كمية | `PATCH .../lines/{lineId}` `action=adjust` |
+| إرجاع | `action=return` + `POST /return-requests` نوع `return` |
+| استبدال | `action=exchange` + `POST /return-requests` نوع `exchange` |
+| تسليم / تم الاستلام | `POST .../complete` |
+| استلام دفعة | يظهر بعد complete إن `ask_payment` |
 
-المسلَّم في أيام سابقة **لا يظهر**. هذا تصميم الخادم.
+تعديل بند 🔁:
 
-فارغ: «لا مسار اليوم. اقبل إسنادًا أو أكّد عهدة.»
+```json
+{ "qty_delivered": 3, "action": "return", "reason": "رفض التاجر عبوة" }
+```
 
----
+`action` ✔: `accept` \| `adjust` \| `return` \| `exchange`. رد: `{ "new_invoice_total": 36000 }`.
 
-### 5.15 تفاصيل التسليم والإنهاء ✅
+إن الإرجاع/الاستبدال يحتاج قرار القناة: أنشئ `return-requests` واعرض «بانتظار القناة». لا تغيّر لون السعر محلياً إلا بعد رد الخادم.
 
-`GET /api/v1/app/rep/deliveries/{id}`
+### 8.5 إنهاء التسليم ✅ 🔁
 
-| بند | ملاحظة |
-|---|---|
-| `lines[].id` | معرّف بند **التسليم** — لـ PATCH وcomplete |
-| `name` `brand` `qty` | `qty` = المتوقع |
-| `qty_delivered` | ✅ الكمية المسلَّمة حتى الآن |
-| `price` | money |
-| `status` | `pending` ثم `accept`/`adjust`/`return`/`exchange` |
-| `image` `variant` | غالبًا null |
-| `invoice_total` | money |
+`POST /app/rep/deliveries/{id}/complete`
 
-#### تعديل بند 🔁
+```json
+{
+  "lines": [{ "line_id": 1, "qty_delivered": 4, "action": "accept" }],
+  "delivered_at": "2026-03-01T12:05:00+03:00",
+  "signature": "data:image/png;base64,..."
+}
+```
 
-`PATCH /deliveries/{id}/lines/{lineId}`
+كل الحقول اختيارية ما عدا أن الإنهاء بلا عهدة → 409.
 
-| الحقل | إلزامي | تحقق |
-|---|---|---|
-| `action` | ✔ | `accept` \| `adjust` \| `return` \| `exchange` |
-| `qty_delivered` | ○ | int ≥ 0 (أو `qty_received`) |
-| `reason` | ○ | |
+```json
+{
+  "data": {
+    "invoice": { "no": "INV-501", "total": 48000 },
+    "receipt_no": "RCPT-10041",
+    "ask_payment": true
+  }
+}
+```
 
-رد: `{ new_invoice_total }`. حدّث المجموع فورًا.
-
-#### إنهاء 🔁
-
-`POST /deliveries/{id}/complete`
-
-| الحقل | إلزامي | ملاحظة |
-|---|---|---|
-| `lines[]` | ○ | `line_id`, `qty_delivered`, `action` |
-| `delivered_at` | ○ | ISO |
-| `signature` | ○ | data-URL صورة |
-
-نجاح: `{ invoice: { no, total }, receipt_no, ask_payment: true }`.
-
-409 `illegal_transition` بلا عهدة مؤكَّدة — «أكّد الاستلام من المستودع أولًا.»
+إن `ask_payment` افتح التحصيل فوراً بـ `invoice.no` + `receipt_no` + `total` مقترحاً. **لا تحجز وصلاً ثانياً** — الوصل موجود.
 
 إعادة الإنهاء بعد التسليم تعيد نفس الفاتورة والوصل.
 
-إن `ask_payment` افتح §5.17.2 فورًا مع `invoice.no` و`receipt_no` و`invoice.total` كقيمة مقترحة.
+### 8.6 تأجيل ✅ 🔁
 
-#### تأجيل 🔁
+`POST .../postpone`
 
-`POST /deliveries/{id}/postpone` — `{ scheduled_at` (ISO، ✔), `reason` (✔) `}` → `{ status: "postponed" }`.
+```json
+{ "scheduled_at": "2026-03-02T10:00:00+03:00", "reason": "المحل مغلق" }
+```
 
-✅ التاريخ والسبب يُحفظان. البطاقة تظهر في §5.12.
+كلاهما إلزامي. → `{ "status": "postponed" }`. يظهر في المجدولة.
 
-#### تعذّر 🔁
+### 8.7 تعذّر / إلغاء تسليم ✅ 🔁
 
-`POST /deliveries/{id}/fail` — `{ reason }` ✔ → `{ status: "undelivered", border_color: "red" }`.
+`POST .../fail` `{ "reason": "رفض الاستلام" }` → `{ "status": "undelivered", "border_color": "red" }`.
 
-تأكيد مزدوج في الواجهة: «لا يمكن التراجع من التطبيق.»
+تأكيد مزدوج: «لا يمكن التراجع من التطبيق.»
 
-#### نبضات الموقع 🔁
+### 8.8 نبضات الموقع ✅ 🔁
 
 `POST /api/v1/app/rep/locations/ping`
 
 ```json
-{ "pings": [{ "lat": 33.51, "lng": 36.27, "at": "2026-03-01T11:41:00+03:00", "accuracy": 12 }] }
+{
+  "pings": [{
+    "lat": 33.5112,
+    "lng": 36.2781,
+    "at": "2026-03-01T11:41:00+03:00",
+    "accuracy": 12
+  }]
+}
 ```
 
-| شرط | خطأ |
-|---|---|
-| ليس في الخدمة | 422 |
-| آخر نبضة &lt; 30 ثانية | 429 `rate_limited` |
+في الخدمة فقط وإلا 422. أقل من 30ث → 429. دفعة واحدة لكل نداء. مفتاح تكرار **جديد** لكل دفعة. رد: `{ "accepted": 1 }`. شغّل مؤقّتاً من `ShellController` طالما `on_duty && tracking_enabled`.
 
-دفعة واحدة لكل نداء. لا ترفع أرشيفًا قديمًا بكثافة — يغلق النبضات الحيّة. كل نداء مفتاح تكرار جديد (كل دفعة نيّة).
+### 8.9 المجدولة ✅
 
----
+`GET /api/v1/app/rep/scheduled-orders?date=2026-03-02` — بلا `date` = كل المؤجَّل.
 
-### 5.16 مرتجع ميداني ✅ 🔁
+```json
+{
+  "data": [{
+    "id": 9001,
+    "shop_logo": null,
+    "shop": "بقالية النور",
+    "address": "المزة فيلات شرقية",
+    "phone": "+963933000000",
+    "scheduled_at": "2026-03-02T10:00:00+03:00",
+    "status": "postponed",
+    "color": "amber"
+  }]
+}
+```
+
+`id` يفتح تفاصيل التسليم. `shop_logo` دائماً null. ألوان الأيقونة حسب المنتج: أخضر مسلّم / رمادي غير مسلّم / أزرق مؤجّل / أحمر ملغى — نفّذها من `status` بعد إجراء المستخدم عبر fail/postpone/complete لا من حقل غير موجود.
+
+موجّه المنتج يريد تغيير الحالة من هذه الشاشة (تم التسليم، لم يتم + سبب، مؤجّلة + موعد جديد، ملغى + سبب). نفّذها باستدعاء مسارات التسليم على `id` ثم احذف البطاقة بعد نجاح يزيل `postponed`.
+
+### 8.10 مرتجع ميداني ✅ 🔁
 
 `POST /api/v1/app/rep/return-requests`
 
-| الحقل | إلزامي | تحقق |
-|---|---|---|
-| `sub_order_id` | ✔ | طلب هذا المندوب وإلا 404 |
-| `type` | ✔ | `return` \| `exchange` |
-| `lines[].line_id` | ✔ | من بنود التسليم |
-| `lines[].qty` | ✔ | min 1 |
-| `lines[].reason` | ✔ | max 255 |
-| `lines[].photos` | ○ | مصفوفة — ⛔ لا رفع وسائط. أرسل `[]` أو لا ترسل |
+```json
+{
+  "sub_order_id": 9001,
+  "type": "exchange",
+  "lines": [{
+    "line_id": 1,
+    "qty": 1,
+    "reason": "خطأ صنف",
+    "photos": []
+  }]
+}
+```
 
-نجاح: `{ request_no, status: "pending" }`. لا قائمة لاحقة — اعرض الرقم واحفظه محليًا.
+`type`: `return` \| `exchange`. `photos` أرسل `[]` — ⛔ لا رفع وسائط.
 
-فارغ في المزيد: «لا قائمة مرتجعات. أنشئ طلبًا من تفاصيل تسليم.»
+```json
+{ "data": { "request_no": "RR-201", "status": "pending" } }
+```
+
+⛔ لا قائمة لاحقة. اعرض الرقم واحفظه محلياً. 404 إن الطلب ليس لهذا المندوب.
 
 ---
 
-### 5.17 المحفظة والتحصيل ✅
+## 9. التحصيل والمحفظة
 
-#### 5.17.1 لوحة المحفظة
+### 9.1 حجز وصل ✅ 🔁
 
-`GET /api/v1/app/rep/wallet`
+`POST /api/v1/app/receipts/reserve` جسم `{}` → `{ "receipt_no": "RCPT-10041" }`. صلاحية 24 ساعة.
 
-| الظاهر | المفتاح | لون |
-|---|---|---|
-| الصافي | `net_balance` | `--success` إن &gt; 0 وإلا `--money` |
-| فواتير مسلَّمة | `stats.invoices_delivered` | |
-| إجمالي التحصيل | `stats.collected_total` | |
-| الذمم | `stats.receivables` | `--danger` إن &gt; 0 |
-| اليوم | `today.invoices` `collected` `receivables` | |
+بعد `complete` الوصل موجود — لا تحجز إلا لتحصيل بلا إنهاء. المستخدم **لا يكتب** رقم الوصل إلا للصق.
 
-لا تختلق فرقًا محليًا. الرقم من الخادم.
+موجّه المنتج: «رقم وصل الاستلام مرتبط بتطبيق المحل». على الخادم الرقم **يولَّد هنا** ثم يُستخدم في الدفعة. اعرضه للطباعة/المشاركة.
 
-#### 5.17.2 حجز وصل (إن لزم) 🔁
+### 9.2 تحصيل دفعة ✅ 🔁
 
-`POST /api/v1/app/receipts/reserve` جسم `{}` → `{ receipt_no }`. صلاحية 24 ساعة.
-
-بعد `complete` الوصل **موجود** — لا تحجز ثانيًا إلا لتحصيل بلا إنهاء.
-
-#### 5.17.3 تحصيل 🔁
+موجّه المنتج يجعل `invoice_no` اختيارياً (دفعة على الحساب). **الخادم يفرضه.** لا دفعة على الحساب بلا رقم فاتورة. إن لم يختر فاتورة: افتح الذمم أو امنع الإرسال.
 
 `POST /api/v1/app/rep/payments`
 
-| الحقل | إلزامي | تحقق | ملاحظة |
-|---|---|---|---|
-| `receipt_no` | ✔ | max 32 | من complete أو reserve. المستخدم لا يحرّره إلا للصق |
-| `retailer_id` | ✔ | ملف التاجر | من الزبائن |
-| `invoice_no` | ✔ | | من `complete` أو بطاقة التسليم |
-| `amount` | ✔ | int ≥ 1 | money |
-| `paid_at` | ✔ | date | ISO الآن |
-| `client_op_id` | ✔ | max 80 | إعادة = نفس الدفعة |
+```json
+{
+  "receipt_no": "RCPT-10041",
+  "retailer_id": 481,
+  "invoice_no": "INV-501",
+  "amount": 48000,
+  "paid_at": "2026-03-01T12:08:00+03:00",
+  "client_op_id": "op_rep_pay_10041"
+}
+```
 
-نجاح: `{ payment: { id }, wallet_balance, retailer_receivable }`.
+`amount` int ≥ 1. `client_op_id` max 80. إعادة بنفس القيمة = نفس الدفعة.
 
-| خطأ | الواجهة |
+```json
+{
+  "data": {
+    "payment": { "id": 301 },
+    "wallet_balance": 210000,
+    "retailer_receivable": 0
+  }
+}
+```
+
+| خطأ | |
 |---|---|
-| 409 `duplicate_receipt_no` | «الوصل مستخدم» |
-| 422 `receipt_not_reserved` | احجز وصلًا |
-| 422 `receipt_expired` | احجز وصلًا جديدًا |
-| 403 `cash_cap_exceeded` | «تجاوزت سقف حيازة النقد» — اعرض السقف من الجلسة |
-| 404 | فاتورة/محل ليس لك — «غير موجودة» |
+| 409 `duplicate_receipt_no` | الوصل مستخدم |
+| 422 `receipt_not_reserved` / `receipt_expired` | احجز وصلاً |
+| 403 `cash_cap_exceeded` | اعرض سقف الجلسة |
+| 404 | فاتورة/محل ليس لك |
 
-المبلغ الزائد عن الفاتورة يُوزَّع FIFO على فواتير المحل المفتوحة — أظهر `retailer_receivable` بعد التحصيل.
+المبلغ الزائد يُوزَّع FIFO على فواتير المحل — أظهر `retailer_receivable`.
 
-#### 5.17.4 ذمم المحلات
+شاشة المنتج: اسم المندوب + تاريخ (من الجلسة/الساعة، للعرض)، اختيار محل، اختيار فاتورة، مبلغ، تأكيد → رسالة + تحديث المحفظة.
 
-`GET /api/v1/app/rep/receivables` → `{ by_shop: [{ shop, total, invoices: [{ no, total, paid, remaining }] }] }`
+### 9.3 لوحة المحفظة ✅
 
-اضغط فاتورة → نموذج تحصيل بـ `invoice_no` و`remaining` كقيمة مقترحة. ستحتاج `retailer_id` من قائمة الزبائن بمطابقة اسم المحل إن لم يُرجع المعرّف — 🟡 الرد **بلا `retailer_id`**. طابق `shop` مع `GET /customers`.shop_name.
+`GET /api/v1/app/rep/wallet`
 
-#### 5.17.5 تسليم نقدية (سحب) 🔁
+```json
+{
+  "data": {
+    "net_balance": 210000,
+    "stats": {
+      "invoices_delivered": 18,
+      "collected_total": 860000,
+      "receivables": 120000
+    },
+    "today": {
+      "invoices": 4,
+      "collected": 180000,
+      "receivables": 30000
+    }
+  }
+}
+```
+
+`net_balance = SUM(collected) − SUM(settled)`. لا تختلق فرقاً محلياً.
+
+تخطيط المنتج:
+
+1. بلوك الصافي (ما لم يُسلَّم للمحاسب) = `net_balance`
+2. بلوك إحصائي: فواتير مسلَّمة + محصّلة + ذمة — النقر يفتح التفصيل (الذمم / السجل)
+3. مستحقات اليوم مع منتقي تاريخ — 🟡 الخادم يعيد `today` ليوم دمشق فقط. منتقي تاريخ آخر: اعرض «اليوم فقط من الخادم» أو صفّر إن التاريخ ≠ اليوم
+4. سحب مبلغ
+5. كشف سحوبات بين تاريخين + PDF
+6. إجمالي ديون غير محصّلة + PDF حسب محل
+
+### 9.4 سحب / تسليم للمحاسب ✅ 🔁
 
 `POST /api/v1/app/rep/wallet/withdrawals`
 
-| الحقل | إلزامي | ملاحظة |
-|---|---|---|
-| `amount` | ✔ | ≤ `net_balance` محليًا؛ الخادم يرفض إن تجاوز |
-| `operation_no` | ✔ | **من المحاسب** max 32. فريد على القناة |
-| `operated_at` | ✔ | تاريخ العملية |
+```json
+{
+  "amount": 1500000,
+  "operation_no": "OP-7781",
+  "operated_at": "2026-03-01T16:00:00+03:00"
+}
+```
 
-نجاح: `{ remaining_balance }`.
+`operation_no` **من المحاسب** max 32، فريد على القناة. امنع محلياً إن `amount > net_balance`.
 
-السجل: `GET /wallet/withdrawals?date_from=&date_to=` → `{ rows: [{ operation_no, amount, operated_at }], total }`. `operated_at` تاريخ يوم دمشق.
+```json
+{ "data": { "remaining_balance": 250000 } }
+```
 
----
+### 9.5 سجل السحوبات ✅
 
-### 5.18 المزيد / الإعدادات ✅
+`GET /app/rep/wallet/withdrawals?date_from=2026-02-01&date_to=2026-02-28`
 
-- الاسم من الجلسة
-- شارة قيد المراجعة إن حُفظت من التسجيل
-- السقفان للعرض فقط
-- سياسة الخصوصية نسخة `legal.privacy_version` (لا API قبول)
-- خروج §5.4.3
-- لا شاشة إشعارات، لا مزامنة، لا نقاط
+```json
+{
+  "data": {
+    "rows": [{ "operation_no": "OP-7700", "amount": 900000, "operated_at": "2026-02-20" }],
+    "total": 900000
+  }
+}
+```
 
----
+`operated_at` تاريخ يوم دمشق. صدّر PDF محلياً (`pdf` + `share_plus`): الأعمدة + الإجمالي. ⛔ لا مسار تصدير خادم للمندوب.
 
-## 6. الرحلات المركّبة
+### 9.6 الذمم ✅
 
-### 6.1 أول تشغيل
+`GET /api/v1/app/rep/receivables`
 
-`health` → هاتف بذرة `purpose=login` + رمز `0000` → الرئيسية. أول تشغيل لرقم جديد: `purpose=register` → OTP → `register` → استبدال التوكن → `session` → احفظ `zone_ids` و`commercial_limits` → الشريط السفلي. المناوبة `false` حتى يقلبها.
+```json
+{
+  "data": {
+    "by_shop": [{
+      "retailer_id": 481,
+      "shop": "بقالية النور",
+      "total": 48000,
+      "invoices": [{ "no": "INV-501", "total": 48000, "paid": 0, "remaining": 48000 }]
+    }]
+  }
+}
+```
 
-### 6.2 طلب محل
-
-زبائن/محلات → منتجات (`zone` = منطقة المحل) → quote → `cart/lines` → مراجعة السلة (اربط الأسماء) → `submit` مع خصم ≤ السقف.
-
-### 6.3 يوم التسليم
-
-إسناد `accept` → مستودع `temp_code` → `deliveries` → تفاصيل → تعديل بنود → `complete` → إن `ask_payment` تحصيّل بالوصل المولَّد → نبضات كل ≥ 30ث أثناء الخدمة.
-
-تأجيل يحفظ التاريخ. تعذّر يطلب سببًا.
-
-### 6.4 نهاية اليوم
-
-محفظة → ذمم إن بقي → تسليم نقدية برقم المحاسب → السجل للتوقيع الورقي.
-
----
-
-## 7. فجوات الواجهة الخلفية — لا تبنِها
-
-| الفجوة | الأثر | ماذا تعرض |
-|---|---|---|
-| ⛔ `/app/sync/*` | لا سحب/دفع كاش | أونلاين. أعد المحاولة عند انقطاع الشبكة |
-| ⛔ إشعارات + FCM | لا صندوق | لا جرس |
-| ⛔ `home-blocks` | لا بنرات | الرئيسية المركَّبة §5.5 |
-| ⛔ ولاء | لا نقاط | لا تبويب |
-| ⛔ `GET /public/refs` | لا دليل تسجيل | §5.3 |
-| ⛔ `GET /public/app-config` | لا فرض تحديث | مراجعة متجر يدوية |
-| ⛔ `GET /app/rep/zones` | لا قائمة تغطية | احفظ من التسجيل / الزبائن |
-| ⛔ تعديل/حذف بند سلة | الكمية تصعد فقط | رسالة صريحة |
-| ⛔ قائمة مرتجعات | رقم الطلب فقط | احفظ `request_no` |
-| ⛔ `retailer_id` في الذمم | مطابقة بالاسم | 🟡 |
-| ⛔ صور منتجات/محلات | `image` null | حرف أو أيقونة عامة |
-| لا دعوة مندوب برابط | تسجيل بمعرّفات معروفة | بيئة QA |
-
-عقود L3/L4 (`contract: proposed`) **ليست** مسارات. لا تخترعها.
+✅ `retailer_id` موجود (تصحيح لمواصفة 09-16). النقر على فاتورة → تحصيل بـ `remaining` مقترحاً.
 
 ---
 
-## 8. مجموعة JSON وPostman
+## 10. العملاء · المناطق · الطلبات · الحساب · الإشعارات
 
-| ملف | استعمال |
+### 10.1 العملاء ✅
+
+`GET /api/v1/app/rep/customers?filter[search]=النور&page=1&per_page=25`
+
+🟡 البحث `filter[search]` على `shop_name` فقط.
+
+```json
+{
+  "data": [{
+    "id": 481,
+    "shop_name": "بقالية النور",
+    "zone_id": 12,
+    "is_active": true
+  }]
+}
+```
+
+القائمة تضم: محلات سجّلها المندوب **أو** تجاراً نشطين في مناطقه. `id` = `retailer_id`. `is_active=false` قيد المراجعة — اعرض؛ السلة قد تفشل لاحقاً.
+
+موجّه المنتج يريد على البطاقة: لوغو، منطقة، اتصال، خريطة، فاتح/مغلق، مفعّل. الحيّ يعطي الاسم + `zone_id` + `is_active` فقط. من `GET zones/{id}/shops` أضف `address`. اخفِ اللوغو/المغلق/آخر طلب. زر اتصال يظهر إن حصلت على الهاتف من شاشة أخرى (مجدولة) وإلا أخفه. خريطة: إن `lat/lng` غير موجودين في القائمة لا تعرض دبوساً.
+
+تفاصيل العميل: ⛔ لا `GET /customers/{id}`. ابنِ صفحة من كائن القائمة + عنوان المحلات إن وُجد.
+
+فلاتر متقدمة (الأكثر شراء، جديد): نفّذ ما يوجد (`search` + منطقة محلية). الباقي 🧩.
+
+### 10.2 إضافة محل ✅ 🔁
+
+موجّه المنتج يطلب أيضاً: فئات متعددة، تجهيزات، عنوان تفصيلي. **الخادم لا يستقبلها.** أرسل العقد الحي فقط. لا تضع الفئات في JSON إضافي يُرفض بـ 422.
+
+`POST /api/v1/app/rep/customers`
+
+```json
+{
+  "shop_name": "ميني ماركت الشام",
+  "owner_name": "أبو سامر",
+  "phone": "+963988000000",
+  "zone_id": 12,
+  "activity_type_id": 3,
+  "lat": 33.51,
+  "lng": 36.27,
+  "client_op_id": "op_shop_local_1"
+}
+```
+
+`lat` `lng` من GPS اختياريان. `client_op_id` ✔ ولّده قبل الإرسال.
+
+```json
+{ "data": { "id": 490, "status": "pending_sync" } }
+```
+
+🟡 `id` العائد = صف `RepSourcedShop` **لا** تستخدمه كـ `retailer_id`. أعد `GET /customers` وخذ `id` من القائمة.
+
+خريطة اختيار الموقع: اكتب `lat`/`lng`. الفئات/التجهيزات من refs للعرض فقط حتى يتوسع العقد.
+
+### 10.3 المناطق 🟡
+
+لا `GET /app/rep/zones`. القائمة = `zone_ids` المحفوظة + أسماء refs. كل بطاقة: اسم، محافظة من `governorate_id`، وعدّاد محلات عبر `GET /zones/{id}/shops` (`meta.total`).
+
+النقر → نفس بطاقات العملاء داخل المنطقة.
+
+إضافة منطقة ✅ 🔁: `POST /api/v1/app/rep/zones`
+
+```json
+{ "zone_id": 14, "note": "طلب تغطية كفرسوسة" }
+```
+
+→ `{ "status": "pending_approval" }`. لا قائمة طلبات لاحقة. توست «طلبك قيد الموافقة». منتقي المحافظة → مناطق refs. 422 خارج التغطية.
+
+### 10.4 تبويب الطلبات 🧩
+
+موجّه المنتج: بطاقات أفقية للطلبات المؤكدة والمرسَلة: رقم، تاريخ، حالة، محل، منطقة، مندوب، قناة، تفاصيل.
+
+⛔ لا `GET /app/rep/orders`. ابنِ القائمة من:
+
+1. كاش محلي لكل `submit` ناجح  
+2. `assignments` (معلق قبول)  
+3. `deliveries` (مقبول / في الطريق / مسلّم اليوم)  
+4. `scheduled-orders` (مؤجّل)  
+
+اربط الحالات:
+
+| المنتج | مصدر تقريبي |
 |---|---|
-| `flutter-rep.json` | مصدر العميل. 39 `live` + 17 `forbidden` |
-| `(اختياري — ليس في هذه الحزمة)` | استيراد Postman. مجلدات 00–09 |
-| بيئة | `docs/api/environments/rep-android.postman_environment.json` |
-| `baseUrl` | **المضيف فقط** `http://127.0.0.1:8000` |
+| معلّق | `submit` → `pending` محلي |
+| تمت الموافقة / قيد التجهيز | لا عدّاد منفصل — لا تستدعِ قناة |
+| جاهز للاستلام | `warehouse-receipts` |
+| تم التسليم | `deliveries` `delivered` |
+| مؤجّلة | `postponed` |
+| ملغاة | بعد `fail` |
 
-ترتيب التشغيل في Postman: Health → request-otp (يحفظ `otp_id`) → verify-otp (يحفظ `token`) → session → status on_duty → الزبائن → المنتجات → السلة → الإسنادات → العهدة → التسليم → complete (يحفظ `receipt_no`) → payments → wallet.
+تفاصيل البطاقة → `DeliveryDetailView` إن وُجد `sub_order_id` في التسليم، وإلا عرض الكاش فقط.
 
-⚠️ `{{$guid}}` في Postman يُجدَّد كل إرسال. في فلاتر: مفتاح واحد لكل ضغطة تأكيد.
+### 10.5 الحساب
 
-إعادة التوليد: `php docs/api/generate-rep-live.php` بعد تحديث `.live-routes.json`.
+| عنصر المنتج | مصدر |
+|---|---|
+| اسم + أيقونة | جلسة — لا صورة |
+| إحصاءات الشهر: طلبات منفّذة، محلات جدد، نسبة تنفيذ، نقاط | ⛔ لا مسار إحصاء مندوب. أخفِ البطاقة أو اعرض أرقام المحفظة `stats` كبديل صادق بعنوان «إجمالي غير شهري» |
+| لغة / مظهر / عملة | محلي GetStorage. العملة `SYP` ثابتة |
+| إشعارات تفعيل | محلي حتى FCM ⛔ |
+| مساعدة وخصوصية | `legal.*` نسخ ثابتة في الأصول. ⛔ لا API قبول |
+| تعديل هاتف/صورة | ⛔ لا مسار. أخفِ أو «تواصل مع القناة» |
+| تعديل مناطق العمل | `POST /zones` فقط (طلب إضافي) |
+| خروج | §5.10 |
+
+### 10.6 الإشعارات ⛔ `AP-02`
+
+ابنِ الشاشة: قائمة، مقروء/غير، تحديد الكل، مسح، تعليم كمقروء.
+
+`NotificationsRemote` يرمي `RemoteNotReady`. لا جرس بعدد مختلق. أمثلة المنتج (جاهز للمستودع، تأكيد طلب، منتج غير متوفر) تُعرض كبيانات وهمية **في وضع التصميم فقط** (`kDebugMode && USE_FIXTURES`) — لا في الإنتاج.
+
+العقد المستقبلي (لا تستدعِه):
+
+```
+GET    /app/notifications?filter[read]=0
+POST   /app/notifications/read-all
+DELETE /app/notifications
+POST   /app/devices/push-token   { token, platform }
+```
+
+`meta.unread_count` سيأتي مع الصندوق.
+
+### 10.7 الولاء ⛔ `AP-05`
+
+أخفِ الشريط. عقد مستقبلي: `GET /app/loyalty` · `POST /app/loyalty/redeem { reward_id }`.
+
+### 10.8 المزامنة ⛔ `AP-03`
+
+لا `GET/POST /app/sync/*`. §13 للطابور المحلي.
 
 ---
 
-## 9. ملاحق
+## 11. كتالوج المسارات الحيّة — جدول سريع
 
-### 9.1 حالات تظهر في الواجهة
+الأساس `https://{host}/api/v1`. عمود 🔁 = مفتاح تكرار.
 
-| المصدر | القيم |
+### 11.1 عام
+
+| EP | طريقة | المسار | 🔁 | حالة |
+|---|---|---|---|---|
+| EP-CORE-001 | GET | `/health` | | ✅ |
+| EP-PB-001 | GET | `/public/refs` | | ✅ |
+| EP-PB-010 | GET | `/public/app-config` | | ⛔ |
+| EP-CM-001 | POST | `/public/auth/request-otp` | لا | ✅ |
+| EP-CM-002 | POST | `/public/auth/verify-otp` | لا | ✅ |
+| EP-CM-003 | POST | `/public/auth/resend-otp` | لا | ✅ |
+
+### 11.2 مشترك تطبيق
+
+| EP | طريقة | المسار | 🔁 | حالة |
+|---|---|---|---|---|
+| EP-CM-004 | GET | `/app/session` | | ✅ |
+| EP-CM-005 | POST | `/app/auth/logout` | ✔ | ✅ |
+| EP-APP-030 | POST | `/app/pricing/quote` | ✔ | ✅ |
+| EP-APP-040 | GET | `/app/offers` | | ✅ |
+| EP-APP-041 | GET | `/app/offers/{id}` | | ✅ |
+| EP-CM-050 | POST | `/app/receipts/reserve` | ✔ | ✅ |
+| EP-SY-001…004 | * | `/app/sync/*` | | ⛔ |
+| EP-CM-060…063 | * | إشعارات + FCM | | ⛔ |
+| EP-APP-100 | GET | `/app/content/home-blocks` | | ⛔ |
+| EP-APP-110…111 | * | ولاء | | ⛔ |
+
+### 11.3 مندوب — 29/29 حيّ حسب `status/05-rep-app.md`
+
+| EP | طريقة | المسار | 🔁 |
+|---|---|---|---|
+| EP-RP-001 | POST | `/app/rep/register` | ✔ |
+| EP-RP-034 | PATCH | `/app/rep/status` | ✔ |
+| EP-RP-010 | GET | `/app/rep/products` | |
+| EP-RP-070A | GET | `/app/rep/customers` | |
+| EP-RP-070B | POST | `/app/rep/customers` | ✔ |
+| EP-RP-071 | POST | `/app/rep/zones` | ✔ |
+| EP-RP-020 | GET | `/app/rep/zones/{id}/shops` | |
+| EP-RP-021 | POST | `/app/rep/cart/lines` | ✔ |
+| EP-RP-022 | GET | `/app/rep/cart` | |
+| EP-RP-023 | POST | `/app/rep/cart/sections/{retailer_id}/submit` | ✔ |
+| EP-RP-030 | GET | `/app/rep/assignments` | |
+| EP-RP-031 | POST | `/app/rep/assignments/{id}/accept` | ✔ |
+| EP-RP-032 | POST | `/app/rep/assignments/{id}/reject` | ✔ |
+| EP-RP-033 | GET | `/app/rep/scheduled-orders` | |
+| EP-RP-040 | GET | `/app/rep/warehouse-receipts` | |
+| EP-RP-041 | POST | `/app/rep/warehouse-receipts/{handoverId}/confirm` | ✔ |
+| EP-RP-050 | GET | `/app/rep/deliveries` | |
+| EP-RP-051 | GET | `/app/rep/deliveries/{id}` | |
+| EP-RP-052 | PATCH | `/app/rep/deliveries/{id}/lines/{lineId}` | ✔ |
+| EP-RP-053 | POST | `/app/rep/deliveries/{id}/complete` | ✔ |
+| EP-RP-054 | POST | `/app/rep/deliveries/{id}/postpone` | ✔ |
+| EP-RP-055 | POST | `/app/rep/deliveries/{id}/fail` | ✔ |
+| EP-RP-056 | POST | `/app/rep/locations/ping` | ✔ |
+| EP-RP-057 | POST | `/app/rep/return-requests` | ✔ |
+| EP-RP-060 | POST | `/app/rep/payments` | ✔ |
+| EP-RP-061 | GET | `/app/rep/wallet` | |
+| EP-RP-062 | POST | `/app/rep/wallet/withdrawals` | ✔ |
+| EP-RP-063 | GET | `/app/rep/wallet/withdrawals` | |
+| EP-RP-064 | GET | `/app/rep/receivables` | |
+
+### 11.4 ممنوع استدعاؤه من تطبيق المندوب
+
+| المسار | السبب |
 |---|---|
-| تسليم قائمة | `accepted` `on_the_way` `delivered` |
-| بعد postpone/fail | `postponed` / `undelivered` |
-| بند تسليم `action` | `pending` `accept` `adjust` `return` `exchange` |
-| تسجيل محل | `pending_sync` / `pending_review` |
-| مرتجع | `pending` (لا تتبع بعد ذلك) |
-| ملف مندوب | `pending_review` |
-| توفر منتج | نص `availability` كما هو |
+| أي `/channel/*` `/platform/*` `/warehouse/*` `/app/retailer/*` | حارس خاطئ → 403 `wrong_guard` |
+| `GET /app/rep/zones` | غير موجود |
+| `PATCH/DELETE /app/rep/cart/lines/{id}` | غير موجود للمندوب (موجود للتاجر فقط) |
+| `GET /app/rep/products/{id}` | غير موجود |
+| `GET /app/rep/orders` | غير موجود |
+| `GET /app/rep/return-requests` | غير موجود |
+| `GET /app/rep/customers/{id}` | غير موجود |
+| `auth:sanctum` | ليس حارساً في هذا التطبيق |
 
-### 9.2 صلاحيات الكتالوج (مرجع، غير مفروضة على التطبيق)
+---
 
-`rp.delivery.accept` `rp.delivery.deliver` `rp.delivery.postpone` `rp.delivery.return_request` `rp.payment.collect` `rp.payment.withdraw` `rp.wallet.view` `rp.warehouse.receive`
+## 12. عميل Dio + نماذج Dart (انسخ إلى المشروع)
 
-### 9.3 قائمة قبول لكل شاشة
+### 12.1 Envelope
 
-لكل شاشة في §5: مسار حي يستجيب، حقول الإلزام تُرفض بـ 422 قبل الإرسال، مفتاح التكرار على الكتابة، حالة فارغة عربية، لا استدعاء `forbidden`، المال بلا كسور، RTL، خطأ 404 كـ «غير موجود».
+```dart
+class Envelope<T> {
+  Envelope({required this.data, required this.meta});
+  final T data;
+  final Map<String, dynamic> meta;
 
-### 9.4 ما تغيّر في 2026-09-16 (كان 404)
+  factory Envelope.fromJson(
+    Map<String, dynamic> json,
+    T Function(dynamic) parse,
+  ) =>
+      Envelope(
+        data: parse(json['data']),
+        meta: Map<String, dynamic>.from(json['meta'] as Map? ?? {}),
+      );
+}
+```
 
-تحصيل، محفظة، سحب، ذمم، حجز وصل، `note` على الإرسال، `id` للمجدولة، `sub_order_id`+`handover_id` للعهدة، `ordered_at` وعدّاد `delivered`، `qty_delivered`، حفظ تأجيل/تعذّر، عروض للمندوب، `commercial_limits` على الجلسة.
+### 12.2 ApiClient (GetxService)
+
+```dart
+class ApiClient extends GetxService {
+  late final Dio dio;
+
+  Future<ApiClient> init() async {
+    dio = Dio(BaseOptions(
+      baseUrl: Env.baseUrl + '/api/v1',
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 20),
+      headers: {
+        'Accept': 'application/json',
+        'Accept-Language': 'ar',
+        'X-Client': Env.xClient,          // rep-android | rep-ios
+        'X-App-Version': Env.appVersion,
+      },
+    ));
+    dio.interceptors.addAll([
+      DeviceInterceptor(),     // X-Device-Id
+      AuthInterceptor(),       // Bearer
+      IdempotencyInterceptor(), // POST/PATCH/PUT/DELETE إلا otp
+      EnvelopeInterceptor(),   // 4xx/5xx → ApiException
+    ]);
+    return this;
+  }
+}
+```
+
+`IdempotencyInterceptor`: إن الكنترولر وضع `extra['idempotencyKey']` استخدمه؛ وإلا لا تولّد مفتاحاً تلقائياً لكل إعادة Dio — ذلك يكسر التكرار. الكنترولر يملك المفتاح.
+
+### 12.3 مال
+
+```dart
+class Money {
+  const Money(this.minor); // int
+  final int minor;
+  String get display =>
+      '${NumberFormat.decimalPattern('ar').format(minor)} ل.س';
+}
+```
+
+`fromJson`: `(json['value'] as num).toInt()` — لا `double.parse`.
+
+### 12.4 أسماء النماذج ↔ JSON
+
+| نموذج | حقول إلزامية من الخادم |
+|---|---|
+| `Session` | `user.id/name/user_type/profile_completed`, `permissions`, `feature_flags`, `legal`, `commercial_limits?` |
+| `OtpRequestResult` | `otp_id`, `channel_used`, `expires_in`, `resend_after` |
+| `VerifyResult` | `token`, `is_new_user`, `user_type`, `profile_completed`, `user` |
+| `RepRegisterResult` | `rep`, `token` |
+| `ProductCard` | `id`, `name`, `channel`, `price.value/type/label`, `availability` |
+| `ShopCard` | `id`, `shop_name`, `address?`, `is_open`, `is_active`, `last_order_at?` |
+| `CustomerCard` | `id`, `shop_name`, `zone_id`, `is_active` |
+| `CartView` | `sections[].retailer.id/shop_name`, `lines[].id/product_id/qty/unit_price`, `total`, `discount` |
+| `SubOrderBrief` | `id`, `sub_order_no`, `status`, `total` |
+| `AssignmentCard` | `id`, `sub_order_no`, `shop`, `zone`, `channel`, `created_at` |
+| `ScheduledCard` | `id`, `shop`, `address`, `phone`, `scheduled_at`, `status`, `color` |
+| `WarehousePayload` | `date`, `rep_name`, `count`, `orders[].sub_order_id/order_no/shop/zone/handover_id` |
+| `DeliveryList` | `zones[].name/total/delivered/cards[]` |
+| `DeliveryCard` | `id`, `shop`, `zone`, `channel`, `invoice_no?`, `ordered_at`, `status`, `border_color` |
+| `DeliveryDetail` | `lines[]`, `invoice_total` |
+| `Wallet` | `net_balance`, `stats.*`, `today.*` |
+| `Receivables` | `by_shop[].retailer_id/shop/total/invoices[]` |
+| `PublicRefs` | الحاكمات، المناطق، الأنشطة، الفئات، الوحدات، التجهيزات، `sync_cursor` |
+
+`explicitToJson` ليس ضرورياً. `fromJson` يدوي مفضّل على codegen إن اختلف الكتالوج عن الحيّ — هذا الملف يوثّق الحيّ.
+
+---
+
+## 13. دون اتصال — حتى يُبنى AP-03
+
+`feature_flags.offline_orders === false` و`/app/sync/*` 404. ومع ذلك السوق ينقطع.
+
+### 13.1 ما يُكاش فوراً بعد الدخول
+
+`session`, `refs`, `customers` صفحة 1، `products` صفحة 1 لمنطقة افتراضية، `wallet`, `assignments`, قائمة `zone_ids`. TTL: حتى يسحب-للتحديث.
+
+### 13.2 Outbox محلي (GetStorage قائمة JSON)
+
+كل عملية كتابة إن `DioException.connectionError`:
+
+```json
+{
+  "op_id": "uuid",
+  "idempotency_key": "uuid",
+  "method": "POST",
+  "path": "/app/rep/payments",
+  "body": {},
+  "created_at": "ISO",
+  "retries": 0
+}
+```
+
+عند الأخضر: أعد بنفس المفتاح والجسم. نجاح 2xx → احذف. `idempotency_key_conflict` → لا تحذف حتى يراجع المندوب. الحد الأقصى 500. لا تدفع أسعاراً ولا كتالوجاً.
+
+أظهر الشارة الصفراء وزر المزامنة اليدوية.
+
+لا تُسجَّل في الـ outbox: OTP، session، GET.
+
+### 13.3 GPS
+
+طلب الإذن عند أول `on_duty=true`. إن رُفض: المناوبة تبقى والنبضات تتوقف مع تنويه غير مزعج.
+
+---
+
+## 14. فجوات المنتج مقابل الخادم
+
+ابنِ عمود Flutter. لا تختلق عمود الخادم.
+
+| حاجة المنتج | الخادم اليوم | Flutter |
+|---|---|---|
+| انترو من الأدمن (نص/فيديو/لوغو) | انترو قناة/منصة ليسا لحارس `app`؛ المنصة ⛔ | أصول محلية + نموذج جاهز |
+| تخطّي كزائر | لا ضيف | قفل محلي على الكتابة |
+| دليل القنوات عند التسجيل | ممنوع في `/public/refs` | دعوة / معرّف تجربة / قناة البذرة `1` |
+| صور منتجات ومحلات | `image` null في قائمة المندوب | placeholder |
+| تفاصيل منتج + متغيرات علي بابا | لا show للمندوب؛ `variant_id` مقبول في السلة | كمية على المنتج؛ sheet فارغ إن لا بيانات |
+| فئات / الأكثر مبيعاً / سلايدرات | ⛔ home-blocks | أخفِ |
+| تعديل/حذف بند سلة | الكمية تصعد فقط | رسالة صريحة |
+| قائمة طلبات المندوب | لا GET orders | كاش submit + assignments + deliveries |
+| تفاصيل عميل كاملة / هاتف / فاتح | قائمة مختزلة | أخفِ المفقود |
+| إضافة محل: فئات وتجهيزات وعنوان | غير مقبولة | لا ترسلها |
+| `GET /app/rep/zones` | غير موجود | كاش تسجيل + refs |
+| دفعة بلا رقم فاتورة | `invoice_no` إلزامي | امنع الإرسال حتى اختيار فاتورة |
+| إشعارات FCM | ⛔ AP-02 | شاشة فارغة |
+| ولاء / شريط نقاط | ⛔ AP-05 | أخفِ |
+| مزامنة pull/push | ⛔ AP-03 | outbox محلي |
+| فرض تحديث / صيانة | ⛔ app-config | مراجعة متجر يدوية |
+| إحصاءات شهر الحساب | لا مسار | أخفِ أو `wallet.stats` بوضوح أنه إجمالي |
+| تعديل ملف المندوب (هاتف/صورة) | لا مسار | أخفِ |
+| رفع صور مرتجع | `photos: []` فقط | لا picker |
+| تصدير PDF ذمم/سحوبات | لا مسار مندوب | PDF على الجهاز |
+| خريطة ETA للتسليم | لا مسار | إحداثيات المحل إن وُجدت فقط؛ لا وقت وصول مختلق |
+
+عقود الكتالوج غير الحيّة (`notifications`, `sync`, `loyalty`, `home-blocks`, `app-config`) تُنفَّذ كـ `*Remote` جاهز بـ `fromJson` **مع** `enabled = false` حتى ينقلب `status/` إلى ✅. عندها يكفي فك الرابط لا إعادة الشاشة.
+
+---
+
+## 15. قائمة قبول — لـ Cursor عند وصول مستودع Flutter
+
+اعمل الشاشات الناقصة بهذا الترتيب. لا تبدأ بموضوع ⛔. لا تضف مسارات مخترعة.
+
+1. **العميل:** Dio + غلاف + مال int + هاتف سوري + ترويسات + تكرار على الكتابات فقط.
+2. **Splash → Intro محلي → Phone → OTP 4 خانات `"0000"` → session.**
+3. **Register** من refs (أنشطة، مناطق) + `supply_channel_id` من define/دعوة + استبدال التوكن.
+4. **Shell** 5 تبويبات + مناوبة + شارة اتصال.
+5. **Home** يجمع العدادات من 5 GET حيّة.
+6. **Order capture:** منطقة → محل → منتجات → quote → cart lines → شريط عائم → submit.
+7. **Cart tab** حسب المحل + إرسال.
+8. **Assignments / Warehouse / Deliveries / Detail / complete / postpone / fail.**
+9. **Payments + reserve + wallet + withdrawals + receivables.**
+10. **Customers + add shop + zones shops + request zone.**
+11. **Offers.**
+12. **Location ping** عند on_duty.
+13. **Outbox** لانقطاع الشبكة.
+14. **Notifications / Loyalty / Intro remote / Sync remote:** UI أو إخفاء حسب الجدول، بلا استدعاء 404 في الإنتاج.
+15. **زائر:** قفل الكتابة.
+16. **خطأ 401** → الهاتف. `otp_*` يبقى. 404 «غير موجود». مال بلا كسور. RTL.
+
+اربط كل `onPressed` بمسار من §11 أو بـ `RemoteNotReady`. إن وُجد في المشروع استدعاء لـ `/app/retailer/*` أو `/channel/*` احذفه.
+
+اختبار يدوي ببذرة `0932000001` + `0000` ضد `http://127.0.0.1:8000/api/v1`.
+
+---
+
+## 16. رحلات QA
+
+### 16.1 أول تشغيل لمندوب البذرة
+
+`health` → هاتف `0932000001` `purpose=login` → OTP `0000` → الرئيسية. المناوبة كما في البذرة (عمر: true).
+
+### 16.2 رقم جديد
+
+`purpose=register` → OTP → register (قناة 1 + نشاط من refs + منطقة تغطيها القناة) → استبدال توكن → session → شارة قيد المراجعة.
+
+### 16.3 طلب محل
+
+زبائن أو محلات المنطقة → منتجات `zone=` منطقة المحل → quote → `cart/lines` → مراجعة (اربط الأسماء) → submit خصم ≤ السقف.
+
+### 16.4 يوم تسليم
+
+إسناد accept → مستودع `temp_code` 4 خانات → deliveries → تفاصيل → بنود → complete → إن `ask_payment` حصّل بالوصل المولَّد → نبضات ≥ 30ث أثناء الخدمة.
+
+### 16.5 نهاية اليوم
+
+محفظة → ذمم → سحب برقم المحاسب → سجل + PDF محلي.
+
+---
+
+## 17. صلاحيات الكتالوج (مرجع — غير مفروضة على التطبيق)
+
+`rp.delivery.accept` · `rp.delivery.deliver` · `rp.delivery.postpone` · `rp.delivery.return_request` · `rp.payment.collect` · `rp.payment.withdraw` · `rp.wallet.view` · `rp.warehouse.receive`
+
+---
+
+## 18. ما تغيّر منذ مواصفة 2026-09-16
+
+- ✅ `GET /public/refs` حي — JSON القديم ما زال يدرجه في `forbidden`؛ **تجاهل ذلك**.
+- ✅ الذمم تُرجع `retailer_id`.
+- ✅ الصحة تُرجع `app` `env` `checks` وقد تكون `degraded`.
+- ⛔ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` ما زالت ناقصة (`plan/apps.md` AP-02…06).
+- هذا الملف يضيف: GetX، موجّه المنتج، زائر، انترو، outbox، علي بابا، PDF محلي، وخريطة صريحة للفجوات.
+
+عندما يصل مستودع Flutter: راجع كل شاشة مقابل §15 وهذا الملف، وأكمل الناقص دون اختراع API.
