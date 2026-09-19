@@ -98,7 +98,7 @@ it('user A stores a 200 under key K, against A and the guard that verified A', f
     $channel = SupplyChannel::factory()->create(['name' => 'شركة النور']);
     $userA = idempotentAdmin();
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", renameBody(), [
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", renameBody(), [
         'Authorization' => 'Bearer '.platformBearer($userA),
         'X-Idempotency-Key' => 'K-shared',
     ])->assertOk();
@@ -118,7 +118,7 @@ it('(1) the same key and body with no token is rejected as unauthenticated and d
     $channel = SupplyChannel::factory()->create(['name' => 'شركة النور']);
     $userA = idempotentAdmin();
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", renameBody(), [
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", renameBody(), [
         'Authorization' => 'Bearer '.platformBearer($userA),
         'X-Idempotency-Key' => 'K-anon',
     ])->assertOk();
@@ -127,7 +127,7 @@ it('(1) the same key and body with no token is rejected as unauthenticated and d
 
     // No Authorization header at all, with a key that holds a stored 200. Authentication
     // now runs first, so this never reaches the middleware.
-    $replay = $this->putJson("/api/v1/admin/channels/{$channel->id}", renameBody(), [
+    $replay = $this->putJson("/api/v1/platform/channels/{$channel->id}", renameBody(), [
         'X-Idempotency-Key' => 'K-anon',
     ]);
 
@@ -141,14 +141,14 @@ it('(2) the same key and body as another platform user does not return user A st
     $userA = idempotentAdmin();
     $userB = idempotentAdmin();
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", renameBody(), [
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", renameBody(), [
         'Authorization' => 'Bearer '.platformBearer($userA),
         'X-Idempotency-Key' => 'K-cross',
     ])->assertOk();
 
     forgetResolvedUsers();
 
-    $second = $this->putJson("/api/v1/admin/channels/{$channel->id}", renameBody(), [
+    $second = $this->putJson("/api/v1/platform/channels/{$channel->id}", renameBody(), [
         'Authorization' => 'Bearer '.platformBearer($userB),
         'X-Idempotency-Key' => 'K-cross',
     ]);
@@ -200,7 +200,7 @@ it('(3) the same key from two users with different bodies is not a conflict for 
     $userA = idempotentAdmin();
     $userB = idempotentAdmin();
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", renameBody(), [
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", renameBody(), [
         'Authorization' => 'Bearer '.platformBearer($userA),
         'X-Idempotency-Key' => 'K-two-bodies',
     ])->assertOk();
@@ -210,7 +210,7 @@ it('(3) the same key from two users with different bodies is not a conflict for 
     // A different body under the same key is `idempotency_key_conflict` for the SAME
     // caller (case 8). For another caller it is simply their first request: the keys
     // two users chose never met, and the hash of one has nothing to say about the other.
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", ['reason' => 'سبب آخر تماماً'] + renameBody(), [
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", ['reason' => 'سبب آخر تماماً'] + renameBody(), [
         'Authorization' => 'Bearer '.platformBearer($userB),
         'X-Idempotency-Key' => 'K-two-bodies',
     ])->assertOk()
@@ -351,10 +351,10 @@ it('(8) the same user, the same key and a different body after a success is idem
         'X-Idempotency-Key' => 'K-reused',
     ];
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", renameBody(), $headers)
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", renameBody(), $headers)
         ->assertOk();
 
-    $this->putJson("/api/v1/admin/channels/{$channel->id}", ['reason' => 'سبب آخر تماماً'] + renameBody(), $headers)
+    $this->putJson("/api/v1/platform/channels/{$channel->id}", ['reason' => 'سبب آخر تماماً'] + renameBody(), $headers)
         ->assertStatus(409)
         ->assertJsonPath('error.code', 'idempotency_key_conflict');
 });

@@ -1,7 +1,8 @@
 # PHPStan baseline — BE-F11, generated 2026-09-16 at 585 findings (490 entries) with
 # the configuration in phpstan.neon and no code touched. Paid down to 479 findings
 # (384 entries) when BelongsToChannel::scopeAcrossChannels gained Builder<static>
-# generics. No identifier is ignored: the
+# generics, and to 475 (380 entries) when the rep tests were cleared (2026-09-18).
+# No identifier is ignored: the
 # 213 relation declarations without a related type (`missingType.generics`) are counted
 # here beside the 173 "undefined property on Model" symptoms they cause, so fixing a
 # declaration takes its symptoms with it and the number only ever falls.
