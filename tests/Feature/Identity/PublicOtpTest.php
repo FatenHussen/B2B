@@ -190,7 +190,7 @@ it('issues a fixed all-zero code for rep clients outside production', function (
     CatalogAssert::ok($response, ['otp_id']);
 
     /** @var FakeOtpChannel $fake */
-    $fake = $this->otp;
+    $fake = app(OtpChannel::class);
     expect($fake->codeFor('+963912345678'))->toBe('000000');
 
     $verify = $this->postJson('/api/v1/public/auth/verify-otp', [
