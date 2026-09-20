@@ -6,12 +6,15 @@ namespace Modules\Catalog\Application\Queries;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Modules\Catalog\Domain\Enums\ProductMediaRole;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Product;
+use Modules\Catalog\Domain\Models\ProductVariant;
 use Modules\Core\Contracts\AvailabilityClassifier;
 use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\PricingEngine;
 use Modules\Core\Contracts\RepSellingContext;
+use Modules\Core\Support\MediaUrl;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -38,7 +41,7 @@ final class ListRepProducts
         $base = Product::withoutGlobalScope('channel')
             ->whereIn('supply_channel_id', $channelIds === [] ? [0] : $channelIds)
             ->where('status', ProductStatus::Active)
-            ->with('brand');
+            ->with(['brand', 'variants', 'media']);
 
         return QueryBuilder::for($base)
             ->allowedFilters(
@@ -71,9 +74,18 @@ final class ListRepProducts
             (int) $product->supply_channel_id,
         );
 
+        $product->loadMissing(['brand', 'variants', 'media']);
+        $image = $product->media
+            ->first(fn ($m) => $m->role !== ProductMediaRole::Video);
+
         return [
             'id' => (int) $product->id,
             'name' => (string) $product->name_ar,
+            'image' => $image !== null ? MediaUrl::of((int) $image->media_id) : null,
+            'brand' => $product->brand === null ? null : [
+                'id' => (int) $product->brand->id,
+                'name' => (string) $product->brand->name_ar,
+            ],
             'channel' => [
                 'id' => (int) $product->supply_channel_id,
                 'name' => $this->channels->name((int) $product->supply_channel_id),
@@ -84,6 +96,45 @@ final class ListRepProducts
                 'label' => $quoted['label'],
             ],
             'availability' => $this->availability->classify((int) $product->id),
+            'variants' => $product->variants->map(fn (ProductVariant $v): array => [
+                'id' => (int) $v->id,
+                'label' => $this->variantLabel($v),
+                'barcode' => $v->barcode,
+            ])->values()->all(),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function detail(object $user, Product $product): array
+    {
+        $card = $this->map($user, $product);
+        $card['images'] = $product->media
+            ->filter(fn ($m) => $m->role !== ProductMediaRole::Video)
+            ->map(fn ($m) => MediaUrl::of((int) $m->media_id))
+            ->filter()
+            ->values()
+            ->all();
+        $card['long_description'] = $product->long_description;
+
+        return $card;
+    }
+
+    private function variantLabel(ProductVariant $variant): string
+    {
+        $combination = $variant->combination;
+        if (! is_array($combination) || $combination === []) {
+            return (string) ($variant->sku !== null && $variant->sku !== '' ? $variant->sku : 'متغير');
+        }
+
+        $parts = [];
+        foreach ($combination as $key => $value) {
+            $parts[] = is_string($key) && ! is_numeric($key)
+                ? $key.': '.(string) $value
+                : (string) $value;
+        }
+
+        return implode(' / ', $parts);
     }
 }

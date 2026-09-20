@@ -50,6 +50,7 @@ final class ListRepCustomers
                     });
                 }
             })
+            ->with('user')
             ->defaultSort('-created_at')
             ->paginate($perPage);
     }

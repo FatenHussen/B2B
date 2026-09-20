@@ -65,7 +65,9 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
 
     Route::middleware(['auth:app', 'guard.tokenable:app', 'app.kind:rep'])->group(function (): void {
         Route::get('app/rep/customers', [RepFieldController::class, 'customers']);
+        Route::get('app/rep/customers/{id}', [RepFieldController::class, 'showCustomer']);
         Route::post('app/rep/customers', [RepFieldController::class, 'storeCustomer']);
+        Route::get('app/rep/zones', [RepFieldController::class, 'zones']);
         Route::post('app/rep/zones', [RepFieldController::class, 'requestZone']);
         Route::get('app/rep/zones/{id}/shops', [RepFieldController::class, 'shops']);
         Route::get('app/rep/home', [RepFieldController::class, 'home']);

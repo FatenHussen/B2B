@@ -31,8 +31,8 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-09-19T13:27:19+00:00",
-        "endpoint_count": 350,
+        "generated_at": "2026-09-20T09:09:08+00:00",
+        "endpoint_count": 354,
         "surfaces": {
             "retailer_app": {
                 "label": "تطبيق التاجر",
@@ -3432,7 +3432,7 @@
             "auth": true,
             "name": "Rep catalog",
             "name_ar": "منتجات المندوب",
-            "description": "Union of all channels the rep belongs to, each SKU tagged with its channel (TB-RP-050).",
+            "description": "Union of all channels the rep belongs to. variants[] is empty when the SKU has no combinations. image is null until media is attached.",
             "query": {
                 "page": "1",
                 "per_page": "25",
@@ -3450,6 +3450,11 @@
                 {
                     "id": 880,
                     "name": "زيت دوار الشمس 1 لتر",
+                    "image": null,
+                    "brand": {
+                        "id": 12,
+                        "name": "نور"
+                    },
                     "channel": {
                         "id": 1,
                         "name": "شركة النور"
@@ -3459,9 +3464,82 @@
                         "value": 12000,
                         "label": "السعر حسب الكمية"
                     },
-                    "availability": "in_stock"
+                    "availability": "in_stock",
+                    "variants": [
+                        {
+                            "id": 1,
+                            "label": "حبة",
+                            "barcode": null
+                        }
+                    ]
                 }
             ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "02. تطبيق المندوب / 02. الكتالوج",
+            "module": "02. الكتالوج",
+            "roles": [
+                "rep"
+            ],
+            "apps": [
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "rep-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}"
+            }
+        },
+        {
+            "code": "EP-RP-011",
+            "sprint": "SP-06",
+            "method": "GET",
+            "path": "/app/rep/products/{id}",
+            "full_path": "/api/v1/app/rep/products/{id}",
+            "audience": "rep",
+            "guard": "app",
+            "permission": null,
+            "auth": true,
+            "name": "Rep product detail",
+            "name_ar": "تفاصيل منتج المندوب",
+            "description": "Same isolation as the list. 404 if the product is not in the rep's channel.",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 880,
+                "name": "زيت دوار الشمس 1 لتر",
+                "image": null,
+                "brand": {
+                    "id": 12,
+                    "name": "نور"
+                },
+                "channel": {
+                    "id": 1,
+                    "name": "شركة النور"
+                },
+                "price": {
+                    "type": "tiered",
+                    "value": 12000,
+                    "label": "السعر حسب الكمية"
+                },
+                "availability": "in_stock",
+                "variants": [
+                    {
+                        "id": 1,
+                        "label": "حبة",
+                        "barcode": null
+                    }
+                ],
+                "images": [],
+                "long_description": null
+            },
             "errors": [],
             "dual_approval": false,
             "critical": false,
@@ -3497,7 +3575,7 @@
             "auth": true,
             "name": "Shops in zone",
             "name_ar": "محلات المنطقة",
-            "description": "Available offline from the cached pull (TB-RP-020).",
+            "description": "Same shop card as GET /customers. is_open is always true. last_order_at is always null. logo is always null.",
             "query": {
                 "search": "النور"
             },
@@ -3506,10 +3584,16 @@
                 {
                     "id": 481,
                     "shop_name": "بقالية النور",
+                    "logo": null,
+                    "zone_id": 12,
+                    "zone": "المزة",
                     "address": "المزة فيلات شرقية",
+                    "phone": "+963931000002",
+                    "lat": 33.51,
+                    "lng": 36.27,
                     "is_open": true,
                     "is_active": true,
-                    "last_order_at": "2026-02-28T16:00:00+03:00"
+                    "last_order_at": null
                 }
             ],
             "errors": [],
@@ -3547,7 +3631,7 @@
             "auth": true,
             "name": "List customers",
             "name_ar": "زبائن المندوب",
-            "description": "DOC-12B TB-RP-053.",
+            "description": "Shops the rep sourced plus active shops in assigned zones. id is retailer_id. logo is always null. is_open is always true until a hours table exists.",
             "query": {
                 "page": "1",
                 "per_page": "25",
@@ -3559,8 +3643,16 @@
                 {
                     "id": 481,
                     "shop_name": "بقالية النور",
+                    "logo": null,
                     "zone_id": 12,
-                    "is_active": true
+                    "zone": "المزة",
+                    "address": "المزة فيلات شرقية",
+                    "phone": "+963931000002",
+                    "lat": 33.51,
+                    "lng": 36.27,
+                    "is_open": true,
+                    "is_active": true,
+                    "last_order_at": null
                 }
             ],
             "errors": [],
@@ -3598,7 +3690,7 @@
             "auth": true,
             "name": "Register shop offline",
             "name_ar": "إضافة محل",
-            "description": "Stored locally and synced with a unique client_op_id (TB-RP-053).",
+            "description": "Stored locally and synced with a unique client_op_id (TB-RP-053). address, category_ids and equipment_ids are optional.",
             "query": [],
             "body": {
                 "shop_name": "ميني ماركت الشام",
@@ -3608,6 +3700,11 @@
                 "activity_type_id": 3,
                 "lat": 33.51,
                 "lng": 36.27,
+                "address": "المزة فيلات شرقية",
+                "category_ids": [
+                    1
+                ],
+                "equipment_ids": [],
                 "client_op_id": "op_shop_local_1"
             },
             "response": {
@@ -3637,6 +3734,64 @@
                 "X-App-Version": "{{appVersion}}",
                 "X-Idempotency-Key": "{{$guid}}",
                 "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-RP-070C",
+            "sprint": "SP-06",
+            "method": "GET",
+            "path": "/app/rep/customers/{id}",
+            "full_path": "/api/v1/app/rep/customers/{id}",
+            "audience": "rep",
+            "guard": "app",
+            "permission": null,
+            "auth": true,
+            "name": "Show customer",
+            "name_ar": "تفاصيل محل",
+            "description": "404 if the shop is not sourced by this rep and not an active shop in their zones.",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 481,
+                "shop_name": "بقالية النور",
+                "logo": null,
+                "zone_id": 12,
+                "zone": "المزة",
+                "address": "المزة فيلات شرقية",
+                "phone": "+963931000002",
+                "lat": 33.51,
+                "lng": 36.27,
+                "is_open": true,
+                "is_active": true,
+                "last_order_at": null,
+                "owner_name": "أبو سامر",
+                "activity_type_id": 3,
+                "categories": [
+                    1
+                ],
+                "equipments": []
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "02. تطبيق المندوب / 02. الكتالوج",
+            "module": "02. الكتالوج",
+            "roles": [
+                "rep"
+            ],
+            "apps": [
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "rep-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}"
             }
         },
         {
@@ -3686,6 +3841,52 @@
             }
         },
         {
+            "code": "EP-RP-072",
+            "sprint": "SP-06",
+            "method": "GET",
+            "path": "/app/rep/zones",
+            "full_path": "/api/v1/app/rep/zones",
+            "audience": "rep",
+            "guard": "app",
+            "permission": null,
+            "auth": true,
+            "name": "Rep coverage zones",
+            "name_ar": "مناطق تغطية المندوب",
+            "description": "Assigned zones from the rep profile. Governorate name comes from GET /public/refs.",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 12,
+                    "name": "المزة",
+                    "governorate_id": 1,
+                    "shops_count": 4
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "02. تطبيق المندوب / 02. الكتالوج",
+            "module": "02. الكتالوج",
+            "roles": [
+                "rep"
+            ],
+            "apps": [
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "rep-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}"
+            }
+        },
+        {
             "code": "EP-RP-021",
             "sprint": "SP-09",
             "method": "POST",
@@ -3697,7 +3898,7 @@
             "auth": true,
             "name": "Add line to shop cart",
             "name_ar": "إضافة لسلة محل",
-            "description": "",
+            "description": "Same shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
             "query": [],
             "body": {
                 "retailer_id": 481,
@@ -3710,13 +3911,22 @@
                     {
                         "retailer": {
                             "id": 481,
-                            "shop_name": "بقالية النور"
+                            "shop_name": "بقالية النور",
+                            "zone_id": 12
                         },
+                        "channel": {
+                            "id": 1,
+                            "name": "شركة النور"
+                        },
+                        "created_at": "2026-03-01T10:00:00+03:00",
                         "lines": [
                             {
+                                "id": 11,
                                 "product_id": 880,
+                                "name": "زيت دوار الشمس 1 لتر",
                                 "qty": 4,
-                                "unit_price": 12000
+                                "unit_price": 12000,
+                                "line_total": 48000
                             }
                         ],
                         "total": 48000,
@@ -3761,7 +3971,7 @@
             "auth": true,
             "name": "Rep cart",
             "name_ar": "سلة المندوب",
-            "description": "Grouped by shop.",
+            "description": "Grouped by shop. Lines include name from catalog snapshot.",
             "query": [],
             "body": null,
             "response": {
@@ -3769,12 +3979,22 @@
                     {
                         "retailer": {
                             "id": 481,
-                            "shop_name": "بقالية النور"
+                            "shop_name": "بقالية النور",
+                            "zone_id": 12
                         },
+                        "channel": {
+                            "id": 1,
+                            "name": "شركة النور"
+                        },
+                        "created_at": "2026-03-01T10:00:00+03:00",
                         "lines": [
                             {
+                                "id": 11,
                                 "product_id": 880,
-                                "qty": 4
+                                "name": "زيت دوار الشمس 1 لتر",
+                                "qty": 4,
+                                "unit_price": 12000,
+                                "line_total": 48000
                             }
                         ],
                         "total": 48000,
@@ -3856,6 +4076,57 @@
                 "X-App-Version": "{{appVersion}}",
                 "X-Idempotency-Key": "{{$guid}}",
                 "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-RP-024",
+            "sprint": "SP-09",
+            "method": "GET",
+            "path": "/app/rep/orders",
+            "full_path": "/api/v1/app/rep/orders",
+            "audience": "rep",
+            "guard": "app",
+            "permission": null,
+            "auth": true,
+            "name": "Rep submitted orders",
+            "name_ar": "طلبات المندوب",
+            "description": "Sub-orders this rep submitted (rep_id is set on submit) or was later assigned. invoice_no is null until finance issues one.",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 9001,
+                    "sub_order_no": "SO-9001",
+                    "invoice_no": null,
+                    "created_at": "2026-03-01T10:00:00+03:00",
+                    "status": "pending",
+                    "shop": "بقالية النور",
+                    "zone": "المزة",
+                    "channel": "شركة النور",
+                    "total": 47040
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "02. تطبيق المندوب / 06. السلة والطلبات",
+            "module": "06. السلة والطلبات",
+            "roles": [
+                "rep"
+            ],
+            "apps": [
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "rep-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}"
             }
         },
         {

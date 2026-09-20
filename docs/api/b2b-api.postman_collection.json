@@ -9900,7 +9900,7 @@
                                     ],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-010** · SP-06 · منتجات المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nUnion of all channels the rep belongs to, each SKU tagged with its channel (TB-RP-050)."
+                                "description": "**EP-RP-010** · SP-06 · منتجات المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nUnion of all channels the rep belongs to. variants[] is empty when the SKU has no combinations. image is null until media is attached."
                             },
                             "response": [
                                 {
@@ -9991,7 +9991,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-010** · SP-06 · منتجات المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nUnion of all channels the rep belongs to, each SKU tagged with its channel (TB-RP-050)."
+                                        "description": "**EP-RP-010** · SP-06 · منتجات المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nUnion of all channels the rep belongs to. variants[] is empty when the SKU has no combinations. image is null until media is attached."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -10002,7 +10002,139 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"channel\": {\n                \"id\": 1,\n                \"name\": \"شركة النور\"\n            },\n            \"price\": {\n                \"type\": \"tiered\",\n                \"value\": 12000,\n                \"label\": \"السعر حسب الكمية\"\n            },\n            \"availability\": \"in_stock\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"image\": null,\n            \"brand\": {\n                \"id\": 12,\n                \"name\": \"نور\"\n            },\n            \"channel\": {\n                \"id\": 1,\n                \"name\": \"شركة النور\"\n            },\n            \"price\": {\n                \"type\": \"tiered\",\n                \"value\": 12000,\n                \"label\": \"السعر حسب الكمية\"\n            },\n            \"availability\": \"in_stock\",\n            \"variants\": [\n                {\n                    \"id\": 1,\n                    \"label\": \"حبة\",\n                    \"barcode\": null\n                }\n            ]\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-RP-011 Rep product detail",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/products/{{id}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "products",
+                                        ":id"
+                                    ],
+                                    "query": [],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "{{id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-RP-011** · SP-06 · تفاصيل منتج المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame isolation as the list. 404 if the product is not in the rep's channel."
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RP-011",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/rep/products/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "rep",
+                                                "products",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-RP-011** · SP-06 · تفاصيل منتج المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame isolation as the list. 404 if the product is not in the rep's channel."
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"id\": 880,\n        \"name\": \"زيت دوار الشمس 1 لتر\",\n        \"image\": null,\n        \"brand\": {\n            \"id\": 12,\n            \"name\": \"نور\"\n        },\n        \"channel\": {\n            \"id\": 1,\n            \"name\": \"شركة النور\"\n        },\n        \"price\": {\n            \"type\": \"tiered\",\n            \"value\": 12000,\n            \"label\": \"السعر حسب الكمية\"\n        },\n        \"availability\": \"in_stock\",\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"label\": \"حبة\",\n                \"barcode\": null\n            }\n        ],\n        \"images\": [],\n        \"long_description\": null\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -10069,7 +10201,7 @@
                                         }
                                     ]
                                 },
-                                "description": "**EP-RP-020** · SP-09 · محلات المنطقة\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nAvailable offline from the cached pull (TB-RP-020)."
+                                "description": "**EP-RP-020** · SP-09 · محلات المنطقة\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame shop card as GET /customers. is_open is always true. last_order_at is always null. logo is always null."
                             },
                             "response": [
                                 {
@@ -10135,7 +10267,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-RP-020** · SP-09 · محلات المنطقة\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nAvailable offline from the cached pull (TB-RP-020)."
+                                        "description": "**EP-RP-020** · SP-09 · محلات المنطقة\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame shop card as GET /customers. is_open is always true. last_order_at is always null. logo is always null."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -10146,7 +10278,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 481,\n            \"shop_name\": \"بقالية النور\",\n            \"address\": \"المزة فيلات شرقية\",\n            \"is_open\": true,\n            \"is_active\": true,\n            \"last_order_at\": \"2026-02-28T16:00:00+03:00\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 481,\n            \"shop_name\": \"بقالية النور\",\n            \"logo\": null,\n            \"zone_id\": 12,\n            \"zone\": \"المزة\",\n            \"address\": \"المزة فيلات شرقية\",\n            \"phone\": \"+963931000002\",\n            \"lat\": 33.51,\n            \"lng\": 36.27,\n            \"is_open\": true,\n            \"is_active\": true,\n            \"last_order_at\": null\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -10218,7 +10350,7 @@
                                     ],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-070A** · SP-06 · زبائن المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nDOC-12B TB-RP-053."
+                                "description": "**EP-RP-070A** · SP-06 · زبائن المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nShops the rep sourced plus active shops in assigned zones. id is retailer_id. logo is always null. is_open is always true until a hours table exists."
                             },
                             "response": [
                                 {
@@ -10289,7 +10421,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-070A** · SP-06 · زبائن المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nDOC-12B TB-RP-053."
+                                        "description": "**EP-RP-070A** · SP-06 · زبائن المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nShops the rep sourced plus active shops in assigned zones. id is retailer_id. logo is always null. is_open is always true until a hours table exists."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -10300,7 +10432,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 481,\n            \"shop_name\": \"بقالية النور\",\n            \"zone_id\": 12,\n            \"is_active\": true\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 481,\n            \"shop_name\": \"بقالية النور\",\n            \"logo\": null,\n            \"zone_id\": 12,\n            \"zone\": \"المزة\",\n            \"address\": \"المزة فيلات شرقية\",\n            \"phone\": \"+963931000002\",\n            \"lat\": 33.51,\n            \"lng\": 36.27,\n            \"is_open\": true,\n            \"is_active\": true,\n            \"last_order_at\": null\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -10365,10 +10497,10 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-070B** · SP-06 · إضافة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nStored locally and synced with a unique client_op_id (TB-RP-053).",
+                                "description": "**EP-RP-070B** · SP-06 · إضافة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nStored locally and synced with a unique client_op_id (TB-RP-053). address, category_ids and equipment_ids are optional.",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"shop_name\": \"ميني ماركت الشام\",\n    \"owner_name\": \"أبو سامر\",\n    \"phone\": \"+963988000000\",\n    \"zone_id\": 12,\n    \"activity_type_id\": 3,\n    \"lat\": 33.51,\n    \"lng\": 36.27,\n    \"client_op_id\": \"op_shop_local_1\"\n}",
+                                    "raw": "{\n    \"shop_name\": \"ميني ماركت الشام\",\n    \"owner_name\": \"أبو سامر\",\n    \"phone\": \"+963988000000\",\n    \"zone_id\": 12,\n    \"activity_type_id\": 3,\n    \"lat\": 33.51,\n    \"lng\": 36.27,\n    \"address\": \"المزة فيلات شرقية\",\n    \"category_ids\": [\n        1\n    ],\n    \"equipment_ids\": [],\n    \"client_op_id\": \"op_shop_local_1\"\n}",
                                     "options": {
                                         "raw": {
                                             "language": "json"
@@ -10438,10 +10570,10 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-070B** · SP-06 · إضافة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nStored locally and synced with a unique client_op_id (TB-RP-053).",
+                                        "description": "**EP-RP-070B** · SP-06 · إضافة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nStored locally and synced with a unique client_op_id (TB-RP-053). address, category_ids and equipment_ids are optional.",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n    \"shop_name\": \"ميني ماركت الشام\",\n    \"owner_name\": \"أبو سامر\",\n    \"phone\": \"+963988000000\",\n    \"zone_id\": 12,\n    \"activity_type_id\": 3,\n    \"lat\": 33.51,\n    \"lng\": 36.27,\n    \"client_op_id\": \"op_shop_local_1\"\n}",
+                                            "raw": "{\n    \"shop_name\": \"ميني ماركت الشام\",\n    \"owner_name\": \"أبو سامر\",\n    \"phone\": \"+963988000000\",\n    \"zone_id\": 12,\n    \"activity_type_id\": 3,\n    \"lat\": 33.51,\n    \"lng\": 36.27,\n    \"address\": \"المزة فيلات شرقية\",\n    \"category_ids\": [\n        1\n    ],\n    \"equipment_ids\": [],\n    \"client_op_id\": \"op_shop_local_1\"\n}",
                                             "options": {
                                                 "raw": {
                                                     "language": "json"
@@ -10459,6 +10591,138 @@
                                         }
                                     ],
                                     "body": "{\n    \"data\": {\n        \"id\": 490,\n        \"status\": \"pending_sync\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-RP-070C Show customer",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/customers/{{id}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "customers",
+                                        ":id"
+                                    ],
+                                    "query": [],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "{{id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-RP-070C** · SP-06 · تفاصيل محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\n404 if the shop is not sourced by this rep and not an active shop in their zones."
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RP-070C",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/rep/customers/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "rep",
+                                                "customers",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-RP-070C** · SP-06 · تفاصيل محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\n404 if the shop is not sourced by this rep and not an active shop in their zones."
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"id\": 481,\n        \"shop_name\": \"بقالية النور\",\n        \"logo\": null,\n        \"zone_id\": 12,\n        \"zone\": \"المزة\",\n        \"address\": \"المزة فيلات شرقية\",\n        \"phone\": \"+963931000002\",\n        \"lat\": 33.51,\n        \"lng\": 36.27,\n        \"is_open\": true,\n        \"is_active\": true,\n        \"last_order_at\": null,\n        \"owner_name\": \"أبو سامر\",\n        \"activity_type_id\": 3,\n        \"categories\": [\n            1\n        ],\n        \"equipments\": []\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -10617,6 +10881,126 @@
                                         }
                                     ],
                                     "body": "{\n    \"data\": {\n        \"status\": \"pending_approval\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-RP-072 Rep coverage zones",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/zones",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "zones"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-RP-072** · SP-06 · مناطق تغطية المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nAssigned zones from the rep profile. Governorate name comes from GET /public/refs."
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RP-072",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/rep/zones",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "rep",
+                                                "zones"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-RP-072** · SP-06 · مناطق تغطية المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nAssigned zones from the rep profile. Governorate name comes from GET /public/refs."
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 12,\n            \"name\": \"المزة\",\n            \"governorate_id\": 1,\n            \"shops_count\": 4\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }
@@ -11145,7 +11529,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-021** · SP-09 · إضافة لسلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`",
+                                "description": "**EP-RP-021** · SP-09 · إضافة لسلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"retailer_id\": 481,\n    \"product_id\": 880,\n    \"variant_id\": 1,\n    \"qty\": 4\n}",
@@ -11219,7 +11603,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-021** · SP-09 · إضافة لسلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`",
+                                        "description": "**EP-RP-021** · SP-09 · إضافة لسلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"retailer_id\": 481,\n    \"product_id\": 880,\n    \"variant_id\": 1,\n    \"qty\": 4\n}",
@@ -11239,7 +11623,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"sections\": [\n            {\n                \"retailer\": {\n                    \"id\": 481,\n                    \"shop_name\": \"بقالية النور\"\n                },\n                \"lines\": [\n                    {\n                        \"product_id\": 880,\n                        \"qty\": 4,\n                        \"unit_price\": 12000\n                    }\n                ],\n                \"total\": 48000,\n                \"discount\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"sections\": [\n            {\n                \"retailer\": {\n                    \"id\": 481,\n                    \"shop_name\": \"بقالية النور\",\n                    \"zone_id\": 12\n                },\n                \"channel\": {\n                    \"id\": 1,\n                    \"name\": \"شركة النور\"\n                },\n                \"created_at\": \"2026-03-01T10:00:00+03:00\",\n                \"lines\": [\n                    {\n                        \"id\": 11,\n                        \"product_id\": 880,\n                        \"name\": \"زيت دوار الشمس 1 لتر\",\n                        \"qty\": 4,\n                        \"unit_price\": 12000,\n                        \"line_total\": 48000\n                    }\n                ],\n                \"total\": 48000,\n                \"discount\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -11294,7 +11678,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-022** · SP-09 · سلة المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nGrouped by shop."
+                                "description": "**EP-RP-022** · SP-09 · سلة المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nGrouped by shop. Lines include name from catalog snapshot."
                             },
                             "response": [
                                 {
@@ -11348,7 +11732,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-022** · SP-09 · سلة المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nGrouped by shop."
+                                        "description": "**EP-RP-022** · SP-09 · سلة المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nGrouped by shop. Lines include name from catalog snapshot."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -11359,7 +11743,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"sections\": [\n            {\n                \"retailer\": {\n                    \"id\": 481,\n                    \"shop_name\": \"بقالية النور\"\n                },\n                \"lines\": [\n                    {\n                        \"product_id\": 880,\n                        \"qty\": 4\n                    }\n                ],\n                \"total\": 48000,\n                \"discount\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"sections\": [\n            {\n                \"retailer\": {\n                    \"id\": 481,\n                    \"shop_name\": \"بقالية النور\",\n                    \"zone_id\": 12\n                },\n                \"channel\": {\n                    \"id\": 1,\n                    \"name\": \"شركة النور\"\n                },\n                \"created_at\": \"2026-03-01T10:00:00+03:00\",\n                \"lines\": [\n                    {\n                        \"id\": 11,\n                        \"product_id\": 880,\n                        \"name\": \"زيت دوار الشمس 1 لتر\",\n                        \"qty\": 4,\n                        \"unit_price\": 12000,\n                        \"line_total\": 48000\n                    }\n                ],\n                \"total\": 48000,\n                \"discount\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -11534,6 +11918,126 @@
                                         }
                                     ],
                                     "body": "{\n    \"data\": {\n        \"sub_order\": {\n            \"id\": 9001,\n            \"sub_order_no\": \"SO-9001\",\n            \"status\": \"pending\",\n            \"total\": 47040\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-RP-024 Rep submitted orders",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/orders",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "orders"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-RP-024** · SP-09 · طلبات المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSub-orders this rep submitted (rep_id is set on submit) or was later assigned. invoice_no is null until finance issues one."
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RP-024",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/rep/orders",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "rep",
+                                                "orders"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-RP-024** · SP-09 · طلبات المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSub-orders this rep submitted (rep_id is set on submit) or was later assigned. invoice_no is null until finance issues one."
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 9001,\n            \"sub_order_no\": \"SO-9001\",\n            \"invoice_no\": null,\n            \"created_at\": \"2026-03-01T10:00:00+03:00\",\n            \"status\": \"pending\",\n            \"shop\": \"بقالية النور\",\n            \"zone\": \"المزة\",\n            \"channel\": \"شركة النور\",\n            \"total\": 47040\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },

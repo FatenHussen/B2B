@@ -18,6 +18,7 @@ declare(strict_types=1);
  * another channel.
  */
 
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Tests\Support\AppSurface;
@@ -91,7 +92,37 @@ it('lists branded products to a rep on the channel, with the channel named', fun
     $row = collect($list->json('data'))->firstWhere('id', $productId);
 
     expect($row)->not->toBeNull()
-        ->and($row['channel']['id'])->toBe($channel->id);
+        ->and($row['channel']['id'])->toBe($channel->id)
+        ->and($row)->toHaveKeys(['image', 'brand', 'variants'])
+        ->and($row['variants'])->toBeArray();
+});
+
+it('shows a product on the rep channel and 404s one on another channel', function () {
+    $refs = AppSurface::refs();
+    $channel = AppSurface::channel($refs);
+    $otherChannel = AppSurface::channel($refs);
+    [$productId] = AppSurface::productWithBrand($this, $channel, $refs);
+    DB::table('product_variants')->insert([
+        'product_id' => $productId,
+        'sku' => 'OIL-SUN-1L-PCS',
+        'combination' => json_encode(['حبة']),
+        'status' => 'active',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    Sanctum::actingAs(AppSurface::rep($channel, $refs), ['*'], 'app');
+
+    $card = $this->getJson("/api/v1/app/rep/products/{$productId}")->assertOk();
+    expect($card->json('data.id'))->toBe($productId)
+        ->and($card->json('data.variants.0.label'))->toBe('حبة')
+        ->and($card->json('data.images'))->toBeArray()
+        ->and($card->json('data'))->toHaveKey('long_description');
+
+    app('auth')->forgetGuards();
+    Sanctum::actingAs(AppSurface::rep($otherChannel, $refs), ['*'], 'app');
+    $this->getJson("/api/v1/app/rep/products/{$productId}")
+        ->assertNotFound()
+        ->assertJsonPath('error.code', 'not_found');
 });
 
 it('hides a branded product from a rep on another channel', function () {

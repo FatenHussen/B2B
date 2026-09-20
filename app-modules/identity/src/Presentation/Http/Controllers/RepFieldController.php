@@ -6,13 +6,17 @@ namespace Modules\Identity\Presentation\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Http\ApiController;
 use Modules\Identity\Application\Actions\RegisterRepCustomer;
 use Modules\Identity\Application\Actions\RequestRepZone;
 use Modules\Identity\Application\Actions\SetRepDutyStatus;
 use Modules\Identity\Application\Queries\ListRepCustomers;
+use Modules\Identity\Application\Queries\ListRepZones;
 use Modules\Identity\Application\Queries\ListZoneShops;
+use Modules\Identity\Application\Queries\ShowRepCustomer;
 use Modules\Identity\Application\Queries\ShowRepHome;
+use Modules\Identity\Application\Support\RepShopCard;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Presentation\Http\Requests\StoreRepCustomerRequest;
 use Modules\Identity\Presentation\Http\Requests\StoreRepZoneRequest;
@@ -20,19 +24,22 @@ use Modules\Identity\Presentation\Http\Requests\UpdateRepStatusRequest;
 
 final class RepFieldController extends ApiController
 {
+    public function __construct(private readonly ReferenceDirectory $refs) {}
+
     public function customers(Request $request, ListRepCustomers $query): JsonResponse
     {
         /** @var AppUser $user */
         $user = $request->user();
 
-        return $this->paginated($query($user), function ($profile): array {
-            return [
-                'id' => (int) $profile->id,
-                'shop_name' => (string) $profile->shop_name,
-                'zone_id' => (int) $profile->zone_id,
-                'is_active' => $profile->status->value === 'active',
-            ];
-        });
+        return $this->paginated($query($user), fn ($profile): array => RepShopCard::from($profile, $this->refs));
+    }
+
+    public function showCustomer(Request $request, ShowRepCustomer $query, int $id): JsonResponse
+    {
+        /** @var AppUser $user */
+        $user = $request->user();
+
+        return $this->ok($query($user, $id));
     }
 
     public function storeCustomer(StoreRepCustomerRequest $request, RegisterRepCustomer $action): JsonResponse
@@ -41,6 +48,14 @@ final class RepFieldController extends ApiController
         $user = $request->user();
 
         return $this->created($action($user, $request->validated()));
+    }
+
+    public function zones(Request $request, ListRepZones $query): JsonResponse
+    {
+        /** @var AppUser $user */
+        $user = $request->user();
+
+        return $this->ok($query($user));
     }
 
     public function requestZone(StoreRepZoneRequest $request, RequestRepZone $action): JsonResponse
@@ -56,16 +71,7 @@ final class RepFieldController extends ApiController
         /** @var AppUser $user */
         $user = $request->user();
 
-        return $this->paginated($query($user, $id, $request->query('search')), function ($profile): array {
-            return [
-                'id' => (int) $profile->id,
-                'shop_name' => (string) $profile->shop_name,
-                'address' => $profile->address,
-                'is_open' => true,
-                'is_active' => $profile->status->value === 'active',
-                'last_order_at' => null,
-            ];
-        });
+        return $this->paginated($query($user, $id, $request->query('search')), fn ($profile): array => RepShopCard::from($profile, $this->refs));
     }
 
     public function home(Request $request, ShowRepHome $query): JsonResponse

@@ -25,6 +25,11 @@ final class StoreRepCustomerRequest extends ApiFormRequest
             'activity_type_id' => ['required', 'integer', 'min:1'],
             'lat' => ['nullable', 'numeric'],
             'lng' => ['nullable', 'numeric'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'category_ids' => ['nullable', 'array'],
+            'category_ids.*' => ['integer', 'min:1'],
+            'equipment_ids' => ['nullable', 'array'],
+            'equipment_ids.*' => ['integer', 'min:1'],
             'client_op_id' => ['required', 'string', 'max:80'],
         ];
     }

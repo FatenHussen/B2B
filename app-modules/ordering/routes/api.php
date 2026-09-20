@@ -49,4 +49,5 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
         Route::post('assignments/{id}/accept', [RepOrderingController::class, 'accept']);
         Route::post('assignments/{id}/reject', [RepOrderingController::class, 'reject']);
         Route::get('scheduled-orders', [RepOrderingController::class, 'scheduled']);
+        Route::get('orders', [RepOrderingController::class, 'orders']);
     });

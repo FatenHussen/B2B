@@ -1,7 +1,7 @@
 {
     "info": {
         "title": "Field rep app — live API only",
-        "generated_at": "2026-09-19",
+        "generated_at": "2026-09-20",
         "base_path": "/api/v1",
         "guard": "app",
         "kind": "rep",
@@ -9,10 +9,10 @@
         "seed": "demo reps +963932000001 (عمر الشامي) · +963932000002 · +963932000003 — local OTP_BYPASS=true: any code verifies, rep-* clients get all zeros; production is 6 digits",
         "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.",
         "counts": {
-            "live_endpoints": 42,
-            "matched_catalog": 42,
+            "live_endpoints": 46,
+            "matched_catalog": 46,
             "live_without_catalog": 0,
-            "forbidden": 20
+            "forbidden": 19
         }
     },
     "headers": {
@@ -128,12 +128,6 @@
             "reason": "Loyalty is not a rep surface"
         },
         {
-            "method": "GET",
-            "path": "/api/v1/app/rep/zones",
-            "code": null,
-            "reason": "No list of assigned zones — only POST extra zone and GET /zones/{id}/shops"
-        },
-        {
             "method": "PATCH",
             "path": "/api/v1/app/rep/cart/lines/{id}",
             "code": null,
@@ -181,7 +175,7 @@
         "POST /app/rep/customers returns RepSourcedShop id, not retailer_id. Cart, payments and submit use RetailerProfile id from GET /customers and GET /zones/{id}/shops.",
         "Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.",
         "max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.",
-        "No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.",
+        "GET /app/rep/zones lists assigned coverage. POST /app/rep/zones still requests an extra zone.",
         "GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is 404. supply_channel_id still has no directory.",
         "GET /app/rep/home is the morning snapshot (EP-RP-002). Bind the six task badges from data.tasks. Do not call GET /deliveries from Home — that list materialises delivery rows. loyalty is null (hide the points bar). Guest has no token: 401; skip-register is local chrome with zeros."
     ],
@@ -668,6 +662,46 @@
         {
             "live": true,
             "method": "GET",
+            "path": "/api/v1/app/rep/customers/{id}",
+            "catalog_path": "/app/rep/customers/{id}",
+            "code": "EP-RP-070C",
+            "name": "Show customer",
+            "name_ar": "تفاصيل محل",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. Field — zones & customers",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 481,
+                "shop_name": "بقالية النور",
+                "logo": null,
+                "zone_id": 12,
+                "zone": "المزة",
+                "address": "المزة فيلات شرقية",
+                "phone": "+963931000002",
+                "lat": 33.51,
+                "lng": 36.27,
+                "is_open": true,
+                "is_active": true,
+                "last_order_at": null,
+                "owner_name": "أبو سامر",
+                "activity_type_id": 3,
+                "categories": [
+                    1
+                ],
+                "equipments": []
+            },
+            "errors": [],
+            "description": "404 if the shop is not sourced by this rep and not an active shop in their zones.",
+            "note": "Full shop card plus owner_name, activity_type_id, categories, equipments. 404 if not sourced and not an active shop in coverage."
+        },
+        {
+            "live": true,
+            "method": "GET",
             "path": "/api/v1/app/rep/customers",
             "catalog_path": "/app/rep/customers",
             "code": "EP-RP-070A",
@@ -698,13 +732,21 @@
                 {
                     "id": 481,
                     "shop_name": "بقالية النور",
+                    "logo": null,
                     "zone_id": 12,
-                    "is_active": true
+                    "zone": "المزة",
+                    "address": "المزة فيلات شرقية",
+                    "phone": "+963931000002",
+                    "lat": 33.51,
+                    "lng": 36.27,
+                    "is_open": true,
+                    "is_active": true,
+                    "last_order_at": null
                 }
             ],
             "errors": [],
-            "description": "DOC-12B TB-RP-053.",
-            "note": "Paginated. Search is filter[search]. id is RetailerProfile id — this is retailer_id everywhere else."
+            "description": "Shops the rep sourced plus active shops in assigned zones. id is retailer_id. logo is always null. is_open is always true until a hours table exists.",
+            "note": "Paginated. Search is filter[search]. id is RetailerProfile id — this is retailer_id everywhere else. Card includes zone name, phone, address, lat/lng, logo=null."
         },
         {
             "live": true,
@@ -729,6 +771,11 @@
                 "activity_type_id": 3,
                 "lat": 33.51,
                 "lng": 36.27,
+                "address": "المزة فيلات شرقية",
+                "category_ids": [
+                    1
+                ],
+                "equipment_ids": [],
                 "client_op_id": "op_shop_local_1"
             },
             "response": {
@@ -736,8 +783,8 @@
                 "status": "pending_sync"
             },
             "errors": [],
-            "description": "Stored locally and synced with a unique client_op_id (TB-RP-053).",
-            "note": "client_op_id required; replay returns the same sourced-shop row. Returned id is NOT retailer_id — reload GET /customers."
+            "description": "Stored locally and synced with a unique client_op_id (TB-RP-053). address, category_ids and equipment_ids are optional.",
+            "note": "client_op_id required; replay returns the same sourced-shop row. Returned id is NOT retailer_id — reload GET /customers. Optional address, category_ids, equipment_ids."
         },
         {
             "live": true,
@@ -772,15 +819,49 @@
                 {
                     "id": 481,
                     "shop_name": "بقالية النور",
+                    "logo": null,
+                    "zone_id": 12,
+                    "zone": "المزة",
                     "address": "المزة فيلات شرقية",
+                    "phone": "+963931000002",
+                    "lat": 33.51,
+                    "lng": 36.27,
                     "is_open": true,
                     "is_active": true,
-                    "last_order_at": "2026-02-28T16:00:00+03:00"
+                    "last_order_at": null
                 }
             ],
             "errors": [],
-            "description": "Available offline from the cached pull (TB-RP-020).",
-            "note": "Paginated. Search is top-level `search`, not filter[search]. is_open is hardcoded true. last_order_at is always null. 403 zone_not_covered if the zone is not assigned."
+            "description": "Same shop card as GET /customers. is_open is always true. last_order_at is always null. logo is always null.",
+            "note": "Paginated. Search is top-level `search`, not filter[search]. Same shop card as GET /customers. is_open is hardcoded true. last_order_at is always null. 403 zone_not_covered if the zone is not assigned."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/zones",
+            "catalog_path": "/app/rep/zones",
+            "code": "EP-RP-072",
+            "name": "Rep coverage zones",
+            "name_ar": "مناطق تغطية المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "03. Field — zones & customers",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 12,
+                    "name": "المزة",
+                    "governorate_id": 1,
+                    "shops_count": 4
+                }
+            ],
+            "errors": [],
+            "description": "Assigned zones from the rep profile. Governorate name comes from GET /public/refs.",
+            "note": "Assigned coverage: id, name, governorate_id, shops_count. Governorate label from GET /public/refs."
         },
         {
             "live": true,
@@ -954,6 +1035,54 @@
         {
             "live": true,
             "method": "GET",
+            "path": "/api/v1/app/rep/products/{id}",
+            "catalog_path": "/app/rep/products/{id}",
+            "code": "EP-RP-011",
+            "name": "Rep product detail",
+            "name_ar": "تفاصيل منتج المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "04. Catalog, offers & quote",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 880,
+                "name": "زيت دوار الشمس 1 لتر",
+                "image": null,
+                "brand": {
+                    "id": 12,
+                    "name": "نور"
+                },
+                "channel": {
+                    "id": 1,
+                    "name": "شركة النور"
+                },
+                "price": {
+                    "type": "tiered",
+                    "value": 12000,
+                    "label": "السعر حسب الكمية"
+                },
+                "availability": "in_stock",
+                "variants": [
+                    {
+                        "id": 1,
+                        "label": "حبة",
+                        "barcode": null
+                    }
+                ],
+                "images": [],
+                "long_description": null
+            },
+            "errors": [],
+            "description": "Same isolation as the list. 404 if the product is not in the rep's channel.",
+            "note": "Detail plus images[] and long_description. 404 outside the rep channel."
+        },
+        {
+            "live": true,
+            "method": "GET",
             "path": "/api/v1/app/rep/products",
             "catalog_path": "/app/rep/products",
             "code": "EP-RP-010",
@@ -1004,6 +1133,11 @@
                 {
                     "id": 880,
                     "name": "زيت دوار الشمس 1 لتر",
+                    "image": null,
+                    "brand": {
+                        "id": 12,
+                        "name": "نور"
+                    },
                     "channel": {
                         "id": 1,
                         "name": "شركة النور"
@@ -1013,12 +1147,19 @@
                         "value": 12000,
                         "label": "السعر حسب الكمية"
                     },
-                    "availability": "in_stock"
+                    "availability": "in_stock",
+                    "variants": [
+                        {
+                            "id": 1,
+                            "label": "حبة",
+                            "barcode": null
+                        }
+                    ]
                 }
             ],
             "errors": [],
-            "description": "Union of all channels the rep belongs to, each SKU tagged with its channel (TB-RP-050).",
-            "note": "Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Lines have no image/sku."
+            "description": "Union of all channels the rep belongs to. variants[] is empty when the SKU has no combinations. image is null until media is attached.",
+            "note": "Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Card includes brand, image (often null), variants[]."
         },
         {
             "live": true,
@@ -1046,14 +1187,22 @@
                     {
                         "retailer": {
                             "id": 481,
-                            "shop_name": "بقالية النور"
+                            "shop_name": "بقالية النور",
+                            "zone_id": 12
                         },
+                        "channel": {
+                            "id": 1,
+                            "name": "شركة النور"
+                        },
+                        "created_at": "2026-03-01T10:00:00+03:00",
                         "lines": [
                             {
                                 "id": 11,
                                 "product_id": 880,
+                                "name": "زيت دوار الشمس 1 لتر",
                                 "qty": 4,
-                                "unit_price": 12000
+                                "unit_price": 12000,
+                                "line_total": 48000
                             }
                         ],
                         "total": 48000,
@@ -1062,8 +1211,8 @@
                 ]
             },
             "errors": [],
-            "description": "",
-            "note": "Increments qty if the (product, variant) exists. No PATCH/DELETE. Resolve product names locally from the catalog cache."
+            "description": "Same shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
+            "note": "Increments qty if the (product, variant) exists. No PATCH/DELETE."
         },
         {
             "live": true,
@@ -1119,14 +1268,22 @@
                     {
                         "retailer": {
                             "id": 481,
-                            "shop_name": "بقالية النور"
+                            "shop_name": "بقالية النور",
+                            "zone_id": 12
                         },
+                        "channel": {
+                            "id": 1,
+                            "name": "شركة النور"
+                        },
+                        "created_at": "2026-03-01T10:00:00+03:00",
                         "lines": [
                             {
                                 "id": 11,
                                 "product_id": 880,
+                                "name": "زيت دوار الشمس 1 لتر",
                                 "qty": 4,
-                                "unit_price": 12000
+                                "unit_price": 12000,
+                                "line_total": 48000
                             }
                         ],
                         "total": 48000,
@@ -1135,8 +1292,41 @@
                 ]
             },
             "errors": [],
-            "description": "Grouped by shop.",
-            "note": "Grouped by shop. No section id — submit uses retailer.id. Lines have id/product_id/qty/unit_price only."
+            "description": "Grouped by shop. Lines include name from catalog snapshot.",
+            "note": "Grouped by shop. Lines include name and line_total. submit uses retailer.id."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/rep/orders",
+            "catalog_path": "/app/rep/orders",
+            "code": "EP-RP-024",
+            "name": "Rep submitted orders",
+            "name_ar": "طلبات المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "05. Cart",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 9001,
+                    "sub_order_no": "SO-9001",
+                    "invoice_no": null,
+                    "created_at": "2026-03-01T10:00:00+03:00",
+                    "status": "pending",
+                    "shop": "بقالية النور",
+                    "zone": "المزة",
+                    "channel": "شركة النور",
+                    "total": 47040
+                }
+            ],
+            "errors": [],
+            "description": "Sub-orders this rep submitted (rep_id is set on submit) or was later assigned. invoice_no is null until finance issues one.",
+            "note": "Sub-orders for this rep_id. invoice_no null until issued."
         },
         {
             "live": true,

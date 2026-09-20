@@ -16,6 +16,8 @@ use Modules\Identity\Domain\Enums\UserStatus;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\RepSourcedShop;
 use Modules\Identity\Domain\Models\RetailerProfile;
+use Modules\Identity\Domain\Models\RetailerProfileCategory;
+use Modules\Identity\Domain\Models\RetailerProfileEquipment;
 use Modules\Identity\Domain\ValueObjects\PhoneNumber;
 
 final class RegisterRepCustomer
@@ -57,13 +59,21 @@ final class RegisterRepCustomer
         if (! $this->refs->activityTypeExists((int) $data['activity_type_id'])) {
             InvalidFields::throw(['activity_type_id' => 'identity.activity_type_not_found']);
         }
+        $categoryIds = array_values(array_unique(array_map('intval', $data['category_ids'] ?? [])));
+        $equipmentIds = array_values(array_unique(array_map('intval', $data['equipment_ids'] ?? [])));
+        if ($categoryIds !== [] && ! $this->refs->allRootCategoriesExist($categoryIds)) {
+            InvalidFields::throw(['category_ids' => 'identity.category_not_found']);
+        }
+        if ($equipmentIds !== [] && ! $this->refs->allEquipmentsExist($equipmentIds)) {
+            InvalidFields::throw(['equipment_ids' => 'identity.equipment_not_found']);
+        }
 
         $govId = $this->refs->zoneGovernorateId($zoneId);
         if ($govId === null) {
             InvalidFields::throw(['zone_id' => 'identity.zone_not_found']);
         }
 
-        $shop = DB::transaction(function () use ($user, $repId, $data, $zoneId, $opId, $govId): RepSourcedShop {
+        $shop = DB::transaction(function () use ($user, $repId, $data, $zoneId, $opId, $govId, $categoryIds, $equipmentIds): RepSourcedShop {
             $placeholder = $this->placeholderUser($data['phone'], $data['owner_name']);
             $retailer = $placeholder->retailerProfile ?? RetailerProfile::query()->create([
                 'app_user_id' => $placeholder->id,
@@ -73,8 +83,22 @@ final class RegisterRepCustomer
                 'zone_id' => $zoneId,
                 'lat' => $data['lat'] ?? null,
                 'lng' => $data['lng'] ?? null,
+                'address' => $data['address'] ?? null,
                 'status' => ProfileStatus::PendingReview,
             ]);
+
+            foreach ($categoryIds as $categoryId) {
+                RetailerProfileCategory::query()->firstOrCreate([
+                    'retailer_profile_id' => $retailer->id,
+                    'root_category_id' => $categoryId,
+                ]);
+            }
+            foreach ($equipmentIds as $equipmentId) {
+                RetailerProfileEquipment::query()->firstOrCreate([
+                    'retailer_profile_id' => $retailer->id,
+                    'equipment_id' => $equipmentId,
+                ]);
+            }
 
             $shop = RepSourcedShop::query()->create([
                 'rep_id' => $repId,

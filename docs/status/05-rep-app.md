@@ -1,10 +1,10 @@
 # تطبيق المندوب — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-09-19 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-09-20 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 30 | 30 | 0 | 0 | 0 |
+| 34 | 34 | 0 | 0 | 0 |
 
 ## التسجيل والحالة — 2/2
 
@@ -19,14 +19,17 @@ guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-0
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-RP-002 | SP-01 | `GET` | `/app/rep/home` | — | Identity | رئيسية المندوب |
 
-## الكتالوج والعملاء والمناطق — 5/5
+## الكتالوج والعملاء والمناطق — 8/8
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-RP-010 | SP-06 | `GET` | `/app/rep/products` | — | Catalog | منتجات المندوب |
+| ✅ | EP-RP-011 | SP-06 | `GET` | `/app/rep/products/{id}` | — | Catalog | تفاصيل منتج المندوب |
 | ✅ | EP-RP-070A | SP-06 | `GET` | `/app/rep/customers` | — | Identity | زبائن المندوب |
 | ✅ | EP-RP-070B | SP-06 | `POST` | `/app/rep/customers` | — | Identity | إضافة محل |
+| ✅ | EP-RP-070C | SP-06 | `GET` | `/app/rep/customers/{id}` | — | Identity | تفاصيل محل |
 | ✅ | EP-RP-071 | SP-06 | `POST` | `/app/rep/zones` | — | Identity | إضافة منطقة تغطية |
+| ✅ | EP-RP-072 | SP-06 | `GET` | `/app/rep/zones` | — | Identity | مناطق تغطية المندوب |
 | ✅ | EP-RP-020 | SP-09 | `GET` | `/app/rep/zones/{id}/shops` | — | Identity | محلات المنطقة |
 
 ## السلة — 3/3
@@ -36,6 +39,12 @@ guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-0
 | ✅ | EP-RP-021 | SP-09 | `POST` | `/app/rep/cart/lines` | — | Ordering | إضافة لسلة محل |
 | ✅ | EP-RP-022 | SP-09 | `GET` | `/app/rep/cart` | — | Ordering | سلة المندوب |
 | ✅ | EP-RP-023 | SP-09 | `POST` | `/app/rep/cart/sections/{retailer_id}/submit` | — | Ordering | إرسال طلب محل |
+
+## طلبات المندوب — 1/1
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-RP-024 | SP-09 | `GET` | `/app/rep/orders` | — | Ordering | طلبات المندوب |
 
 ## قبول الطلبات والمجدولة — 4/4
 

@@ -100,7 +100,7 @@ function moduleAr(array $ep): string
     if (str_contains($path, '/features') || str_contains($path, '/app-versions') || str_contains($path, '/app-config')) {
         return '05. الميزات ونسخ التطبيقات';
     }
-    if (str_contains($path, '/cart') || str_contains($path, '/sub-orders') || ($aud === 'retailer' && str_contains($path, '/orders')) || str_contains($path, '/assignments') || str_contains($path, '/scheduled-orders') || ($aud === 'rep' && preg_match('#/status$#', $path))) {
+    if (str_contains($path, '/cart') || str_contains($path, '/sub-orders') || str_contains($path, '/orders') || str_contains($path, '/assignments') || str_contains($path, '/scheduled-orders') || ($aud === 'rep' && preg_match('#/status$#', $path))) {
         return '06. السلة والطلبات';
     }
     if (str_contains($path, '/support')) {

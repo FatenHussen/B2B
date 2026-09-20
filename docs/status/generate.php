@@ -137,6 +137,7 @@ $sections = [
         ['الرئيسية', '#^/app/rep/home#'],
         ['الكتالوج والعملاء والمناطق', '#^/app/rep/(products|customers|zones)#'],
         ['السلة', '#^/app/rep/cart#'],
+        ['طلبات المندوب', '#^/app/rep/orders#'],
         ['قبول الطلبات والمجدولة', '#^/app/rep/(assignments|scheduled-orders)#'],
         ['استلام العهدة من المستودع', '#^/app/rep/warehouse-receipts#'],
         ['التسليم والتتبع والمرتجعات', '#^/app/rep/(deliveries|locations|return-requests)#'],

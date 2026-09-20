@@ -214,13 +214,27 @@ it('lets a rep build a customer section and submit it', function () {
     $this->postJson('/api/v1/app/rep/cart/lines', ['retailer_id' => $customer, 'product_id' => $productId, 'qty' => 1])
         ->assertOk();
 
-    $this->getJson('/api/v1/app/rep/cart')->assertOk();
+    $cart = $this->getJson('/api/v1/app/rep/cart')->assertOk();
+    expect($cart->json('data.sections.0.retailer.id'))->toBe($customer)
+        ->and($cart->json('data.sections.0.retailer.zone_id'))->toBe($refs['zone']->id)
+        ->and($cart->json('data.sections.0.channel.id'))->toBe($channel->id)
+        ->and($cart->json('data.sections.0.channel.name'))->not->toBeNull()
+        ->and($cart->json('data.sections.0.lines.0.name'))->not->toBe('')
+        ->and($cart->json('data.sections.0.lines.0.line_total'))->toBeInt();
 
     $this->postJson("/api/v1/app/rep/cart/sections/{$customer}/submit", [])
         ->assertOk()
         ->assertJsonPath('data.sub_order.status', 'pending');
 
     expect(DB::table('sub_orders')->where('retailer_id', $customer)->where('channel_id', $channel->id)->count())->toBe(1);
+
+    $orders = $this->getJson('/api/v1/app/rep/orders')->assertOk();
+    $row = collect($orders->json('data'))->firstWhere('shop', 'محل الزبون +963944000101');
+    expect($row)->not->toBeNull()
+        ->and($row['status'])->toBe('pending')
+        ->and($row['invoice_no'])->toBeNull()
+        ->and($row['total'])->toBeInt()
+        ->and($row['channel'])->toBe($channel->name);
 });
 
 it('persists the submit note on the order section', function () {

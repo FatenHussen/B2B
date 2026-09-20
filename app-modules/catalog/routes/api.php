@@ -44,4 +44,5 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
     ->prefix('api/v1/app/rep')
     ->group(function (): void {
         Route::get('products', [RepCatalogController::class, 'products']);
+        Route::get('products/{id}', [RepCatalogController::class, 'show']);
     });

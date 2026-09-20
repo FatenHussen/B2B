@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Ordering\Application\Support;
 
 use Modules\Core\Contracts\CatalogProductLookup;
+use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\PricingEngine;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Ordering\Domain\Enums\CartStatus;
@@ -16,6 +17,7 @@ final class CartAssembler
         private readonly PricingEngine $pricing,
         private readonly CatalogProductLookup $products,
         private readonly RetailerDirectory $retailers,
+        private readonly ChannelDirectory $channels,
     ) {}
 
     public function activeFor(object $owner): Cart
@@ -151,14 +153,24 @@ final class CartAssembler
         foreach ($cart->sections as $section) {
             $rid = (int) ($section->retailer_id ?? 0);
             if (! isset($byRetailer[$rid])) {
-                $byRetailer[$rid] = ['retailer_id' => $rid, 'lines' => [], 'total' => 0, 'discount' => 0];
+                $byRetailer[$rid] = [
+                    'retailer_id' => $rid,
+                    'channel_id' => (int) $section->channel_id,
+                    'created_at' => $section->created_at?->timezone('Asia/Damascus')->toIso8601String(),
+                    'lines' => [],
+                    'total' => 0,
+                    'discount' => 0,
+                ];
             }
             foreach ($section->lines as $line) {
+                $snap = $this->products->snapshot((int) $line->product_id, $line->variant_id ? (int) $line->variant_id : null);
                 $byRetailer[$rid]['lines'][] = [
                     'id' => (int) $line->id,
                     'product_id' => (int) $line->product_id,
+                    'name' => $snap['name'] ?? '',
                     'qty' => (int) $line->qty,
                     'unit_price' => (int) $line->unit_price,
+                    'line_total' => (int) $line->line_total,
                 ];
                 $byRetailer[$rid]['total'] += (int) $line->line_total;
                 $byRetailer[$rid]['discount'] += (int) $line->discount;
@@ -168,11 +180,18 @@ final class CartAssembler
         $sections = [];
         foreach ($byRetailer as $row) {
             $shop = $this->retailers->find((int) $row['retailer_id']);
+            $channelId = (int) $row['channel_id'];
             $sections[] = [
                 'retailer' => [
                     'id' => $row['retailer_id'],
                     'shop_name' => $shop['shop_name'] ?? '',
+                    'zone_id' => $this->retailers->zoneId((int) $row['retailer_id']),
                 ],
+                'channel' => [
+                    'id' => $channelId,
+                    'name' => $this->channels->name($channelId),
+                ],
+                'created_at' => $row['created_at'],
                 'lines' => $row['lines'],
                 'total' => $row['total'],
                 'discount' => $row['discount'],

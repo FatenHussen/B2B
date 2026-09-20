@@ -98,6 +98,7 @@ final class SubmitRepCartSection
                 'channel_id' => $section->channel_id,
                 'retailer_id' => $retailerId,
                 'zone_id' => $retailerZoneId,
+                'rep_id' => (int) $user->getAuthIdentifier(),
                 'source' => OrderSource::RepApp,
                 'sub_order_no' => 'SO-tmp',
                 'status' => SubOrderStatus::Pending,

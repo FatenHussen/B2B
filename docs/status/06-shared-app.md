@@ -1,6 +1,6 @@
 # المشترك بين التطبيقين — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آلياً في 2026-09-19 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آلياً في 2026-09-20 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|

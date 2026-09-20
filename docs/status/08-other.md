@@ -1,6 +1,6 @@
 # خارج البادئات — حالة الواجهات
 
-routes outside the five prefixes · مولَّد آلياً في 2026-09-19 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+routes outside the five prefixes · مولَّد آلياً في 2026-09-20 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|

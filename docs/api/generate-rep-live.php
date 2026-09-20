@@ -224,7 +224,7 @@ $pack = [
         'POST /app/rep/customers returns RepSourcedShop id, not retailer_id. Cart, payments and submit use RetailerProfile id from GET /customers and GET /zones/{id}/shops.',
         'Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.',
         'max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.',
-        'No GET /app/rep/zones. Persist zone ids from register; otherwise unique zone_id from GET /customers.',
+        'GET /app/rep/zones lists assigned coverage. POST /app/rep/zones still requests an extra zone.',
         'GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is 404. supply_channel_id still has no directory.',
         'GET /app/rep/home is the morning snapshot (EP-RP-002). Bind the six task badges from data.tasks. Do not call GET /deliveries from Home — that list materialises delivery rows. loyalty is null (hide the points bar). Guest has no token: 401; skip-register is local chrome with zeros.',
     ],
@@ -288,10 +288,13 @@ function folder(string $path): string
     if (str_starts_with($path, '/app/rep/customers') || str_starts_with($path, '/app/rep/zones')) {
         return '03. Field — zones & customers';
     }
-    if ($path === '/app/rep/products' || str_starts_with($path, '/app/offers') || $path === '/app/pricing/quote') {
+    if ($path === '/app/rep/products' || str_starts_with($path, '/app/rep/products/') || str_starts_with($path, '/app/offers') || $path === '/app/pricing/quote') {
         return '04. Catalog, offers & quote';
     }
     if (str_starts_with($path, '/app/rep/cart')) {
+        return '05. Cart';
+    }
+    if ($path === '/app/rep/orders') {
         return '05. Cart';
     }
     if (str_starts_with($path, '/app/rep/assignments') || str_starts_with($path, '/app/rep/scheduled-orders')) {
@@ -368,6 +371,30 @@ function overlays(): array
                 ['name' => 'barcode', 'example' => ''],
                 ['name' => 'zone', 'example' => '12'],
             ],
+            'response' => [[
+                'id' => 880,
+                'name' => 'زيت دوار الشمس 1 لتر',
+                'image' => null,
+                'brand' => ['id' => 12, 'name' => 'نور'],
+                'channel' => ['id' => 1, 'name' => 'شركة النور'],
+                'price' => ['type' => 'tiered', 'value' => 12000, 'label' => 'السعر حسب الكمية'],
+                'availability' => 'in_stock',
+                'variants' => [['id' => 1, 'label' => 'حبة', 'barcode' => null]],
+            ]],
+        ],
+        'GET /app/rep/products/{}' => [
+            'response' => [
+                'id' => 880,
+                'name' => 'زيت دوار الشمس 1 لتر',
+                'image' => null,
+                'brand' => ['id' => 12, 'name' => 'نور'],
+                'channel' => ['id' => 1, 'name' => 'شركة النور'],
+                'price' => ['type' => 'tiered', 'value' => 12000, 'label' => 'السعر حسب الكمية'],
+                'availability' => 'in_stock',
+                'variants' => [['id' => 1, 'label' => 'حبة', 'barcode' => null]],
+                'images' => [],
+                'long_description' => null,
+            ],
         ],
         'GET /app/rep/customers' => [
             'query' => [
@@ -375,6 +402,61 @@ function overlays(): array
                 ['name' => 'per_page', 'example' => '25'],
                 ['name' => 'filter[search]', 'example' => 'النور'],
             ],
+            'response' => [[
+                'id' => 481,
+                'shop_name' => 'بقالية النور',
+                'logo' => null,
+                'zone_id' => 12,
+                'zone' => 'المزة',
+                'address' => 'المزة فيلات شرقية',
+                'phone' => '+963931000002',
+                'lat' => 33.51,
+                'lng' => 36.27,
+                'is_open' => true,
+                'is_active' => true,
+                'last_order_at' => null,
+            ]],
+        ],
+        'GET /app/rep/customers/{}' => [
+            'response' => [
+                'id' => 481,
+                'shop_name' => 'بقالية النور',
+                'logo' => null,
+                'zone_id' => 12,
+                'zone' => 'المزة',
+                'address' => 'المزة فيلات شرقية',
+                'phone' => '+963931000002',
+                'lat' => 33.51,
+                'lng' => 36.27,
+                'is_open' => true,
+                'is_active' => true,
+                'last_order_at' => null,
+                'owner_name' => 'أبو سامر',
+                'activity_type_id' => 3,
+                'categories' => [1],
+                'equipments' => [],
+            ],
+        ],
+        'GET /app/rep/zones' => [
+            'response' => [[
+                'id' => 12,
+                'name' => 'المزة',
+                'governorate_id' => 1,
+                'shops_count' => 4,
+            ]],
+        ],
+        'GET /app/rep/orders' => [
+            'response' => [[
+                'id' => 9001,
+                'sub_order_no' => 'SO-9001',
+                'invoice_no' => null,
+                'created_at' => '2026-03-01T10:00:00+03:00',
+                'status' => 'pending',
+                'shop' => 'بقالية النور',
+                'zone' => 'المزة',
+                'channel' => 'شركة النور',
+                'total' => 47040,
+            ]],
         ],
         'GET /app/rep/zones/{}/shops' => [
             'query' => [
@@ -382,6 +464,20 @@ function overlays(): array
                 ['name' => 'per_page', 'example' => '25'],
                 ['name' => 'search', 'example' => 'النور'],
             ],
+            'response' => [[
+                'id' => 481,
+                'shop_name' => 'بقالية النور',
+                'logo' => null,
+                'zone_id' => 12,
+                'zone' => 'المزة',
+                'address' => 'المزة فيلات شرقية',
+                'phone' => '+963931000002',
+                'lat' => 33.51,
+                'lng' => 36.27,
+                'is_open' => true,
+                'is_active' => true,
+                'last_order_at' => null,
+            ]],
         ],
         'GET /app/session' => [
             'response' => [
@@ -444,12 +540,16 @@ function overlays(): array
         'GET /app/rep/cart' => [
             'response' => [
                 'sections' => [[
-                    'retailer' => ['id' => 481, 'shop_name' => 'بقالية النور'],
+                    'retailer' => ['id' => 481, 'shop_name' => 'بقالية النور', 'zone_id' => 12],
+                    'channel' => ['id' => 1, 'name' => 'شركة النور'],
+                    'created_at' => '2026-03-01T10:00:00+03:00',
                     'lines' => [[
                         'id' => 11,
                         'product_id' => 880,
+                        'name' => 'زيت دوار الشمس 1 لتر',
                         'qty' => 4,
                         'unit_price' => 12000,
+                        'line_total' => 48000,
                     ]],
                     'total' => 48000,
                     'discount' => 0,
@@ -459,12 +559,16 @@ function overlays(): array
         'POST /app/rep/cart/lines' => [
             'response' => [
                 'sections' => [[
-                    'retailer' => ['id' => 481, 'shop_name' => 'بقالية النور'],
+                    'retailer' => ['id' => 481, 'shop_name' => 'بقالية النور', 'zone_id' => 12],
+                    'channel' => ['id' => 1, 'name' => 'شركة النور'],
+                    'created_at' => '2026-03-01T10:00:00+03:00',
                     'lines' => [[
                         'id' => 11,
                         'product_id' => 880,
+                        'name' => 'زيت دوار الشمس 1 لتر',
                         'qty' => 4,
                         'unit_price' => 12000,
+                        'line_total' => 48000,
                     ]],
                     'total' => 48000,
                     'discount' => 0,
@@ -538,12 +642,16 @@ function notes(): array
         'GET /public/content/intro' => 'No auth. Same singleton PUT /platform/content/intro writes. Vacant store: enabled false, text/media null, duration 0 — that is correct, do not fake a video. Returning token skips this screen. media_id is opaque, not a URL (http → play; else assets/intro/{id}; else logo+text). Ignore targeting on first run. Do not call /platform or /channel intro (wrong_guard).',
         'GET /public/refs' => 'Flat arrays, not nested. Flutter dropdowns: governorates = single-select FILTER (do not POST). zones = multi-select, value=id, label=name, group by governorate_id, POST as zone_ids:[12,13] (min 1). activity_types = single-select → activity_type_id. Hide status!=active. Channels are never here.',
         'POST /app/rep/register' => 'Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null — resolve from GET /public/refs. supply_channel_id has no directory; it comes from the channel team or an invite.',
-        'GET /app/rep/products' => 'Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Lines have no image/sku.',
-        'GET /app/rep/zones/{}/shops' => 'Paginated. Search is top-level `search`, not filter[search]. is_open is hardcoded true. last_order_at is always null. 403 zone_not_covered if the zone is not assigned.',
-        'GET /app/rep/customers' => 'Paginated. Search is filter[search]. id is RetailerProfile id — this is retailer_id everywhere else.',
-        'POST /app/rep/customers' => 'client_op_id required; replay returns the same sourced-shop row. Returned id is NOT retailer_id — reload GET /customers.',
-        'POST /app/rep/cart/lines' => 'Increments qty if the (product, variant) exists. No PATCH/DELETE. Resolve product names locally from the catalog cache.',
-        'GET /app/rep/cart' => 'Grouped by shop. No section id — submit uses retailer.id. Lines have id/product_id/qty/unit_price only.',
+        'GET /app/rep/products' => 'Paginated. Allowed filters: filter[category_id], filter[brand_id], filter[channel_id], filter[search], barcode, zone (for price). Do not send sort, filter[offer_only], filter[available_only]. Card includes brand, image (often null), variants[].',
+        'GET /app/rep/products/{}' => 'Detail plus images[] and long_description. 404 outside the rep channel.',
+        'GET /app/rep/zones/{}/shops' => 'Paginated. Search is top-level `search`, not filter[search]. Same shop card as GET /customers. is_open is hardcoded true. last_order_at is always null. 403 zone_not_covered if the zone is not assigned.',
+        'GET /app/rep/customers' => 'Paginated. Search is filter[search]. id is RetailerProfile id — this is retailer_id everywhere else. Card includes zone name, phone, address, lat/lng, logo=null.',
+        'GET /app/rep/customers/{}' => 'Full shop card plus owner_name, activity_type_id, categories, equipments. 404 if not sourced and not an active shop in coverage.',
+        'GET /app/rep/zones' => 'Assigned coverage: id, name, governorate_id, shops_count. Governorate label from GET /public/refs.',
+        'GET /app/rep/orders' => 'Sub-orders for this rep_id. invoice_no null until issued.',
+        'POST /app/rep/customers' => 'client_op_id required; replay returns the same sourced-shop row. Returned id is NOT retailer_id — reload GET /customers. Optional address, category_ids, equipment_ids.',
+        'POST /app/rep/cart/lines' => 'Increments qty if the (product, variant) exists. No PATCH/DELETE.',
+        'GET /app/rep/cart' => 'Grouped by shop. Lines include name and line_total. submit uses retailer.id.',
         'POST /app/rep/cart/sections/{}/submit' => 'Path param is retailer_id. 403 discount_cap_exceeded if discount_percent > session.commercial_limits.max_discount_percent. note is persisted.',
         'GET /app/rep/assignments' => 'Unpaginated array. invoice_no is always null. id is sub_order id.',
         'GET /app/rep/scheduled-orders' => 'Unpaginated. Query `date` (Y-m-d). shop_logo always null. id is sub_order id.',
@@ -575,7 +683,6 @@ function forbidden(): array
         ['method' => 'GET', 'path' => '/api/v1/app/content/home-blocks', 'code' => 'EP-APP-100', 'reason' => 'No home banners/sliders — compose home from live lists'],
         ['method' => 'GET', 'path' => '/api/v1/app/loyalty', 'code' => 'EP-APP-110', 'reason' => 'Loyalty is not a rep surface'],
         ['method' => 'POST', 'path' => '/api/v1/app/loyalty/redeem', 'code' => 'EP-APP-111', 'reason' => 'Loyalty is not a rep surface'],
-        ['method' => 'GET', 'path' => '/api/v1/app/rep/zones', 'code' => null, 'reason' => 'No list of assigned zones — only POST extra zone and GET /zones/{id}/shops'],
         ['method' => 'PATCH', 'path' => '/api/v1/app/rep/cart/lines/{id}', 'code' => null, 'reason' => 'No update/delete cart line for the rep'],
         ['method' => 'GET', 'path' => '/api/v1/app/rep/return-requests', 'code' => null, 'reason' => 'Create only — no list or detail'],
         ['method' => 'GET', 'path' => '/api/v1/app/rep/discount-cap', 'code' => null, 'reason' => 'Cap is session.commercial_limits.max_discount_percent — no dedicated GET'],

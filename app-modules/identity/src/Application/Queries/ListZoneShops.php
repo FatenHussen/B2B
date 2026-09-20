@@ -24,6 +24,7 @@ final class ListZoneShops
 
         $perPage = min((int) request('per_page', 25), 100);
         $query = RetailerProfile::query()
+            ->with('user')
             ->where('zone_id', $zoneId)
             ->where('status', ProfileStatus::Active);
 

@@ -2,13 +2,13 @@
 
 | | |
 |---|---|
-| Purpose | The single file an AI coding agent (Cursor) or a Flutter developer needs to wire the **field-rep app** to this backend. Nothing here is from the backlog — every path, body and response was read from `route:list`, the controllers and the FormRequests on **2026-09-19**. |
+| Purpose | The single file an AI coding agent (Cursor) or a Flutter developer needs to wire the **field-rep app** to this backend. Nothing here is from the backlog — every path, body and response was read from `route:list`, the controllers and the FormRequests on **2026-09-20**. |
 | App | Flutter · **GetX** (state, DI, routing) · Dio · Arabic RTL · Material 3 |
 | Guard | `app` + `app.kind:rep` · token = Sanctum personal access token |
 | Sibling files | `flutter-rep.md` (Arabic screen-by-screen UX spec) · `flutter-rep.json` (machine contract) · `docs/status/05-rep-app.md` + `06-shared-app.md` (what is live) |
 | Priority when two documents disagree | `route:list` → controller/FormRequest → `flutter-rep.json` → **this file** → `flutter-rep.md` |
 
-> **For Cursor.** Read §0 first. Build exactly what §5 lists, with the folder layout in §2 and the core client in §3. Do not invent a path, a field or a response key. If a screen needs something the API does not return, render an honest empty state (§8) — never fake it.
+> **For Cursor.** Read §0 first. Build exactly what §5 lists, with the folder layout in §2 and the core client in §3. **Screen chrome follows `flutter-rep.md` §7–§10.** OTP screens stay as they are until the rest of the client build is done. Do not invent a path, a field or a response key. If a screen needs something the API does not return, render an honest empty state (§8) — never fake it.
 
 ---
 
@@ -44,6 +44,7 @@
 10. **Do not poll `GET /app/rep/deliveries`.** It has a write side-effect (it materialises delivery rows). Pull-to-refresh only.
 11. **No offline mode**, no sync, no push, no notifications inbox, no loyalty, no home blocks — §8. `feature_flags.offline_orders` is `false`.
 12. Hand-written `fromJson`/`toJson` (no codegen) unless the existing Flutter project already uses `freezed`/`json_serializable` — then follow the project.
+13. **Home-task screens match `flutter-rep.md` wireframes**, not a generic CRUD list: register-order (§7), deliveries (§8.3–8.5), collect-payment (§9.2), accept-orders (§8.1), scheduled (§8.9), warehouse (§8.2). API keys still come from this file.
 
 ---
 
@@ -196,7 +197,7 @@ lib/
    │     └─ finance_service.dart          # wallet, payments, receipts, withdrawals, receivables
    ├─ modules/                            # one folder per screen: binding + controller + view
    │  ├─ splash/  intro/  auth/phone/  auth/otp/  auth/register/
-   │  ├─ shell/   home/   customers/  zones/  products/  offers/  cart/
+   │  ├─ shell/   home/   order_capture/  customers/  zones/  products/  offers/  cart/
    │  ├─ assignments/  scheduled/  warehouse/  deliveries/  delivery_detail/
    │  ├─ returns/  wallet/  collect_payment/  receivables/  withdrawals/  settings/
    ├─ middleware/auth_middleware.dart     # GetMiddleware route guard (§4.3)
@@ -536,7 +537,7 @@ class LocalStore extends GetxService {
   Map<String, dynamic>? get refs => _b.read('refs');            // GET /public/refs snapshot
   Future<void> saveRefs(Map<String, dynamic> r) => _b.write('refs', r);
 
-  // product id → name, filled from GET /products; the cart returns no names
+  // product id → name cache; cart lines also include `name` now
   String? productName(int id) => (_b.read('product_names') ?? const {})['$id'];
   Future<void> rememberProducts(Iterable<Product> ps) async {
     final m = Map<String, dynamic>.from(_b.read('product_names') ?? const {});
@@ -707,16 +708,20 @@ Every `Response` block shows only `data` (the envelope wraps it, §3.1). HTTP st
 | 8 | POST 🔁 | `/app/auth/logout` | `AuthService.logout()` | 5.5 |
 | 9 | PATCH 🔁 | `/app/rep/status` | `AuthService.setDuty()` | 5.6 |
 | 10 | GET 📄 | `/app/rep/customers` | `CustomerService.list()` | 5.7 |
+| 10b | GET | `/app/rep/customers/{id}` | `CustomerService.show()` | 5.7 |
 | 11 | POST 🔁 | `/app/rep/customers` | `CustomerService.create()` | 5.7 |
-| 12 | GET 📄 | `/app/rep/zones/{id}/shops` | `CustomerService.zoneShops()` | 5.8 |
+| 12 | GET | `/app/rep/zones` | `CustomerService.zones()` | 5.8 |
+| 12b | GET 📄 | `/app/rep/zones/{id}/shops` | `CustomerService.zoneShops()` | 5.8 |
 | 13 | POST 🔁 | `/app/rep/zones` | `CustomerService.requestZone()` | 5.8 |
 | 14 | GET 📄 | `/app/rep/products` | `CatalogService.products()` | 5.9 |
+| 14b | GET | `/app/rep/products/{id}` | `CatalogService.product()` | 5.9 |
 | 15 | POST 🔁 | `/app/pricing/quote` | `CatalogService.quote()` | 5.10 |
 | 16 | GET 📄 | `/app/offers` | `CatalogService.offers()` | 5.11 |
 | 17 | GET | `/app/offers/{id}` | `CatalogService.offer()` | 5.11 |
 | 18 | POST 🔁 | `/app/rep/cart/lines` | `CartService.addLine()` | 5.12 |
 | 19 | GET | `/app/rep/cart` | `CartService.cart()` | 5.12 |
 | 20 | POST 🔁 | `/app/rep/cart/sections/{retailer_id}/submit` | `CartService.submit()` | 5.12 |
+| 20b | GET | `/app/rep/orders` | `CartService.orders()` | 5.12b |
 | 21 | GET | `/app/rep/assignments` | `AssignmentService.list()` | 5.13 |
 | 22 | POST 🔁 | `/app/rep/assignments/{id}/accept` | `AssignmentService.accept()` | 5.13 |
 | 23 | POST 🔁 | `/app/rep/assignments/{id}/reject` | `AssignmentService.reject()` | 5.13 |
@@ -738,7 +743,7 @@ Every `Response` block shows only `data` (the envelope wraps it, §3.1). HTTP st
 | 39 | POST 🔁 | `/app/rep/wallet/withdrawals` | `FinanceService.withdraw()` | 5.20 |
 | 40 | GET | `/app/rep/wallet/withdrawals` | `FinanceService.withdrawals()` | 5.20 |
 
-(42 rows after adding EP-PB-011 and EP-RP-002; regenerate `flutter-rep.json` with `php docs/api/generate-rep-live.php`.)
+(46+ rows after EP-RP-011 / 024 / 070C / 072; regenerate `flutter-rep.json` with `php docs/api/generate-rep-live.php`.)
 
 ---
 
@@ -1149,7 +1154,9 @@ Future<DutyState> setDuty(bool on) => guard(() async =>
 | `loyalty` | `null` → hide points bar. Do not call `GET /app/loyalty` |
 | `unread_notifications` | bell badge (0 until EP-CM-060). Inbox is 404 |
 
-Three circles (products / customers / zones) are local navigation. Bottom nav is **cart — orders — home** (three tabs). Guest: do not call this path; zeros + lock dialog «يجب أن تسجّل حساباً لاستخدام هذه الخدمة». 401 without a bearer.
+Three circles (products / customers / zones) are local navigation. Bottom nav is **five buttons**: home · orders · cart · wallet · account (home in the center, `initialIndex = 2`). Guest: do not call this path; zeros + lock dialog «يجب أن تسجّل حساباً لاستخدام هذه الخدمة». 401 without a bearer.
+
+The home **primary task block** is four buttons in this order (product brief): تسجيل طلب · تسليم الطلبات · استلام دفعة · قبول الطلبات. Scheduled + warehouse are a second row. Layouts: `flutter-rep.md` §7, §8.3, §9.2, §8.1, §8.9, §8.2.
 
 ```dart
 class HomeService extends BaseService {
@@ -1171,11 +1178,16 @@ Empty: «لا إسنادات ولا عهدة. ابدأ بزيارة محل.» Pu
 ⚠️ Search is `filter[search]` (Spatie) and matches `shop_name` only. Returns shops the rep registered **plus** active shops in the rep's zones.
 
 ```json
-[ { "id": 15, "shop_name": "سوبر ماركت النور", "zone_id": 12, "is_active": true },
-  { "id": 21, "shop_name": "بقالة أبو خالد", "zone_id": 13, "is_active": false } ]
+[ { "id": 15, "shop_name": "سوبر ماركت النور", "logo": null, "zone_id": 12, "zone": "المزة",
+    "address": "المزة - شارع الجلاء", "phone": "+963931000002", "lat": 33.51, "lng": 36.27,
+    "is_open": true, "is_active": true, "last_order_at": null } ]
 ```
 
-`id` **is the `retailer_id`** used by the cart, submit and payments. `is_active:false` = pending review (visible, cart may 404 later if rejected).
+`id` **is the `retailer_id`** used by the cart, submit and payments. `is_active:false` = pending review (visible, cart may 404 later if rejected). `logo` and `last_order_at` are always null. `is_open` is always true.
+
+#### Show  — `GET /app/rep/customers/{id}`
+
+Same card plus `owner_name`, `activity_type_id`, `categories[]`, `equipments[]`. 404 if not sourced by this rep and not an active shop in coverage.
 
 #### Register a shop in the field 🔁 — returns **201**
 
@@ -1184,6 +1196,7 @@ Empty: «لا إسنادات ولا عهدة. ابدأ بزيارة محل.» Pu
 ```json
 { "shop_name": "سوبر ماركت النور", "owner_name": "أحمد النور", "phone": "0933111222",
   "zone_id": 12, "activity_type_id": 2, "lat": 33.5102, "lng": 36.2913,
+  "address": "المزة فيلات شرقية", "category_ids": [1], "equipment_ids": [],
   "client_op_id": "c7a1…-uuid" }
 ```
 
@@ -1195,6 +1208,9 @@ Empty: «لا إسنادات ولا عهدة. ابدأ بزيارة محل.» Pu
 | `zone_id` | required, active and inside the channel coverage → **single** dropdown from `/public/refs.zones` |
 | `activity_type_id` | required, exists → **single** dropdown from `/public/refs.activity_types` |
 | `lat`/`lng` | optional numeric (from GPS) |
+| `address` | optional ≤255 |
+| `category_ids` | optional ints from refs `root_categories` |
+| `equipment_ids` | optional ints from refs `equipments` |
 | `client_op_id` | required ≤80 — generate a UUID **before** the first attempt; same value = same row (server-side dedupe, independent of the idempotency key) |
 
 Response 201: `{ "id": 88, "status": "pending_sync" }`
@@ -1204,12 +1220,18 @@ Response 201: `{ "id": 88, "status": "pending_sync" }`
 Errors: `422` on `zone_id` (`zone_not_found` / `zone_outside_coverage`), `activity_type_id`, `phone`.
 
 ```dart
-class Customer { final int id, zoneId; final String shopName; final bool isActive; /* fromJson */ }
+class Customer {
+  final int id, zoneId; final String shopName; final String? zone, address, phone; final bool isActive;
+  /* fromJson — logo always null, is_open always true, last_order_at always null */
+}
 
 class CustomerService extends BaseService {
   Future<Paged<Customer>> list({String? search, int page = 1, int perPage = 25}) => guard(() =>
       api.paged('/app/rep/customers', Customer.fromJson,
           query: {'page': page, 'per_page': perPage, if (search != null && search.isNotEmpty) 'filter[search]': search}));
+
+  Future<Customer> show(int id) => guard(() async =>
+      (await api.get('/app/rep/customers/$id', (d) => Customer.fromJson(d as Map<String, dynamic>))).data);
 
   Future<void> create(NewCustomer c, {required IdempotencyKey key}) => guard(() async {
         await api.post('/app/rep/customers', (_) => null, key: key, body: c.toJson()); // then re-list
@@ -1244,6 +1266,16 @@ class CustomersController extends GetxController {
 
 ### 5.8 Zones
 
+#### Coverage list
+
+`GET /app/rep/zones` — unpaginated array of assigned zones.
+
+```json
+[ { "id": 12, "name": "المزة", "governorate_id": 1, "shops_count": 4 } ]
+```
+
+Governorate label from `GET /public/refs`. `shops_count` = active retailers in that zone.
+
 #### Shops in a zone 📄
 
 `GET /app/rep/zones/{id}/shops?search=النور&page=1&per_page=25`
@@ -1251,10 +1283,12 @@ class CustomersController extends GetxController {
 ⚠️ Here the search param is **top-level `search`**, not `filter[search]`. Only `active` shops.
 
 ```json
-[ { "id": 15, "shop_name": "سوبر ماركت النور", "address": "المزة - شارع الجلاء", "is_open": true, "is_active": true, "last_order_at": null } ]
+[ { "id": 15, "shop_name": "سوبر ماركت النور", "logo": null, "zone_id": 12, "zone": "المزة",
+    "address": "المزة - شارع الجلاء", "phone": "+963931000002", "lat": 33.51, "lng": 36.27,
+    "is_open": true, "is_active": true, "last_order_at": null } ]
 ```
 
-`is_open` is always `true` and `last_order_at` always `null` — do not render an "open/closed" badge or a "last order" row.
+Same shop card as `GET /customers`. `is_open` is always `true` and `last_order_at` always `null` — do not invent a closing hour or a last-order row.
 
 Errors: `403 insufficient_permission` → zone not in the rep's coverage → «هذه المنطقة خارج تغطيتك».
 
@@ -1265,7 +1299,10 @@ Errors: `403 insufficient_permission` → zone not in the rep's coverage → «�
 Picker: governorate **filter** (not posted) then a **single** zone dropdown from refs, excluding `LocalStore.zoneIds`. No list of past requests exists. Toast «طلبك قيد الموافقة» and pop. Errors: `422 zone_id` (`zone_not_found` / `zone_outside_coverage`).
 
 ```dart
-class ZoneShop { final int id; final String shopName; final String? address; final bool isActive; /* fromJson */ }
+class ZoneCard { final int id, shopsCount; final int? governorateId; final String name; /* fromJson */ }
+class ZoneShop { final int id, zoneId; final String shopName; final String? zone, address, phone; final bool isActive; /* fromJson */ }
+Future<List<ZoneCard>> zones() => guard(() async =>
+    (await api.get('/app/rep/zones', (d) => (d as List).map((e) => ZoneCard.fromJson(e as Map<String, dynamic>)).toList())).data);
 Future<Paged<ZoneShop>> zoneShops(int zoneId, {String? search, int page = 1}) => guard(() =>
     api.paged('/app/rep/zones/$zoneId/shops', ZoneShop.fromJson, query: {'page': page, if (search?.isNotEmpty == true) 'search': search}));
 Future<String> requestZone(int zoneId, {String? note, required IdempotencyKey key}) => guard(() async =>
@@ -1288,23 +1325,33 @@ Future<String> requestZone(int zoneId, {String? note, required IdempotencyKey ke
 ⚠️ Do **not** send `sort`, `filter[zone_id]` (Spatie rejects unknown filters with a 400/422), `filter[offer_only]`, `filter[available_only]`.
 
 ```json
-[ { "id": 101, "name": "زيت عباد الشمس 1ل",
+[ { "id": 101, "name": "زيت عباد الشمس 1ل", "image": null,
+    "brand": { "id": 12, "name": "نور" },
     "channel": { "id": 1, "name": "قناة الشام" },
     "price": { "type": "simple", "value": 12000, "label": "12000" },
-    "availability": "in_stock" } ]
+    "availability": "in_stock",
+    "variants": [ { "id": 1, "label": "حبة", "barcode": null } ] } ]
 ```
 
-`price.type`: `simple` \| `tiered` (label «حسب الكمية» when tiered). `availability`: `in_stock` \| `low` \| `out_of_stock`. **No image, no SKU, no unit** in this response — show a letter avatar.
+`price.type`: `simple` \| `tiered` (label «حسب الكمية» when tiered). `availability`: `in_stock` \| `low` \| `out_of_stock`. `image` is often null — letter avatar. Empty `variants[]` → one qty chip and omit `variant_id`. Never invent variant names.
+
+`GET /app/rep/products/{id}` adds `images[]` and `long_description`. 404 outside the rep channel. Do not call `/app/retailer/products/{id}`.
 
 ```dart
+class ProductVariant { final int id; final String label; final String? barcode; /* fromJson */ }
 class Product {
   final int id, channelId, price; final String name, channelName, priceType, priceLabel, availability;
+  final String? image; final Map<String, dynamic>? brand; final List<ProductVariant> variants;
   factory Product.fromJson(Map<String, dynamic> j) => Product(
-      id: j['id'], name: j['name'], channelId: j['channel']['id'], channelName: j['channel']['name'] ?? '',
+      id: j['id'], name: j['name'], image: j['image'] as String?,
+      brand: j['brand'] as Map<String, dynamic>?,
+      channelId: j['channel']['id'], channelName: j['channel']['name'] ?? '',
       price: j['price']['value'] as int, priceType: j['price']['type'], priceLabel: j['price']['label'] ?? '',
-      availability: j['availability']);
+      availability: j['availability'],
+      variants: ((j['variants'] as List?) ?? []).map((e) => ProductVariant.fromJson(e as Map<String, dynamic>)).toList());
   bool get isTiered => priceType == 'tiered';
 }
+```
 
 Future<Paged<Product>> products({String? search, int? categoryId, int? brandId, String? barcode, int? zoneId, int page = 1}) =>
     guard(() async {
@@ -1316,7 +1363,7 @@ Future<Paged<Product>> products({String? search, int? categoryId, int? brandId, 
         if (barcode != null) 'barcode': barcode,
         if (zoneId != null) 'zone': zoneId,
       });
-      await Get.find<LocalStore>().rememberProducts(p.items); // cart lines carry no names
+      await Get.find<LocalStore>().rememberProducts(p.items);
       return p;
     });
 ```
@@ -1395,7 +1442,7 @@ Future<OfferDetail> offer(int id) => guard(() async => (await api.get('/app/offe
 
 `POST /app/rep/cart/lines` — `{ "retailer_id": 15, "product_id": 101, "variant_id": null, "qty": 24 }`
 
-⚠️ `qty` is **added** to an existing line for the same product/variant. There is **no PATCH and no DELETE** for a cart line. If the rep over-adds, the honest UI says «لا يمكن الإنقاص من الخادم. أرسل الطلب الحالي أو تواصل مع القناة.» — do not fake a local delete, the server still holds the qty.
+⚠️ `qty` is **added** to an existing line for the same product/variant. There is **no PATCH and no DELETE** for a cart line. The product brief therefore stages qty in a **local draft** on `OrderCaptureView` (`flutter-rep.md` §7.6) and only then POSTs. After a line is on the server, the honest UI says «لا يمكن الإنقاص من الخادم. أرسل الطلب الحالي أو تواصل مع القناة.» — do not fake a local delete, the server still holds the qty.
 
 Response = the whole cart (same shape as GET below). Errors: `404 not_found` (unknown retailer, or product not in the rep's channel).
 
@@ -1405,12 +1452,14 @@ Response = the whole cart (same shape as GET below). Errors: `404 not_found` (un
 
 ```json
 { "sections": [
-    { "retailer": { "id": 15, "shop_name": "سوبر ماركت النور" },
-      "lines": [ { "id": 501, "product_id": 101, "qty": 24, "unit_price": 11500 } ],
+    { "retailer": { "id": 15, "shop_name": "سوبر ماركت النور", "zone_id": 12 },
+      "channel": { "id": 1, "name": "قناة الشام" },
+      "created_at": "2026-03-01T10:00:00+03:00",
+      "lines": [ { "id": 501, "product_id": 101, "name": "زيت عباد الشمس 1ل", "qty": 24, "unit_price": 11500, "line_total": 276000 } ],
       "total": 276000, "discount": 0 } ] }
 ```
 
-Lines carry **no name, no image, no line_total** — name from `LocalStore.productName(id)`, `line_total = qty × unit_price` for display only. `total` and `discount` per section are server truth.
+Bind `name` and `line_total` from the server. `total` and `discount` per section are server truth.
 
 #### Submit one customer's section 🔁
 
@@ -1426,11 +1475,11 @@ Lines carry **no name, no image, no line_total** — name from `LocalStore.produ
 | `422 validation_failed` | section empty |
 | `404 not_found` | unknown customer |
 
-The server deletes the section; remove it from the UI on success.
+The server deletes the section; remove it from the UI on success. Then refresh `GET /app/rep/orders`.
 
 ```dart
-class CartLine { final int id, productId, qty, unitPrice; String get name => Get.find<LocalStore>().productName(productId) ?? 'منتج #$productId'; int get lineTotal => qty * unitPrice; /* fromJson */ }
-class CartSection { final int retailerId, total, discount; final String shopName; final List<CartLine> lines; /* fromJson */ }
+class CartLine { final int id, productId, qty, unitPrice, lineTotal; final String name; /* fromJson */ }
+class CartSection { final int retailerId, total, discount; final String shopName; final String? channelName, createdAt; final List<CartLine> lines; /* fromJson */ }
 class Cart { final List<CartSection> sections; int get grandTotal => sections.fold(0, (s, x) => s + x.total); /* fromJson */ }
 class SubmittedOrder { final int id, total; final String subOrderNo, status; /* fromJson */ }
 
@@ -1442,7 +1491,26 @@ class CartService extends BaseService {
   Future<SubmittedOrder> submit(int retailerId, {String? note, int discountPercent = 0, required IdempotencyKey key}) =>
       guard(() async => (await api.post('/app/rep/cart/sections/$retailerId/submit', (d) => SubmittedOrder.fromJson(d['sub_order']), key: key,
           body: {if (note?.isNotEmpty == true) 'note': note, if (discountPercent > 0) 'discount_percent': discountPercent})).data);
+  Future<List<RepOrder>> orders() => guard(() async =>
+      (await api.get('/app/rep/orders', (d) => (d as List).map((e) => RepOrder.fromJson(e as Map<String, dynamic>)).toList())).data);
 }
+```
+
+---
+
+### 5.12b Submitted orders
+
+`GET /app/rep/orders` — unpaginated. Sub-orders this rep submitted (`rep_id` is written on submit) or was later assigned.
+
+```json
+[ { "id": 9001, "sub_order_no": "SO-9001", "invoice_no": null, "created_at": "2026-03-01T10:00:00+03:00",
+    "status": "pending", "shop": "بقالية النور", "zone": "المزة", "channel": "شركة النور", "total": 47040 } ]
+```
+
+`invoice_no` is null until finance issues one — show «—».
+
+```dart
+class RepOrder { final int id, total; final String subOrderNo, createdAt, status; final String? invoiceNo, shop, zone, channel; /* fromJson */ }
 ```
 
 ---
@@ -1456,7 +1524,9 @@ class CartService extends BaseService {
     "invoice_no": null, "created_at": "2026-09-19T09:12:00+03:00" } ]
 ```
 
-`id` = `sub_order_id`. `invoice_no` is always `null` here.
+`id` = `sub_order_id`. `invoice_no` is always `null` here — still **show the row** as «—» (the product card lists the field).
+
+UI (`flutter-rep.md` §8.1): count of `data.length` at the top; horizontal cards grouped by `zone`; buttons قبول / رفض / تفاصيل. Accept removes the card (toast: confirm warehouse, then open deliveries). Do not `GET /deliveries` from this screen. Details = sheet of the same fields; no assignment-show route, no invented invoice lines.
 
 `POST /app/rep/assignments/{id}/accept` 🔁 — body `{}` → `{ "status": "accepted" }`
 `POST /app/rep/assignments/{id}/reject` 🔁 — `{ "reason": "خارج مساري اليوم" }` (≤255) → `{ "status": "unassigned" }`
@@ -1485,7 +1555,20 @@ class AssignmentService extends BaseService {
     "scheduled_at": "2026-09-20T10:00:00+03:00", "status": "postponed", "color": "amber" } ]
 ```
 
-`id` = `sub_order_id` → open the delivery detail (§5.17). `shop_logo` always null. `color` always `amber`.
+`id` = `sub_order_id`. `shop_logo` always null — letter avatar. `color` always `amber` — **paint the status icon blue** for postponed (product brief), not amber.
+
+UI (`flutter-rep.md` §8.9): horizontal cards. Each card, in order: shop logo · name · address · mobile (`tel:`) · scheduled date/time · **تفاصيل الطلب** (invoice via GET `/deliveries/{id}`) · status picker · colored icon.
+
+Status picker on the card:
+
+| Choice | Call | After success |
+|---|---|---|
+| تم التسليم | `POST /deliveries/{id}/complete` | **remove the card** |
+| لم يتم التسليم | reason → `fail` | icon **gray**; refresh |
+| مؤجلة | new datetime + reason → `postpone` (server notifies the channel board) | stay, new `scheduled_at`, icon **blue** |
+| ملغى | reason → `fail` | icon **red**; refresh |
+
+Icon colors on **this** screen only: green delivered · gray not-delivered · blue postponed · red cancelled. Do not reuse the delivery-list border table (§5.16).
 
 ```dart
 class ScheduledOrder { final int id; final String? shop, address, phone, scheduledAt; /* fromJson */ }
@@ -1508,7 +1591,11 @@ Future<List<ScheduledOrder>> scheduled({String? date}) => guard(() async => (awa
               { "sub_order_id": 920, "order_no": "SO-920", "shop": "مطعم الياسمين", "zone": "كفرسوسة", "handover_id": 56 } ] }
 ```
 
-`count` = number of **orders**, not handovers. Group the UI by `handover_id`: one card per handover listing its shops, a 4-digit code field, one confirm button.
+`count` = number of **orders**, not handovers.
+
+UI (`flutter-rep.md` §8.2): date, rep name, count, then a **table** of assigned orders — order/invoice no (`order_no`), shop, zone, **تفاصيل** (invoice; GET `/deliveries/{sub_order_id}` only, never the deliveries **list**), **استلام** to confirm receipt.
+
+Confirm is per **handover** with a 4-digit code that matches the warehouse panel: tapping استلام opens that field. Rows sharing `handover_id` confirm together and leave the table.
 
 `POST /app/rep/warehouse-receipts/{handoverId}/confirm` 🔁 — `{ "temp_code": "4821" }` (**exactly 4 chars**, String)
 
@@ -1554,6 +1641,8 @@ class WarehouseService extends BaseService {
 | `delivered` (**today only** — earlier days are not listed) | `gray` | `--text-2` |
 
 `zones[].delivered` counts today's delivered cards. `invoice_no` may be null until completion.
+
+UI (`flutter-rep.md` §8.3): day+date; per zone name + الكلي + المسلّم; **horizontal green-bordered** cards with shop, zone, channel, invoice, ordered_at, and on-card إلغاء / لم يتم التسليم / تأجيل / خريطة. After complete → gray; fail → red; postpone → **blue** (scheduled list still returns `amber` — paint the frame blue). Map uses cached shop coordinates only; never invent ETA.
 
 ```dart
 class DeliveryCard { final int id; final String? shop, zone, channel, invoiceNo, orderedAt; final String status, borderColor; /* fromJson */ }
@@ -1604,7 +1693,9 @@ All three optional. Omitted lines are delivered at their expected qty.
 { "invoice": { "no": "INV-913", "total": 276000 }, "receipt_no": "RC-1-000431", "ask_payment": true }
 ```
 
-`ask_payment` is always true → open the collect-payment screen (§5.20) pre-filled with `invoice.no`, `receipt_no`, `invoice.total`. Calling complete again on a delivered order returns the same invoice and receipt (safe).
+`ask_payment` is always true → show **استلام دفعة** (product brief) and open the collect sheet (§5.20 / §6.4b) pre-filled with `invoice.no`, `receipt_no`, `invoice.total`. Card border becomes gray after refresh. Calling complete again on a delivered order returns the same invoice and receipt (safe). Do not reserve a second receipt.
+
+Detail chrome (`flutter-rep.md` §8.4): each line shows image/letter + name + brand + attributes + qty + price, then **تعديل كمية** / **إرجاع** / **استبدال**. Matching purchase qty → **تم الاستلام**. Return/exchange: reason dialog → PATCH + `POST /return-requests` → badge «بانتظار قرار القناة». Do not paint money yellow/gray until the server says so (no follow-up list exists). Invoice total at the bottom of the list.
 
 Errors: `409 illegal_transition` → no confirmed handover → «أكّد استلام العهدة من المستودع أولاً» · `404`.
 
@@ -1738,6 +1829,8 @@ Future<String> createReturn({required int subOrderId, required String type, requ
 
 An amount above the invoice is allocated FIFO across the shop's other open invoices — show `retailer_receivable` after.
 
+Screen (`flutter-rep.md` §9.2): receipt no (shop-app linked, display/share) · date/time + rep name · shop picker · invoice picker (copy says optional; **request still requires it**) · helper text about invoice vs account · amount · تأكيد الاستلام → «تم استلام المبلغ» + wallet. From home: `reserve` on open. From complete: reuse `receipt_no`.
+
 | Error | UI |
 |---|---|
 | `409 duplicate_receipt_no` | «رقم الوصل مستخدم» |
@@ -1804,14 +1897,44 @@ class FinanceService extends BaseService {
 
 `GET /health` → token present → **skip intro** → `GET /app/session` → Shell → `GET /app/rep/home` for the six task badges, duty switch, greeting. Home is tasks + route + collections. Do **not** `Future.wait` deliveries/wallet/assignments from Home.
 
-### 6.3 Take an order for a shop
+### 6.3 Take an order for a shop (product brief — one screen)
 
-Customers (or zone shops) → pick `retailer_id` + its `zone_id` → Products with `zone=<shop zone>` (cache names) → optional `quote` when qty changes on a tiered item → `POST /cart/lines` per item → Cart review (names from cache) → discount ≤ `max_discount_percent` + note → `submit` → toast «تم إرسال الطلب SO-913» → section disappears.
+Home → **تسجيل طلب** → `OrderCaptureView` (do not split into a wizard):
+
+1. Zone dropdown (rep's saved `zone_ids`).
+2. Shop dropdown (`GET /zones/{id}/shops` or customers) — locked until a zone is picked.
+3. Product search (`filter[search]` / voice / barcode).
+4. Category chips from refs `root_categories` → `filter[category_id]`; hide the strip if none.
+5. Hide «الأكثر طلباً» (no ranking API).
+6. Offers horizontal slider (`GET /app/offers?filter[zone_id]=<shop zone>`).
+7. All channel products (`GET /app/rep/products?zone=<shop zone>`).
+8. Alibaba variants: independent `RxInt` **above** each variant from `variants[]`; qty 0 = not selected. Empty array → one qty chip, omit `variant_id`. Never invent variant names.
+9. Selections go to a **local draft** (`stagedLines`) named after the shop — not the cart. Floating bar **«قائمة المنتجات والعروض المختارة»** (count + estimated total). Tap → review sheet titled with the shop name, local +/−/delete, then **«أضف للسلة باسم {shop}»** → one `POST /cart/lines` per staged line (new idempotency key each). Then Cart tab `submit` with discount ≤ cap.
+
+Quote on debounce when a staged qty settles on a `tiered` price. Empty bar when the draft is empty. Guest: lock dialog.
 
 ### 6.4 Delivery day
 
-`assignments/{id}/accept` → warehouse hands over → `warehouse-receipts/{handoverId}/confirm` with the 4-digit code → set duty on (if not) → pings start → `GET /deliveries` → open card → adjust lines (`PATCH`) → `complete` (signature optional) → `ask_payment` → collect with the returned `receipt_no`/`invoice.no`/`invoice.total` → back to the route.
-Shop closed → `postpone` (date + reason). Refused → `fail` (reason, double confirm).
+**قبول الطلبات:** count at the top; horizontal cards grouped by zone; each card: shop, zone, channel, invoice (show «—» when null), date/time, **قبول** / **رفض** / **تفاصيل**. Accept → remove the card; toast to confirm warehouse handover; do **not** `GET /deliveries` from this screen. Reject → reason dialog.
+
+Warehouse `temp_code` (4 digits) on **استلام طلب مستودع**: date + rep name + count + table (order no, shop, zone, details, receive). Then pings start if on duty.
+
+**طلبات مجدولة:** horizontal cards (logo, name, address, phone, scheduled_at, تفاصيل, status picker). Icon: green delivered (then remove) · gray not-delivered · blue postponed · red cancelled. Postpone sends a new datetime through `postpone` (channel board is server-side).
+
+**تسليم الطلبات:** day+date header; per zone: name + الكلي + المسلّم; **horizontal green-bordered cards** with shop, zone, channel, invoice, ordered_at, and on-card actions:
+
+- إلغاء → confirm → `fail` reason «ألغاه المندوب» → red border
+- لم يتم التسليم → reason dialog → `fail` → red
+- تأجيل → date+time+reason → `postpone` → blue border, card moves to scheduled
+- عرض على الخريطة → shop `lat`/`lng` from customer cache only; no invented ETA
+
+Tap the card body → detail: image/letter, name, brand, attributes (`variant`), qty, price, buttons **تعديل كمية** / **إرجاع** / **استبدال**. Invoice total at the bottom. Matching qty → **تم الاستلام** (`complete`). Shortage → adjust then save. Damaged/rejected → reason sheet → `PATCH` + `POST /return-requests`; badge «بانتظار قرار القناة» — do not fake channel accept or yellow/gray money. After complete: gray border + **استلام دفعة** opens §6.4b pre-filled (`receipt_no`, `invoice.no`, `invoice.total`). Do not reserve a second receipt.
+
+### 6.4b Collect payment
+
+Home or the post-complete button. Screen fields in this order: receipt no (shop-app linked — display/share, never typed except paste) · date/time + rep name · shop picker · invoice picker (UI optional copy; **API requires `invoice_no`** — disable confirm until one is chosen, or pick from receivables) · amount · **تأكيد الاستلام**. Success: «تم استلام المبلغ» + `wallet_balance`. Refresh home so `collected_today` moves.
+
+Stand-alone from home: `reserve` first. From complete: use the returned receipt.
 
 ### 6.5 End of day
 
@@ -1900,17 +2023,16 @@ HTTP → behaviour summary:
 
 | Path / feature | Status | What the app does instead |
 |---|---|---|
-| `GET /app/notifications`, `POST /app/notifications/read-all`, `DELETE /app/notifications`, `POST /app/devices/push-token` | ❌ 404 | no bell, no FCM registration |
+| `GET /app/notifications`, `POST /app/notifications/read-all`, `DELETE /app/notifications`, `POST /app/devices/push-token` | ❌ 404 | build the inbox chrome empty (`RemoteNotReady`); no FCM |
 | `GET /app/sync/pull`, `POST /app/sync/push`, `GET /app/sync/status`, `POST /app/sync/resolve-conflict` | ❌ | online only; retry on reconnect |
-| `GET /app/content/home-blocks` | ❌ | composed home from `GET /app/rep/home` |
+| `GET /app/content/home-blocks` | ❌ | composed home from `GET /app/rep/home`; newest slider = first page of products |
 | `GET /app/loyalty`, `POST /app/loyalty/redeem` | ❌ | no points tab |
 | `GET /public/app-config` | ❌ | no forced update; store review manual. **Not** the intro source |
 | `GET/PUT /platform/content/intro`, `GET/PUT /channel/content/intro` | live on **other** guards | 403 `wrong_guard` — never call. Apps read `GET /public/content/intro` |
 | `GET /channels` (any channel directory) | never planned for the app | channel id from invite / QA constant |
-| `GET /app/rep/zones` (my coverage) | ❌ | `LocalStore.zoneIds` |
 | `PATCH`/`DELETE /app/rep/cart/lines/{id}` | ❌ | qty only goes up; honest message |
 | `GET /app/rep/return-requests` (list) | ❌ | keep `request_no` locally |
-| media upload (photos, product images) | ❌ | `image` is null everywhere; letter avatar |
+| media upload (photos, product images) | ❌ | `image`/`logo` is null everywhere; letter avatar |
 | `/app/retailer/*` | live but **retailer kind only** → 403 | never call from the rep app |
 
 Anything in the catalog marked `contract: proposed` is not a route.
@@ -1928,22 +2050,25 @@ Anything in the catalog marked `contract: proposed` is not a route.
 | 4 | `auth/register` | `RegisterController` | refs, register | — |
 | 5 | `shell` | `ShellController` | setDuty (top bar) | — |
 | 6 | `home` | `HomeController` | `GET /app/rep/home` only (never deliveries) | «لا إسنادات ولا عهدة. ابدأ بزيارة محل.» |
-| 7 | `customers` (+ new customer sheet) | `CustomersController`, `NewCustomerController` | customers GET/POST, refs | «لا زبائن بعد. أضف محلًا أو افتح منطقة.» |
-| 8 | `zones` (shops per zone + request zone) | `ZoneShopsController`, `RequestZoneController` | zones/{id}/shops, zones POST, refs | «لا محلات في هذه المنطقة.» |
-| 9 | `products` (+ barcode) | `ProductsController` | products, quote | «لا منتجات تطابق البحث.» |
+| 6b | `order_capture` | `OrderCaptureController` | zones/shops or customers, products, offers, quote, cart/lines | «اختر المنطقة ثم المحل.» |
+| 7 | `customers` (+ detail + new customer sheet) | `CustomersController`, `CustomerDetailController`, `NewCustomerController` | customers GET/POST/`{id}`, refs | «لا زبائن بعد. أضف محلًا أو افتح منطقة.» |
+| 8 | `zones` (coverage + shops + request) | `ZonesController`, `ZoneShopsController`, `RequestZoneController` | zones GET, zones/{id}/shops, zones POST, refs | «لا مناطق معيّنة.» |
+| 9 | `products` (+ detail + barcode) | `ProductsController`, `ProductDetailController` | products, products/{id}, quote | «لا منتجات تطابق البحث.» |
 | 10 | `offers` (list + detail) | `OffersController`, `OfferDetailController` | offers, offers/{id}, cart/lines | «لا عروض متاحة الآن.» |
 | 11 | `cart` | `CartController` | cart, cart/lines, submit | «السلة فارغة. اختر محلًا وأضف منتجات.» |
+| 11b | `orders` | `OrdersController` | `GET /app/rep/orders` | «لا طلبات بعد. أرسل سلة محل.» |
 | 12 | `assignments` | `AssignmentsController` | assignments, accept, reject | «لا إسنادات تنتظر قبولك.» |
-| 13 | `scheduled` | `ScheduledController` | scheduled-orders | «لا طلبات مؤجَّلة.» |
+| 13 | `scheduled` | `ScheduledController` | scheduled-orders, deliveries/{id} complete/fail/postpone | «لا طلبات مؤجَّلة.» |
 | 14 | `warehouse` | `WarehouseController` | warehouse-receipts, confirm | «لا عهدة بانتظارك. راجع المستودع.» |
 | 15 | `deliveries` | `DeliveriesController` | deliveries | «لا مسار اليوم. اقبل إسنادًا أو أكّد عهدة.» |
-| 16 | `delivery_detail` | `DeliveryDetailController` | deliveries/{id}, patch line, complete, postpone, fail | — |
+| 16 | `delivery_detail` | `DeliveryDetailController` | deliveries/{id}, patch line, complete, postpone, fail, return-requests | — |
 | 17 | `returns` (create sheet) | `ReturnRequestController` | return-requests | «لا مرتجعات محفوظة.» |
 | 18 | `wallet` | `WalletController` | wallet | — |
 | 19 | `collect_payment` | `CollectPaymentController` | receipts/reserve, payments | — |
 | 20 | `receivables` | `ReceivablesController` | receivables | «لا ذمم مفتوحة.» |
 | 21 | `withdrawals` (+ new) | `WithdrawalsController` | wallet/withdrawals GET/POST | «لا تسليمات نقدية بعد.» |
-| 22 | `settings` | `SettingsController` | logout | — |
+| 22 | `settings` | `SettingsController` | logout, wallet.stats, customers meta | — |
+| 23 | `notifications` | `NotificationsController` | none — `RemoteNotReady` | «لا إشعارات بعد.» |
 | — | background | `LocationController` | locations/ping | — |
 
 ### Completion checklist per screen
