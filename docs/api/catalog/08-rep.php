@@ -42,10 +42,10 @@ return [
                 'scheduled' => 1,
                 'warehouse_receipts' => 2,
             ],
-            'loyalty' => null,
+            'loyalty' => ['points' => 0, 'tier' => 'bronze', 'next_tier' => ['name' => 'silver', 'remaining' => 1000]],
             'unread_notifications' => 0,
         ],
-        'd' => 'Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.',
+        'd' => 'Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is the EP-APP-110 snapshot (points 0 / bronze when the wallet is empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.',
     ]),
 
     ep('EP-RP-010', 'SP-06', 'GET', '/app/rep/products', 'rep', null, [
@@ -130,7 +130,7 @@ return [
                 'discount' => 0,
             ]],
         ],
-        'd' => 'Same shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.',
+        'd' => 'Same shape as GET /cart. qty increments an existing (product, variant) line. PATCH/DELETE the line via EP-RP-025/026.',
     ]),
     ep('EP-RP-022', 'SP-09', 'GET', '/app/rep/cart', 'rep', null, [
         'name' => 'Rep cart',
@@ -174,6 +174,29 @@ return [
             'total' => 47040,
         ]],
         'd' => 'Sub-orders this rep submitted (rep_id is set on submit) or was later assigned. invoice_no is null until finance issues one.',
+    ]),
+
+    ep('EP-RP-025', 'SP-09', 'PATCH', '/app/rep/cart/lines/{id}', 'rep', null, [
+        'name' => 'Update shop-cart line qty',
+        'name_ar' => 'تعديل كمية سطر سلة محل',
+        'b' => ['qty' => 6],
+        'r' => [
+            'sections' => [[
+                'retailer' => ['id' => 481, 'shop_name' => 'بقالية النور', 'zone_id' => 12],
+                'channel' => ['id' => 1, 'name' => 'شركة النور'],
+                'created_at' => '2026-03-01T10:00:00+03:00',
+                'lines' => [['id' => 11, 'product_id' => 880, 'name' => 'زيت دوار الشمس 1 لتر', 'qty' => 6, 'unit_price' => 12000, 'line_total' => 72000]],
+                'total' => 72000,
+                'discount' => 0,
+            ]],
+        ],
+        'd' => 'Same cart shape as GET /cart. qty 0 deletes the line (same as EP-RP-026).',
+    ]),
+    ep('EP-RP-026', 'SP-09', 'DELETE', '/app/rep/cart/lines/{id}', 'rep', null, [
+        'name' => 'Remove shop-cart line',
+        'name_ar' => 'حذف سطر سلة محل',
+        'r' => ['sections' => []],
+        'd' => 'Same cart shape as GET /cart. 404 if the line is not on this rep cart.',
     ]),
 
     ep('EP-RP-030', 'SP-10', 'GET', '/app/rep/assignments', 'rep', 'rp.delivery.accept', [
@@ -376,7 +399,7 @@ return [
             'wallet_balance' => 210000,
             'retailer_receivable' => 0,
         ],
-        'd' => 'receipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).',
+        'd' => 'receipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01). invoice_no is optional — omitted, the oldest open invoice for this shop and rep is allocated FIFO.',
         'in' => 'REQ-IN-01',
         'e' => [409 => 'duplicate_receipt_no'],
     ]),
@@ -511,5 +534,12 @@ return [
         'b' => ['zone_id' => 14, 'note' => 'طلب تغطية كفرسوسة'],
         'r' => ['status' => 'pending_approval'],
         'd' => 'DOC-12B TB-RP-055.',
+    ]),
+    ep('EP-RP-073', 'SP-01', 'PATCH', '/app/rep/profile', 'rep', null, [
+        'name' => 'Update rep profile',
+        'name_ar' => 'تعديل ملف المندوب',
+        'b' => ['name' => 'أحمد العلي', 'phone' => '+963933000001'],
+        'r' => ['name' => 'أحمد العلي', 'phone' => '+963933000001', 'avatar' => null],
+        'd' => 'Name and phone only. avatar stays null until media upload. Phone must be unique among app users.',
     ]),
 ];

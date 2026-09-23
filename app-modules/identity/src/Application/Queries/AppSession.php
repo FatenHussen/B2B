@@ -37,8 +37,8 @@ final class AppSession
             ],
             'permissions' => $this->access->permissionsFor($user),
             'feature_flags' => config('app.feature_flags', [
-                'offline_orders' => false,
-                'loyalty' => false,
+                'offline_orders' => true,
+                'loyalty' => true,
             ]),
             'sync_cursor' => '',
             'server_time' => now()->timezone('Asia/Damascus')->toIso8601String(),

@@ -10,7 +10,9 @@ use Modules\Core\Http\ApiController;
 use Modules\Ordering\Application\Actions\AcceptAssignment;
 use Modules\Ordering\Application\Actions\AddRepCartLine;
 use Modules\Ordering\Application\Actions\RejectAssignment;
+use Modules\Ordering\Application\Actions\RemoveRepCartLine;
 use Modules\Ordering\Application\Actions\SubmitRepCartSection;
+use Modules\Ordering\Application\Actions\UpdateRepCartLine;
 use Modules\Ordering\Application\Queries\ListRepAssignments;
 use Modules\Ordering\Application\Queries\ListRepOrders;
 use Modules\Ordering\Application\Queries\ListRepScheduledOrders;
@@ -18,12 +20,23 @@ use Modules\Ordering\Application\Queries\ShowRepCart;
 use Modules\Ordering\Presentation\Http\Requests\AddRepCartLineRequest;
 use Modules\Ordering\Presentation\Http\Requests\RejectAssignmentRequest;
 use Modules\Ordering\Presentation\Http\Requests\SubmitRepCartRequest;
+use Modules\Ordering\Presentation\Http\Requests\UpdateCartLineRequest;
 
 final class RepOrderingController extends ApiController
 {
     public function addLine(AddRepCartLineRequest $request, AddRepCartLine $action): JsonResponse
     {
         return $this->ok($action($request->user(), $request->validated()));
+    }
+
+    public function updateLine(UpdateCartLineRequest $request, UpdateRepCartLine $action, int $id): JsonResponse
+    {
+        return $this->ok($action($request->user(), $id, $request->validated()));
+    }
+
+    public function deleteLine(Request $request, RemoveRepCartLine $action, int $id): JsonResponse
+    {
+        return $this->ok($action($request->user(), $id));
     }
 
     public function cart(Request $request, ShowRepCart $query): JsonResponse

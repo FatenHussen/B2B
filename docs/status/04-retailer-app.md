@@ -1,10 +1,10 @@
 # تطبيق التاجر — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2026-09-20 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 33 | 28 | 0 | 5 | 0 |
+| 33 | 33 | 0 | 0 | 0 |
 
 ## التسجيل — 1/1
 
@@ -64,13 +64,13 @@ guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2
 | ✅ | EP-RT-044 | SP-12 | `GET` | `/app/retailer/return-requests` | — | Returns | مرتجعاتي |
 | ✅ | EP-RT-045 | SP-12 | `POST` | `/app/retailer/reps/{id}/rate` | — | Delivery | تقييم المندوب |
 
-## الدفعات والحساب — 0/5
+## الدفعات والحساب — 5/5
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ❌ | EP-RT-050 | SP-13 | `POST` | `/app/retailer/payments` | `rt.payment.record` | — | تسجيل دفعة |
-| ❌ | EP-RT-051 | SP-13 | `GET` | `/app/retailer/account/summary` | — | — | ملخص الحساب |
-| ❌ | EP-RT-052 | SP-13 | `GET` | `/app/retailer/account/statement` | `rt.account.statement` | — | كشف الحساب |
-| ❌ | EP-RT-053 | SP-13 | `POST` | `/app/retailer/account/statement/export` | `rt.account.statement` | — | تصدير الكشف |
-| ❌ | EP-RT-054 | SP-13 | `GET` | `/app/retailer/debts` | — | — | الذمم |
+| ✅ | EP-RT-050 | SP-13 | `POST` | `/app/retailer/payments` | `rt.payment.record` | Finance | gated by `app.kind:retailer` — the kind implies `rt.payment.record` |
+| ✅ | EP-RT-051 | SP-13 | `GET` | `/app/retailer/account/summary` | — | Finance | ملخص الحساب |
+| ✅ | EP-RT-052 | SP-13 | `GET` | `/app/retailer/account/statement` | `rt.account.statement` | Finance | gated by `app.kind:retailer` — the kind implies `rt.account.statement` |
+| ✅ | EP-RT-053 | SP-13 | `POST` | `/app/retailer/account/statement/export` | `rt.account.statement` | Finance | gated by `app.kind:retailer` — the kind implies `rt.account.statement` |
+| ✅ | EP-RT-054 | SP-13 | `GET` | `/app/retailer/debts` | — | Finance | الذمم |
 

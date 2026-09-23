@@ -57,7 +57,18 @@ final class ChannelDashboardController extends ApiController
             return $this->ok(['type' => $type, 'rows' => [], 'totals' => []]);
         }
 
-        $snapshot = DailySnapshot::query()->orderByDesc('snapshot_date')->first();
+        $from = $request->query('date_from');
+        $to = $request->query('date_to');
+        $snapshotQuery = DailySnapshot::query()->orderByDesc('snapshot_date')->orderByDesc('id');
+        if (is_string($from) && $from !== '') {
+            $snapshotQuery->whereDate('snapshot_date', '>=', $from);
+        }
+        if (is_string($to) && $to !== '') {
+            $snapshotQuery->whereDate('snapshot_date', '<=', $to);
+        }
+        $snapshot = $snapshotQuery->first()
+            ?? DailySnapshot::query()->orderByDesc('snapshot_date')->orderByDesc('id')->first();
+
         $payload = is_array($snapshot?->payload) ? $snapshot->payload : [];
         $reports = is_array($payload['reports'] ?? null) ? $payload['reports'] : [];
         $block = is_array($reports[$type] ?? null) ? $reports[$type] : [];
@@ -66,6 +77,8 @@ final class ChannelDashboardController extends ApiController
             'type' => $type,
             'rows' => $block['rows'] ?? [],
             'totals' => $block['totals'] ?? [],
+        ], [
+            'snapshot_date' => $snapshot?->snapshot_date?->toDateString(),
         ]);
     }
 
@@ -85,15 +98,28 @@ final class ChannelDashboardController extends ApiController
         return $this->ok(['job_id' => $jobId]);
     }
 
-    public function margins(): JsonResponse
+    public function margins(Request $request): JsonResponse
     {
-        $snapshot = DailySnapshot::query()->orderByDesc('snapshot_date')->first();
+        $from = $request->query('date_from');
+        $to = $request->query('date_to');
+        $snapshotQuery = DailySnapshot::query()->orderByDesc('snapshot_date')->orderByDesc('id');
+        if (is_string($from) && $from !== '') {
+            $snapshotQuery->whereDate('snapshot_date', '>=', $from);
+        }
+        if (is_string($to) && $to !== '') {
+            $snapshotQuery->whereDate('snapshot_date', '<=', $to);
+        }
+        $snapshot = $snapshotQuery->first()
+            ?? DailySnapshot::query()->orderByDesc('snapshot_date')->first();
+
         $payload = is_array($snapshot?->payload) ? $snapshot->payload : [];
         $margins = is_array($payload['margins'] ?? null) ? $payload['margins'] : [];
 
         return $this->ok([
             'by_product' => $margins['by_product'] ?? [],
             'by_zone' => $margins['by_zone'] ?? [],
+        ], [
+            'snapshot_date' => $snapshot?->snapshot_date?->toDateString(),
         ]);
     }
 }

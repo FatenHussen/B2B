@@ -28,6 +28,7 @@ return [
     'rep_pending_review' => 'ملف المندوب قيد المراجعة.',
     'rep_not_active' => 'حساب المندوب غير نشط.',
     'not_found' => 'غير موجود.',
+    'phone_taken' => 'هذا الرقم مستخدم مسبقاً.',
     'illegal_rep_transition' => 'انتقال حالة المندوب غير مسموح.',
     'illegal_zone_request_transition' => 'طلب المنطقة ليس قيد الموافقة.',
     'illegal_sourced_shop_transition' => 'المحل ليس بانتظار المزامنة.',

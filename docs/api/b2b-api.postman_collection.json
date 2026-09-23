@@ -11529,7 +11529,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-021** · SP-09 · إضافة لسلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
+                                "description": "**EP-RP-021** · SP-09 · إضافة لسلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. PATCH/DELETE the line via EP-RP-025/026.",
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"retailer_id\": 481,\n    \"product_id\": 880,\n    \"variant_id\": 1,\n    \"qty\": 4\n}",
@@ -11603,7 +11603,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-021** · SP-09 · إضافة لسلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
+                                        "description": "**EP-RP-021** · SP-09 · إضافة لسلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. PATCH/DELETE the line via EP-RP-025/026.",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"retailer_id\": 481,\n    \"product_id\": 880,\n    \"variant_id\": 1,\n    \"qty\": 4\n}",
@@ -12038,6 +12038,332 @@
                                         }
                                     ],
                                     "body": "{\n    \"data\": [\n        {\n            \"id\": 9001,\n            \"sub_order_no\": \"SO-9001\",\n            \"invoice_no\": null,\n            \"created_at\": \"2026-03-01T10:00:00+03:00\",\n            \"status\": \"pending\",\n            \"shop\": \"بقالية النور\",\n            \"zone\": \"المزة\",\n            \"channel\": \"شركة النور\",\n            \"total\": 47040\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-RP-025 Update shop-cart line qty",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/cart/lines/{{id}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "cart",
+                                        "lines",
+                                        ":id"
+                                    ],
+                                    "query": [],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "{{id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-RP-025** · SP-09 · تعديل كمية سطر سلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame cart shape as GET /cart. qty 0 deletes the line (same as EP-RP-026).",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"qty\": 6\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RP-025",
+                                    "originalRequest": {
+                                        "method": "PATCH",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/rep/cart/lines/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "rep",
+                                                "cart",
+                                                "lines",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-RP-025** · SP-09 · تعديل كمية سطر سلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame cart shape as GET /cart. qty 0 deletes the line (same as EP-RP-026).",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"qty\": 6\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"sections\": [\n            {\n                \"retailer\": {\n                    \"id\": 481,\n                    \"shop_name\": \"بقالية النور\",\n                    \"zone_id\": 12\n                },\n                \"channel\": {\n                    \"id\": 1,\n                    \"name\": \"شركة النور\"\n                },\n                \"created_at\": \"2026-03-01T10:00:00+03:00\",\n                \"lines\": [\n                    {\n                        \"id\": 11,\n                        \"product_id\": 880,\n                        \"name\": \"زيت دوار الشمس 1 لتر\",\n                        \"qty\": 6,\n                        \"unit_price\": 12000,\n                        \"line_total\": 72000\n                    }\n                ],\n                \"total\": 72000,\n                \"discount\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-RP-026 Remove shop-cart line",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/cart/lines/{{id}}",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "cart",
+                                        "lines",
+                                        ":id"
+                                    ],
+                                    "query": [],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "{{id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-RP-026** · SP-09 · حذف سطر سلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame cart shape as GET /cart. 404 if the line is not on this rep cart."
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RP-026",
+                                    "originalRequest": {
+                                        "method": "DELETE",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/rep/cart/lines/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "rep",
+                                                "cart",
+                                                "lines",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-RP-026** · SP-09 · حذف سطر سلة محل\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nSame cart shape as GET /cart. 404 if the line is not on this rep cart."
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"sections\": []\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -14628,7 +14954,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-060** · SP-13 · تحصيل دفعة\n\nالدور: **المندوب** (`rep`)\n\nالصلاحية: `rp.payment.collect`\n\nالحارس: `app`\n\nIntegration: REQ-IN-01\n\nreceipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).\n\nErrors:\n- HTTP 409: `duplicate_receipt_no`",
+                                "description": "**EP-RP-060** · SP-13 · تحصيل دفعة\n\nالدور: **المندوب** (`rep`)\n\nالصلاحية: `rp.payment.collect`\n\nالحارس: `app`\n\nIntegration: REQ-IN-01\n\nreceipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01). invoice_no is optional — omitted, the oldest open invoice for this shop and rep is allocated FIFO.\n\nErrors:\n- HTTP 409: `duplicate_receipt_no`",
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"receipt_no\": \"RCPT-10041\",\n    \"retailer_id\": 481,\n    \"invoice_no\": \"INV-501\",\n    \"amount\": 48000,\n    \"paid_at\": \"2026-03-01T12:08:00+03:00\",\n    \"client_op_id\": \"op_rep_pay_10041\"\n}",
@@ -14701,7 +15027,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-060** · SP-13 · تحصيل دفعة\n\nالدور: **المندوب** (`rep`)\n\nالصلاحية: `rp.payment.collect`\n\nالحارس: `app`\n\nIntegration: REQ-IN-01\n\nreceipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).\n\nErrors:\n- HTTP 409: `duplicate_receipt_no`",
+                                        "description": "**EP-RP-060** · SP-13 · تحصيل دفعة\n\nالدور: **المندوب** (`rep`)\n\nالصلاحية: `rp.payment.collect`\n\nالحارس: `app`\n\nIntegration: REQ-IN-01\n\nreceipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01). invoice_no is optional — omitted, the oldest open invoice for this shop and rep is allocated FIFO.\n\nErrors:\n- HTTP 409: `duplicate_receipt_no`",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"receipt_no\": \"RCPT-10041\",\n    \"retailer_id\": 481,\n    \"invoice_no\": \"INV-501\",\n    \"amount\": 48000,\n    \"paid_at\": \"2026-03-01T12:08:00+03:00\",\n    \"client_op_id\": \"op_rep_pay_10041\"\n}",
@@ -17041,7 +17367,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-RP-002** · SP-01 · رئيسية المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token."
+                                "description": "**EP-RP-002** · SP-01 · رئيسية المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is the EP-APP-110 snapshot (points 0 / bronze when the wallet is empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token."
                             },
                             "response": [
                                 {
@@ -17095,7 +17421,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-RP-002** · SP-01 · رئيسية المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token."
+                                        "description": "**EP-RP-002** · SP-01 · رئيسية المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is the EP-APP-110 snapshot (points 0 / bronze when the wallet is empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -17106,7 +17432,165 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"greeting\": {\n            \"name\": \"أحمد العلي\",\n            \"avatar\": null\n        },\n        \"server_time\": \"2026-03-01T09:12:44+03:00\",\n        \"on_duty\": true,\n        \"tracking_enabled\": true,\n        \"tasks\": {\n            \"orders_today\": 0,\n            \"deliveries_pending\": 3,\n            \"collected_today\": 48000,\n            \"assignments\": 2,\n            \"scheduled\": 1,\n            \"warehouse_receipts\": 2\n        },\n        \"loyalty\": null,\n        \"unread_notifications\": 0\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"greeting\": {\n            \"name\": \"أحمد العلي\",\n            \"avatar\": null\n        },\n        \"server_time\": \"2026-03-01T09:12:44+03:00\",\n        \"on_duty\": true,\n        \"tracking_enabled\": true,\n        \"tasks\": {\n            \"orders_today\": 0,\n            \"deliveries_pending\": 3,\n            \"collected_today\": 48000,\n            \"assignments\": 2,\n            \"scheduled\": 1,\n            \"warehouse_receipts\": 2\n        },\n        \"loyalty\": {\n            \"points\": 0,\n            \"tier\": \"bronze\",\n            \"next_tier\": {\n                \"name\": \"silver\",\n                \"remaining\": 1000\n            }\n        },\n        \"unread_notifications\": 0\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-RP-073 Update rep profile",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/rep/profile",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "rep",
+                                        "profile"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-RP-073** · SP-01 · تعديل ملف المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nName and phone only. avatar stays null until media upload. Phone must be unique among app users.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"أحمد العلي\",\n    \"phone\": \"+963933000001\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RP-073",
+                                    "originalRequest": {
+                                        "method": "PATCH",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/rep/profile",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "rep",
+                                                "profile"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-RP-073** · SP-01 · تعديل ملف المندوب\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nName and phone only. avatar stays null until media upload. Phone must be unique among app users.",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"name\": \"أحمد العلي\",\n    \"phone\": \"+963933000001\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"name\": \"أحمد العلي\",\n        \"phone\": \"+963933000001\",\n        \"avatar\": null\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }
@@ -21325,6 +21809,126 @@
                                                 }
                                             ],
                                             "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"sku\": \"OIL-SUN-1L\",\n            \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n            \"status\": \"active\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-014A Product detail",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/products/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "products",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-014A** · SP-06 · تفاصيل منتج\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.catalog.view`\n\nالحارس: `channel`\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-014A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/products/{{id}}",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "products",
+                                                        ":id"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-014A** · SP-06 · تفاصيل منتج\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.catalog.view`\n\nالحارس: `channel`\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"pricing\": null,\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"id\": 880\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -27150,6 +27754,126 @@
                                     ]
                                 },
                                 {
+                                    "name": "EP-SC-080A Invoice detail",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/invoices/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "invoices",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-080A** · SP-13 · تفاصيل فاتورة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.finance.view`\n\nالحارس: `channel`\n\nlines[].id is the line_id for credit-note. Foreign id → 404."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-080A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/invoices/{{id}}",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "invoices",
+                                                        ":id"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-080A** · SP-13 · تفاصيل فاتورة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.finance.view`\n\nالحارس: `channel`\n\nlines[].id is the line_id for credit-note. Foreign id → 404."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 501,\n        \"no\": \"INV-501\",\n        \"status\": \"open\",\n        \"retailer_id\": 481,\n        \"rep_id\": 70,\n        \"total\": 48000,\n        \"paid_total\": 0,\n        \"credited_total\": 0,\n        \"remaining\": 48000,\n        \"lines\": [\n            {\n                \"id\": 1,\n                \"product_id\": 880,\n                \"qty\": 4,\n                \"amount\": 48000\n            }\n        ],\n        \"created_at\": \"2026-03-01T09:00:00+03:00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
                                     "name": "EP-SC-081 Issue credit note",
                                     "request": {
                                         "method": "POST",
@@ -27826,7 +28550,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep"
+                                        "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id."
                                     },
                                     "response": [
                                         {
@@ -27880,7 +28604,7 @@
                                                     ],
                                                     "variable": []
                                                 },
-                                                "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep"
+                                                "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id."
                                             },
                                             "status": "OK",
                                             "code": 200,
@@ -27891,7 +28615,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"group_by\": \"zone\",\n        \"buckets\": {\n            \"0_30\": 12000000,\n            \"31_60\": 4000000,\n            \"61_90\": 1500000,\n            \"over_90\": 200000\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"group_by\": \"zone\",\n        \"buckets\": {\n            \"0_30\": 12000000,\n            \"31_60\": 4000000,\n            \"61_90\": 1500000,\n            \"over_90\": 200000\n        },\n        \"groups\": [\n            {\n                \"key\": 12,\n                \"label\": null,\n                \"buckets\": {\n                    \"0_30\": 8000000,\n                    \"31_60\": 0,\n                    \"61_90\": 0,\n                    \"over_90\": 0\n                }\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -29322,7 +30046,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`"
+                                        "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`\n\nctr is integer basis points at scale 10^4 (840/12000 = 700), never a float."
                                     },
                                     "response": [
                                         {
@@ -29378,7 +30102,7 @@
                                                         }
                                                     ]
                                                 },
-                                                "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`"
+                                                "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`\n\nctr is integer basis points at scale 10^4 (840/12000 = 700), never a float."
                                             },
                                             "status": "OK",
                                             "code": 200,
@@ -29389,7 +30113,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"impressions\": 12000,\n        \"clicks\": 840,\n        \"ctr\": 0.07\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"impressions\": 12000,\n        \"clicks\": 840,\n        \"ctr\": 700\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -31548,6 +32272,833 @@
                                             "body": "{\n    \"data\": {\n        \"id\": 490,\n        \"status\": \"linked\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
+                                },
+                                {
+                                    "name": "EP-SC-130A Own channel settings",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-130A** · SP-15 · إعدادات القناة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.settings.view`\n\nالحارس: `channel`\n\nThe authenticated channel tenant reading itself. No X-Channel-Id."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-130A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-130A** · SP-15 · إعدادات القناة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.settings.view`\n\nالحارس: `channel`\n\nThe authenticated channel tenant reading itself. No X-Channel-Id."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"شركة النور\",\n        \"slug\": \"alnoor\",\n        \"legal_name\": \"شركة النور للتجارة\",\n        \"tax_number\": \"123456789\",\n        \"phone\": \"+963911000001\",\n        \"email\": \"ops@alnoor.example\",\n        \"status\": \"active\",\n        \"allowed_next\": [\n            \"suspended\",\n            \"archived\"\n        ],\n        \"settings\": {},\n        \"created_at\": \"2026-01-01T00:00:00+03:00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-130B Update own channel settings",
+                                    "request": {
+                                        "method": "PUT",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-130B** · SP-15 · تحديث إعدادات القناة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.settings.update`\n\nالحارس: `channel`\n\nPartial update. status is not writable here — lifecycle stays on the platform.",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"name\": \"شركة النور\",\n    \"legal_name\": \"شركة النور للتجارة\",\n    \"tax_number\": \"123456789\",\n    \"phone\": \"+963911000001\",\n    \"email\": \"ops@alnoor.example\",\n    \"settings\": {\n        \"locale\": \"ar\"\n    }\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-130B",
+                                            "originalRequest": {
+                                                "method": "PUT",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Idempotency-Key",
+                                                        "value": "{{$guid}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Content-Type",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-130B** · SP-15 · تحديث إعدادات القناة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.settings.update`\n\nالحارس: `channel`\n\nPartial update. status is not writable here — lifecycle stays on the platform.",
+                                                "body": {
+                                                    "mode": "raw",
+                                                    "raw": "{\n    \"name\": \"شركة النور\",\n    \"legal_name\": \"شركة النور للتجارة\",\n    \"tax_number\": \"123456789\",\n    \"phone\": \"+963911000001\",\n    \"email\": \"ops@alnoor.example\",\n    \"settings\": {\n        \"locale\": \"ar\"\n    }\n}",
+                                                    "options": {
+                                                        "raw": {
+                                                            "language": "json"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"شركة النور\",\n        \"slug\": \"alnoor\",\n        \"legal_name\": \"شركة النور للتجارة\",\n        \"tax_number\": \"123456789\",\n        \"phone\": \"+963911000001\",\n        \"email\": \"ops@alnoor.example\",\n        \"status\": \"active\",\n        \"allowed_next\": [\n            \"suspended\",\n            \"archived\"\n        ],\n        \"settings\": {\n            \"locale\": \"ar\"\n        },\n        \"created_at\": \"2026-01-01T00:00:00+03:00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-131A Channel coverage zones",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/zones",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "zones"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-131A** · SP-03 · مناطق تغطية القناة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.zones.view`\n\nالحارس: `channel`\n\nUnpaginated. delivery_fee and min_order_value are decimal strings (unique money exception on this guard)."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-131A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/zones",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "zones"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-131A** · SP-03 · مناطق تغطية القناة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.zones.view`\n\nالحارس: `channel`\n\nUnpaginated. delivery_fee and min_order_value are decimal strings (unique money exception on this guard)."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"zone_id\": 12,\n            \"zone_name\": \"المزة\",\n            \"delivery_days\": [\n                \"sun\",\n                \"tue\",\n                \"thu\"\n            ],\n            \"delivery_fee\": \"50000.00\",\n            \"min_order_value\": \"100000.00\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-131B Upsert coverage zone",
+                                    "request": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/zones",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "zones"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-131B** · SP-03 · إضافة/تحديث تغطية منطقة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.zones.manage`\n\nالحارس: `channel`\n\nupdateOrCreate on zone_id within the tenant.",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"zone_id\": 12,\n    \"delivery_days\": [\n        \"sun\",\n        \"tue\",\n        \"thu\"\n    ],\n    \"delivery_fee\": \"50000.00\",\n    \"min_order_value\": \"100000.00\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-131B",
+                                            "originalRequest": {
+                                                "method": "POST",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Idempotency-Key",
+                                                        "value": "{{$guid}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Content-Type",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/zones",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "zones"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-131B** · SP-03 · إضافة/تحديث تغطية منطقة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.zones.manage`\n\nالحارس: `channel`\n\nupdateOrCreate on zone_id within the tenant.",
+                                                "body": {
+                                                    "mode": "raw",
+                                                    "raw": "{\n    \"zone_id\": 12,\n    \"delivery_days\": [\n        \"sun\",\n        \"tue\",\n        \"thu\"\n    ],\n    \"delivery_fee\": \"50000.00\",\n    \"min_order_value\": \"100000.00\"\n}",
+                                                    "options": {
+                                                        "raw": {
+                                                            "language": "json"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 1,\n        \"zone_id\": 12,\n        \"zone_name\": \"المزة\",\n        \"delivery_days\": [\n            \"sun\",\n            \"tue\",\n            \"thu\"\n        ],\n        \"delivery_fee\": \"50000.00\",\n        \"min_order_value\": \"100000.00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-131C Remove coverage zone",
+                                    "request": {
+                                        "method": "DELETE",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/zones/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "zones",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-131C** · SP-03 · حذف تغطية منطقة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.zones.manage`\n\nالحارس: `channel`\n\n204 empty body. Path param is the coverage row id (channel_zone.id), not zone_id."
+                                    },
+                                    "response": []
+                                },
+                                {
+                                    "name": "EP-SC-140 List retailers in coverage",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/retailers?page=1&per_page=25&sort=-created_at&search=%D9%86%D9%88%D8%B1&filter%5Bzone_id%5D=12",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "retailers"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "page",
+                                                    "value": "1"
+                                                },
+                                                {
+                                                    "key": "per_page",
+                                                    "value": "25"
+                                                },
+                                                {
+                                                    "key": "sort",
+                                                    "value": "-created_at"
+                                                },
+                                                {
+                                                    "key": "search",
+                                                    "value": "نور"
+                                                },
+                                                {
+                                                    "key": "filter[zone_id]",
+                                                    "value": "12"
+                                                }
+                                            ],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-140** · SP-13 · تجّار التغطية\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.view`\n\nالحارس: `channel`\n\nRetailers whose zone is in this channel coverage. Id is retailer_profile id for credit/payments."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-140",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/retailers?page=1&per_page=25&sort=-created_at&search=%D9%86%D9%88%D8%B1&filter%5Bzone_id%5D=12",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "retailers"
+                                                    ],
+                                                    "query": [
+                                                        {
+                                                            "key": "page",
+                                                            "value": "1"
+                                                        },
+                                                        {
+                                                            "key": "per_page",
+                                                            "value": "25"
+                                                        },
+                                                        {
+                                                            "key": "sort",
+                                                            "value": "-created_at"
+                                                        },
+                                                        {
+                                                            "key": "search",
+                                                            "value": "نور"
+                                                        },
+                                                        {
+                                                            "key": "filter[zone_id]",
+                                                            "value": "12"
+                                                        }
+                                                    ],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-140** · SP-13 · تجّار التغطية\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.view`\n\nالحارس: `channel`\n\nRetailers whose zone is in this channel coverage. Id is retailer_profile id for credit/payments."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": [\n        {\n            \"id\": 481,\n            \"shop_name\": \"بقالية النور\",\n            \"phone\": \"+963931000002\",\n            \"zone_id\": 12,\n            \"status\": \"active\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-141 List channel warehouses",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/warehouses",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "warehouses"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-141** · SP-09 · مستودعات القناة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.inventory.view`\n\nالحارس: `channel`\n\nUnpaginated picker for inventory adjust/transfer. No create on this path."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-141",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/warehouses",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "warehouses"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-141** · SP-09 · مستودعات القناة\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.inventory.view`\n\nالحارس: `channel`\n\nUnpaginated picker for inventory adjust/transfer. No create on this path."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"مستودع المزة\",\n            \"status\": \"active\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -32096,6 +33647,126 @@
                                                 }
                                             ],
                                             "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"sku\": \"OIL-SUN-1L\",\n            \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n            \"status\": \"active\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-014A Product detail",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/products/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "products",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-014A** · SP-06 · تفاصيل منتج\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.catalog.view`\n\nالحارس: `channel`\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-014A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/products/{{id}}",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "products",
+                                                        ":id"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-014A** · SP-06 · تفاصيل منتج\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.catalog.view`\n\nالحارس: `channel`\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"pricing\": null,\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"id\": 880\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -35955,6 +37626,126 @@
                                     ]
                                 },
                                 {
+                                    "name": "EP-SC-080A Invoice detail",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/invoices/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "invoices",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-080A** · SP-13 · تفاصيل فاتورة\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.finance.view`\n\nالحارس: `channel`\n\nlines[].id is the line_id for credit-note. Foreign id → 404."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-080A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/invoices/{{id}}",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "invoices",
+                                                        ":id"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-080A** · SP-13 · تفاصيل فاتورة\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.finance.view`\n\nالحارس: `channel`\n\nlines[].id is the line_id for credit-note. Foreign id → 404."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 501,\n        \"no\": \"INV-501\",\n        \"status\": \"open\",\n        \"retailer_id\": 481,\n        \"rep_id\": 70,\n        \"total\": 48000,\n        \"paid_total\": 0,\n        \"credited_total\": 0,\n        \"remaining\": 48000,\n        \"lines\": [\n            {\n                \"id\": 1,\n                \"product_id\": 880,\n                \"qty\": 4,\n                \"amount\": 48000\n            }\n        ],\n        \"created_at\": \"2026-03-01T09:00:00+03:00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
                                     "name": "EP-SC-081 Issue credit note",
                                     "request": {
                                         "method": "POST",
@@ -36325,7 +38116,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep"
+                                        "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id."
                                     },
                                     "response": [
                                         {
@@ -36379,7 +38170,7 @@
                                                     ],
                                                     "variable": []
                                                 },
-                                                "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep"
+                                                "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id."
                                             },
                                             "status": "OK",
                                             "code": 200,
@@ -36390,7 +38181,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"group_by\": \"zone\",\n        \"buckets\": {\n            \"0_30\": 12000000,\n            \"31_60\": 4000000,\n            \"61_90\": 1500000,\n            \"over_90\": 200000\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"group_by\": \"zone\",\n        \"buckets\": {\n            \"0_30\": 12000000,\n            \"31_60\": 4000000,\n            \"61_90\": 1500000,\n            \"over_90\": 200000\n        },\n        \"groups\": [\n            {\n                \"key\": 12,\n                \"label\": null,\n                \"buckets\": {\n                    \"0_30\": 8000000,\n                    \"31_60\": 0,\n                    \"61_90\": 0,\n                    \"over_90\": 0\n                }\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -36858,7 +38649,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`"
+                                        "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`\n\nctr is integer basis points at scale 10^4 (840/12000 = 700), never a float."
                                     },
                                     "response": [
                                         {
@@ -36914,7 +38705,7 @@
                                                         }
                                                     ]
                                                 },
-                                                "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`"
+                                                "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`\n\nctr is integer basis points at scale 10^4 (840/12000 = 700), never a float."
                                             },
                                             "status": "OK",
                                             "code": 200,
@@ -36925,7 +38716,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"impressions\": 12000,\n        \"clicks\": 840,\n        \"ctr\": 0.07\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"impressions\": 12000,\n        \"clicks\": 840,\n        \"ctr\": 700\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -38026,6 +39817,126 @@
                                                 }
                                             ],
                                             "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"sku\": \"OIL-SUN-1L\",\n            \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n            \"status\": \"active\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-014A Product detail",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/products/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "products",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-014A** · SP-06 · تفاصيل منتج\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.catalog.view`\n\nالحارس: `channel`\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-014A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/products/{{id}}",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "products",
+                                                        ":id"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-014A** · SP-06 · تفاصيل منتج\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.catalog.view`\n\nالحارس: `channel`\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"pricing\": null,\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"id\": 880\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -41649,7 +43560,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`"
+                                        "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`\n\nctr is integer basis points at scale 10^4 (840/12000 = 700), never a float."
                                     },
                                     "response": [
                                         {
@@ -41705,7 +43616,7 @@
                                                         }
                                                     ]
                                                 },
-                                                "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`"
+                                                "description": "**EP-SC-102** · SP-15 · إحصاء البنر\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.content.banners`\n\nالحارس: `channel`\n\nctr is integer basis points at scale 10^4 (840/12000 = 700), never a float."
                                             },
                                             "status": "OK",
                                             "code": 200,
@@ -41716,7 +43627,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"impressions\": 12000,\n        \"clicks\": 840,\n        \"ctr\": 0.07\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"impressions\": 12000,\n        \"clicks\": 840,\n        \"ctr\": 700\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -42525,6 +44436,126 @@
                                                 }
                                             ],
                                             "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"sku\": \"OIL-SUN-1L\",\n            \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n            \"status\": \"active\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-014A Product detail",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/products/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "products",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-014A** · SP-06 · تفاصيل منتج\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.catalog.view`\n\nالحارس: `channel`\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-014A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/products/{{id}}",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "products",
+                                                        ":id"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-014A** · SP-06 · تفاصيل منتج\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.catalog.view`\n\nالحارس: `channel`\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"pricing\": null,\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"id\": 880\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -44630,6 +46661,126 @@
                                     ]
                                 },
                                 {
+                                    "name": "EP-SC-080A Invoice detail",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/invoices/{{id}}",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "invoices",
+                                                ":id"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-080A** · SP-13 · تفاصيل فاتورة\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.finance.view`\n\nالحارس: `channel`\n\nlines[].id is the line_id for credit-note. Foreign id → 404."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-080A",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/invoices/{{id}}",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "invoices",
+                                                        ":id"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-080A** · SP-13 · تفاصيل فاتورة\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.finance.view`\n\nالحارس: `channel`\n\nlines[].id is the line_id for credit-note. Foreign id → 404."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 501,\n        \"no\": \"INV-501\",\n        \"status\": \"open\",\n        \"retailer_id\": 481,\n        \"rep_id\": 70,\n        \"total\": 48000,\n        \"paid_total\": 0,\n        \"credited_total\": 0,\n        \"remaining\": 48000,\n        \"lines\": [\n            {\n                \"id\": 1,\n                \"product_id\": 880,\n                \"qty\": 4,\n                \"amount\": 48000\n            }\n        ],\n        \"created_at\": \"2026-03-01T09:00:00+03:00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
                                     "name": "EP-SC-081 Issue credit note",
                                     "request": {
                                         "method": "POST",
@@ -45306,7 +47457,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep"
+                                        "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id."
                                     },
                                     "response": [
                                         {
@@ -45360,7 +47511,7 @@
                                                     ],
                                                     "variable": []
                                                 },
-                                                "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep"
+                                                "description": "**EP-SC-085** · SP-13 · أعمار الذمم\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.finance.aging`\n\nالحارس: `channel`\n\ngroup_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id."
                                             },
                                             "status": "OK",
                                             "code": 200,
@@ -45371,7 +47522,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"group_by\": \"zone\",\n        \"buckets\": {\n            \"0_30\": 12000000,\n            \"31_60\": 4000000,\n            \"61_90\": 1500000,\n            \"over_90\": 200000\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"group_by\": \"zone\",\n        \"buckets\": {\n            \"0_30\": 12000000,\n            \"31_60\": 4000000,\n            \"61_90\": 1500000,\n            \"over_90\": 200000\n        },\n        \"groups\": [\n            {\n                \"key\": 12,\n                \"label\": null,\n                \"buckets\": {\n                    \"0_30\": 8000000,\n                    \"31_60\": 0,\n                    \"61_90\": 0,\n                    \"over_90\": 0\n                }\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },

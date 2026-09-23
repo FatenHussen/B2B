@@ -8690,7 +8690,7 @@
             "post": {
                 "operationId": "EP-RP-021",
                 "summary": "Add line to shop cart",
-                "description": "إضافة لسلة محل\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
+                "description": "إضافة لسلة محل\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. PATCH/DELETE the line via EP-RP-025/026.",
                 "tags": [
                     "rep_app",
                     "المندوب"
@@ -9177,6 +9177,262 @@
                 },
                 "x-sprint": "SP-09",
                 "x-code": "EP-RP-024",
+                "x-guard": "app",
+                "x-audience": "rep",
+                "x-roles": [
+                    "rep"
+                ],
+                "x-apps": [
+                    "rep_app"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/app/rep/cart/lines/{id}": {
+            "patch": {
+                "operationId": "EP-RP-025",
+                "summary": "Update shop-cart line qty",
+                "description": "تعديل كمية سطر سلة محل\n\nSame cart shape as GET /cart. qty 0 deletes the line (same as EP-RP-026).",
+                "tags": [
+                    "rep_app",
+                    "المندوب"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "rep-android"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-App-Version",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "sections": [
+                                            {
+                                                "retailer": {
+                                                    "id": 481,
+                                                    "shop_name": "بقالية النور",
+                                                    "zone_id": 12
+                                                },
+                                                "channel": {
+                                                    "id": 1,
+                                                    "name": "شركة النور"
+                                                },
+                                                "created_at": "2026-03-01T10:00:00+03:00",
+                                                "lines": [
+                                                    {
+                                                        "id": 11,
+                                                        "product_id": 880,
+                                                        "name": "زيت دوار الشمس 1 لتر",
+                                                        "qty": 6,
+                                                        "unit_price": 12000,
+                                                        "line_total": 72000
+                                                    }
+                                                ],
+                                                "total": 72000,
+                                                "discount": 0
+                                            }
+                                        ]
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-sprint": "SP-09",
+                "x-code": "EP-RP-025",
+                "x-guard": "app",
+                "x-audience": "rep",
+                "x-roles": [
+                    "rep"
+                ],
+                "x-apps": [
+                    "rep_app"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "qty": 6
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "EP-RP-026",
+                "summary": "Remove shop-cart line",
+                "description": "حذف سطر سلة محل\n\nSame cart shape as GET /cart. 404 if the line is not on this rep cart.",
+                "tags": [
+                    "rep_app",
+                    "المندوب"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "rep-android"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-App-Version",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "sections": []
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-sprint": "SP-09",
+                "x-code": "EP-RP-026",
                 "x-guard": "app",
                 "x-audience": "rep",
                 "x-roles": [
@@ -11026,7 +11282,7 @@
             "post": {
                 "operationId": "EP-RP-060",
                 "summary": "Collect payment",
-                "description": "تحصيل دفعة\n\nreceipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).",
+                "description": "تحصيل دفعة\n\nreceipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01). invoice_no is optional — omitted, the oldest open invoice for this shop and rep is allocated FIFO.",
                 "tags": [
                     "rep_app",
                     "المندوب"
@@ -11611,7 +11867,7 @@
             "get": {
                 "operationId": "EP-RP-002",
                 "summary": "Rep morning home",
-                "description": "رئيسية المندوب\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
+                "description": "رئيسية المندوب\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is the EP-APP-110 snapshot (points 0 / bronze when the wallet is empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
                 "tags": [
                     "rep_app",
                     "المندوب"
@@ -11688,7 +11944,14 @@
                                             "scheduled": 1,
                                             "warehouse_receipts": 2
                                         },
-                                        "loyalty": null,
+                                        "loyalty": {
+                                            "points": 0,
+                                            "tier": "bronze",
+                                            "next_tier": {
+                                                "name": "silver",
+                                                "remaining": 1000
+                                            }
+                                        },
                                         "unread_notifications": 0
                                     },
                                     "meta": {
@@ -11714,6 +11977,124 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/api/v1/app/rep/profile": {
+            "patch": {
+                "operationId": "EP-RP-073",
+                "summary": "Update rep profile",
+                "description": "تعديل ملف المندوب\n\nName and phone only. avatar stays null until media upload. Phone must be unique among app users.",
+                "tags": [
+                    "rep_app",
+                    "المندوب"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "rep-android"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-App-Version",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "name": "أحمد العلي",
+                                        "phone": "+963933000001",
+                                        "avatar": null
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-sprint": "SP-01",
+                "x-code": "EP-RP-073",
+                "x-guard": "app",
+                "x-audience": "rep",
+                "x-roles": [
+                    "rep"
+                ],
+                "x-apps": [
+                    "rep_app"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "name": "أحمد العلي",
+                                "phone": "+963933000001"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/v1/warehouse/auth/device-login": {
@@ -15272,6 +15653,164 @@
             }
         },
         "/api/v1/channel/products/{id}": {
+            "get": {
+                "operationId": "EP-SC-014A",
+                "summary": "Product detail",
+                "description": "تفاصيل منتج\n\nFull create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة",
+                    "مدير الكتالوج",
+                    "مدير المبيعات",
+                    "المحاسب"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "name_ar": "زيت دوار الشمس 1 لتر",
+                                        "name_en": "Sunflower Oil 1L",
+                                        "sku": "OIL-SUN-1L",
+                                        "brand_id": 12,
+                                        "category_id": 340,
+                                        "model_no": "SUN-1000",
+                                        "barcode": "6291000000000",
+                                        "status": "active",
+                                        "short_description": "زيت نباتي للطبخ",
+                                        "long_description": "<p>زيت دوار الشمس</p>",
+                                        "specs": [
+                                            {
+                                                "key": "الحجم",
+                                                "value": "1 لتر"
+                                            }
+                                        ],
+                                        "media": {
+                                            "images": [
+                                                "media_id_1"
+                                            ],
+                                            "primary": "media_id_1",
+                                            "video": null
+                                        },
+                                        "sale_unit_id": 3,
+                                        "unit_factors": [
+                                            {
+                                                "from_unit_id": 3,
+                                                "to_unit_id": 5,
+                                                "factor": 12
+                                            }
+                                        ],
+                                        "min_order_qty": 1,
+                                        "order_multiple": 1,
+                                        "weight_gram": 950,
+                                        "pricing": null,
+                                        "inventory": {
+                                            "tracked": true,
+                                            "reorder_point": 50,
+                                            "allow_backorder": false
+                                        },
+                                        "availability": {
+                                            "zone_ids": [
+                                                12,
+                                                13
+                                            ],
+                                            "activity_type_ids": [
+                                                3,
+                                                4
+                                            ],
+                                            "retailer_group_ids": [],
+                                            "lead_time_days": 2
+                                        },
+                                        "marketing": {
+                                            "tags": [
+                                                "new"
+                                            ],
+                                            "sliders": [
+                                                "best_selling"
+                                            ],
+                                            "priority": 10
+                                        },
+                                        "id": 880
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.catalog.view",
+                "x-sprint": "SP-06",
+                "x-code": "EP-SC-014A",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager",
+                    "catalog_manager",
+                    "sales_manager",
+                    "accountant"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "put": {
                 "operationId": "EP-SC-016",
                 "summary": "Update product",
@@ -20175,6 +20714,120 @@
                 ]
             }
         },
+        "/api/v1/channel/invoices/{id}": {
+            "get": {
+                "operationId": "EP-SC-080A",
+                "summary": "Invoice detail",
+                "description": "تفاصيل فاتورة\n\nlines[].id is the line_id for credit-note. Foreign id → 404.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة",
+                    "المحاسب",
+                    "مدير المبيعات"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 501,
+                                        "no": "INV-501",
+                                        "status": "open",
+                                        "retailer_id": 481,
+                                        "rep_id": 70,
+                                        "total": 48000,
+                                        "paid_total": 0,
+                                        "credited_total": 0,
+                                        "remaining": 48000,
+                                        "lines": [
+                                            {
+                                                "id": 1,
+                                                "product_id": 880,
+                                                "qty": 4,
+                                                "amount": 48000
+                                            }
+                                        ],
+                                        "created_at": "2026-03-01T09:00:00+03:00"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.finance.view",
+                "x-sprint": "SP-13",
+                "x-code": "EP-SC-080A",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager",
+                    "accountant",
+                    "sales_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/channel/invoices/{id}/credit-note": {
             "post": {
                 "operationId": "EP-SC-081",
@@ -20670,7 +21323,7 @@
             "get": {
                 "operationId": "EP-SC-085",
                 "summary": "Receivables aging",
-                "description": "أعمار الذمم\n\ngroup_by: zone|rep",
+                "description": "أعمار الذمم\n\ngroup_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id.",
                 "tags": [
                     "channel_dashboard",
                     "مدير القناة",
@@ -20740,7 +21393,19 @@
                                             "31_60": 4000000,
                                             "61_90": 1500000,
                                             "over_90": 200000
-                                        }
+                                        },
+                                        "groups": [
+                                            {
+                                                "key": 12,
+                                                "label": null,
+                                                "buckets": {
+                                                    "0_30": 8000000,
+                                                    "31_60": 0,
+                                                    "61_90": 0,
+                                                    "over_90": 0
+                                                }
+                                            }
+                                        ]
                                     },
                                     "meta": {
                                         "server_time": "2026-03-01T09:12:44+03:00"
@@ -21935,7 +22600,7 @@
             "get": {
                 "operationId": "EP-SC-102",
                 "summary": "Banner stats",
-                "description": "إحصاء البنر",
+                "description": "إحصاء البنر\n\nctr is integer basis points at scale 10^4 (840/12000 = 700), never a float.",
                 "tags": [
                     "channel_dashboard",
                     "مدير القناة",
@@ -22000,7 +22665,7 @@
                                     "data": {
                                         "impressions": 12000,
                                         "clicks": 840,
-                                        "ctr": 0.07
+                                        "ctr": 700
                                     },
                                     "meta": {
                                         "server_time": "2026-03-01T09:12:44+03:00"
@@ -23817,6 +24482,773 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/channel": {
+            "get": {
+                "operationId": "EP-SC-130A",
+                "summary": "Own channel settings",
+                "description": "إعدادات القناة\n\nThe authenticated channel tenant reading itself. No X-Channel-Id.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 1,
+                                        "name": "شركة النور",
+                                        "slug": "alnoor",
+                                        "legal_name": "شركة النور للتجارة",
+                                        "tax_number": "123456789",
+                                        "phone": "+963911000001",
+                                        "email": "ops@alnoor.example",
+                                        "status": "active",
+                                        "allowed_next": [
+                                            "suspended",
+                                            "archived"
+                                        ],
+                                        "settings": {},
+                                        "created_at": "2026-01-01T00:00:00+03:00"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.settings.view",
+                "x-sprint": "SP-15",
+                "x-code": "EP-SC-130A",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "operationId": "EP-SC-130B",
+                "summary": "Update own channel settings",
+                "description": "تحديث إعدادات القناة\n\nPartial update. status is not writable here — lifecycle stays on the platform.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 1,
+                                        "name": "شركة النور",
+                                        "slug": "alnoor",
+                                        "legal_name": "شركة النور للتجارة",
+                                        "tax_number": "123456789",
+                                        "phone": "+963911000001",
+                                        "email": "ops@alnoor.example",
+                                        "status": "active",
+                                        "allowed_next": [
+                                            "suspended",
+                                            "archived"
+                                        ],
+                                        "settings": {
+                                            "locale": "ar"
+                                        },
+                                        "created_at": "2026-01-01T00:00:00+03:00"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.settings.update",
+                "x-sprint": "SP-15",
+                "x-code": "EP-SC-130B",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "name": "شركة النور",
+                                "legal_name": "شركة النور للتجارة",
+                                "tax_number": "123456789",
+                                "phone": "+963911000001",
+                                "email": "ops@alnoor.example",
+                                "settings": {
+                                    "locale": "ar"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/channel/zones": {
+            "get": {
+                "operationId": "EP-SC-131A",
+                "summary": "Channel coverage zones",
+                "description": "مناطق تغطية القناة\n\nUnpaginated. delivery_fee and min_order_value are decimal strings (unique money exception on this guard).",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "zone_id": 12,
+                                            "zone_name": "المزة",
+                                            "delivery_days": [
+                                                "sun",
+                                                "tue",
+                                                "thu"
+                                            ],
+                                            "delivery_fee": "50000.00",
+                                            "min_order_value": "100000.00"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.zones.view",
+                "x-sprint": "SP-03",
+                "x-code": "EP-SC-131A",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "EP-SC-131B",
+                "summary": "Upsert coverage zone",
+                "description": "إضافة/تحديث تغطية منطقة\n\nupdateOrCreate on zone_id within the tenant.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 1,
+                                        "zone_id": 12,
+                                        "zone_name": "المزة",
+                                        "delivery_days": [
+                                            "sun",
+                                            "tue",
+                                            "thu"
+                                        ],
+                                        "delivery_fee": "50000.00",
+                                        "min_order_value": "100000.00"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.zones.manage",
+                "x-sprint": "SP-03",
+                "x-code": "EP-SC-131B",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "zone_id": 12,
+                                "delivery_days": [
+                                    "sun",
+                                    "tue",
+                                    "thu"
+                                ],
+                                "delivery_fee": "50000.00",
+                                "min_order_value": "100000.00"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/channel/zones/{id}": {
+            "delete": {
+                "operationId": "EP-SC-131C",
+                "summary": "Remove coverage zone",
+                "description": "حذف تغطية منطقة\n\n204 empty body. Path param is the coverage row id (channel_zone.id), not zone_id.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": null,
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.zones.manage",
+                "x-sprint": "SP-03",
+                "x-code": "EP-SC-131C",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/channel/retailers": {
+            "get": {
+                "operationId": "EP-SC-140",
+                "summary": "List retailers in coverage",
+                "description": "تجّار التغطية\n\nRetailers whose zone is in this channel coverage. Id is retailer_profile id for credit/payments.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "1"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "25"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "-created_at"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "نور"
+                        }
+                    },
+                    {
+                        "name": "filter[zone_id]",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "12"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 481,
+                                            "shop_name": "بقالية النور",
+                                            "phone": "+963931000002",
+                                            "zone_id": 12,
+                                            "status": "active"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.retailers.view",
+                "x-sprint": "SP-13",
+                "x-code": "EP-SC-140",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/channel/warehouses": {
+            "get": {
+                "operationId": "EP-SC-141",
+                "summary": "List channel warehouses",
+                "description": "مستودعات القناة\n\nUnpaginated picker for inventory adjust/transfer. No create on this path.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "name": "مستودع المزة",
+                                            "status": "active"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.inventory.view",
+                "x-sprint": "SP-09",
+                "x-code": "EP-SC-141",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/platform/auth/login": {

@@ -39,7 +39,7 @@ final class EloquentRetailerDirectory implements RetailerDirectory
 
     public function phone(int $retailerId): ?string
     {
-        $ownerId = RetailerProfile::query()->whereKey($retailerId)->value('app_user_id');
+        $ownerId = $this->appUserId($retailerId);
 
         if ($ownerId === null) {
             return null;
@@ -48,6 +48,20 @@ final class EloquentRetailerDirectory implements RetailerDirectory
         $phone = AppUser::query()->whereKey($ownerId)->value('phone');
 
         return is_string($phone) && $phone !== '' ? $phone : null;
+    }
+
+    public function appUserId(int $retailerId): ?int
+    {
+        $ownerId = RetailerProfile::query()->whereKey($retailerId)->value('app_user_id');
+
+        return $ownerId === null ? null : (int) $ownerId;
+    }
+
+    public function profileIdForUser(int $appUserId): ?int
+    {
+        $id = RetailerProfile::query()->where('app_user_id', $appUserId)->value('id');
+
+        return $id === null ? null : (int) $id;
     }
 
     public function zoneId(int $retailerId): ?int

@@ -1,18 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Sync;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Sync\Application\Actions\PushSyncOperations;
 
 class SyncServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->bind(PushSyncOperations::class, function ($app): PushSyncOperations {
+            return new PushSyncOperations($app->tagged('sync.operation'));
+        });
+    }
 
     public function boot(): void
     {
-        $migrations = __DIR__.'/../database/migrations';
-        if (is_dir($migrations)) {
-            $this->loadMigrationsFrom($migrations);
-        }
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
     }
 }

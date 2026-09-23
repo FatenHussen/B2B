@@ -42,7 +42,7 @@
 8. **Foreign or missing ids return 404**, never 403. Show «غير موجود».
 9. **`/app/*` middleware order**: `auth:app` → `guard.tokenable:app` → `app.kind:rep` → profile check. A retailer token on a rep route → `403 insufficient_permission` → treat as *wrong app*, sign out.
 10. **Do not poll `GET /app/rep/deliveries`.** It has a write side-effect (it materialises delivery rows). Pull-to-refresh only.
-11. **No offline mode**, no sync, no push, no notifications inbox, no loyalty, no home blocks — §8. `feature_flags.offline_orders` is `false`.
+11. Shared surfaces from §8 are **live**: sync, push, notifications inbox, loyalty, home blocks, `GET /public/app-config`. Bind them; do not mock 404.
 12. Hand-written `fromJson`/`toJson` (no codegen) unless the existing Flutter project already uses `freezed`/`json_serializable` — then follow the project.
 13. **Home-task screens match `flutter-rep.md` wireframes**, not a generic CRUD list: register-order (§7), deliveries (§8.3–8.5), collect-payment (§9.2), accept-orders (§8.1), scheduled (§8.9), warehouse (§8.2). API keys still come from this file.
 
@@ -606,7 +606,7 @@ Splash ──GET /health──▶ (token?) ─yes─▶ GET /app/session ──�
 
 The app **reads** `GET /public/content/intro` (EP-PB-011, no Bearer). Same singleton the back office writes with `PUT /platform/content/intro`.
 
-Do **not** call `GET /platform/content/intro` or `GET /channel/content/intro` (`403 wrong_guard`). `GET /public/app-config` is still 404 — force-update, **not** intro.
+Do **not** call `GET /platform/content/intro` or `GET /channel/content/intro` (`403 wrong_guard`). `GET /public/app-config` is live (force-update / feature flags / maintenance) — **not** intro.
 
 Vacant store after `migrate:fresh`: `{enabled:false, text:null, media_type:null, media_id:null, duration:0, targeting:{…:[]}}`. That is correct — do not fake a video.
 
@@ -1061,7 +1061,7 @@ After success → `SessionController.bootstrap()`. A rep in `pending_review` is 
   "user": { "id": 7, "name": "عمر الشامي", "user_type": "rep", "profile_completed": true, "avatar": null },
   "permissions": ["rp.delivery.accept","rp.delivery.deliver","rp.delivery.postpone","rp.delivery.return_request",
                   "rp.payment.collect","rp.payment.withdraw","rp.wallet.view","rp.warehouse.receive"],
-  "feature_flags": { "offline_orders": false, "loyalty": false },
+  "feature_flags": { "offline_orders": true, "loyalty": true },
   "sync_cursor": "",
   "server_time": "2026-09-19T11:41:00+03:00",
   "requires_legal_accept": false,
@@ -1135,7 +1135,7 @@ Future<DutyState> setDuty(bool on) => guard(() async =>
     "scheduled": 1,
     "warehouse_receipts": 2
   },
-  "loyalty": null,
+  "loyalty": { "points": 0, "tier": "bronze", "next_tier": { "name": "silver", "remaining": 1000 } },
   "unread_notifications": 0
 }
 ```
@@ -1151,8 +1151,8 @@ Future<DutyState> setDuty(bool on) => guard(() async =>
 | `tasks.assignments` | Accept orders |
 | `tasks.scheduled` | Scheduled |
 | `tasks.warehouse_receipts` | Warehouse pickup |
-| `loyalty` | `null` → hide points bar. Do not call `GET /app/loyalty` |
-| `unread_notifications` | bell badge (0 until EP-CM-060). Inbox is 404 |
+| `loyalty` | EP-APP-110 snapshot — bind the points bar; history via `GET /app/loyalty` |
+| `unread_notifications` | bell badge (= `meta.unread_count` of EP-CM-060) |
 
 Three circles (products / customers / zones) are local navigation. Bottom nav is **five buttons**: home · orders · cart · wallet · account (home in the center, `initialIndex = 2`). Guest: do not call this path; zeros + lock dialog «يجب أن تسجّل حساباً لاستخدام هذه الخدمة». 401 without a bearer.
 
@@ -1442,7 +1442,7 @@ Future<OfferDetail> offer(int id) => guard(() async => (await api.get('/app/offe
 
 `POST /app/rep/cart/lines` — `{ "retailer_id": 15, "product_id": 101, "variant_id": null, "qty": 24 }`
 
-⚠️ `qty` is **added** to an existing line for the same product/variant. There is **no PATCH and no DELETE** for a cart line. The product brief therefore stages qty in a **local draft** on `OrderCaptureView` (`flutter-rep.md` §7.6) and only then POSTs. After a line is on the server, the honest UI says «لا يمكن الإنقاص من الخادم. أرسل الطلب الحالي أو تواصل مع القناة.» — do not fake a local delete, the server still holds the qty.
+⚠️ `qty` on POST is **added** to an existing line for the same product/variant. To set an absolute qty use `PATCH /app/rep/cart/lines/{id}` `{ "qty": 10 }`; to remove a line use `DELETE /app/rep/cart/lines/{id}`. Both are live. The product brief may still stage qty in a local draft on `OrderCaptureView` (`flutter-rep.md` §7.6) before the first POST.
 
 Response = the whole cart (same shape as GET below). Errors: `404 not_found` (unknown retailer, or product not in the rep's channel).
 
@@ -2019,21 +2019,17 @@ HTTP → behaviour summary:
 
 ---
 
-## 8. Not live — do not build, do not mock
+## 8. Still not for the rep app (wrong guard / never planned)
 
 | Path / feature | Status | What the app does instead |
 |---|---|---|
-| `GET /app/notifications`, `POST /app/notifications/read-all`, `DELETE /app/notifications`, `POST /app/devices/push-token` | ❌ 404 | build the inbox chrome empty (`RemoteNotReady`); no FCM |
-| `GET /app/sync/pull`, `POST /app/sync/push`, `GET /app/sync/status`, `POST /app/sync/resolve-conflict` | ❌ | online only; retry on reconnect |
-| `GET /app/content/home-blocks` | ❌ | composed home from `GET /app/rep/home`; newest slider = first page of products |
-| `GET /app/loyalty`, `POST /app/loyalty/redeem` | ❌ | no points tab |
-| `GET /public/app-config` | ❌ | no forced update; store review manual. **Not** the intro source |
 | `GET/PUT /platform/content/intro`, `GET/PUT /channel/content/intro` | live on **other** guards | 403 `wrong_guard` — never call. Apps read `GET /public/content/intro` |
 | `GET /channels` (any channel directory) | never planned for the app | channel id from invite / QA constant |
-| `PATCH`/`DELETE /app/rep/cart/lines/{id}` | ❌ | qty only goes up; honest message |
 | `GET /app/rep/return-requests` (list) | ❌ | keep `request_no` locally |
 | media upload (photos, product images) | ❌ | `image`/`logo` is null everywhere; letter avatar |
 | `/app/retailer/*` | live but **retailer kind only** → 403 | never call from the rep app |
+
+**Now live — bind them:** `GET /public/app-config`, `GET /app/notifications` (+ read-all / clear / push-token), `GET|POST /app/sync/*`, `GET /app/content/home-blocks`, `GET|POST /app/loyalty`, `PATCH`/`DELETE /app/rep/cart/lines/{id}`.
 
 Anything in the catalog marked `contract: proposed` is not a route.
 
@@ -2068,7 +2064,7 @@ Anything in the catalog marked `contract: proposed` is not a route.
 | 20 | `receivables` | `ReceivablesController` | receivables | «لا ذمم مفتوحة.» |
 | 21 | `withdrawals` (+ new) | `WithdrawalsController` | wallet/withdrawals GET/POST | «لا تسليمات نقدية بعد.» |
 | 22 | `settings` | `SettingsController` | logout, wallet.stats, customers meta | — |
-| 23 | `notifications` | `NotificationsController` | none — `RemoteNotReady` | «لا إشعارات بعد.» |
+| 23 | `notifications` | `NotificationsController` | `GET /app/notifications`, read-all, clear, push-token | «لا إشعارات بعد.» |
 | — | background | `LocationController` | locations/ping | — |
 
 ### Completion checklist per screen
@@ -2096,7 +2092,7 @@ When Flutter files are submitted, they are checked against this list, in this or
 5. **Error handling**: catches `ApiException` only; maps `code` via §7; 401 on OTP screen does not sign out; 403 `insufficient_permission` on a rep route signs out.
 6. **Idempotency**: key reused on retry, replaced after success or form edit; `operation_in_progress` keeps the key.
 7. **Money & time**: `int` everywhere; no `double`, no `/100`; Damascus ISO strings displayed as-is.
-8. **Forbidden features** absent (§8), including local "delete cart line" or fake notifications.
+8. Wrong-guard / never-planned surfaces stay out (§8). Shared app routes in §8 that are live must be bound, not mocked.
 9. **GetX hygiene**: services are `GetxService`, controllers dispose streams/timers in `onClose`, no business logic in views, `Obx` scoped to what changes.
 10. **Pagination & refresh**: `per_page ≤ 100`; `GET /deliveries` never polled.
 11. **Security**: token only in `flutter_secure_storage`; cleared on logout/401; no token in logs in release builds.

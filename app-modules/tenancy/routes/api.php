@@ -68,4 +68,5 @@ Route::middleware(['api', 'auth:channel', 'tenant', SubstituteBindings::class])
         // the batch; DOC-08 defines a third, `sc.settings.audit`, that no route uses yet.
         Route::get('/', [ChannelSettingsController::class, 'show'])->middleware('can:sc.settings.view');
         Route::put('/', [ChannelSettingsController::class, 'update'])->middleware('can:sc.settings.update');
+        Route::get('warehouses', [ChannelSettingsController::class, 'warehouses'])->middleware('permission:sc.inventory.view');
     });

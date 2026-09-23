@@ -9,10 +9,10 @@
         "seed": "demo reps +963932000001 (عمر الشامي) · +963932000002 · +963932000003 — local OTP_BYPASS=true: any code verifies, rep-* clients get all zeros; production is 6 digits",
         "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.",
         "counts": {
-            "live_endpoints": 46,
-            "matched_catalog": 46,
+            "live_endpoints": 49,
+            "matched_catalog": 49,
             "live_without_catalog": 0,
-            "forbidden": 19
+            "forbidden": 6
         }
     },
     "headers": {
@@ -57,84 +57,6 @@
     "forbidden": [
         {
             "method": "GET",
-            "path": "/api/v1/public/app-config",
-            "code": "EP-PB-010",
-            "reason": "No force-update / maintenance config"
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/app/sync/pull",
-            "code": "EP-SY-001",
-            "reason": "Offline sync not built — online-first"
-        },
-        {
-            "method": "POST",
-            "path": "/api/v1/app/sync/push",
-            "code": "EP-SY-002",
-            "reason": "No outbox drain"
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/app/sync/status",
-            "code": "EP-SY-003",
-            "reason": "No sync status"
-        },
-        {
-            "method": "POST",
-            "path": "/api/v1/app/sync/resolve-conflict",
-            "code": "EP-SY-004",
-            "reason": "No conflict API"
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/app/notifications",
-            "code": "EP-CM-060",
-            "reason": "No inbox"
-        },
-        {
-            "method": "POST",
-            "path": "/api/v1/app/notifications/read-all",
-            "code": "EP-CM-061",
-            "reason": "No inbox"
-        },
-        {
-            "method": "DELETE",
-            "path": "/api/v1/app/notifications",
-            "code": "EP-CM-062",
-            "reason": "No inbox"
-        },
-        {
-            "method": "POST",
-            "path": "/api/v1/app/devices/push-token",
-            "code": "EP-CM-063",
-            "reason": "No push token registration"
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/app/content/home-blocks",
-            "code": "EP-APP-100",
-            "reason": "No home banners/sliders — compose home from live lists"
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/app/loyalty",
-            "code": "EP-APP-110",
-            "reason": "Loyalty is not a rep surface"
-        },
-        {
-            "method": "POST",
-            "path": "/api/v1/app/loyalty/redeem",
-            "code": "EP-APP-111",
-            "reason": "Loyalty is not a rep surface"
-        },
-        {
-            "method": "PATCH",
-            "path": "/api/v1/app/rep/cart/lines/{id}",
-            "code": null,
-            "reason": "No update/delete cart line for the rep"
-        },
-        {
-            "method": "GET",
             "path": "/api/v1/app/rep/return-requests",
             "code": null,
             "reason": "Create only — no list or detail"
@@ -171,13 +93,14 @@
         }
     ],
     "gotchas": [
-        "POST /app/rep/cart/lines increments qty on an existing (product, variant) — there is no PATCH or DELETE for rep cart lines.",
+        "POST /app/rep/cart/lines increments qty on an existing (product, variant). Absolute qty: PATCH /app/rep/cart/lines/{id}. Remove: DELETE /app/rep/cart/lines/{id}.",
         "POST /app/rep/customers returns RepSourcedShop id, not retailer_id. Cart, payments and submit use RetailerProfile id from GET /customers and GET /zones/{id}/shops.",
         "Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.",
         "max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.",
         "GET /app/rep/zones lists assigned coverage. POST /app/rep/zones still requests an extra zone.",
-        "GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is 404. supply_channel_id still has no directory.",
-        "GET /app/rep/home is the morning snapshot (EP-RP-002). Bind the six task badges from data.tasks. Do not call GET /deliveries from Home — that list materialises delivery rows. loyalty is null (hide the points bar). Guest has no token: 401; skip-register is local chrome with zeros."
+        "GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is live (force-update / feature flags / maintenance). supply_channel_id still has no directory.",
+        "GET /app/rep/home is the morning snapshot (EP-RP-002). Bind the six task badges from data.tasks. Do not call GET /deliveries from Home — that list materialises delivery rows. loyalty is the EP-APP-110 wallet snapshot (points 0 / bronze when empty). unread_notifications mirrors EP-CM-060 meta.unread_count. Guest has no token: 401; skip-register is local chrome with zeros.",
+        "Shared app surfaces are live: GET /app/notifications (+ read-all / clear / push-token), GET|POST /app/sync/*, GET /app/content/home-blocks, GET|POST /app/loyalty. Compose home from these — do not mock them."
     ],
     "endpoints": [
         {
@@ -568,12 +491,19 @@
                     "scheduled": 1,
                     "warehouse_receipts": 2
                 },
-                "loyalty": null,
+                "loyalty": {
+                    "points": 0,
+                    "tier": "bronze",
+                    "next_tier": {
+                        "name": "silver",
+                        "remaining": 1000
+                    }
+                },
                 "unread_notifications": 0
             },
             "errors": [],
-            "description": "Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
-            "note": "Morning snapshot. Bind the six task badges here — do not call GET /deliveries from Home (that list materialises rows). loyalty is null until EP-APP-110 (hide the bar). unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer; guest browse is local."
+            "description": "Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is the EP-APP-110 snapshot (points 0 / bronze when the wallet is empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
+            "note": "Morning snapshot. Bind the six task badges here — do not call GET /deliveries from Home (that list materialises rows). loyalty is the EP-APP-110 snapshot (points/tier; bronze/0 when empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer; guest browse is local."
         },
         {
             "live": true,
@@ -1163,6 +1093,79 @@
         },
         {
             "live": true,
+            "method": "DELETE",
+            "path": "/api/v1/app/rep/cart/lines/{id}",
+            "catalog_path": "/app/rep/cart/lines/{id}",
+            "code": "EP-RP-026",
+            "name": "Remove shop-cart line",
+            "name_ar": "حذف سطر سلة محل",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Cart",
+            "query": [],
+            "body": null,
+            "response": {
+                "sections": []
+            },
+            "errors": [],
+            "description": "Same cart shape as GET /cart. 404 if the line is not on this rep cart.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/app/rep/cart/lines/{id}",
+            "catalog_path": "/app/rep/cart/lines/{id}",
+            "code": "EP-RP-025",
+            "name": "Update shop-cart line qty",
+            "name_ar": "تعديل كمية سطر سلة محل",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Cart",
+            "query": [],
+            "body": {
+                "qty": 6
+            },
+            "response": {
+                "sections": [
+                    {
+                        "retailer": {
+                            "id": 481,
+                            "shop_name": "بقالية النور",
+                            "zone_id": 12
+                        },
+                        "channel": {
+                            "id": 1,
+                            "name": "شركة النور"
+                        },
+                        "created_at": "2026-03-01T10:00:00+03:00",
+                        "lines": [
+                            {
+                                "id": 11,
+                                "product_id": 880,
+                                "name": "زيت دوار الشمس 1 لتر",
+                                "qty": 6,
+                                "unit_price": 12000,
+                                "line_total": 72000
+                            }
+                        ],
+                        "total": 72000,
+                        "discount": 0
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "Same cart shape as GET /cart. qty 0 deletes the line (same as EP-RP-026).",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "POST",
             "path": "/api/v1/app/rep/cart/lines",
             "catalog_path": "/app/rep/cart/lines",
@@ -1211,7 +1214,7 @@
                 ]
             },
             "errors": [],
-            "description": "Same shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
+            "description": "Same shape as GET /cart. qty increments an existing (product, variant) line. PATCH/DELETE the line via EP-RP-025/026.",
             "note": "Increments qty if the (product, variant) exists. No PATCH/DELETE."
         },
         {
@@ -1835,7 +1838,7 @@
             "errors": {
                 "409": "duplicate_receipt_no"
             },
-            "description": "receipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).",
+            "description": "receipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01). invoice_no is optional — omitted, the oldest open invoice for this shop and rep is allocated FIFO.",
             "note": "amount integer. 409 duplicate_receipt_no. 403 cash_cap_exceeded. 422 receipt_not_reserved / receipt_expired. client_op_id replay returns the same payment."
         },
         {
@@ -1972,6 +1975,34 @@
             },
             "errors": [],
             "description": "net_balance == SUM(collected) − SUM(settled) at all times (AC-06).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/app/rep/profile",
+            "catalog_path": "/app/rep/profile",
+            "code": "EP-RP-073",
+            "name": "Update rep profile",
+            "name_ar": "تعديل ملف المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "أحمد العلي",
+                "phone": "+963933000001"
+            },
+            "response": {
+                "name": "أحمد العلي",
+                "phone": "+963933000001",
+                "avatar": null
+            },
+            "errors": [],
+            "description": "Name and phone only. avatar stays null until media upload. Phone must be unique among app users.",
             "note": null
         }
     ]

@@ -143,7 +143,7 @@ OTP المحلي: أرسل `code` **String** `"0000"`. الرقم `0000` كـ `i
 | 9 | قائمة المنتجات | `ProductsView` + `ProductDetailView` | ✅ `GET /app/rep/products` + `GET /app/rep/products/{id}` + عروض |
 | 10 | قائمة العملاء | `CustomersView` + `CustomerDetailView` | ✅ `GET /app/rep/customers` + `GET /app/rep/customers/{id}` |
 | 11 | قائمة المناطق | `ZonesView` | ✅ `GET /app/rep/zones` + `GET .../zones/{id}/shops` |
-| 12 | شريط النقاط والجوائز | `LoyaltyBar` | ⛔ `loyalty: null` على `GET /app/rep/home` — أخفِ الشريط |
+| 12 | شريط النقاط والجوائز | `LoyaltyBar` | ✅ `loyalty` من `GET /app/rep/home` + تفاصيل عبر `GET /app/loyalty` |
 
 ---
 
@@ -518,7 +518,7 @@ class ContentService extends BaseService {
 
 كاش في `LocalStore` بعد نجاح الجلب؛ إن فشل الشبكة بلا كاش: ومضة الشعار المحلي ≤2ث ثم الهاتف — لا علّق الإقلاع.
 
-**ممنوع من هذا التطبيق:** `GET/PUT /platform/content/intro` و`GET/PUT /channel/content/intro` → 403 `wrong_guard`. الأدمن يحرّر هناك؛ التطبيق **يقرأ** `/public/content/intro` فقط. `GET /public/app-config` ما زال ⛔ (تحديث إجباري) — ليس مصدر الانترو.
+**ممنوع من هذا التطبيق:** `GET/PUT /platform/content/intro` و`GET/PUT /channel/content/intro` → 403 `wrong_guard`. الأدمن يحرّر هناك؛ التطبيق **يقرأ** `/public/content/intro` فقط. `GET /public/app-config` ✅ حي (تحديث إجباري / أعلام / صيانة) — ليس مصدر الانترو.
 
 `SplashController`:
 
@@ -888,12 +888,12 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
     "scheduled": 1,
     "warehouse_receipts": 2
   },
-  "loyalty": null,
+  "loyalty": { "points": 0, "tier": "bronze", "next_tier": { "name": "silver", "remaining": 1000 } },
   "unread_notifications": 0
 }
 ```
 
-`collected_today` عدد صحيح بأصغر وحدة (ل.س). `loyalty: null` → أخفِ شريط النقاط. `unread_notifications` اليوم 0 حتى صندوق الإشعارات (AP-02).
+`collected_today` عدد صحيح بأصغر وحدة (ل.س). `loyalty` لقطة EP-APP-110 — اربط شريط النقاط. `unread_notifications` = `meta.unread_count` لصندوق الإشعارات (EP-CM-060).
 
 اسحب-للتحديث يعيد `GET /home` فقط.
 
@@ -905,11 +905,11 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 |---|---|
 | أهلاً بك + اسم + صورة البروفايل | `greeting.name` — `avatar` دائماً `null`: حرف من الاسم بجانب الترحيب |
 | اليوم والتاريخ | `server_time` أو ساعة الجهاز إن انقطع |
-| زر الإشعارات | الشارة = `unread_notifications` (0). الشاشة: ⛔ صندوق 404 فارغ صادق |
+| زر الإشعارات | الشارة = `unread_notifications`. الشاشة: `GET /app/notifications` (+ read-all / clear / push-token) |
 | حالة الاتصال | §4.5 أخضر متصل / رمادي غير متصل / أصفر مزامنة معلّقة |
-| مزامنة يدوية | يظهر فقط إن outbox > 0 — يفرّغ الطابور الحيّ. لا `/app/sync/*` |
+| مزامنة يدوية | `GET/POST /app/sync/*` عند outbox > 0 |
 | داخل/خارج الخدمة | مفتاح من `on_duty`. الكتابة: `PATCH /app/rep/status` `{on_duty}`. جاهز للعمل أو خارج الخدمة |
-| شريط النقاط والجوائز | ⛔ `loyalty == null` — أخفِ الشريط. لا `GET /app/loyalty` |
+| شريط النقاط والجوائز | ✅ `loyalty` من الـ home؛ التفاصيل عبر `GET /app/loyalty` |
 
 ### 6.2 بلوك المهام الرئيسية — أربعة أزرار ثم صف ثانٍ
 
@@ -2002,7 +2002,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 | طلبات منفّذة | `GET /wallet` → `stats.invoices_delivered` (إجمالي لا شهري — عنون بوضوح) |
 | محلات | `GET /customers` → `meta.total` |
 | نسبة تنفيذ | لا مسار. أخفِ أو اترك «—» |
-| نقاط | `loyalty` null — أخفِ |
+| نقاط | `loyalty` من الـ home — اربط الشريط |
 | لغة / مظهر / عملة | محلي GetStorage. العملة `SYP` ثابتة |
 | إشعارات تفعيل | محلي حتى FCM ⛔ |
 | مساعدة وخصوصية | `legal.*` نسخ ثابتة في الأصول. ⛔ لا API قبول |
@@ -2050,7 +2050,7 @@ POST   /app/devices/push-token   { token, platform }
 | EP-CORE-001 | GET | `/health` | | ✅ |
 | EP-PB-001 | GET | `/public/refs` | | ✅ |
 | EP-PB-011 | GET | `/public/content/intro` | | ✅ انترو الإقلاع |
-| EP-PB-010 | GET | `/public/app-config` | | ⛔ تحديث إجباري — ليس الانترو |
+| EP-PB-010 | GET | `/public/app-config` | | ✅ تحديث إجباري / أعلام / صيانة — ليس الانترو |
 | EP-CM-001 | POST | `/public/auth/request-otp` | لا | ✅ |
 | EP-CM-002 | POST | `/public/auth/verify-otp` | لا | ✅ |
 | EP-CM-003 | POST | `/public/auth/resend-otp` | لا | ✅ |
@@ -2116,7 +2116,7 @@ POST   /app/devices/push-token   { token, platform }
 | أي `/channel/*` `/platform/*` `/warehouse/*` `/app/retailer/*` | حارس خاطئ → 403 `wrong_guard` |
 | `GET/PUT /platform/content/intro` | كتابة/قراءة السنترال — التطبيق يقرأ `GET /public/content/intro` |
 | `GET/PUT /channel/content/intro` | لوحة القناة فقط |
-| `PATCH/DELETE /app/rep/cart/lines/{id}` | غير موجود للمندوب (موجود للتاجر فقط) |
+| `PATCH/DELETE /app/rep/cart/lines/{id}` | ✅ حيّان للمندوب |
 | `GET /app/rep/return-requests` | غير موجود |
 | `auth:sanctum` | ليس حارساً في هذا التطبيق |
 
@@ -2279,7 +2279,7 @@ class Money {
 | إشعارات FCM | ⛔ AP-02 | شاشة فارغة — ابنِ الواجهة بلا استدعاء |
 | ولاء / شريط نقاط | ⛔ AP-05 | أخفِ |
 | مزامنة pull/push | ⛔ AP-03 | outbox محلي |
-| فرض تحديث / صيانة | ⛔ app-config | مراجعة متجر يدوية |
+| فرض تحديث / صيانة | ✅ `GET /public/app-config` | اربط force_update / maintenance |
 | إحصاءات شهر الحساب | لا مسار شهري | `wallet.stats` + `customers.meta.total` بعنوان إجمالي |
 | تعديل ملف المندوب (هاتف/صورة) | لا مسار | «تواصل مع القناة» |
 | رفع صور مرتجع | `photos: []` فقط | لا picker |
@@ -2287,7 +2287,7 @@ class Money {
 | خريطة ETA للتسليم | لا مسار | إحداثيات المحل من بطاقة العميل؛ لا وقت وصول مختلق |
 | OTP | حي كما في §5 | **مؤجّل** — لا تعِد بناء شاشات التحقق حتى تكتمل الشاشات أعلاه |
 
-عقود الكتالوج غير الحيّة (`notifications`, `sync`, `loyalty`, `home-blocks`, `app-config`) تُنفَّذ كـ `*Remote` جاهز بـ `fromJson` **مع** `enabled = false` حتى ينقلب `status/` إلى ✅. عندها يكفي فك الرابط لا إعادة الشاشة.
+عقود الكتالوج الحيّة المشتركة (`notifications`, `sync`, `loyalty`, `home-blocks`, `app-config`) جاهزة على السيرفر — اربطها، لا تُحاكِ 404.
 
 ---
 
@@ -2361,9 +2361,9 @@ class Money {
 - ✅ الصحة تُرجع `app` `env` `checks` وقد تكون `degraded`.
 - ✅ انترو التطبيق: `GET /public/content/intro` (EP-PB-011، بلا حارس). الأدمن يحرّر `PUT /platform/content/intro`. التطبيق **لا** يستدعي `/platform` ولا `/channel` (`wrong_guard`). حساب سابق يتجاوز الانترو.
 - ✅ رئيسية المندوب: `GET /app/rep/home` (EP-RP-002). بلوك المهام الأربعة من موجّه المنتج (تسجيل طلب · تسليم الطلبات · استلام دفعة · قبول الطلبات) + صف ثانٍ للمجدولة والمستودع. لا `GET /deliveries` من الرئيسية. لا بريد على التسجيل (`email` prohibited). زائر محلي — 401 بلا توكن.
-- ⛔ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` ما زالت ناقصة (`plan/apps.md` AP-02…06). `app-config` للتحديث الإجباري فقط، ليس للانترو.
+- ✅ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` حيّة (`plan/apps.md` AP-02…06 ✅). `app-config` للتحديث الإجباري فقط، ليس للانترو.
 - 2026-09-20: الشاشات الست في بلوك المهام مطابقة لموجّه المنتج حرفياً (§7 تسجيل طلب، §8.3 تسليم، §9.2 استلام دفعة، §8.1 قبول، §8.9 مجدولة ببطاقات أفقية وحالة وأيقونة، §8.2 مستودع بجدول تأكيد العهدة).
-- 2026-09-20 (نسخة العميل): `GET /products/{id}` + `variants[]` على القائمة، بطاقة محل كاملة، `GET /customers/{id}`، `GET /zones`، `GET /orders` (`rep_id` عند الإرسال)، السلة بالاسم والقناة، إضافة محل بالعنوان والفئات. OTP مؤجّل كما هو. الإشعارات شاشة فارغة.
-- هذا الملف يضيف: GetX، موجّه المنتج، زائر، انترو، outbox، علي بابا، PDF محلي، وخريطة صريحة للفجوات.
+- 2026-09-20 (نسخة العميل): `GET /products/{id}` + `variants[]` على القائمة، بطاقة محل كاملة، `GET /customers/{id}`، `GET /zones`، `GET /orders` (`rep_id` عند الإرسال)، السلة بالاسم والقناة، إضافة محل بالعنوان والفئات. OTP مؤجّل كما هو. الإشعارات/الولاء/المزامنة مربوطة بالـ API الحي.
+- هذا الملف يضيف: GetX، موجّه المنتج، زائر، انترو، outbox، علي بابا، PDF محلي، وخريطة صريحة لما بقي (OTP، ميديا، قائمة مرتجعات).
 
 عندما يصل مستودع Flutter: راجع كل شاشة مقابل §15 وهذا الملف، وأكمل الناقص دون اختراع API.

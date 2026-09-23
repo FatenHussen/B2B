@@ -31,8 +31,8 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-09-20T09:09:08+00:00",
-        "endpoint_count": 354,
+        "generated_at": "2026-09-23T07:35:03+00:00",
+        "endpoint_count": 366,
         "surfaces": {
             "retailer_app": {
                 "label": "تطبيق التاجر",
@@ -3898,7 +3898,7 @@
             "auth": true,
             "name": "Add line to shop cart",
             "name_ar": "إضافة لسلة محل",
-            "description": "Same shape as GET /cart. qty increments an existing (product, variant) line. No PATCH/DELETE.",
+            "description": "Same shape as GET /cart. qty increments an existing (product, variant) line. PATCH/DELETE the line via EP-RP-025/026.",
             "query": [],
             "body": {
                 "retailer_id": 481,
@@ -4127,6 +4127,119 @@
                 "Authorization": "Bearer {{token}}",
                 "X-Device-Id": "{{deviceId}}",
                 "X-App-Version": "{{appVersion}}"
+            }
+        },
+        {
+            "code": "EP-RP-025",
+            "sprint": "SP-09",
+            "method": "PATCH",
+            "path": "/app/rep/cart/lines/{id}",
+            "full_path": "/api/v1/app/rep/cart/lines/{id}",
+            "audience": "rep",
+            "guard": "app",
+            "permission": null,
+            "auth": true,
+            "name": "Update shop-cart line qty",
+            "name_ar": "تعديل كمية سطر سلة محل",
+            "description": "Same cart shape as GET /cart. qty 0 deletes the line (same as EP-RP-026).",
+            "query": [],
+            "body": {
+                "qty": 6
+            },
+            "response": {
+                "sections": [
+                    {
+                        "retailer": {
+                            "id": 481,
+                            "shop_name": "بقالية النور",
+                            "zone_id": 12
+                        },
+                        "channel": {
+                            "id": 1,
+                            "name": "شركة النور"
+                        },
+                        "created_at": "2026-03-01T10:00:00+03:00",
+                        "lines": [
+                            {
+                                "id": 11,
+                                "product_id": 880,
+                                "name": "زيت دوار الشمس 1 لتر",
+                                "qty": 6,
+                                "unit_price": 12000,
+                                "line_total": 72000
+                            }
+                        ],
+                        "total": 72000,
+                        "discount": 0
+                    }
+                ]
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "02. تطبيق المندوب / 06. السلة والطلبات",
+            "module": "06. السلة والطلبات",
+            "roles": [
+                "rep"
+            ],
+            "apps": [
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "rep-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-RP-026",
+            "sprint": "SP-09",
+            "method": "DELETE",
+            "path": "/app/rep/cart/lines/{id}",
+            "full_path": "/api/v1/app/rep/cart/lines/{id}",
+            "audience": "rep",
+            "guard": "app",
+            "permission": null,
+            "auth": true,
+            "name": "Remove shop-cart line",
+            "name_ar": "حذف سطر سلة محل",
+            "description": "Same cart shape as GET /cart. 404 if the line is not on this rep cart.",
+            "query": [],
+            "body": null,
+            "response": {
+                "sections": []
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "02. تطبيق المندوب / 06. السلة والطلبات",
+            "module": "06. السلة والطلبات",
+            "roles": [
+                "rep"
+            ],
+            "apps": [
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "rep-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
             }
         },
         {
@@ -4894,7 +5007,7 @@
             "auth": true,
             "name": "Collect payment",
             "name_ar": "تحصيل دفعة",
-            "description": "receipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01).",
+            "description": "receipt_no must be reserved first via EP-CM-050. client_op_id makes retries duplicate-safe (REQ-IN-01). invoice_no is optional — omitted, the oldest open invoice for this shop and rep is allocated FIFO.",
             "query": [],
             "body": {
                 "receipt_no": "RCPT-10041",
@@ -5154,7 +5267,7 @@
             "auth": true,
             "name": "Rep morning home",
             "name_ar": "رئيسية المندوب",
-            "description": "Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is null until EP-APP-110. unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
+            "description": "Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is the EP-APP-110 snapshot (points 0 / bronze when the wallet is empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
             "query": [],
             "body": null,
             "response": {
@@ -5173,7 +5286,14 @@
                     "scheduled": 1,
                     "warehouse_receipts": 2
                 },
-                "loyalty": null,
+                "loyalty": {
+                    "points": 0,
+                    "tier": "bronze",
+                    "next_tier": {
+                        "name": "silver",
+                        "remaining": 1000
+                    }
+                },
                 "unread_notifications": 0
             },
             "errors": [],
@@ -5197,6 +5317,54 @@
                 "Authorization": "Bearer {{token}}",
                 "X-Device-Id": "{{deviceId}}",
                 "X-App-Version": "{{appVersion}}"
+            }
+        },
+        {
+            "code": "EP-RP-073",
+            "sprint": "SP-01",
+            "method": "PATCH",
+            "path": "/app/rep/profile",
+            "full_path": "/api/v1/app/rep/profile",
+            "audience": "rep",
+            "guard": "app",
+            "permission": null,
+            "auth": true,
+            "name": "Update rep profile",
+            "name_ar": "تعديل ملف المندوب",
+            "description": "Name and phone only. avatar stays null until media upload. Phone must be unique among app users.",
+            "query": [],
+            "body": {
+                "name": "أحمد العلي",
+                "phone": "+963933000001"
+            },
+            "response": {
+                "name": "أحمد العلي",
+                "phone": "+963933000001",
+                "avatar": null
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "02. تطبيق المندوب / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "rep"
+            ],
+            "apps": [
+                "rep_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "rep-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
             }
         },
         {
@@ -6637,6 +6805,110 @@
                     "status": "active"
                 }
             ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 02. الكتالوج",
+            "module": "02. الكتالوج",
+            "roles": [
+                "channel_manager",
+                "catalog_manager",
+                "sales_manager",
+                "accountant"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
+            "code": "EP-SC-014A",
+            "sprint": "SP-06",
+            "method": "GET",
+            "path": "/channel/products/{id}",
+            "full_path": "/api/v1/channel/products/{id}",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.catalog.view",
+            "auth": true,
+            "name": "Product detail",
+            "name_ar": "تفاصيل منتج",
+            "description": "Full create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404.",
+            "query": [],
+            "body": null,
+            "response": {
+                "name_ar": "زيت دوار الشمس 1 لتر",
+                "name_en": "Sunflower Oil 1L",
+                "sku": "OIL-SUN-1L",
+                "brand_id": 12,
+                "category_id": 340,
+                "model_no": "SUN-1000",
+                "barcode": "6291000000000",
+                "status": "active",
+                "short_description": "زيت نباتي للطبخ",
+                "long_description": "<p>زيت دوار الشمس</p>",
+                "specs": [
+                    {
+                        "key": "الحجم",
+                        "value": "1 لتر"
+                    }
+                ],
+                "media": {
+                    "images": [
+                        "media_id_1"
+                    ],
+                    "primary": "media_id_1",
+                    "video": null
+                },
+                "sale_unit_id": 3,
+                "unit_factors": [
+                    {
+                        "from_unit_id": 3,
+                        "to_unit_id": 5,
+                        "factor": 12
+                    }
+                ],
+                "min_order_qty": 1,
+                "order_multiple": 1,
+                "weight_gram": 950,
+                "pricing": null,
+                "inventory": {
+                    "tracked": true,
+                    "reorder_point": 50,
+                    "allow_backorder": false
+                },
+                "availability": {
+                    "zone_ids": [
+                        12,
+                        13
+                    ],
+                    "activity_type_ids": [
+                        3,
+                        4
+                    ],
+                    "retailer_group_ids": [],
+                    "lead_time_days": 2
+                },
+                "marketing": {
+                    "tags": [
+                        "new"
+                    ],
+                    "sliders": [
+                        "best_selling"
+                    ],
+                    "priority": 10
+                },
+                "id": 880
+            },
             "errors": [],
             "dual_approval": false,
             "critical": false,
@@ -8865,6 +9137,65 @@
             }
         },
         {
+            "code": "EP-SC-080A",
+            "sprint": "SP-13",
+            "method": "GET",
+            "path": "/channel/invoices/{id}",
+            "full_path": "/api/v1/channel/invoices/{id}",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.finance.view",
+            "auth": true,
+            "name": "Invoice detail",
+            "name_ar": "تفاصيل فاتورة",
+            "description": "lines[].id is the line_id for credit-note. Foreign id → 404.",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 501,
+                "no": "INV-501",
+                "status": "open",
+                "retailer_id": 481,
+                "rep_id": 70,
+                "total": 48000,
+                "paid_total": 0,
+                "credited_total": 0,
+                "remaining": 48000,
+                "lines": [
+                    {
+                        "id": 1,
+                        "product_id": 880,
+                        "qty": 4,
+                        "amount": 48000
+                    }
+                ],
+                "created_at": "2026-03-01T09:00:00+03:00"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 10. المالية",
+            "module": "10. المالية",
+            "roles": [
+                "channel_manager",
+                "accountant",
+                "sales_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
             "code": "EP-SC-081",
             "sprint": "SP-13",
             "method": "POST",
@@ -9074,7 +9405,7 @@
             "auth": true,
             "name": "Receivables aging",
             "name_ar": "أعمار الذمم",
-            "description": "group_by: zone|rep",
+            "description": "group_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id.",
             "query": {
                 "group_by": "zone"
             },
@@ -9086,7 +9417,19 @@
                     "31_60": 4000000,
                     "61_90": 1500000,
                     "over_90": 200000
-                }
+                },
+                "groups": [
+                    {
+                        "key": 12,
+                        "label": null,
+                        "buckets": {
+                            "0_30": 8000000,
+                            "31_60": 0,
+                            "61_90": 0,
+                            "over_90": 0
+                        }
+                    }
+                ]
             },
             "errors": [],
             "dual_approval": false,
@@ -9665,13 +10008,13 @@
             "auth": true,
             "name": "Banner stats",
             "name_ar": "إحصاء البنر",
-            "description": "",
+            "description": "ctr is integer basis points at scale 10^4 (840/12000 = 700), never a float.",
             "query": [],
             "body": null,
             "response": {
                 "impressions": 12000,
                 "clicks": 840,
-                "ctr": 0.07
+                "ctr": 700
             },
             "errors": [],
             "dual_approval": false,
@@ -10472,6 +10815,372 @@
                 "X-Channel-Id": "{{channelId}}",
                 "X-Idempotency-Key": "{{$guid}}",
                 "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-130A",
+            "sprint": "SP-15",
+            "method": "GET",
+            "path": "/channel",
+            "full_path": "/api/v1/channel",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.settings.view",
+            "auth": true,
+            "name": "Own channel settings",
+            "name_ar": "إعدادات القناة",
+            "description": "The authenticated channel tenant reading itself. No X-Channel-Id.",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 1,
+                "name": "شركة النور",
+                "slug": "alnoor",
+                "legal_name": "شركة النور للتجارة",
+                "tax_number": "123456789",
+                "phone": "+963911000001",
+                "email": "ops@alnoor.example",
+                "status": "active",
+                "allowed_next": [
+                    "suspended",
+                    "archived"
+                ],
+                "settings": {},
+                "created_at": "2026-01-01T00:00:00+03:00"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
+            "code": "EP-SC-130B",
+            "sprint": "SP-15",
+            "method": "PUT",
+            "path": "/channel",
+            "full_path": "/api/v1/channel",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.settings.update",
+            "auth": true,
+            "name": "Update own channel settings",
+            "name_ar": "تحديث إعدادات القناة",
+            "description": "Partial update. status is not writable here — lifecycle stays on the platform.",
+            "query": [],
+            "body": {
+                "name": "شركة النور",
+                "legal_name": "شركة النور للتجارة",
+                "tax_number": "123456789",
+                "phone": "+963911000001",
+                "email": "ops@alnoor.example",
+                "settings": {
+                    "locale": "ar"
+                }
+            },
+            "response": {
+                "id": 1,
+                "name": "شركة النور",
+                "slug": "alnoor",
+                "legal_name": "شركة النور للتجارة",
+                "tax_number": "123456789",
+                "phone": "+963911000001",
+                "email": "ops@alnoor.example",
+                "status": "active",
+                "allowed_next": [
+                    "suspended",
+                    "archived"
+                ],
+                "settings": {
+                    "locale": "ar"
+                },
+                "created_at": "2026-01-01T00:00:00+03:00"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-131A",
+            "sprint": "SP-03",
+            "method": "GET",
+            "path": "/channel/zones",
+            "full_path": "/api/v1/channel/zones",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.zones.view",
+            "auth": true,
+            "name": "Channel coverage zones",
+            "name_ar": "مناطق تغطية القناة",
+            "description": "Unpaginated. delivery_fee and min_order_value are decimal strings (unique money exception on this guard).",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "zone_id": 12,
+                    "zone_name": "المزة",
+                    "delivery_days": [
+                        "sun",
+                        "tue",
+                        "thu"
+                    ],
+                    "delivery_fee": "50000.00",
+                    "min_order_value": "100000.00"
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
+            "code": "EP-SC-131B",
+            "sprint": "SP-03",
+            "method": "POST",
+            "path": "/channel/zones",
+            "full_path": "/api/v1/channel/zones",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.zones.manage",
+            "auth": true,
+            "name": "Upsert coverage zone",
+            "name_ar": "إضافة/تحديث تغطية منطقة",
+            "description": "updateOrCreate on zone_id within the tenant.",
+            "query": [],
+            "body": {
+                "zone_id": 12,
+                "delivery_days": [
+                    "sun",
+                    "tue",
+                    "thu"
+                ],
+                "delivery_fee": "50000.00",
+                "min_order_value": "100000.00"
+            },
+            "response": {
+                "id": 1,
+                "zone_id": 12,
+                "zone_name": "المزة",
+                "delivery_days": [
+                    "sun",
+                    "tue",
+                    "thu"
+                ],
+                "delivery_fee": "50000.00",
+                "min_order_value": "100000.00"
+            },
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-131C",
+            "sprint": "SP-03",
+            "method": "DELETE",
+            "path": "/channel/zones/{id}",
+            "full_path": "/api/v1/channel/zones/{id}",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.zones.manage",
+            "auth": true,
+            "name": "Remove coverage zone",
+            "name_ar": "حذف تغطية منطقة",
+            "description": "204 empty body. Path param is the coverage row id (channel_zone.id), not zone_id.",
+            "query": [],
+            "body": null,
+            "response": null,
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-SC-140",
+            "sprint": "SP-13",
+            "method": "GET",
+            "path": "/channel/retailers",
+            "full_path": "/api/v1/channel/retailers",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.retailers.view",
+            "auth": true,
+            "name": "List retailers in coverage",
+            "name_ar": "تجّار التغطية",
+            "description": "Retailers whose zone is in this channel coverage. Id is retailer_profile id for credit/payments.",
+            "query": {
+                "page": "1",
+                "per_page": "25",
+                "sort": "-created_at",
+                "search": "نور",
+                "filter[zone_id]": "12"
+            },
+            "body": null,
+            "response": [
+                {
+                    "id": 481,
+                    "shop_name": "بقالية النور",
+                    "phone": "+963931000002",
+                    "zone_id": 12,
+                    "status": "active"
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
+            }
+        },
+        {
+            "code": "EP-SC-141",
+            "sprint": "SP-09",
+            "method": "GET",
+            "path": "/channel/warehouses",
+            "full_path": "/api/v1/channel/warehouses",
+            "audience": "channel",
+            "guard": "channel",
+            "permission": "sc.inventory.view",
+            "auth": true,
+            "name": "List channel warehouses",
+            "name_ar": "مستودعات القناة",
+            "description": "Unpaginated picker for inventory adjust/transfer. No create on this path.",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "name": "مستودع المزة",
+                    "status": "active"
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "04. لوحة قناة التوريد / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "channel_manager"
+            ],
+            "apps": [
+                "channel_dashboard"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "channel-web",
+                "Authorization": "Bearer {{token}}",
+                "X-Channel-Id": "{{channelId}}"
             }
         },
         {

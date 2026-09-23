@@ -15,6 +15,7 @@ use Modules\Finance\Application\Actions\VoidInvoice;
 use Modules\Finance\Application\Queries\AgingReport;
 use Modules\Finance\Application\Queries\ListInvoices;
 use Modules\Finance\Application\Queries\ShowChannelRepWallet;
+use Modules\Finance\Application\Queries\ShowInvoice;
 use Modules\Finance\Presentation\Http\Requests\IssueCreditNoteRequest;
 use Modules\Finance\Presentation\Http\Requests\RecordOfficePaymentRequest;
 use Modules\Finance\Presentation\Http\Requests\SettleRepWalletRequest;
@@ -26,6 +27,11 @@ final class ChannelFinanceController extends ApiController
     public function invoices(ListInvoices $query, Request $request): JsonResponse
     {
         return $this->paginated($query($request), fn ($row) => $query->map($row));
+    }
+
+    public function showInvoice(ShowInvoice $query, int $id): JsonResponse
+    {
+        return $this->ok($query($id));
     }
 
     public function creditNote(IssueCreditNoteRequest $request, IssueCreditNote $action, int $id): JsonResponse

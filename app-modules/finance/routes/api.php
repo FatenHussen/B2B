@@ -6,11 +6,13 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 use Modules\Finance\Presentation\Http\Controllers\ChannelFinanceController;
 use Modules\Finance\Presentation\Http\Controllers\RepFinanceController;
+use Modules\Finance\Presentation\Http\Controllers\RetailerFinanceController;
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.tokenable:channel', 'tenant'])
     ->prefix('api/v1/channel')
     ->group(function (): void {
         Route::get('invoices', [ChannelFinanceController::class, 'invoices'])->middleware('permission:sc.finance.view');
+        Route::get('invoices/{id}', [ChannelFinanceController::class, 'showInvoice'])->middleware('permission:sc.finance.view');
         Route::post('invoices/{id}/credit-note', [ChannelFinanceController::class, 'creditNote'])->middleware('permission:sc.finance.credit_note');
         Route::post('invoices/{id}/void', [ChannelFinanceController::class, 'voidInvoice'])->middleware('permission:sc.finance.void_invoice');
         Route::post('payments', [ChannelFinanceController::class, 'payment'])->middleware('permission:sc.finance.payment');
@@ -29,4 +31,14 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
         Route::post('app/rep/wallet/withdrawals', [RepFinanceController::class, 'withdraw']);
         Route::get('app/rep/wallet/withdrawals', [RepFinanceController::class, 'withdrawals']);
         Route::get('app/rep/receivables', [RepFinanceController::class, 'receivables']);
+    });
+
+Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:retailer'])
+    ->prefix('api/v1/app/retailer')
+    ->group(function (): void {
+        Route::post('payments', [RetailerFinanceController::class, 'payment']);
+        Route::get('account/summary', [RetailerFinanceController::class, 'summary']);
+        Route::get('account/statement', [RetailerFinanceController::class, 'statement']);
+        Route::post('account/statement/export', [RetailerFinanceController::class, 'exportStatement']);
+        Route::get('debts', [RetailerFinanceController::class, 'debts']);
     });

@@ -1,10 +1,10 @@
 # تطبيق المندوب — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-09-20 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 34 | 34 | 0 | 0 | 0 |
+| 37 | 37 | 0 | 0 | 0 |
 
 ## التسجيل والحالة — 2/2
 
@@ -32,13 +32,15 @@ guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-0
 | ✅ | EP-RP-072 | SP-06 | `GET` | `/app/rep/zones` | — | Identity | مناطق تغطية المندوب |
 | ✅ | EP-RP-020 | SP-09 | `GET` | `/app/rep/zones/{id}/shops` | — | Identity | محلات المنطقة |
 
-## السلة — 3/3
+## السلة — 5/5
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-RP-021 | SP-09 | `POST` | `/app/rep/cart/lines` | — | Ordering | إضافة لسلة محل |
 | ✅ | EP-RP-022 | SP-09 | `GET` | `/app/rep/cart` | — | Ordering | سلة المندوب |
 | ✅ | EP-RP-023 | SP-09 | `POST` | `/app/rep/cart/sections/{retailer_id}/submit` | — | Ordering | إرسال طلب محل |
+| ✅ | EP-RP-025 | SP-09 | `PATCH` | `/app/rep/cart/lines/{id}` | — | Ordering | تعديل كمية سطر سلة محل |
+| ✅ | EP-RP-026 | SP-09 | `DELETE` | `/app/rep/cart/lines/{id}` | — | Ordering | حذف سطر سلة محل |
 
 ## طلبات المندوب — 1/1
 
@@ -84,4 +86,10 @@ guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-0
 | ✅ | EP-RP-062 | SP-13 | `POST` | `/app/rep/wallet/withdrawals` | `rp.payment.withdraw` | Finance | gated by `app.kind:rep` — the kind implies `rp.payment.withdraw` |
 | ✅ | EP-RP-063 | SP-13 | `GET` | `/app/rep/wallet/withdrawals` | `rp.wallet.view` | Finance | gated by `app.kind:rep` — the kind implies `rp.wallet.view` |
 | ✅ | EP-RP-064 | SP-13 | `GET` | `/app/rep/receivables` | `rp.wallet.view` | Finance | gated by `app.kind:rep` — the kind implies `rp.wallet.view` |
+
+## أخرى — 1/1
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-RP-073 | SP-01 | `PATCH` | `/app/rep/profile` | — | Identity | تعديل ملف المندوب |
 

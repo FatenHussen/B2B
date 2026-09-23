@@ -33,7 +33,7 @@ final class CollectRepPayment
     ) {}
 
     /**
-     * @param  array{receipt_no: string, retailer_id: int, invoice_no: string, amount: int, paid_at: string, client_op_id: string}  $data
+     * @param  array{receipt_no: string, retailer_id: int, invoice_no?: string|null, amount: int, paid_at: string, client_op_id: string}  $data
      * @return array{payment: array{id: int}, wallet_balance: int, retailer_receivable: int}
      */
     public function __invoke(object $user, array $data): array
@@ -78,10 +78,22 @@ final class CollectRepPayment
                 InvalidFields::throw(['receipt_no' => 'finance.receipt_expired']);
             }
 
-            $invoice = Invoice::query()
-                ->where('no', (string) $data['invoice_no'])
-                ->where('retailer_id', $retailerId)
-                ->first();
+            $invoice = null;
+            $invoiceNo = isset($data['invoice_no']) ? trim((string) $data['invoice_no']) : '';
+            if ($invoiceNo !== '') {
+                $invoice = Invoice::query()
+                    ->where('no', $invoiceNo)
+                    ->where('retailer_id', $retailerId)
+                    ->first();
+            } else {
+                $invoice = Invoice::query()
+                    ->where('retailer_id', $retailerId)
+                    ->where('status', 'open')
+                    ->where('rep_id', $repUserId)
+                    ->orderBy('created_at')
+                    ->orderBy('id')
+                    ->first();
+            }
             if ($invoice === null || (int) $invoice->rep_id !== $repUserId) {
                 throw DomainException::of(ErrorCode::NotFound, __('finance.not_found'));
             }

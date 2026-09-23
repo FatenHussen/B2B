@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
+use Modules\Content\Presentation\Http\Controllers\AppContentController;
 use Modules\Content\Presentation\Http\Controllers\ChannelContentController;
 use Modules\Content\Presentation\Http\Controllers\PlatformContentController;
 use Modules\Content\Presentation\Http\Controllers\PublicContentController;
@@ -18,9 +19,10 @@ use Modules\Content\Presentation\Http\Controllers\PublicContentController;
  * GuardTest: /public/* is unguarded. Writes stay on /platform/content/intro.
  */
 Route::middleware(['api', SubstituteBindings::class])
-    ->prefix('api/v1/public/content')
+    ->prefix('api/v1/public')
     ->group(function (): void {
-        Route::get('intro', [PublicContentController::class, 'showIntro']);
+        Route::get('content/intro', [PublicContentController::class, 'showIntro']);
+        Route::get('app-config', [PublicContentController::class, 'showAppConfig']);
     });
 
 Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', SubstituteBindings::class])
@@ -42,4 +44,10 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::get('banners/{id}/stats', [ChannelContentController::class, 'bannerStats'])->middleware('permission:sc.content.banners');
         Route::get('sliders', [ChannelContentController::class, 'sliders'])->middleware('permission:sc.content.sliders');
         Route::post('sliders', [ChannelContentController::class, 'storeSlider'])->middleware('permission:sc.content.sliders');
+    });
+
+Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])
+    ->prefix('api/v1/app/content')
+    ->group(function (): void {
+        Route::get('home-blocks', [AppContentController::class, 'homeBlocks']);
     });

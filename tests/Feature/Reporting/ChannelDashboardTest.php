@@ -74,6 +74,38 @@ it('reads dashboard figures from the latest snapshot rather than live joins', fu
     expect($export->json('data.job_id'))->toStartWith('job_rep_exp_');
 });
 
+it('selects a DailySnapshot inside date_from/date_to for reports and margins', function () {
+    $channel = SupplyChannel::factory()->create();
+    Tenant::as($channel->id, function () use ($channel): void {
+        DailySnapshot::query()->create([
+            'supply_channel_id' => $channel->id,
+            'snapshot_date' => '2026-08-01',
+            'payload' => [
+                'reports' => ['sales' => ['rows' => [['zone_id' => 1]], 'totals' => ['sales' => 1]]],
+                'margins' => ['by_product' => [['product_id' => 8]], 'by_zone' => []],
+            ],
+        ]);
+        DailySnapshot::query()->create([
+            'supply_channel_id' => $channel->id,
+            'snapshot_date' => '2026-09-14',
+            'payload' => [
+                'reports' => ['sales' => ['rows' => [['zone_id' => 99]], 'totals' => ['sales' => 99]]],
+                'margins' => ['by_product' => [['product_id' => 99]], 'by_zone' => []],
+            ],
+        ]);
+    });
+
+    Sanctum::actingAs(rptManager($channel), ['*'], 'channel');
+    $report = $this->getJson('/api/v1/channel/reports/sales?date_from=2026-08-01&date_to=2026-08-31');
+    CatalogAssert::ok($report);
+    expect($report->json('data.rows.0.zone_id'))->toBe(1)
+        ->and($report->json('meta.snapshot_date'))->toBe('2026-08-01');
+
+    $margins = $this->getJson('/api/v1/channel/reports/margins?date_from=2026-08-01&date_to=2026-08-31');
+    CatalogAssert::ok($margins);
+    expect($margins->json('data.by_product.0.product_id'))->toBe(8);
+});
+
 it('hides another channel snapshot from the dashboard', function () {
     $own = SupplyChannel::factory()->create();
     $foreign = SupplyChannel::factory()->create();

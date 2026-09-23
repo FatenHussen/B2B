@@ -12,6 +12,7 @@ use Modules\Core\Contracts\OfferLineStats;
 use Modules\Core\Contracts\OpenOrderCounter;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Ordering\Domain\SubOrderStateMachine;
+use Modules\Ordering\Infrastructure\CartSubmitSyncHandler;
 use Modules\Ordering\Infrastructure\EloquentChannelOrderMetrics;
 use Modules\Ordering\Infrastructure\EloquentOfferLineStats;
 use Modules\Ordering\Infrastructure\EloquentOpenOrderCounter;
@@ -26,6 +27,8 @@ class OrderingServiceProvider extends ServiceProvider
         $this->app->singleton(OpenOrderCounter::class, EloquentOpenOrderCounter::class);
         $this->app->singleton(OfferLineStats::class, EloquentOfferLineStats::class);
         $this->app->singleton(ChannelOrderMetrics::class, EloquentChannelOrderMetrics::class);
+        $this->app->singleton(CartSubmitSyncHandler::class);
+        $this->app->tag([CartSubmitSyncHandler::class], 'sync.operation');
 
         if (! $this->app->bound(HandoverGuard::class)) {
             $this->app->singleton(HandoverGuard::class, fn () => new class implements HandoverGuard

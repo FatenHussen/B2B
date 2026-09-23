@@ -17,6 +17,7 @@ use Modules\Catalog\Application\Actions\SaveProduct;
 use Modules\Catalog\Application\Queries\CategoryTree;
 use Modules\Catalog\Application\Queries\ListBrands;
 use Modules\Catalog\Application\Queries\ListChannelProducts;
+use Modules\Catalog\Application\Queries\ShowChannelProduct;
 use Modules\Catalog\Presentation\Http\Requests\BulkProductsRequest;
 use Modules\Catalog\Presentation\Http\Requests\GenerateVariantsRequest;
 use Modules\Catalog\Presentation\Http\Requests\ImportCatalogRequest;
@@ -66,6 +67,11 @@ final class ChannelCatalogController extends ApiController
             'name_ar' => $p->name_ar,
             'status' => $p->status->value,
         ]);
+    }
+
+    public function showProduct(ShowChannelProduct $query, int $id): JsonResponse
+    {
+        return $this->ok($query($id));
     }
 
     public function storeProduct(StoreProductRequest $request, SaveProduct $action): JsonResponse

@@ -15,6 +15,7 @@ use Modules\Identity\Application\Actions\RejectChannelRep;
 use Modules\Identity\Application\Queries\ListChannelReps;
 use Modules\Identity\Application\Queries\ListChannelRepSourcedShops;
 use Modules\Identity\Application\Queries\ListChannelRepZoneRequests;
+use Modules\Identity\Application\Queries\ListChannelRetailers;
 use Modules\Identity\Application\Queries\ShowChannelRep;
 use Modules\Identity\Presentation\Http\Requests\ApproveChannelRepRequest;
 use Modules\Identity\Presentation\Http\Requests\DecideRepQueueRequest;
@@ -23,6 +24,11 @@ use Modules\Identity\Presentation\Http\Requests\ReasonRequiredChannelRepRequest;
 final class ChannelRepOpsController extends ApiController
 {
     public function index(ListChannelReps $query, Request $request): JsonResponse
+    {
+        return $this->paginated($query($request), fn ($row) => $query->map($row));
+    }
+
+    public function retailers(ListChannelRetailers $query, Request $request): JsonResponse
     {
         return $this->paginated($query($request), fn ($row) => $query->map($row));
     }

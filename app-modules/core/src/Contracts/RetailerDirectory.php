@@ -42,6 +42,18 @@ interface RetailerDirectory
     public function phone(int $retailerId): ?string;
 
     /**
+     * The app user who owns this shop — Notification writes the inbox by user id,
+     * not retailer profile id.
+     */
+    public function appUserId(int $retailerId): ?int;
+
+    /**
+     * The shop id for an authenticated retailer. Loyalty credits the profile, not
+     * the user row; Identity is the only module that can join the two.
+     */
+    public function profileIdForUser(int $appUserId): ?int;
+
+    /**
      * The delivery zone this shop sits in, for repricing a rep's cart.
      *
      * Also separate from find(): only the two cart writers need it, and the shape stays

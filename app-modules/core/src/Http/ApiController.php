@@ -27,8 +27,11 @@ abstract class ApiController extends Controller
         return ApiResponse::noContent();
     }
 
-    protected function paginated(LengthAwarePaginator|CursorPaginator $paginator, ?callable $transform = null): JsonResponse
+    /**
+     * @param  array<string, mixed>  $extraMeta
+     */
+    protected function paginated(LengthAwarePaginator|CursorPaginator $paginator, ?callable $transform = null, array $extraMeta = []): JsonResponse
     {
-        return ApiResponse::paginate($paginator, $transform);
+        return ApiResponse::paginate($paginator, $transform, $extraMeta);
     }
 }

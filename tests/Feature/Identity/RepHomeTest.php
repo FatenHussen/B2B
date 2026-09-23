@@ -38,7 +38,8 @@ it('returns zeroed morning counts for a fresh rep without a bearer-less guest to
             'scheduled' => 0,
             'warehouse_receipts' => 0,
         ])
-        ->and($get->json('data.loyalty'))->toBeNull()
+        ->and($get->json('data.loyalty.points'))->toBe(0)
+        ->and($get->json('data.loyalty.tier'))->toBe('bronze')
         ->and($get->json('data.unread_notifications'))->toBe(0);
 });
 

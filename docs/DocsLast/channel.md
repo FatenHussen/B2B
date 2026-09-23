@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| الغرض | الملف الوحيد الذي يحتاجه وكيل Cursor أو مطوّر Next.js لربط **لوحة القناة** بهذا الخادم. كل مسار وجسم واستجابة قُرئت من `route:list` والكنترولر وFormRequest في **2026-09-19**. |
+| الغرض | الملف الوحيد الذي يحتاجه وكيل Cursor أو مطوّر Next.js لربط **لوحة القناة** بهذا الخادم. كل مسار وجسم واستجابة قُرئت من `route:list` والكنترولر وFormRequest في **2026-09-23**. |
 | التطبيق | Next.js 15 · App Router · TypeScript · TanStack Query v5 · RTL عربي · المنفذ **3001** |
 | الحارس | `auth:channel` · التوكن = Sanctum personal access token |
 | الملفات الشقيقة | `channel.json` (عقد آلي) · `docs/status/02-channel-dashboard.md` · الكتالوج `04-channel-catalog.php` + `05-channel-ops.php` |
@@ -42,7 +42,7 @@
 8. **معرّف أجنبي أو مفقود → 404** لا 403. اعرض «غير موجود».
 9. **توكن من حارس آخر على مسار قناة → `403 wrong_guard`.** امسح التوكن وأعد إلى الدخول.
 10. **لا تختلق أرقام لوحة القيادة.** `GET /channel/dashboard` يعيد أصفاراً حتى يُكتب `DailySnapshot`. الكتالوج يعرض أرقاماً تزيينية — **تجاهلها**.
-11. **لا قائمة تجّار ولا مستودعات ولا `GET` لتفاصيل منتج/عرض/فاتورة.** أرقام المعرّفات تُكتب أو تُنسَخ. لا ترفع ملفاً إلا استيراد الكتالوج.
+11. **لا تختلق موافقة تجّار 360 ولا IAM ولا رفع وسائط.** قوائم التجّار والمستودعات وتفاصيل المنتج/الفاتورة حيّة — اربطها. لا ترفع ملفاً إلا استيراد الكتالوج.
 12. **لا `sort` على أي قائمة.** Spatie يرفض الترتيب غير المصرّح. `per_page` افتراضي 25، سقف 100.
 
 ---
@@ -340,7 +340,7 @@ export const isSyrianMobile = (n: string) => /^\+9639\d{8}$/.test(n);
 
 كل كتلة `Response` هي `data` فقط. الحالة 200 إلا ما يُذكر (201 إنشاء، 204 حذف تغطية).
 
-**91 مساراً حيّاً** في `channel.json`: 83 تحت `/channel` + `/health` + `/public/refs` + 6 مراجع مشتركة.
+**95 مساراً حيّاً** في `channel.json`: 87 تحت `/channel` + `/health` + `/public/refs` + 6 مراجع مشتركة.
 
 ### 5.0 فهرس `/channel`
 
@@ -349,14 +349,15 @@ export const isSyrianMobile = (n: string) => /^\+9639\d{8}$/.test(n);
 | دخول | 2 | — |
 | إعدادات | 2 | `sc.settings.view` |
 | لوحة + تقارير | 4 | `sc.dashboard.view` / `sc.reports.*` |
-| كتالوج | 13 | `sc.catalog.view` |
-| تسعير (+ سقف خصم المندوب) | 6 | `sc.pricing.view` |
+| كتالوج | 14 | `sc.catalog.view` |
+| تسعير | 5 | `sc.pricing.view` |
 | عروض | 4 | `sc.offers.view` |
 | مخزون | 5 | `sc.inventory.view` |
+| مستودعات | 1 | `sc.inventory.view` |
 | طلبات | 10 | `sc.orders.view` |
 | مرتجعات | 2 | `sc.returns.view` |
 | مندوبون (+ محفظة/تسوية/سقف) | 12 | `sc.reps.view` |
-| مالية | 6 | `sc.finance.view` |
+| مالية (+ تجّار التغطية) | 8 | `sc.finance.view` / `sc.retailers.view` |
 | تغطية مناطق | 3 | `sc.zones.view` |
 | إشعارات | 4 | `sc.notify.*` |
 | محتوى | 7 | `sc.content.*` |
@@ -436,11 +437,11 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 `meta.snapshot_date` قد يكون `null`. عيّنة الكتالوج ذات الـ 62 مليوناً **خطأ**. بطاقة KPI تعرض 0 حتى توجد لقطة — لا رقم مخترع.
 
-`GET /channel/reports/{type}` 🔒 `sc.reports.view` — `type` ∈ `sales|products|retailers|reps|zones|inventory|finance|offers|operations`. نوع مجهول → 200 وصفوف فارغة. `date_from`/`date_to` **تُتجاهل** (آخر لقطة).
+`GET /channel/reports/{type}` 🔒 `sc.reports.view` — `type` ∈ `sales|products|retailers|reps|zones|inventory|finance|offers|operations`. نوع مجهول → 200 وصفوف فارغة. `date_from`/`date_to` تختار `DailySnapshot` داخل المدى؛ إن لم توجد لقطة في المدى → آخر لقطة.
 
 `POST /channel/reports/{type}/export` 🔁 🔒 `sc.reports.export` — `{ "format": "xlsx", "filters": {} }` → `{ "job_id": "job_rep_exp_…" }`. `format` ∈ `xlsx|pdf|csv`. **لا مسار لحالة المهمة** — اعرض «في قائمة الانتظار» وتوقّف.
 
-`GET /channel/reports/margins` 🔒 `sc.reports.margins` → `{ "by_product": [], "by_zone": [] }`.
+`GET /channel/reports/margins?date_from=&date_to=` 🔒 `sc.reports.margins` → `{ "by_product": [], "by_zone": [] }` — نفس اختيار اللقطة.
 
 ---
 
@@ -478,7 +479,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
 { "id": 880, "sku": "OIL-SUN-1L", "name_ar": "زيت دوار الشمس 1 لتر", "status": "active" }
 ```
 
-لا صورة، لا سعر، لا مخزون في القائمة. **لا `GET /channel/products/{id}`.** محرّر التعديل يعيد ملء ما حفظه العميل أو يبدأ من جسم الإنشاء.
+لا صورة، لا سعر، لا مخزون في القائمة. `GET /channel/products/{id}` يعيد جسم المحرّر الكامل (`pricing` قد يكون `null` — استخدم `PUT /products/{id}/pricing`).
 
 `POST /channel/products` 🔁 201 `{ id, sku? }` — `PUT /channel/products/{id}` 🔁 نفس FormRequest (`name_ar` + `sku` إلزاميان دائماً حتى في التحديث).
 
@@ -548,7 +549,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
   "available": 420, "reserved": 30, "in_transit": 12, "damaged": 2 }
 ```
 
-لا قائمة مستودعات — `warehouse_id` يُكتب. إن لم يُعرف الاسم يعيد الخادم `name: ""`.
+`GET /channel/warehouses` — منتقي `{ id, name, status }`. `warehouse_id` من القائمة.
 
 `POST /channel/inventory/adjust` 🔁 👥 🔒 `sc.inventory.adjust`
 
@@ -659,9 +660,11 @@ export const verifyOtp = (otp_id: string, code: string) =>
 { "id": 501, "no": "INV-501", "total": 48000, "status": "open" }
 ```
 
-**لا تفاصيل فاتورة.** `status` ∈ `open|void|credited`.
+**قائمة فقط أربعة مفاتيح.** `GET /channel/invoices/{id}` → `{ id, no, status, retailer_id, rep_id, total, paid_total, credited_total, remaining, lines[], created_at }`. `status` ∈ `open|void|credited`.
 
-`POST /channel/invoices/{id}/credit-note` 🔁 👥 — `{ lines: [{ line_id, qty, amount }], reason }`. `amount` int. قد يعود `approval_request_id`. **لا قائمة بنود فاتورة** — لا تبنِ منتقي بنود من مسار غائب.
+`GET /channel/retailers?filter[zone_id]=12&filter[status]=active&filter[search]=نور` 📄 🔒 `sc.retailers.view` — `{ id, shop_name, phone, zone_id, status }` (`id` = `retailer_profile`).
+
+`POST /channel/invoices/{id}/credit-note` 🔁 👥 — `{ lines: [{ line_id, qty, amount }], reason }`. `amount` int. قد يعود `approval_request_id`. بنود الفاتورة من `GET /channel/invoices/{id}` → `lines[]`.
 
 `POST /channel/invoices/{id}/void` 🔁 👥 — `{ reason }` · نفس الاعتماد المزدوج.
 
@@ -671,9 +674,9 @@ export const verifyOtp = (otp_id: string, code: string) =>
 { "retailer_id": 481, "amount": 20000, "method": "cash", "invoice_id": 501 }
 ```
 
-`method` ∈ `cash|bank|card`. `invoice_id` اختياري. `retailer_id` إلزامي — يُكتب يدوياً (لا قائمة تجّار).
+`method` ∈ `cash|bank|card`. `invoice_id` اختياري. `retailer_id` من `GET /channel/retailers` (معرّف `retailer_profile`).
 
-`GET /channel/finance/aging?group_by=zone` — `group_by` ∈ `zone|rep` **يُعاد كما هو**؛ الدلاء **مجاميع عامة** للفواتير المفتوحة، ليست مقسومة حسب المنطقة أو المندوب. لا تعرض جدولاً «حسب المنطقة» وكأنه مفصول.
+`GET /channel/finance/aging?group_by=zone` — `group_by` ∈ `zone|rep`. `buckets` مجاميع القناة؛ `groups[]` يقسم حسب `zone_id` أو `rep_id` (`key` / `label` / `buckets`).
 
 `PUT /channel/retailers/{id}/credit` 🔁 🔒 `sc.retailers.credit`
 
@@ -782,7 +785,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 ### 6.5 نهاية اليوم المالية
 
-فواتير `filter[status]=open` → دفعة مكتبية (SOD-01) → أعمار الذمم (دلاء عامة) → لا تصدّر تقريراً وتتوقع ملفاً فورياً: `job_id` فقط.
+فواتير `filter[status]=open` → دفعة مكتبية (SOD-01) → أعمار الذمم (`buckets` + `groups[]`) → لا تصدّر تقريراً وتتوقع ملفاً فورياً: `job_id` فقط.
 
 ---
 
@@ -832,11 +835,7 @@ const byCode: Record<string, string> = {
 
 | المسار / الميزة | البديل |
 |---|---|
-| `GET /channel/retailers` (+ موافقة / 360) | حقل معرّف رقمي للائتمان والدفعات |
-| `GET /channel/warehouses` | حقل `warehouse_id` في المخزون |
-| `GET /channel/products/{id}` | القائمة الرباعية + جسم الإنشاء في المحرّر |
 | `GET /channel/offers/{id}` و PUT | قائمة + إنشاء + إيقاف + أداء |
-| `GET /channel/invoices/{id}` | القائمة الرباعية. لا منتقي بنود لإشعار دائن |
 | `POST /channel/auth/logout` · `GET /channel/me` | امسح التوكن محلياً؛ الجلسة = verify-otp |
 | `/channel/iam/*` مستخدمون وأدوار | منصة الإدارة فقط |
 | رفع وسائط | `media_id` نص |
@@ -844,6 +843,8 @@ const byCode: Record<string, string> = {
 | تعديل/حذف بنر أو مكافأة أو سلايدر | إنشاء + قائمة فقط |
 | `/platform/*` و `/app/*` | حارس خطأ |
 | `GET /channel/activity-types` | `GET /public/refs` |
+
+حيّ الآن (كان ممنوعاً): `GET /channel/retailers` · `GET /channel/warehouses` · `GET /channel/products/{id}` · `GET /channel/invoices/{id}` · `GET/PUT /channel` · تغطية `/channel/zones`.
 
 ---
 
@@ -857,10 +858,10 @@ const byCode: Record<string, string> = {
 | 4 | علامات / فئات / منتجات | catalog | «لا منتجات بعد. أنشئ منتجاً.» |
 | 5 | تسعير + سجل | price-lists, change-log | «لا قوائم أسعار.» |
 | 6 | عروض + أداء | offers | «لا عروض.» أخفِ الهامش والتحويل (صفر) |
-| 7 | مخزون | inventory | «لا أرصدة. أدخل معرّف مستودع للتصفية.» |
+| 7 | مخزون | inventory + warehouses | «لا أرصدة.» اختر مستودعاً من القائمة. |
 | 8 | مندوبون + طوابير + محفظة | reps* | «لا مندوبين.» |
 | 9 | مرتجعات | return-requests | «لا طلبات إرجاع.» |
-| 10 | فواتير / دفعات / أعمار / ائتمان | finance | «لا فواتير مفتوحة.» |
+| 10 | فواتير / دفعات / أعمار / ائتمان | finance + retailers | «لا فواتير مفتوحة.» منتقي تاجر من القائمة. |
 | 11 | تغطية مناطق | /channel/zones + /zones | «لا تغطية. أضف منطقة من المراجع.» |
 | 12 | إشعارات | notifications | «لا سجل بعد.» |
 | 13 | انترو / بنرات / سلايدر | content | انترو `enabled: false` |

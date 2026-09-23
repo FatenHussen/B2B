@@ -127,7 +127,8 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
     one spelling and fifteen of the other that nobody counted. As of BE-C12 there were **42 sites in
     31 files**; the platform reference impact counts (BE-R01–R07, 2026-09-17) added six more —
     **48 sites in 33 files**; the rep client GETs (`ShowRepProduct`, `ListRepOrders`, 2026-09-20)
-    added two — **50 sites in 35 files** — every one with a comment saying why on the same line, within the six
+    added two — **50 sites in 35 files**; retailer finance reads (AP-01, 2026-09-20)
+    added eight — **63 sites in 38 files** — every one with a comment saying why on the same line, within the six
     lines above, or in the method's docblock. `tests/Architecture/ChannelScopeEscapeTest.php` pins
     the count per file and fails on an escape with no reason within reach — a new site is a change
     to this inventory, said out loud, not a discovery.

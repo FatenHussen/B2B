@@ -1,10 +1,10 @@
 # لوحة قناة التوريد — حالة الواجهات
 
-guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 2026-09-20 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 78 | 78 | 0 | 0 | 5 |
+| 87 | 87 | 0 | 0 | 0 |
 
 ## الدخول — 2/2
 
@@ -13,7 +13,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-CH-001 | SP-01 | `POST` | `/channel/auth/request-otp` | — | Identity | طلب رمز دخول القناة |
 | ✅ | EP-CH-002 | SP-01 | `POST` | `/channel/auth/verify-otp` | — | Identity | تحقق دخول القناة |
 
-## الكتالوج — 13/13
+## الكتالوج — 14/14
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -23,6 +23,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-012 | SP-06 | `POST` | `/channel/categories` | `sc.catalog.create` | Catalog | إنشاء فئة |
 | ✅ | EP-SC-013 | SP-06 | `POST` | `/channel/categories/reorder` | `sc.catalog.update` | Catalog | إعادة ترتيب الفئات |
 | ✅ | EP-SC-014 | SP-06 | `GET` | `/channel/products` | `sc.catalog.view` | Catalog | المنتجات |
+| ✅ | EP-SC-014A | SP-06 | `GET` | `/channel/products/{id}` | `sc.catalog.view` | Catalog | تفاصيل منتج |
 | ✅ | EP-SC-015 | SP-06 | `POST` | `/channel/products` | `sc.catalog.create` | Catalog | إنشاء منتج |
 | ✅ | EP-SC-016 | SP-06 | `PUT` | `/channel/products/{id}` | `sc.catalog.update` | Catalog | تحديث منتج |
 | ✅ | EP-SC-017 | SP-06 | `POST` | `/channel/products/{id}/variants/generate` | `sc.catalog.variants` | Catalog | توليد التباينات |
@@ -99,16 +100,18 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-070 | SP-12 | `GET` | `/channel/return-requests` | `sc.returns.view` | Returns | طلبات الإرجاع |
 | ✅ | EP-SC-071 | SP-12 | `POST` | `/channel/return-requests/{id}/decide` | `sc.returns.decide` | Returns | قرار الإرجاع |
 
-## المالية — 6/6
+## المالية — 8/8
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-SC-080 | SP-13 | `GET` | `/channel/invoices` | `sc.finance.view` | Finance | الفواتير |
+| ✅ | EP-SC-080A | SP-13 | `GET` | `/channel/invoices/{id}` | `sc.finance.view` | Finance | تفاصيل فاتورة |
 | ✅ | EP-SC-081 | SP-13 | `POST` | `/channel/invoices/{id}/credit-note` | `sc.finance.credit_note` | Finance | إشعار دائن |
 | ✅ | EP-SC-082 | SP-13 | `POST` | `/channel/invoices/{id}/void` | `sc.finance.void_invoice` | Finance | إلغاء فاتورة |
 | ✅ | EP-SC-083 | SP-13 | `POST` | `/channel/payments` | `sc.finance.payment` | Finance | تسجيل دفعة مكتبية |
 | ✅ | EP-SC-085 | SP-13 | `GET` | `/channel/finance/aging` | `sc.finance.aging` | Finance | أعمار الذمم |
 | ✅ | EP-SC-086 | SP-13 | `PUT` | `/channel/retailers/{id}/credit` | `sc.retailers.credit` | Finance | سقف ائتمان التاجر |
+| ✅ | EP-SC-140 | SP-13 | `GET` | `/channel/retailers` | `sc.retailers.view` | Identity | تجّار التغطية |
 
 ## الإشعارات — 4/4
 
@@ -144,15 +147,19 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-122 | SP-16 | `POST` | `/channel/reports/{type}/export` | `sc.reports.export` | Reporting | تصدير تقرير |
 | ✅ | EP-SC-123 | SP-16 | `GET` | `/channel/reports/margins` | `sc.reports.margins` | Reporting | تقرير الهوامش |
 
-## حيّ خارج الكتالوج
+## إعدادات القناة والمناطق — 5/5
 
-مسارات تخدمها الشيفرة ولا يذكرها الكتالوج. إما تُضاف إلى `docs/api/catalog/` أو تُزال — لا ثالث.
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-SC-131A | SP-03 | `GET` | `/channel/zones` | `sc.zones.view` | Reference | مناطق تغطية القناة |
+| ✅ | EP-SC-131B | SP-03 | `POST` | `/channel/zones` | `sc.zones.manage` | Reference | إضافة/تحديث تغطية منطقة |
+| ✅ | EP-SC-131C | SP-03 | `DELETE` | `/channel/zones/{id}` | `sc.zones.manage` | Reference | حذف تغطية منطقة |
+| ✅ | EP-SC-130A | SP-15 | `GET` | `/channel` | `sc.settings.view` | Tenancy | إعدادات القناة |
+| ✅ | EP-SC-130B | SP-15 | `PUT` | `/channel` | `sc.settings.update` | Tenancy | تحديث إعدادات القناة |
 
-| الطريقة | المسار | الصلاحية | الوحدة |
-|---|---|---|---|
-| `GET` | `/channel` | `sc.settings.view` | Tenancy |
-| `PUT` | `/channel` | `sc.settings.update` | Tenancy |
-| `GET` | `/channel/zones` | `sc.zones.view` | Reference |
-| `POST` | `/channel/zones` | `sc.zones.manage` | Reference |
-| `DELETE` | `/channel/zones/{channelZone}` | `sc.zones.manage` | Reference |
+## أخرى — 1/1
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-SC-141 | SP-09 | `GET` | `/channel/warehouses` | `sc.inventory.view` | Tenancy | مستودعات القناة |
 

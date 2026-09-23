@@ -20,6 +20,13 @@ interface ChannelDirectory
     public function name(int $channelId): ?string;
 
     /**
+     * Zone ids this channel covers (from channel_zone).
+     *
+     * @return list<int>
+     */
+    public function zoneIds(int $channelId): array;
+
+    /**
      * Active channels whose coverage includes the zone.
      *
      * @return list<int>

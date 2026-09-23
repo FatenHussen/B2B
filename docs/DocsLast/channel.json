@@ -1,7 +1,7 @@
 {
     "info": {
         "title": "Channel dashboard — live API only",
-        "generated_at": "2026-09-19",
+        "generated_at": "2026-09-23",
         "base_path": "/api/v1",
         "guard": "channel",
         "x_client": "channel-web",
@@ -10,10 +10,10 @@
         "not": "This is NOT the platform admin (guard platform, port 3000) and NOT the warehouse / Flutter apps.",
         "rule": "If this file and the catalog disagree, this file wins. Call only live:true. Never call forbidden. Never mock missing retailer/warehouse/product-show lists. Gate screens with permissions[] from verify-otp, not role names.",
         "counts": {
-            "live_endpoints": 91,
-            "matched_catalog": 80,
-            "live_without_catalog": 11,
-            "forbidden": 15
+            "live_endpoints": 95,
+            "matched_catalog": 89,
+            "live_without_catalog": 6,
+            "forbidden": 12
         }
     },
     "headers": {
@@ -60,28 +60,8 @@
     "forbidden": [
         {
             "method": "GET",
-            "path": "/api/v1/channel/retailers",
-            "reason": "No retailer list / approval / 360. PUT /channel/retailers/{id}/credit still live — type the id."
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/channel/warehouses",
-            "reason": "No warehouse directory on this guard. Inventory takes warehouse_id as an integer."
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/channel/products/{id}",
-            "reason": "No product show. List is id/sku/name_ar/status only."
-        },
-        {
-            "method": "GET",
             "path": "/api/v1/channel/offers/{id}",
             "reason": "No offer show / PUT. List + POST + PATCH stop + GET performance."
-        },
-        {
-            "method": "GET",
-            "path": "/api/v1/channel/invoices/{id}",
-            "reason": "No invoice show / lines."
         },
         {
             "method": "*",
@@ -125,6 +105,11 @@
         },
         {
             "method": "PATCH",
+            "path": "/api/v1/channel/content/sliders/{id}",
+            "reason": "Create + list only. No update/delete."
+        },
+        {
+            "method": "PATCH",
             "path": "/api/v1/channel/loyalty/rewards/{id}",
             "reason": "List + create only."
         },
@@ -138,26 +123,26 @@
         "No POST /channel/auth/logout. Discard the token locally. There is no GET /channel/me — the session is the verify-otp payload (token, channels[], permissions[]).",
         "X-Channel-Id is ignored for channel users. channels[] from login is display-only — no tenant switch API on this guard.",
         "OTP_BYPASS (non-production) accepts any code. Without it, channel codes are random 6 digits, not 000000. X-Client channel-web does not get the rep all-zero shortcut.",
-        "GET /channel/products list rows are only id, sku, name_ar, status. There is no GET /channel/products/{id}. PUT uses the create body; re-GET the list after save.",
+        "GET /channel/products list rows are only id, sku, name_ar, status. GET /channel/products/{id} returns the full editor body (pricing may be null — use PUT /products/{id}/pricing).",
         "GET /channel/offers list rows are only id, name, type, status. There is no GET /channel/offers/{id}. Performance is a separate path. conversion_rate and net_margin are always 0.",
-        "GET /channel/invoices list rows are only id, no, total, status. There is no invoice show. Credit-note lines[].line_id has no list of invoice lines — keep the line_id from the sub-order that minted it, or do not build a line picker.",
-        "No GET /channel/retailers and no GET /channel/warehouses. Credit, office payment, inventory adjust/transfer take integer ids typed or copied. Do not invent a directory.",
+        "GET /channel/invoices list rows are only id, no, total, status. GET /channel/invoices/{id} returns lines[] for credit-note line_id.",
+        "GET /channel/retailers lists shops in coverage zones (retailer_profile id). GET /channel/warehouses is the inventory picker.",
         "No media upload on any guard. media_id / logo / banner / image are opaque strings. Store them as text; do not POST a file except catalog import.",
         "POST /channel/catalog/import is multipart: file + type=products + optional dry_run. JSON body is 422.",
         "GET/POST /channel/zones delivery_fee and min_order_value are decimal strings (\"12.50\"), not int money. Unique exception on this guard.",
         "DELETE /channel/zones/{id} is 204 empty body.",
         "PUT /channel/content/intro returns {enabled} only — re-GET for the form.",
-        "Banner stats.ctr is integer basis points at scale 10^4 (840 clicks / 12000 impressions = 700), never a 0.07 float. Catalog sample is wrong.",
-        "GET /channel/dashboard KPIs are 0 / empty until DailySnapshot has a row. Never fabricate GMV. meta.snapshot_date may be null.",
-        "GET /channel/reports/{type} ignores date_from/date_to — it reads the latest snapshot block. Unknown type still 200 with empty rows. Allowed types: sales|products|retailers|reps|zones|inventory|finance|offers|operations.",
-        "GET /channel/finance/aging echoes group_by (zone|rep) but buckets are global sums of open invoices — not split by zone or rep.",
+        "Banner stats.ctr is integer basis points at scale 10^4 (840 clicks / 12000 impressions = 700), never a 0.07 float.",
+        "GET /channel/dashboard KPIs are 0 / empty until DailySnapshot has a row. Never fabricate GMV. meta.snapshot_date may be null. Run GenerateDailySnapshot for demos.",
+        "GET /channel/reports/{type} prefers a DailySnapshot whose snapshot_date is inside date_from/date_to; otherwise the latest. Unknown type still 200 with empty rows. Allowed types: sales|products|retailers|reps|zones|inventory|finance|offers|operations.",
+        "GET /channel/finance/aging: buckets are channel totals; groups[] splits by zone_id or rep_id when group_by is set.",
         "POST /channel/inventory/adjust, credit-note and void may return approval_request_id instead of the mutation. Replay from a second user. channel_manager is exempt from SOD-01; still do not hide the payment button.",
         "POST /channel/payments is SOD-01 vs sc.orders.confirm → 403 sod_violation unless the user is channel_manager.",
         "Rep id everywhere (assign, settle, wallet, discount-cap, filter[rep_id]) is AppUser id from GET /channel/reps, not RepProfile id.",
         "filter[waiting_over_minutes] on sub-orders is a custom query (not Spatie AllowedFilter) and still works as filter[waiting_over_minutes].",
         "GET /public/refs (no auth) is the picker for activity_types, sale_units, root_categories, equipments. Shared GET /governorates|/zones|/currencies need a channel Bearer. Do not call /platform/refs/* (wrong_guard).",
         "Category POST parent_id is required ≥1. Tree roots are platform root_categories (level 1); channel categories hang under them.",
-        "Unpaginated arrays (no page in meta): category tree, coverage zones, sliders, loyalty rules, notification templates, dashboard, aging, report, margins, settings, intro, offer performance, banner stats, wallet."
+        "Unpaginated arrays (no page in meta): category tree, coverage zones, warehouses, sliders, loyalty rules, notification templates, dashboard, aging, report, margins, settings, intro, offer performance, banner stats, wallet."
     ],
     "endpoints": [
         {
@@ -503,7 +488,7 @@
             "method": "GET",
             "path": "/api/v1/channel",
             "catalog_path": "/channel",
-            "code": null,
+            "code": "EP-SC-130A",
             "name": "Own channel settings",
             "name_ar": "إعدادات القناة",
             "permission": "sc.settings.view",
@@ -531,16 +516,16 @@
                 "created_at": "2026-09-01T00:00:00+00:00"
             },
             "errors": [],
-            "description": "",
-            "note": "Live, no catalog row. SupplyChannelResource. allowed_next is for platform transitions — do not render those buttons here; this guard cannot POST /platform/channels/{id}/transition."
+            "description": "The authenticated channel tenant reading itself. No X-Channel-Id.",
+            "note": "EP-SC-130A. SupplyChannelResource. allowed_next is for platform transitions — do not render those buttons here; this guard cannot POST /platform/channels/{id}/transition."
         },
         {
             "live": true,
             "method": "PUT",
             "path": "/api/v1/channel",
             "catalog_path": "/channel",
-            "code": null,
-            "name": "Update own channel",
+            "code": "EP-SC-130B",
+            "name": "Update own channel settings",
             "name_ar": "تحديث إعدادات القناة",
             "permission": "sc.settings.update",
             "guard": "channel",
@@ -573,8 +558,8 @@
                 }
             },
             "errors": [],
-            "description": "",
-            "note": "Partial. name/legal_name/tax_number/phone/email/settings. Cannot change status or slug."
+            "description": "Partial update. status is not writable here — lifecycle stays on the platform.",
+            "note": "EP-SC-130B. Partial. name/legal_name/tax_number/phone/email/settings. Cannot change status or slug."
         },
         {
             "live": true,
@@ -724,7 +709,7 @@
             },
             "errors": [],
             "description": "type ∈ sales|products|retailers|reps|zones|inventory|finance|offers|operations",
-            "note": "Path type ∈ sales|products|retailers|reps|zones|inventory|finance|offers|operations. Query dates are ignored. Unknown type → empty rows 200."
+            "note": "Path type ∈ sales|products|retailers|reps|zones|inventory|finance|offers|operations. date_from/date_to select a DailySnapshot in range (else latest). Unknown type → empty rows 200."
         },
         {
             "live": true,
@@ -1053,6 +1038,90 @@
             "errors": [],
             "description": "",
             "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/products/{id}",
+            "catalog_path": "/channel/products/{id}",
+            "code": "EP-SC-014A",
+            "name": "Product detail",
+            "name_ar": "تفاصيل منتج",
+            "permission": "sc.catalog.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": null,
+            "response": {
+                "name_ar": "زيت دوار الشمس 1 لتر",
+                "name_en": "Sunflower Oil 1L",
+                "sku": "OIL-SUN-1L",
+                "brand_id": 12,
+                "category_id": 340,
+                "model_no": "SUN-1000",
+                "barcode": "6291000000000",
+                "status": "active",
+                "short_description": "زيت نباتي للطبخ",
+                "long_description": "<p>زيت دوار الشمس</p>",
+                "specs": [
+                    {
+                        "key": "الحجم",
+                        "value": "1 لتر"
+                    }
+                ],
+                "media": {
+                    "images": [
+                        "media_id_1"
+                    ],
+                    "primary": "media_id_1",
+                    "video": null
+                },
+                "sale_unit_id": 3,
+                "unit_factors": [
+                    {
+                        "from_unit_id": 3,
+                        "to_unit_id": 5,
+                        "factor": 12
+                    }
+                ],
+                "min_order_qty": 1,
+                "order_multiple": 1,
+                "weight_gram": 950,
+                "pricing": null,
+                "inventory": {
+                    "tracked": true,
+                    "reorder_point": 50,
+                    "allow_backorder": false
+                },
+                "availability": {
+                    "zone_ids": [
+                        12,
+                        13
+                    ],
+                    "activity_type_ids": [
+                        3,
+                        4
+                    ],
+                    "retailer_group_ids": [],
+                    "lead_time_days": 2
+                },
+                "marketing": {
+                    "tags": [
+                        "new"
+                    ],
+                    "sliders": [
+                        "best_selling"
+                    ],
+                    "priority": 10
+                },
+                "id": 880
+            },
+            "errors": [],
+            "description": "Full create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404.",
+            "note": "Full editor body. pricing may be null until PUT /products/{id}/pricing."
         },
         {
             "live": true,
@@ -2817,7 +2886,7 @@
                 }
             },
             "errors": [],
-            "description": "group_by: zone|rep",
+            "description": "group_by: zone|rep. buckets are channel totals; groups split by zone_id or rep_id.",
             "note": "group_by=zone|rep is echoed; buckets are NOT grouped — global remaining on open invoices."
         },
         {
@@ -2877,6 +2946,46 @@
             "errors": [],
             "description": "",
             "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/invoices/{id}",
+            "catalog_path": "/channel/invoices/{id}",
+            "code": "EP-SC-080A",
+            "name": "Invoice detail",
+            "name_ar": "تفاصيل فاتورة",
+            "permission": "sc.finance.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "12. Finance",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 501,
+                "no": "INV-501",
+                "status": "open",
+                "retailer_id": 481,
+                "rep_id": 70,
+                "total": 48000,
+                "paid_total": 0,
+                "credited_total": 0,
+                "remaining": 48000,
+                "lines": [
+                    {
+                        "id": 1,
+                        "product_id": 880,
+                        "qty": 4,
+                        "amount": 48000
+                    }
+                ],
+                "created_at": "2026-03-01T09:00:00+03:00"
+            },
+            "errors": [],
+            "description": "lines[].id is the line_id for credit-note. Foreign id → 404.",
+            "note": "Includes lines[].id for credit-note. Foreign → 404."
         },
         {
             "live": true,
@@ -2997,11 +3106,57 @@
         },
         {
             "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/retailers",
+            "catalog_path": "/channel/retailers",
+            "code": "EP-SC-140",
+            "name": "List retailers in coverage",
+            "name_ar": "تجّار التغطية",
+            "permission": "sc.retailers.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "12. Finance",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": "نور"
+                },
+                {
+                    "name": "filter[zone_id]",
+                    "example": "12"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 481,
+                    "shop_name": "بقالية النور",
+                    "phone": "+963931000002",
+                    "zone_id": 12,
+                    "status": "active"
+                }
+            ],
+            "errors": [],
+            "description": "Retailers whose zone is in this channel coverage. Id is retailer_profile id for credit/payments.",
+            "note": "Paginated shops in coverage zones. id is retailer_profile id for credit/payments."
+        },
+        {
+            "live": true,
             "method": "DELETE",
             "path": "/api/v1/channel/zones/{channelZone}",
-            "catalog_path": "/channel/zones/{channelZone}",
-            "code": null,
-            "name": "Remove coverage row",
+            "catalog_path": "/channel/zones/{id}",
+            "code": "EP-SC-131C",
+            "name": "Remove coverage zone",
             "name_ar": "حذف تغطية منطقة",
             "permission": "sc.zones.manage",
             "guard": "channel",
@@ -3013,17 +3168,17 @@
             "body": {},
             "response": null,
             "errors": [],
-            "description": "",
-            "note": "204 No Content. Foreign coverage id → 404."
+            "description": "204 empty body. Path param is the coverage row id (channel_zone.id), not zone_id.",
+            "note": "EP-SC-131C. 204 No Content. Foreign coverage id → 404."
         },
         {
             "live": true,
             "method": "GET",
             "path": "/api/v1/channel/zones",
             "catalog_path": "/channel/zones",
-            "code": null,
-            "name": "Channel coverage",
-            "name_ar": "تغطية المناطق",
+            "code": "EP-SC-131A",
+            "name": "Channel coverage zones",
+            "name_ar": "مناطق تغطية القناة",
             "permission": "sc.zones.view",
             "guard": "channel",
             "auth": true,
@@ -3047,17 +3202,17 @@
                 }
             ],
             "errors": [],
-            "description": "",
-            "note": "Unpaginated coverage rows. delivery_fee and min_order_value are decimal strings. Path param on DELETE is the coverage row id (channel_zone), not zone_id."
+            "description": "Unpaginated. delivery_fee and min_order_value are decimal strings (unique money exception on this guard).",
+            "note": "EP-SC-131A. Unpaginated coverage rows. delivery_fee and min_order_value are decimal strings. Path param on DELETE is the coverage row id (channel_zone), not zone_id."
         },
         {
             "live": true,
             "method": "POST",
             "path": "/api/v1/channel/zones",
             "catalog_path": "/channel/zones",
-            "code": null,
-            "name": "Add coverage row",
-            "name_ar": "إضافة تغطية منطقة",
+            "code": "EP-SC-131B",
+            "name": "Upsert coverage zone",
+            "name_ar": "إضافة/تحديث تغطية منطقة",
             "permission": "sc.zones.manage",
             "guard": "channel",
             "auth": true,
@@ -3088,8 +3243,8 @@
                 "min_order_value": "50000.00"
             },
             "errors": [],
-            "description": "",
-            "note": "Upsert by zone_id. delivery_days ∈ sun…sat. Fees are decimal:0,2 not int money."
+            "description": "updateOrCreate on zone_id within the tenant.",
+            "note": "EP-SC-131B. Upsert by zone_id. delivery_days ∈ sun…sat. Fees are decimal:0,2 not int money."
         },
         {
             "live": true,
@@ -3261,7 +3416,7 @@
                 "ctr": 700
             },
             "errors": [],
-            "description": "",
+            "description": "ctr is integer basis points at scale 10^4 (840/12000 = 700), never a float.",
             "note": "ctr is integer basis points × 10^4. 0 when impressions=0. Catalog float 0.07 is wrong."
         },
         {
@@ -3635,6 +3790,33 @@
             "errors": [],
             "description": "",
             "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/warehouses",
+            "catalog_path": "/channel/warehouses",
+            "code": "EP-SC-141",
+            "name": "List channel warehouses",
+            "name_ar": "مستودعات القناة",
+            "permission": "sc.inventory.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "name": "مستودع المزة",
+                    "status": "active"
+                }
+            ],
+            "errors": [],
+            "description": "Unpaginated picker for inventory adjust/transfer. No create on this path.",
+            "note": "Unpaginated picker. id for inventory adjust/transfer."
         }
     ]
 }

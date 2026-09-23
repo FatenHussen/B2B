@@ -72,6 +72,7 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::get('app/rep/zones/{id}/shops', [RepFieldController::class, 'shops']);
         Route::get('app/rep/home', [RepFieldController::class, 'home']);
         Route::patch('app/rep/status', [RepFieldController::class, 'status']);
+        Route::patch('app/rep/profile', [RepFieldController::class, 'updateProfile']);
     });
 
     Route::middleware(['auth:channel', 'guard.tokenable:channel', 'tenant'])->prefix('channel')->group(function (): void {
@@ -84,5 +85,6 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::post('rep-zone-requests/{id}/decide', [ChannelRepOpsController::class, 'decideZoneRequest'])->middleware('permission:sc.reps.update');
         Route::get('rep-sourced-shops', [ChannelRepOpsController::class, 'sourcedShops'])->middleware('permission:sc.reps.view');
         Route::post('rep-sourced-shops/{id}/decide', [ChannelRepOpsController::class, 'decideSourcedShop'])->middleware('permission:sc.reps.update');
+        Route::get('retailers', [ChannelRepOpsController::class, 'retailers'])->middleware('permission:sc.retailers.view');
     });
 });

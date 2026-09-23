@@ -134,6 +134,12 @@ return [
         ]),
         'r' => [['id' => 880, 'sku' => 'OIL-SUN-1L', 'name_ar' => 'زيت دوار الشمس 1 لتر', 'status' => 'active']],
     ]),
+    ep('EP-SC-014A', 'SP-06', 'GET', '/channel/products/{id}', 'channel', 'sc.catalog.view', [
+        'name' => 'Product detail',
+        'name_ar' => 'تفاصيل منتج',
+        'r' => array_merge($productBody, ['id' => 880, 'pricing' => null]),
+        'd' => 'Full create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404.',
+    ]),
     ep('EP-SC-015', 'SP-06', 'POST', '/channel/products', 'channel', 'sc.catalog.create', [
         'name' => 'Create product',
         'name_ar' => 'إنشاء منتج',

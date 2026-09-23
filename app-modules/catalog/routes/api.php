@@ -17,6 +17,7 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::post('categories', [ChannelCatalogController::class, 'storeCategory'])->middleware('permission:sc.catalog.create');
         Route::post('categories/reorder', [ChannelCatalogController::class, 'reorderCategories'])->middleware('permission:sc.catalog.update');
         Route::get('products', [ChannelCatalogController::class, 'products'])->middleware('permission:sc.catalog.view');
+        Route::get('products/{id}', [ChannelCatalogController::class, 'showProduct'])->middleware('permission:sc.catalog.view');
         Route::post('products', [ChannelCatalogController::class, 'storeProduct'])->middleware('permission:sc.catalog.create');
         Route::put('products/{id}', [ChannelCatalogController::class, 'updateProduct'])->middleware('permission:sc.catalog.update');
         Route::post('products/{id}/variants/generate', [ChannelCatalogController::class, 'generateVariants'])->middleware('permission:sc.catalog.variants');

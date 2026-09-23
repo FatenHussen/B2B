@@ -58,6 +58,17 @@ final class EloquentChannelDirectory implements ChannelDirectory
         return is_string($name) ? $name : null;
     }
 
+    public function zoneIds(int $channelId): array
+    {
+        return ChannelZoneLookup::query()
+            ->where('supply_channel_id', $channelId)
+            ->pluck('zone_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public function activeIdsCoveringZone(int $zoneId): array
     {
         $channelIds = ChannelZoneLookup::query()

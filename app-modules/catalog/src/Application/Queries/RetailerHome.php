@@ -7,6 +7,8 @@ namespace Modules\Catalog\Application\Queries;
 use Modules\Catalog\Application\Support\VisibleCatalogQuery;
 use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Catalog\Domain\Models\Brand;
+use Modules\Core\Contracts\AppInbox;
+use Modules\Core\Contracts\LoyaltyBalance;
 use Modules\Core\Contracts\OfferFeed;
 use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Contracts\RetailerShoppingContext;
@@ -18,6 +20,8 @@ final class RetailerHome
         private readonly RetailerShoppingContext $shopping,
         private readonly ReferenceDirectory $refs,
         private readonly OfferFeed $offers,
+        private readonly LoyaltyBalance $loyalty,
+        private readonly AppInbox $inbox,
     ) {}
 
     /**
@@ -27,6 +31,8 @@ final class RetailerHome
     {
         $ctx = $this->shopping->for($user);
         $channelIds = $ctx['channel_ids'];
+        $userId = (int) $user->getAuthIdentifier();
+        $loyalty = $this->loyalty->snapshot($userId, 'retailer');
 
         $rootIds = VisibleCatalogQuery::products($ctx)
             ->with('category')
@@ -64,9 +70,9 @@ final class RetailerHome
             'header' => [
                 'shop_name' => $ctx['shop_name'],
                 'zone' => ['id' => $ctx['zone_id'], 'name' => $ctx['zone_name']],
-                'points' => 0,
-                'tier' => null,
-                'unread_notifications' => 0,
+                'points' => $loyalty['points'],
+                'tier' => $loyalty['tier'],
+                'unread_notifications' => $this->inbox->unreadCount($userId, 'retailer'),
                 'pending_sync' => 0,
             ],
             'banner' => null,

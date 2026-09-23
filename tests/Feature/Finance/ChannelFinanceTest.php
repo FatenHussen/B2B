@@ -222,7 +222,9 @@ it('returns aging buckets as integers', function () {
 
     expect($response->json('data.group_by'))->toBe('zone')
         ->and($response->json('data.buckets.0_30'))->toBe(12000)
-        ->and($response->json('data.buckets.31_60'))->toBe(0);
+        ->and($response->json('data.buckets.31_60'))->toBe(0)
+        ->and($response->json('data.groups'))->toBeArray()
+        ->and($response->json('data.groups.0.buckets.0_30'))->toBe(12000);
 });
 
 it('settles a rep wallet down to the ledger remainder', function () {

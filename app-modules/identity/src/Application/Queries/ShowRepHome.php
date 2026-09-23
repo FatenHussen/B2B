@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Identity\Application\Queries;
 
+use Modules\Core\Contracts\AppInbox;
 use Modules\Core\Contracts\HandoverGuard;
+use Modules\Core\Contracts\LoyaltyBalance;
 use Modules\Core\Contracts\RepCollectedToday;
 use Modules\Core\Contracts\RepDutyLookup;
 use Modules\Core\Contracts\SubOrderLifecycle;
@@ -21,6 +23,8 @@ final class ShowRepHome
         private readonly SubOrderLifecycle $orders,
         private readonly HandoverGuard $handovers,
         private readonly RepCollectedToday $collected,
+        private readonly LoyaltyBalance $loyalty,
+        private readonly AppInbox $inbox,
     ) {}
 
     /**
@@ -37,7 +41,7 @@ final class ShowRepHome
      *         scheduled: int,
      *         warehouse_receipts: int
      *     },
-     *     loyalty: null,
+     *     loyalty: array{points: int, tier: string, next_tier: array{name: string, remaining: int}|null},
      *     unread_notifications: int
      * }
      */
@@ -61,8 +65,8 @@ final class ShowRepHome
                 'scheduled' => $this->orders->countForRep($id, ['postponed']),
                 'warehouse_receipts' => $this->handovers->pendingReceiptCount($id),
             ],
-            'loyalty' => null,
-            'unread_notifications' => 0,
+            'loyalty' => $this->loyalty->snapshot($id, 'rep'),
+            'unread_notifications' => $this->inbox->unreadCount($id, 'rep'),
         ];
     }
 }

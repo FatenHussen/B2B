@@ -43,6 +43,8 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
     ->prefix('api/v1/app/rep')
     ->group(function (): void {
         Route::post('cart/lines', [RepOrderingController::class, 'addLine']);
+        Route::patch('cart/lines/{id}', [RepOrderingController::class, 'updateLine']);
+        Route::delete('cart/lines/{id}', [RepOrderingController::class, 'deleteLine']);
         Route::get('cart', [RepOrderingController::class, 'cart']);
         Route::post('cart/sections/{retailer_id}/submit', [RepOrderingController::class, 'submit']);
         Route::get('assignments', [RepOrderingController::class, 'assignments']);

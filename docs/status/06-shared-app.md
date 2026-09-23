@@ -1,10 +1,10 @@
 # المشترك بين التطبيقين — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آلياً في 2026-09-20 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 17 | 6 | 0 | 11 | 0 |
+| 17 | 17 | 0 | 0 | 0 |
 
 ## الجلسة — 2/2
 
@@ -27,29 +27,29 @@ guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آل
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-CM-050 | SP-13 | `POST` | `/app/receipts/reserve` | `rp.payment.collect` | Finance | gated by `app.kind:rep` — the kind implies `rp.payment.collect` |
 
-## الإشعارات والأجهزة — 0/4
+## الإشعارات والأجهزة — 4/4
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ❌ | EP-CM-060 | SP-14 | `GET` | `/app/notifications` | — | — | الإشعارات |
-| ❌ | EP-CM-061 | SP-14 | `POST` | `/app/notifications/read-all` | — | — | تعليم الكل كمقروء |
-| ❌ | EP-CM-062 | SP-14 | `DELETE` | `/app/notifications` | — | — | مسح عرض الإشعارات |
-| ❌ | EP-CM-063 | SP-14 | `POST` | `/app/devices/push-token` | — | — | رمز الإشعارات |
+| ✅ | EP-CM-060 | SP-14 | `GET` | `/app/notifications` | — | Notification | الإشعارات |
+| ✅ | EP-CM-061 | SP-14 | `POST` | `/app/notifications/read-all` | — | Notification | تعليم الكل كمقروء |
+| ✅ | EP-CM-062 | SP-14 | `DELETE` | `/app/notifications` | — | Notification | مسح عرض الإشعارات |
+| ✅ | EP-CM-063 | SP-14 | `POST` | `/app/devices/push-token` | — | Notification | رمز الإشعارات |
 
-## المزامنة — 0/4
-
-| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
-|---|---|---|---|---|---|---|---|
-| ❌ | EP-SY-001 | SP-14 | `GET` | `/app/sync/pull` | — | — | سحب المزامنة |
-| ❌ | EP-SY-002 | SP-14 | `POST` | `/app/sync/push` | — | — | دفع المزامنة |
-| ❌ | EP-SY-003 | SP-14 | `GET` | `/app/sync/status` | — | — | حالة المزامنة |
-| ❌ | EP-SY-004 | SP-14 | `POST` | `/app/sync/resolve-conflict` | — | — | حل تعارض |
-
-## المحتوى والولاء — 0/3
+## المزامنة — 4/4
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ❌ | EP-APP-100 | SP-15 | `GET` | `/app/content/home-blocks` | — | — | بلوكات الرئيسية |
-| ❌ | EP-APP-110 | SP-15 | `GET` | `/app/loyalty` | — | — | النقاط |
-| ❌ | EP-APP-111 | SP-15 | `POST` | `/app/loyalty/redeem` | — | — | استبدال نقاط |
+| ✅ | EP-SY-001 | SP-14 | `GET` | `/app/sync/pull` | — | Sync | سحب المزامنة |
+| ✅ | EP-SY-002 | SP-14 | `POST` | `/app/sync/push` | — | Sync | دفع المزامنة |
+| ✅ | EP-SY-003 | SP-14 | `GET` | `/app/sync/status` | — | Sync | حالة المزامنة |
+| ✅ | EP-SY-004 | SP-14 | `POST` | `/app/sync/resolve-conflict` | — | Sync | حل تعارض |
+
+## المحتوى والولاء — 3/3
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-APP-100 | SP-15 | `GET` | `/app/content/home-blocks` | — | Content | بلوكات الرئيسية |
+| ✅ | EP-APP-110 | SP-15 | `GET` | `/app/loyalty` | — | Loyalty | النقاط |
+| ✅ | EP-APP-111 | SP-15 | `POST` | `/app/loyalty/redeem` | — | Loyalty | استبدال نقاط |
 

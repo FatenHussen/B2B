@@ -11,6 +11,7 @@ use Modules\Core\Http\ApiController;
 use Modules\Identity\Application\Actions\RegisterRepCustomer;
 use Modules\Identity\Application\Actions\RequestRepZone;
 use Modules\Identity\Application\Actions\SetRepDutyStatus;
+use Modules\Identity\Application\Actions\UpdateRepProfile;
 use Modules\Identity\Application\Queries\ListRepCustomers;
 use Modules\Identity\Application\Queries\ListRepZones;
 use Modules\Identity\Application\Queries\ListZoneShops;
@@ -20,6 +21,7 @@ use Modules\Identity\Application\Support\RepShopCard;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Presentation\Http\Requests\StoreRepCustomerRequest;
 use Modules\Identity\Presentation\Http\Requests\StoreRepZoneRequest;
+use Modules\Identity\Presentation\Http\Requests\UpdateRepProfileRequest;
 use Modules\Identity\Presentation\Http\Requests\UpdateRepStatusRequest;
 
 final class RepFieldController extends ApiController
@@ -88,5 +90,13 @@ final class RepFieldController extends ApiController
         $user = $request->user();
 
         return $this->ok($action($user, (bool) $request->boolean('on_duty')));
+    }
+
+    public function updateProfile(UpdateRepProfileRequest $request, UpdateRepProfile $action): JsonResponse
+    {
+        /** @var AppUser $user */
+        $user = $request->user();
+
+        return $this->ok($action($user, $request->validated()));
     }
 }

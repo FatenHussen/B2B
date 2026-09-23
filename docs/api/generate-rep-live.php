@@ -220,13 +220,14 @@ $pack = [
     ],
     'forbidden' => $forbidden,
     'gotchas' => [
-        'POST /app/rep/cart/lines increments qty on an existing (product, variant) — there is no PATCH or DELETE for rep cart lines.',
+        'POST /app/rep/cart/lines increments qty on an existing (product, variant). Absolute qty: PATCH /app/rep/cart/lines/{id}. Remove: DELETE /app/rep/cart/lines/{id}.',
         'POST /app/rep/customers returns RepSourcedShop id, not retailer_id. Cart, payments and submit use RetailerProfile id from GET /customers and GET /zones/{id}/shops.',
         'Complete delivery mints receipt_no (24h). Collect with that number; a second POST /app/receipts/reserve is only for collections without a completion.',
         'max_cash_hold 0 means no cap. cash_cap_exceeded is 403, not 423.',
         'GET /app/rep/zones lists assigned coverage. POST /app/rep/zones still requests an extra zone.',
-        'GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is 404. supply_channel_id still has no directory.',
-        'GET /app/rep/home is the morning snapshot (EP-RP-002). Bind the six task badges from data.tasks. Do not call GET /deliveries from Home — that list materialises delivery rows. loyalty is null (hide the points bar). Guest has no token: 401; skip-register is local chrome with zeros.',
+        'GET /public/refs is live (governorates, zones, activity types — never channels). Bind Flutter multi-select on zones (group by governorate_id); governorate dropdown is a filter only. GET /public/content/intro is the first-run splash (same row as PUT /platform/content/intro). GET /public/app-config is live (force-update / feature flags / maintenance). supply_channel_id still has no directory.',
+        'GET /app/rep/home is the morning snapshot (EP-RP-002). Bind the six task badges from data.tasks. Do not call GET /deliveries from Home — that list materialises delivery rows. loyalty is the EP-APP-110 wallet snapshot (points 0 / bronze when empty). unread_notifications mirrors EP-CM-060 meta.unread_count. Guest has no token: 401; skip-register is local chrome with zeros.',
+        'Shared app surfaces are live: GET /app/notifications (+ read-all / clear / push-token), GET|POST /app/sync/*, GET /app/content/home-blocks, GET|POST /app/loyalty. Compose home from these — do not mock them.',
     ],
     'endpoints' => $live,
 ];
@@ -533,7 +534,7 @@ function overlays(): array
                     'scheduled' => 1,
                     'warehouse_receipts' => 2,
                 ],
-                'loyalty' => null,
+                'loyalty' => ['points' => 0, 'tier' => 'bronze', 'next_tier' => ['name' => 'silver', 'remaining' => 1000]],
                 'unread_notifications' => 0,
             ],
         ],
@@ -638,7 +639,7 @@ function notes(): array
 {
     return [
         'GET /app/session' => 'Rep-only extras: commercial_limits and duty {on_duty, tracking_enabled}. user.avatar is always null. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them.',
-        'GET /app/rep/home' => 'Morning snapshot. Bind the six task badges here — do not call GET /deliveries from Home (that list materialises rows). loyalty is null until EP-APP-110 (hide the bar). unread_notifications is 0 until EP-CM-060. collected_today is integer minor units. 401 without a bearer; guest browse is local.',
+        'GET /app/rep/home' => 'Morning snapshot. Bind the six task badges here — do not call GET /deliveries from Home (that list materialises rows). loyalty is the EP-APP-110 snapshot (points/tier; bronze/0 when empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer; guest browse is local.',
         'GET /public/content/intro' => 'No auth. Same singleton PUT /platform/content/intro writes. Vacant store: enabled false, text/media null, duration 0 — that is correct, do not fake a video. Returning token skips this screen. media_id is opaque, not a URL (http → play; else assets/intro/{id}; else logo+text). Ignore targeting on first run. Do not call /platform or /channel intro (wrong_guard).',
         'GET /public/refs' => 'Flat arrays, not nested. Flutter dropdowns: governorates = single-select FILTER (do not POST). zones = multi-select, value=id, label=name, group by governorate_id, POST as zone_ids:[12,13] (min 1). activity_types = single-select → activity_type_id. Hide status!=active. Channels are never here.',
         'POST /app/rep/register' => 'Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null — resolve from GET /public/refs. supply_channel_id has no directory; it comes from the channel team or an invite.',
@@ -671,19 +672,6 @@ function notes(): array
 function forbidden(): array
 {
     return [
-        ['method' => 'GET', 'path' => '/api/v1/public/app-config', 'code' => 'EP-PB-010', 'reason' => 'No force-update / maintenance config'],
-        ['method' => 'GET', 'path' => '/api/v1/app/sync/pull', 'code' => 'EP-SY-001', 'reason' => 'Offline sync not built — online-first'],
-        ['method' => 'POST', 'path' => '/api/v1/app/sync/push', 'code' => 'EP-SY-002', 'reason' => 'No outbox drain'],
-        ['method' => 'GET', 'path' => '/api/v1/app/sync/status', 'code' => 'EP-SY-003', 'reason' => 'No sync status'],
-        ['method' => 'POST', 'path' => '/api/v1/app/sync/resolve-conflict', 'code' => 'EP-SY-004', 'reason' => 'No conflict API'],
-        ['method' => 'GET', 'path' => '/api/v1/app/notifications', 'code' => 'EP-CM-060', 'reason' => 'No inbox'],
-        ['method' => 'POST', 'path' => '/api/v1/app/notifications/read-all', 'code' => 'EP-CM-061', 'reason' => 'No inbox'],
-        ['method' => 'DELETE', 'path' => '/api/v1/app/notifications', 'code' => 'EP-CM-062', 'reason' => 'No inbox'],
-        ['method' => 'POST', 'path' => '/api/v1/app/devices/push-token', 'code' => 'EP-CM-063', 'reason' => 'No push token registration'],
-        ['method' => 'GET', 'path' => '/api/v1/app/content/home-blocks', 'code' => 'EP-APP-100', 'reason' => 'No home banners/sliders — compose home from live lists'],
-        ['method' => 'GET', 'path' => '/api/v1/app/loyalty', 'code' => 'EP-APP-110', 'reason' => 'Loyalty is not a rep surface'],
-        ['method' => 'POST', 'path' => '/api/v1/app/loyalty/redeem', 'code' => 'EP-APP-111', 'reason' => 'Loyalty is not a rep surface'],
-        ['method' => 'PATCH', 'path' => '/api/v1/app/rep/cart/lines/{id}', 'code' => null, 'reason' => 'No update/delete cart line for the rep'],
         ['method' => 'GET', 'path' => '/api/v1/app/rep/return-requests', 'code' => null, 'reason' => 'Create only — no list or detail'],
         ['method' => 'GET', 'path' => '/api/v1/app/rep/discount-cap', 'code' => null, 'reason' => 'Cap is session.commercial_limits.max_discount_percent — no dedicated GET'],
         ['method' => 'GET', 'path' => '/api/v1/platform/content/intro', 'code' => 'EP-AD-141A', 'reason' => 'Platform admin GET — 403 wrong_guard. The app reads GET /public/content/intro (EP-PB-011)'],

@@ -16,7 +16,7 @@ final class CollectRepPaymentRequest extends ApiFormRequest
         return [
             'receipt_no' => ['required', 'string', 'max:32'],
             'retailer_id' => ['required', 'integer', 'min:1'],
-            'invoice_no' => ['required', 'string', 'max:32'],
+            'invoice_no' => ['nullable', 'string', 'max:32'],
             'amount' => ['required', 'integer', 'min:1'],
             'paid_at' => ['required', 'date'],
             'client_op_id' => ['required', 'string', 'max:80'],
