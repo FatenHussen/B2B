@@ -125,6 +125,19 @@ final class EloquentCatalogProductLookup implements CatalogProductLookup
         });
     }
 
+    public function variantPriceOverride(?int $variantId): ?int
+    {
+        if ($variantId === null || $variantId <= 0) {
+            return null;
+        }
+
+        $value = Tenant::withoutScope(
+            fn () => ProductVariant::query()->whereKey($variantId)->value('price_override')
+        );
+
+        return $value !== null ? (int) $value : null;
+    }
+
     public function countCategoriesUnderRoot(int $rootCategoryId): int
     {
         // acrossChannels(), per rule 10: the platform back office asks how many channel

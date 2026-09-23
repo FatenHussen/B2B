@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Identity\Infrastructure;
 
 use Modules\Core\Contracts\RetailerDirectory;
+use Modules\Core\Contracts\RetailerGroupDirectory;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Domain\Models\RetailerProfile;
 use Modules\Identity\Domain\Models\RetailerProfileCategory;
@@ -12,6 +13,8 @@ use Modules\Identity\Domain\Models\RetailerProfileEquipment;
 
 final class EloquentRetailerDirectory implements RetailerDirectory
 {
+    public function __construct(private readonly RetailerGroupDirectory $groups) {}
+
     public function find(int $retailerId): ?array
     {
         $profile = RetailerProfile::query()->find($retailerId);
@@ -69,6 +72,18 @@ final class EloquentRetailerDirectory implements RetailerDirectory
         $zoneId = RetailerProfile::query()->whereKey($retailerId)->value('zone_id');
 
         return $zoneId === null ? null : (int) $zoneId;
+    }
+
+    public function activityTypeId(int $retailerId): ?int
+    {
+        $id = RetailerProfile::query()->whereKey($retailerId)->value('activity_type_id');
+
+        return $id === null ? null : (int) $id;
+    }
+
+    public function groupIds(int $retailerId): array
+    {
+        return $this->groups->groupIdsForRetailer($retailerId);
     }
 
     public function countByActivityType(int $activityTypeId): int

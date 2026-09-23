@@ -78,6 +78,7 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
                 'unit_price' => (int) $line->unit_price,
                 'discount' => (int) $line->discount,
                 'line_total' => (int) $line->line_total,
+                'offer_id' => $line->offer_id !== null ? (int) $line->offer_id : null,
                 'name' => $snap['name'] ?? '',
                 'brand' => $snap['brand'] ?? null,
             ];

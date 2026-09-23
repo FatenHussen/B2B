@@ -16,12 +16,13 @@ class Offer extends Model
 {
     use BelongsToChannel;
 
+    protected $guarded = ['status'];
+
     protected $fillable = [
         'supply_channel_id',
         'name',
         'type',
         'description',
-        'status',
         'stackable',
         'priority',
         'starts_at',

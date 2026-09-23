@@ -13,6 +13,7 @@ interface OfferLineStats
      * @return array{
      *     linked_sales: int,
      *     discount_given: int,
+     *     net_margin: int,
      *     retailers_count: int,
      *     by_zone: list<array{zone_id: int, applied_count: int}>,
      *     line_count: int

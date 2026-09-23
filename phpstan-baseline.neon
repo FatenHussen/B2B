@@ -336,12 +336,6 @@ parameters:
 			path: app-modules/catalog/src/Infrastructure/EmptyOfferFeed.php
 
 		-
-			message: '#^Method Modules\\Catalog\\Presentation\\Http\\Requests\\BulkProductsRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/catalog/src/Presentation/Http/Requests/BulkProductsRequest.php
-
-		-
 			message: '#^Method Modules\\Catalog\\Presentation\\Http\\Requests\\GenerateVariantsRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

@@ -33,11 +33,11 @@ function offerWithRedemptions(int $channelId, int $applied): Offer
             'supply_channel_id' => $channelId,
             'name' => 'أداء',
             'type' => OfferType::ProductDiscount,
-            'status' => OfferStatus::Active,
             'targeting_scope' => TargetingScope::All,
             'stackable' => false,
             'priority' => 0,
         ]);
+        $offer->forceFill(['status' => OfferStatus::Active])->save();
         OfferRedemption::query()->create([
             'offer_id' => $offer->id,
             'applied_count' => $applied,
@@ -97,7 +97,7 @@ it('reads applied_count from redemptions and sales figures from order lines', fu
     expect($response->json('data.applied_count'))->toBe(7)
         ->and($response->json('data.linked_sales'))->toBe(48000)
         ->and($response->json('data.discount_given'))->toBe(2000)
-        ->and($response->json('data.net_margin'))->toBe(0)
+        ->and($response->json('data.net_margin'))->toBe(48000)
         ->and($response->json('data.retailers_count'))->toBe(1)
         ->and($response->json('data.by_zone.0.zone_id'))->toBe(12)
         ->and($response->json('data.conversion_rate'))->toBe(0);

@@ -41,7 +41,8 @@ function channelOnGrowth(): SupplyChannel
 {
     $plan = ChannelPlan::query()->where('key', 'growth')->firstOrFail();
     $channel = SupplyChannel::factory()->create(['plan_id' => $plan->id]);
-    Tenant::as($channel->id, fn () => ChannelLimit::query()->create(['channel_id' => $channel->id] + $plan->limits));
+    $limitKeys = array_intersect_key($plan->limits, array_flip(ChannelLimits::KEYS));
+    Tenant::as($channel->id, fn () => ChannelLimit::query()->create(['channel_id' => $channel->id] + $limitKeys));
 
     return $channel;
 }

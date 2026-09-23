@@ -29,5 +29,11 @@ class IntegrationServiceProvider extends ServiceProvider
         }
     }
 
-    public function boot(): void {}
+    public function boot(): void
+    {
+        $routes = __DIR__.'/../routes/api.php';
+        if (is_file($routes)) {
+            $this->loadRoutesFrom($routes);
+        }
+    }
 }

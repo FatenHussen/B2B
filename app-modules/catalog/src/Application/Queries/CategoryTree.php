@@ -20,7 +20,9 @@ final class CategoryTree
     public function __invoke(): array
     {
         $categories = Category::query()->orderBy('order')->orderBy('id')->get();
-        $byParent = $categories->groupBy(fn (Category $c) => $c->parent_id === null ? 'root-'.$c->root_category_id : 'cat-'.$c->parent_id);
+        $byParent = $categories->groupBy(fn (Category $c) => $c->parent_id === null
+            ? 'root-'.($c->root_category_id ?? 'channel-'.$c->id)
+            : 'cat-'.$c->parent_id);
 
         $nodes = [];
         foreach ($this->refs->activeRootCategories() as $root) {
@@ -38,10 +40,15 @@ final class CategoryTree
                 'level' => 1,
                 'order' => $root['order'],
                 'status' => 'active',
+                'description' => null,
                 'direct_products' => 0,
                 'total_products' => $this->sumProducts($children),
                 'children' => $children,
             ];
+        }
+
+        foreach ($categories->filter(fn (Category $c) => (int) $c->level === 1 && $c->parent_id === null && $c->root_category_id === null) as $channelRoot) {
+            $nodes[] = $this->node($channelRoot, $byParent);
         }
 
         return $nodes;
@@ -63,6 +70,7 @@ final class CategoryTree
         return [
             'id' => (int) $category->id,
             'name' => (string) $category->name,
+            'description' => $category->description,
             'image' => MediaUrl::of($category->image_media_id ? (int) $category->image_media_id : null),
             'icon' => $category->icon,
             'parent_id' => $category->parent_id ? (int) $category->parent_id : $category->root_category_id,

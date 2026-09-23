@@ -6,6 +6,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 use Modules\Content\Presentation\Http\Controllers\AppContentController;
 use Modules\Content\Presentation\Http\Controllers\ChannelContentController;
+use Modules\Content\Presentation\Http\Controllers\PlatformAppVersionController;
 use Modules\Content\Presentation\Http\Controllers\PlatformContentController;
 use Modules\Content\Presentation\Http\Controllers\PublicContentController;
 
@@ -32,6 +33,24 @@ Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', Substitut
             ->middleware('permission:ad.content.view');
         Route::put('intro', [PlatformContentController::class, 'updateIntro'])
             ->middleware('permission:ad.content.manage');
+
+        // PA-12 remainder — EP-AD-140A/B, 142A/B.
+        Route::get('legal', [PlatformContentController::class, 'legal'])
+            ->middleware('permission:ad.content.view');
+        Route::post('legal', [PlatformContentController::class, 'publishLegal'])
+            ->middleware('permission:ad.content.manage');
+        Route::get('help', [PlatformContentController::class, 'help'])
+            ->middleware('permission:ad.content.view');
+        Route::post('help', [PlatformContentController::class, 'storeHelp'])
+            ->middleware('permission:ad.content.manage');
+    });
+
+Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', SubstituteBindings::class])
+    ->prefix('api/v1/platform/app-versions')
+    ->group(function (): void {
+        Route::get('/', [PlatformAppVersionController::class, 'index'])->middleware('permission:ad.content.view');
+        Route::post('/', [PlatformAppVersionController::class, 'store'])->middleware('permission:ad.content.publish_version');
+        Route::post('{id}/force-update', [PlatformAppVersionController::class, 'forceUpdate'])->middleware('permission:ad.content.force_update');
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.tokenable:channel', 'tenant'])

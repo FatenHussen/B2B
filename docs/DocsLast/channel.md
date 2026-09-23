@@ -42,7 +42,7 @@
 8. **معرّف أجنبي أو مفقود → 404** لا 403. اعرض «غير موجود».
 9. **توكن من حارس آخر على مسار قناة → `403 wrong_guard`.** امسح التوكن وأعد إلى الدخول.
 10. **لا تختلق أرقام لوحة القيادة.** `GET /channel/dashboard` يعيد أصفاراً حتى يُكتب `DailySnapshot`. الكتالوج يعرض أرقاماً تزيينية — **تجاهلها**.
-11. **لا تختلق موافقة تجّار 360 ولا IAM ولا رفع وسائط.** قوائم التجّار والمستودعات وتفاصيل المنتج/الفاتورة حيّة — اربطها. لا ترفع ملفاً إلا استيراد الكتالوج.
+11. **لا تختلق موافقة تجّار 360 ولا IAM.** قوائم التجّار والمستودعات وتفاصيل المنتج/الفاتورة حيّة — اربطها. رفع الوسائط عبر `POST /channel/media/upload` فقط.
 12. **لا `sort` على أي قائمة.** Spatie يرفض الترتيب غير المصرّح. `per_page` افتراضي 25، سقف 100.
 
 ---
@@ -449,17 +449,27 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 #### علامات 📄
 
-`GET /channel/brands?filter[status]=active` → `{ id, name_ar, name_en, status }`
+`GET /channel/brands?filter[status]=active&filter[activity_type_id]=3&filter[search]=نور&sort=order` → `{ id, name_ar, name_en, status, order }`
+
+`GET /channel/brands/{id}` → جسم المحرّر (`logo`/`banner` = media_id، `logo_url`/`banner_url` محلولة، `activity_type_ids`، `sliders[]`). قناة أخرى → 404.
+
+`POST /channel/media/upload` 🔁 multipart: `file` + `type` ∈ `image|video` → `{ media_id, url, type, mime, size }`. صورة ≤8MB، فيديو ≤50MB.
 
 `POST /channel/brands` 🔁 201 `{ id }`
 
+`PUT /channel/brands/{id}` 🔁 `{ id }` — نفس جسم الإنشاء؛ `sliders[]` يستبدل المجموعة؛ `status: disabled` يخفي البراند ومنتجاته من تطبيقات التاجر/المندوب دون حذف بيانات القناة.
+
 | الحقل | قاعدة |
 |---|---|
-| `name_ar` | إلزامي ≤160 |
-| `name_en` `description` `logo` `banner` | اختياري — `logo`/`banner` سلاسل media_id، لا ملف |
-| `activity_type_ids` | اختياري، يجب أن توجد في المراجع |
+| `name_ar` | إلزامي ≤160، فريد داخل القناة |
+| `name_en` | اختياري ≤160 |
+| `description` | إلزامي ≤300 |
+| `logo` | إلزامي — media_id من الرفع؛ صورة مربعة ≥512×512 |
+| `banner` | اختياري — media_id |
+| `activity_type_ids` | إلزامي ≥1 من `GET /public/refs` |
+| `order` | اختياري — ترتيب البطاقات |
 | `status` | `active` \| `disabled` |
-| `sliders[]` | `name` + `source` ∈ `algorithm\|manual` |
+| `sliders[]` | `name` + `source` ∈ `algorithm\|manual` + `source_id?` + `count?` + `order?` |
 
 #### فئات
 
@@ -749,7 +759,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 `POST /channel/content/sliders` 🔁 → `{ id }`. `source` ∈ `manual|brand|category|offers|algorithm`.
 
-لا رفع وسائط — `media_id` يُلصق كنص.
+الوسائط للكتالوج عبر `POST /channel/media/upload`؛ بنر المحتوى ما زال يقبل `media_id` من نفس الرفع.
 
 ---
 
@@ -838,7 +848,7 @@ const byCode: Record<string, string> = {
 | `GET /channel/offers/{id}` و PUT | قائمة + إنشاء + إيقاف + أداء |
 | `POST /channel/auth/logout` · `GET /channel/me` | امسح التوكن محلياً؛ الجلسة = verify-otp |
 | `/channel/iam/*` مستخدمون وأدوار | منصة الإدارة فقط |
-| رفع وسائط | `media_id` نص |
+| `POST /channel/media` | `POST /channel/media/upload` |
 | حالة مهمة التصدير | `job_id` بلا استطلاع |
 | تعديل/حذف بنر أو مكافأة أو سلايدر | إنشاء + قائمة فقط |
 | `/platform/*` و `/app/*` | حارس خطأ |

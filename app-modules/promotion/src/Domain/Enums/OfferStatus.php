@@ -7,7 +7,9 @@ namespace Modules\Promotion\Domain\Enums;
 enum OfferStatus: string
 {
     case Draft = 'draft';
+    case Scheduled = 'scheduled';
     case Active = 'active';
+    case Exhausted = 'exhausted';
     case Stopped = 'stopped';
     case Expired = 'expired';
 }

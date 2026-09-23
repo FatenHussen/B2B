@@ -6,6 +6,7 @@ namespace Modules\Pricing\Application\Actions;
 
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\PricingEngine;
+use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Domain\Exceptions\DomainException;
 
@@ -15,6 +16,7 @@ final class QuotePrices
         private readonly PricingEngine $engine,
         private readonly CatalogProductLookup $products,
         private readonly RetailerShoppingContext $shopping,
+        private readonly RetailerDirectory $retailers,
     ) {}
 
     /**
@@ -25,10 +27,14 @@ final class QuotePrices
     {
         $retailerId = null;
         $channelId = null;
+        $activityTypeId = null;
+        $groupIds = [];
 
         if ($this->shopping->isRetailer($user)) {
             $ctx = $this->shopping->for($user);
             $retailerId = $ctx['retailer_id'];
+            $activityTypeId = $ctx['activity_type_id'];
+            $groupIds = $this->retailers->groupIds((int) $retailerId);
             foreach ($data['lines'] as $line) {
                 if (! $this->products->isVisibleToRetailer((int) $line['product_id'], $ctx)) {
                     throw new DomainException(__('pricing.product_not_available'), 'product_not_available', 422, [
@@ -45,6 +51,8 @@ final class QuotePrices
             'zone_id' => (int) $data['zone_id'],
             'retailer_id' => $retailerId,
             'channel_id' => $channelId,
+            'activity_type_id' => $activityTypeId,
+            'group_ids' => $groupIds,
         ]);
     }
 }

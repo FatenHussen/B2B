@@ -12,16 +12,25 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
     ->prefix('api/v1/channel')
     ->group(function (): void {
         Route::get('brands', [ChannelCatalogController::class, 'brands'])->middleware('permission:sc.catalog.view');
+        Route::get('brands/{id}', [ChannelCatalogController::class, 'showBrand'])->middleware('permission:sc.catalog.view');
         Route::post('brands', [ChannelCatalogController::class, 'storeBrand'])->middleware('permission:sc.catalog.create');
+        Route::put('brands/{id}', [ChannelCatalogController::class, 'updateBrand'])->middleware('permission:sc.catalog.update');
+        Route::post('media/upload', [ChannelCatalogController::class, 'uploadMedia'])->middleware('permission:sc.catalog.create');
         Route::get('categories/tree', [ChannelCatalogController::class, 'categoryTree'])->middleware('permission:sc.catalog.view');
         Route::post('categories', [ChannelCatalogController::class, 'storeCategory'])->middleware('permission:sc.catalog.create');
+        Route::put('categories/{id}', [ChannelCatalogController::class, 'updateCategory'])->middleware('permission:sc.catalog.update');
+        Route::patch('categories/{id}/status', [ChannelCatalogController::class, 'changeCategoryStatus'])->middleware('permission:sc.catalog.update');
         Route::post('categories/reorder', [ChannelCatalogController::class, 'reorderCategories'])->middleware('permission:sc.catalog.update');
         Route::get('products', [ChannelCatalogController::class, 'products'])->middleware('permission:sc.catalog.view');
         Route::get('products/{id}', [ChannelCatalogController::class, 'showProduct'])->middleware('permission:sc.catalog.view');
         Route::post('products', [ChannelCatalogController::class, 'storeProduct'])->middleware('permission:sc.catalog.create');
         Route::put('products/{id}', [ChannelCatalogController::class, 'updateProduct'])->middleware('permission:sc.catalog.update');
+        Route::post('products/{id}/duplicate', [ChannelCatalogController::class, 'duplicateProduct'])->middleware('permission:sc.catalog.create');
         Route::post('products/{id}/variants/generate', [ChannelCatalogController::class, 'generateVariants'])->middleware('permission:sc.catalog.variants');
+        Route::put('products/{id}/variants/{variantId}', [ChannelCatalogController::class, 'updateVariant'])->middleware('permission:sc.catalog.variants');
+        Route::delete('products/{id}/variants/{variantId}', [ChannelCatalogController::class, 'deleteVariant'])->middleware('permission:sc.catalog.variants');
         Route::post('products/bulk', [ChannelCatalogController::class, 'bulk'])->middleware('permission:sc.catalog.update');
+        Route::get('catalog/import/template', [ChannelCatalogController::class, 'importTemplate'])->middleware('permission:sc.catalog.import');
         Route::post('catalog/import', [ChannelCatalogController::class, 'import'])->middleware('permission:sc.catalog.import');
         Route::get('catalog/export', [ChannelCatalogController::class, 'export'])->middleware('permission:sc.catalog.view');
     });

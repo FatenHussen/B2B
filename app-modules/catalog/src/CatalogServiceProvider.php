@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Catalog;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
+use Modules\Catalog\Domain\Models\ChannelMediaLibrary;
 use Modules\Catalog\Infrastructure\ActiveProductAvailabilityClassifier;
 use Modules\Catalog\Infrastructure\EloquentCatalogProductLookup;
 use Modules\Catalog\Infrastructure\EloquentCatalogSyncSource;
@@ -30,6 +32,10 @@ class CatalogServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Relation::morphMap([
+            'channel_media_library' => ChannelMediaLibrary::class,
+        ]);
+
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
     }

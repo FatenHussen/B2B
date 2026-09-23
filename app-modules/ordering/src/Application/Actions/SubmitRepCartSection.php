@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Ordering\Application\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Core\Contracts\OfferConsumption;
 use Modules\Core\Contracts\RepCommercialLimits;
 use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerDirectory;
@@ -28,6 +29,7 @@ final class SubmitRepCartSection
         private readonly RepSellingContext $selling,
         private readonly RepCommercialLimits $limits,
         private readonly RetailerDirectory $retailers,
+        private readonly OfferConsumption $offers,
     ) {}
 
     /**
@@ -128,6 +130,16 @@ final class SubmitRepCartSection
                     'applied_rule' => $line->applied_rule,
                     'offer_id' => $line->offer_id,
                 ]);
+            }
+
+            $appliedOfferIds = [];
+            foreach ($section->lines as $line) {
+                if ($line->offer_id) {
+                    $appliedOfferIds[(int) $line->offer_id] = true;
+                }
+            }
+            foreach (array_keys($appliedOfferIds) as $offerId) {
+                $this->offers->recordApplied((int) $offerId, $retailerId, 1);
             }
 
             SubOrderEvent::query()->create([

@@ -14,5 +14,9 @@ class SupportServiceProvider extends ServiceProvider
         if (is_dir($migrations)) {
             $this->loadMigrationsFrom($migrations);
         }
+        $routes = __DIR__.'/../routes/api.php';
+        if (is_file($routes)) {
+            $this->loadRoutesFrom($routes);
+        }
     }
 }

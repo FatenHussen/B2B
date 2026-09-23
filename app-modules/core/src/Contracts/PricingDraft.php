@@ -14,10 +14,11 @@ final class PricingDraft
         public readonly int $basePrice,
         public readonly int $currencyId,
         public readonly array $tiers = [],
+        public readonly int $taxPercent = 0,
     ) {}
 
     /**
-     * @param  array{type?: string, base_price?: int, currency_id?: int, tiers?: list<array{from?: int, to?: int|null, price?: int}>}  $payload
+     * @param  array{type?: string, base_price?: int, currency_id?: int, tax_percent?: int, tiers?: list<array{from?: int, to?: int|null, price?: int}>}  $payload
      */
     public static function fromArray(array $payload): self
     {
@@ -35,6 +36,7 @@ final class PricingDraft
             (int) ($payload['base_price'] ?? 0),
             (int) ($payload['currency_id'] ?? 0),
             $tiers,
+            max(0, min(100, (int) ($payload['tax_percent'] ?? 0))),
         );
     }
 }

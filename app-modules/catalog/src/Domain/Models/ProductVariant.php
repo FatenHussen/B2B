@@ -16,11 +16,15 @@ class ProductVariant extends Model
         'image_media_id',
         'combination',
         'status',
+        'price_override',
     ];
 
     protected function casts(): array
     {
-        return ['combination' => 'array'];
+        return [
+            'combination' => 'array',
+            'price_override' => 'integer',
+        ];
     }
 
     public function product(): BelongsTo

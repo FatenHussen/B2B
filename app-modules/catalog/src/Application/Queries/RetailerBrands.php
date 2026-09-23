@@ -52,6 +52,7 @@ final class RetailerBrands
         $ctx = $this->shopping->for($user);
         $brand = Brand::withoutGlobalScope('channel')
             ->whereIn('supply_channel_id', $ctx['channel_ids'] === [] ? [0] : $ctx['channel_ids'])
+            ->where('status', BrandStatus::Active)
             ->with('activityTypes')
             ->find($id);
 

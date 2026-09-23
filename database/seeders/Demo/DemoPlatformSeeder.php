@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\Demo;
 
 use Illuminate\Support\Carbon;
+use Modules\Core\Contracts\ChannelLimits;
 use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Enums\AppUserKind;
 use Modules\Identity\Domain\Enums\ProfileStatus;
@@ -437,9 +438,10 @@ final class DemoPlatformSeeder extends DemoSeeder
      */
     private function seedShape(int $channelId, array $spec, ChannelPlan $plan): void
     {
+        $limitKeys = array_intersect_key($plan->limits, array_flip(ChannelLimits::KEYS));
         ChannelLimit::query()->firstOrCreate(
             ['channel_id' => $channelId],
-            ['channel_id' => $channelId] + $plan->limits,
+            ['channel_id' => $channelId] + $limitKeys,
         );
 
         foreach ($spec['governorates'] as $code) {

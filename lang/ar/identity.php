@@ -28,6 +28,7 @@ return [
     'rep_pending_review' => 'ملف المندوب قيد المراجعة.',
     'rep_not_active' => 'حساب المندوب غير نشط.',
     'not_found' => 'غير موجود.',
+    'retailer_not_in_coverage' => 'تاجر أو أكثر خارج تغطية هذه القناة.',
     'phone_taken' => 'هذا الرقم مستخدم مسبقاً.',
     'illegal_rep_transition' => 'انتقال حالة المندوب غير مسموح.',
     'illegal_zone_request_transition' => 'طلب المنطقة ليس قيد الموافقة.',

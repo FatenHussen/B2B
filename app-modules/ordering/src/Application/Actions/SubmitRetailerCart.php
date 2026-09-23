@@ -6,6 +6,7 @@ namespace Modules\Ordering\Application\Actions;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Contracts\CreditGuard;
+use Modules\Core\Contracts\OfferConsumption;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Domain\Events\CartSubmitted;
 use Modules\Core\Domain\Exceptions\DomainException;
@@ -27,6 +28,7 @@ final class SubmitRetailerCart
         private readonly CartAssembler $carts,
         private readonly RetailerShoppingContext $shopping,
         private readonly CreditGuard $credit,
+        private readonly OfferConsumption $offers,
     ) {}
 
     /**
@@ -152,6 +154,16 @@ final class SubmitRetailerCart
                         'applied_rule' => $line->applied_rule,
                         'offer_id' => $line->offer_id,
                     ]);
+                }
+
+                $appliedOfferIds = [];
+                foreach ($section->lines as $line) {
+                    if ($line->offer_id) {
+                        $appliedOfferIds[(int) $line->offer_id] = true;
+                    }
+                }
+                foreach (array_keys($appliedOfferIds) as $offerId) {
+                    $this->offers->recordApplied((int) $offerId, (int) $ctx['retailer_id'], 1);
                 }
 
                 SubOrderEvent::query()->create([

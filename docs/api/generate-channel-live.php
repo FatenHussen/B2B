@@ -193,7 +193,7 @@ $pack = [
         'GET /channel/offers list rows are only id, name, type, status. There is no GET /channel/offers/{id}. Performance is a separate path. conversion_rate and net_margin are always 0.',
         'GET /channel/invoices list rows are only id, no, total, status. GET /channel/invoices/{id} returns lines[] for credit-note line_id.',
         'GET /channel/retailers lists shops in coverage zones (retailer_profile id). GET /channel/warehouses is the inventory picker.',
-        'No media upload on any guard. media_id / logo / banner / image are opaque strings. Store them as text; do not POST a file except catalog import.',
+        'No inventing retailer 360 approval, IAM, or fake media ids — use POST /channel/media/upload.',
         'POST /channel/catalog/import is multipart: file + type=products + optional dry_run. JSON body is 422.',
         'GET/POST /channel/zones delivery_fee and min_order_value are decimal strings ("12.50"), not int money. Unique exception on this guard.',
         'DELETE /channel/zones/{id} is 204 empty body.',
@@ -496,7 +496,7 @@ function overlays(): array
             'response' => null,
         ],
         'GET /channel/brands' => [
-            'response' => [['id' => 12, 'name_ar' => 'نور', 'name_en' => 'Nour', 'status' => 'active']],
+            'response' => [['id' => 12, 'name_ar' => 'نور', 'name_en' => 'Nour', 'status' => 'active', 'order' => 1]],
         ],
         'GET /channel/products' => [
             'response' => [['id' => 880, 'sku' => 'OIL-SUN-1L', 'name_ar' => 'زيت دوار الشمس 1 لتر', 'status' => 'active']],
@@ -674,7 +674,7 @@ function forbidden(): array
         ['method' => '*', 'path' => '/api/v1/channel/iam/*', 'reason' => 'Channel IAM is not seeded. Users and roles are platform-only.'],
         ['method' => 'POST', 'path' => '/api/v1/channel/auth/logout', 'reason' => 'No logout route. Clear the token locally.'],
         ['method' => 'GET', 'path' => '/api/v1/channel/me', 'reason' => 'No me/session. verify-otp is the session.'],
-        ['method' => 'POST', 'path' => '/api/v1/channel/media', 'reason' => 'No media upload on any guard.'],
+        ['method' => 'POST', 'path' => '/api/v1/channel/media', 'reason' => 'Use POST /channel/media/upload (multipart file + type).'],
         ['method' => '*', 'path' => '/api/v1/platform/*', 'reason' => 'Wrong guard — 403 wrong_guard.'],
         ['method' => '*', 'path' => '/api/v1/app/*', 'reason' => 'Wrong guard. Never call retailer or rep routes from this dashboard.'],
         ['method' => 'GET', 'path' => '/api/v1/channel/activity-types', 'reason' => 'Use GET /public/refs.activity_types.'],

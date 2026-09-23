@@ -30,6 +30,9 @@ class Product extends Model
         'min_order_qty',
         'order_multiple',
         'weight_gram',
+        'length_mm',
+        'width_mm',
+        'height_mm',
         'tracked',
         'reorder_point',
         'allow_backorder',
@@ -98,6 +101,14 @@ class Product extends Model
     public function sliderTags(): HasMany
     {
         return $this->hasMany(ProductSliderTag::class);
+    }
+
+    /**
+     * @return HasMany<ProductRetailerGroup, $this>
+     */
+    public function retailerGroups(): HasMany
+    {
+        return $this->hasMany(ProductRetailerGroup::class);
     }
 
     public function variantAxes(): HasMany

@@ -6,6 +6,7 @@ namespace Modules\Promotion\Presentation\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Core\Contracts\OfferConsumption;
 use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Http\ApiController;
@@ -13,6 +14,7 @@ use Modules\Core\Support\MediaUrl;
 use Modules\Promotion\Application\Actions\CreateOffer;
 use Modules\Promotion\Application\Actions\StopOffer;
 use Modules\Promotion\Application\Queries\ShowOfferPerformance;
+use Modules\Promotion\Application\Services\OfferStatusRefresh;
 use Modules\Promotion\Domain\Models\Offer;
 use Modules\Promotion\Infrastructure\EloquentOfferFeed;
 use Modules\Promotion\Presentation\Http\Requests\StopOfferRequest;
@@ -23,7 +25,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class OfferController extends ApiController
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, OfferStatusRefresh $refresh): JsonResponse
     {
         $page = QueryBuilder::for(Offer::class)
             ->allowedFilters(
@@ -33,12 +35,16 @@ final class OfferController extends ApiController
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
 
-        return $this->paginated($page, fn (Offer $offer) => [
-            'id' => (int) $offer->id,
-            'name' => $offer->name,
-            'type' => $offer->type->value,
-            'status' => $offer->status->value,
-        ]);
+        return $this->paginated($page, function (Offer $offer) use ($refresh) {
+            $refresh->refresh($offer);
+
+            return [
+                'id' => (int) $offer->id,
+                'name' => $offer->name,
+                'type' => $offer->type->value,
+                'status' => $offer->status->value,
+            ];
+        });
     }
 
     public function store(StoreOfferRequest $request, CreateOffer $action): JsonResponse
@@ -56,11 +62,17 @@ final class OfferController extends ApiController
         return $this->ok($query($id));
     }
 
-    public function appIndex(Request $request, EloquentOfferFeed $feed, RetailerShoppingContext $shopping, RepSellingContext $selling): JsonResponse
-    {
+    public function appIndex(
+        Request $request,
+        EloquentOfferFeed $feed,
+        RetailerShoppingContext $shopping,
+        RepSellingContext $selling,
+        OfferConsumption $consumption,
+    ): JsonResponse {
         $zoneId = (int) $request->input('filter.zone_id', 0);
         $activityId = (int) $request->input('filter.activity_type_id', 0);
         $channelIds = [];
+        $retailerId = null;
 
         $user = $request->user();
         if ($shopping->isRetailer($user)) {
@@ -68,6 +80,7 @@ final class OfferController extends ApiController
             $zoneId = $zoneId ?: $ctx['zone_id'];
             $activityId = $activityId ?: $ctx['activity_type_id'];
             $channelIds = $ctx['channel_ids'];
+            $retailerId = (int) $ctx['retailer_id'];
         } elseif ($selling->isRep($user)) {
             $ctx = $selling->for($user);
             $zoneId = $zoneId ?: (int) ($ctx['default_zone_id'] ?? 0);
@@ -78,20 +91,34 @@ final class OfferController extends ApiController
         $page = $feed->matching($zoneId, $activityId, $channelIds)
             ->paginate(min((int) $request->get('per_page', 25), 100));
 
-        return $this->paginated($page, fn (Offer $offer) => $feed->card($offer, $zoneId));
+        return $this->paginated($page, function (Offer $offer) use ($feed, $zoneId, $retailerId, $consumption) {
+            if ($retailerId !== null) {
+                $consumption->recordView((int) $offer->id, $retailerId);
+            }
+
+            return $feed->card($offer, $zoneId);
+        });
     }
 
-    public function appShow(Request $request, EloquentOfferFeed $feed, RetailerShoppingContext $shopping, RepSellingContext $selling, int $id): JsonResponse
-    {
+    public function appShow(
+        Request $request,
+        EloquentOfferFeed $feed,
+        RetailerShoppingContext $shopping,
+        RepSellingContext $selling,
+        OfferConsumption $consumption,
+        int $id,
+    ): JsonResponse {
         $user = $request->user();
         $zoneId = 0;
         $activityId = 0;
         $channelIds = [];
+        $retailerId = null;
         if ($shopping->isRetailer($user)) {
             $ctx = $shopping->for($user);
             $zoneId = $ctx['zone_id'];
             $activityId = $ctx['activity_type_id'];
             $channelIds = $ctx['channel_ids'];
+            $retailerId = (int) $ctx['retailer_id'];
         } elseif ($selling->isRep($user)) {
             $ctx = $selling->for($user);
             $zoneId = (int) ($ctx['default_zone_id'] ?? 0);
@@ -102,6 +129,10 @@ final class OfferController extends ApiController
         $offer = $feed->matching($zoneId, $activityId, $channelIds)->whereKey($id)->first();
         if ($offer === null) {
             throw new NotFoundHttpException;
+        }
+
+        if ($retailerId !== null) {
+            $consumption->recordView((int) $offer->id, $retailerId);
         }
 
         $card = $feed->card($offer, $zoneId);

@@ -9,8 +9,10 @@ use Modules\Identity\Presentation\Http\Controllers\AppAuthController;
 use Modules\Identity\Presentation\Http\Controllers\ChannelAuthController;
 use Modules\Identity\Presentation\Http\Controllers\ChannelRepOpsController;
 use Modules\Identity\Presentation\Http\Controllers\PlatformAuthController;
+use Modules\Identity\Presentation\Http\Controllers\PlatformOpsController;
 use Modules\Identity\Presentation\Http\Controllers\PublicAuthController;
 use Modules\Identity\Presentation\Http\Controllers\RepFieldController;
+use Modules\Identity\Presentation\Http\Controllers\RetailerGroupController;
 use Modules\Identity\Presentation\Http\Controllers\WarehouseAuthController;
 use Modules\Identity\Presentation\Http\Middleware\RequirePasswordConfirmation;
 
@@ -44,6 +46,19 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::get('api-tokens', [PlatformAuthController::class, 'apiTokens']);
         Route::post('api-tokens', [PlatformAuthController::class, 'createApiToken']);
         Route::delete('api-tokens/{id}', [PlatformAuthController::class, 'deleteApiToken']);
+    });
+
+    // PA-05, PA-10.
+    Route::middleware(['auth:platform', 'guard.tokenable:platform', SubstituteBindings::class])->prefix('platform')->group(function (): void {
+        Route::post('channels/{id}/manager/reset', [PlatformOpsController::class, 'resetManager'])
+            ->middleware('permission:ad.channels.update');
+        Route::get('team', [PlatformOpsController::class, 'team'])->middleware('permission:ad.team.view');
+        Route::post('team/invites', [PlatformOpsController::class, 'invite'])->middleware('permission:ad.team.invite');
+        Route::get('team/invites', [PlatformOpsController::class, 'invites'])->middleware('permission:ad.team.view');
+        Route::post('team/{id}/disable', [PlatformOpsController::class, 'disable'])->middleware('permission:ad.team.delete');
+        Route::put('team/{id}', [PlatformOpsController::class, 'updateMember'])->middleware('permission:ad.team.update');
+        Route::delete('team/{id}', [PlatformOpsController::class, 'deleteMember'])
+            ->middleware(['permission:ad.team.delete', RequirePasswordConfirmation::class]);
     });
 
     Route::prefix('channel/auth')->group(function (): void {
@@ -86,5 +101,9 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::get('rep-sourced-shops', [ChannelRepOpsController::class, 'sourcedShops'])->middleware('permission:sc.reps.view');
         Route::post('rep-sourced-shops/{id}/decide', [ChannelRepOpsController::class, 'decideSourcedShop'])->middleware('permission:sc.reps.update');
         Route::get('retailers', [ChannelRepOpsController::class, 'retailers'])->middleware('permission:sc.retailers.view');
+        Route::get('retailer-groups', [RetailerGroupController::class, 'index'])->middleware('permission:sc.retailers.groups');
+        Route::post('retailer-groups', [RetailerGroupController::class, 'store'])->middleware('permission:sc.retailers.groups');
+        Route::put('retailer-groups/{id}', [RetailerGroupController::class, 'update'])->middleware('permission:sc.retailers.groups');
+        Route::delete('retailer-groups/{id}', [RetailerGroupController::class, 'destroy'])->middleware('permission:sc.retailers.groups');
     });
 });

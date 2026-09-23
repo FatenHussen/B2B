@@ -31,6 +31,9 @@ final class EloquentPricingEngine implements PricingEngine
         $zoneId = (int) $request['zone_id'];
         $retailerId = isset($request['retailer_id']) ? (int) $request['retailer_id'] : null;
         $channelId = isset($request['channel_id']) ? (int) $request['channel_id'] : null;
+        $activityTypeId = isset($request['activity_type_id']) ? (int) $request['activity_type_id'] : null;
+        /** @var list<int> $groupIds */
+        $groupIds = array_map('intval', $request['group_ids'] ?? []);
         $linesOut = [];
         $subtotal = 0;
         $currency = 'SYP';
@@ -54,14 +57,15 @@ final class EloquentPricingEngine implements PricingEngine
                 ]);
             }
 
-            $quoted = $this->quoteLine($productId, $qty, $zoneId, $retailerId, $productChannel);
+            $variantId = isset($line['variant_id']) ? (int) $line['variant_id'] : null;
+            $quoted = $this->quoteLine($productId, $qty, $zoneId, $retailerId, $productChannel, $groupIds, $variantId);
             $lineTotal = $quoted['unit_price'] * $qty;
             $subtotal += $lineTotal;
             $currency = $quoted['currency'] ?? $currency;
 
             $linesOut[] = [
                 'product_id' => $productId,
-                'variant_id' => isset($line['variant_id']) ? (int) $line['variant_id'] : null,
+                'variant_id' => $variantId,
                 'qty' => $qty,
                 'unit_price' => $quoted['unit_price'],
                 'applied_rule' => $quoted['applied_rule'],
@@ -82,27 +86,45 @@ final class EloquentPricingEngine implements PricingEngine
                 'zone_id' => $zoneId,
                 'retailer_id' => $retailerId,
                 'channel_id' => $channelId,
+                'activity_type_id' => $activityTypeId,
+                'group_ids' => $groupIds,
             ]);
         }
 
         return $result;
     }
 
-    public function quoteLine(int $productId, int $qty, int $zoneId, ?int $retailerId = null, ?int $channelId = null): array
-    {
+    public function quoteLine(
+        int $productId,
+        int $qty,
+        int $zoneId,
+        ?int $retailerId = null,
+        ?int $channelId = null,
+        array $groupIds = [],
+        ?int $variantId = null,
+    ): array {
         $channelId ??= $this->products->channelId($productId);
         $base = Tenant::withoutScope(fn () => ProductBasePrice::query()->where('product_id', $productId)->first());
 
-        $unit = $base !== null ? (int) $base->base_price : 0;
+        $override = $this->products->variantPriceOverride($variantId);
+        $unit = $override !== null
+            ? $override
+            : ($base !== null ? (int) $base->base_price : 0);
         $type = $base?->type ?? PriceType::Simple;
         $currencyId = $base !== null ? (int) $base->currency_id : (int) ($this->refs->defaultCurrencyId() ?? 0);
         $currency = $currencyId > 0 ? ($this->refs->currencyCode($currencyId) ?? 'SYP') : 'SYP';
 
-        $applied = ['type' => 'base_price', 'id' => $base?->id, 'label' => ''];
+        $applied = $override !== null
+            ? ['type' => 'variant_override', 'id' => $variantId, 'label' => '']
+            : ['type' => 'base_price', 'id' => $base?->id, 'label' => ''];
         $from = null;
         $to = null;
 
-        if ($type === PriceType::Tiered) {
+        // Catalog precedence: base → qty_tier → zone → group → retailer (last wins).
+        // Variant override replaces base only; tiers still apply on top when type is tiered
+        // unless we treat override as absolute — plan: override is the unit base before lists.
+        // When override is set, skip product qty tiers (override is the sell price base).
+        if ($override === null && $type === PriceType::Tiered) {
             $tier = Tenant::withoutScope(fn () => ProductQtyTier::query()
                 ->where('product_id', $productId)
                 ->where('from_qty', '<=', $qty)
@@ -127,14 +149,14 @@ final class EloquentPricingEngine implements PricingEngine
         }
 
         if ($channelId !== null) {
-            $listQuote = $this->applyLists($unit, $productId, $channelId, $zoneId, $retailerId);
+            $listQuote = $this->applyLists($unit, $productId, $channelId, $zoneId, $retailerId, $groupIds);
             $unit = $listQuote['unit'];
             if ($listQuote['rule'] !== null) {
                 $applied = $listQuote['rule'];
             }
         }
 
-        $label = $type === PriceType::Tiered
+        $label = $type === PriceType::Tiered && $override === null
             ? __('pricing.qty_based')
             : (string) $unit;
 
@@ -150,14 +172,30 @@ final class EloquentPricingEngine implements PricingEngine
     }
 
     /**
+     * @param  list<int>  $groupIds
      * @return array{unit: int, rule: array{type: string, id: int|null, label: string}|null}
      */
-    private function applyLists(int $unit, int $productId, int $channelId, int $zoneId, ?int $retailerId): array
-    {
+    private function applyLists(
+        int $unit,
+        int $productId,
+        int $channelId,
+        int $zoneId,
+        ?int $retailerId,
+        array $groupIds,
+    ): array {
         $rule = null;
         $now = Carbon::now('Asia/Damascus');
 
-        $apply = function (PriceListType $type, ?int $matchId) use (&$unit, &$rule, $productId, $channelId, $zoneId, $retailerId, $now): void {
+        $apply = function (PriceListType $type) use (
+            &$unit,
+            &$rule,
+            $productId,
+            $channelId,
+            $zoneId,
+            $retailerId,
+            $groupIds,
+            $now,
+        ): void {
             // Lifted, per rule 10: the engine prices for app callers with no tenant, and
             // `where('supply_channel_id', $channelId)` below is the channel the caller named.
             $query = PriceList::withoutGlobalScope('channel')
@@ -174,14 +212,17 @@ final class EloquentPricingEngine implements PricingEngine
             if ($type === PriceListType::Zone) {
                 $query->whereHas('zones', fn ($z) => $z->where('zone_id', $zoneId));
             }
+            if ($type === PriceListType::Group) {
+                if ($groupIds === []) {
+                    return;
+                }
+                $query->whereIn('group_id', $groupIds);
+            }
             if ($type === PriceListType::Retailer) {
                 if ($retailerId === null) {
                     return;
                 }
                 $query->where('retailer_id', $retailerId);
-            }
-            if ($type === PriceListType::Group) {
-                return;
             }
 
             $list = $query->orderByDesc('id')->first();
@@ -210,8 +251,10 @@ final class EloquentPricingEngine implements PricingEngine
             ];
         };
 
-        $apply(PriceListType::Zone, $zoneId);
-        $apply(PriceListType::Retailer, $retailerId);
+        // Catalog: retailer_price ← group_list ← zone_list ← qty_tier ← base_price
+        $apply(PriceListType::Zone);
+        $apply(PriceListType::Group);
+        $apply(PriceListType::Retailer);
 
         return ['unit' => $unit, 'rule' => $rule];
     }

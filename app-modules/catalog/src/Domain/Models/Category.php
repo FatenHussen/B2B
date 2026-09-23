@@ -17,6 +17,7 @@ class Category extends Model
     protected $fillable = [
         'supply_channel_id',
         'name',
+        'description',
         'parent_id',
         'root_category_id',
         'image_media_id',

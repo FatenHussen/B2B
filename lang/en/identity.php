@@ -28,6 +28,7 @@ return [
     'rep_pending_review' => 'Your rep profile is pending review.',
     'rep_not_active' => 'Your rep account is not active.',
     'not_found' => 'Not found.',
+    'retailer_not_in_coverage' => 'One or more retailers are outside this channel coverage.',
     'phone_taken' => 'This phone is already in use.',
     'illegal_rep_transition' => 'This rep status transition is not allowed.',
     'illegal_zone_request_transition' => 'Zone request is not pending approval.',

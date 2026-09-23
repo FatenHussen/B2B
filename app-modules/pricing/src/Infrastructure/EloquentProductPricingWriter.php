@@ -40,6 +40,7 @@ final class EloquentProductPricingWriter implements ProductPricingWriter
                     'currency_id' => $currencyId,
                     'type' => $type,
                     'base_price' => $draft->basePrice,
+                    'tax_percent' => $draft->taxPercent,
                 ],
             );
 

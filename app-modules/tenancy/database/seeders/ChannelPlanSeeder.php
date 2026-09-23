@@ -5,38 +5,80 @@ declare(strict_types=1);
 namespace Modules\Tenancy\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Modules\Tenancy\Domain\Enums\PlanOnExceed;
+use Modules\Tenancy\Domain\Enums\PlanStatus;
 use Modules\Tenancy\Domain\Models\ChannelPlan;
 
 /**
- * The two plans a channel can be created on (BE-T04). Idempotent: keyed on `key`,
- * re-runnable on every deploy, never duplicates.
+ * The two plans a channel can be created on. Idempotent on `key`.
  *
- * `growth` carries the limits the catalog itself shows for a channel on plan 2
- * (EP-AD-051's example body, EP-AD-050's `plan: {id: 2, key: growth}`). `starter` is
- * named by the sprint spec (§5.1, "starter|growth") but its limits are named nowhere —
- * the numbers below are placeholders, deliberately smaller than growth's, until
- * BE4-BIL01 fixes plans and their pricing. Nothing prices a plan here.
+ * Pricing numbers for growth match EP-AD-100A's catalog example; starter is smaller
+ * until PA-06 wires live subscriptions.
  */
 class ChannelPlanSeeder extends Seeder
 {
     public function run(): void
     {
+        $currencyId = DB::table('currencies')->orderBy('id')->value('id');
+
         $plans = [
             'starter' => [
                 'name' => 'Starter',
-                'limits' => ['users' => 5, 'warehouses' => 1, 'reps' => 5, 'skus' => 1000, 'storage_mb' => 512],
+                'price_monthly' => 10_000_000,
+                'price_yearly' => 100_000_000,
+                'limits' => [
+                    'users' => 5,
+                    'warehouses' => 1,
+                    'reps' => 5,
+                    'skus' => 1000,
+                    'storage_mb' => 512,
+                    'otp_monthly' => 5000,
+                ],
+                'features' => [],
+                'on_exceed' => PlanOnExceed::Warn,
+                'trial_days' => 14,
+                'is_public' => true,
             ],
             'growth' => [
                 'name' => 'Growth',
-                'limits' => ['users' => 25, 'warehouses' => 2, 'reps' => 20, 'skus' => 5000, 'storage_mb' => 2048],
+                'price_monthly' => 25_000_000,
+                'price_yearly' => 250_000_000,
+                'limits' => [
+                    'users' => 25,
+                    'warehouses' => 2,
+                    'reps' => 20,
+                    'skus' => 5000,
+                    'storage_mb' => 2048,
+                    'otp_monthly' => 20000,
+                ],
+                'features' => ['loyalty', 'multi_warehouse'],
+                'on_exceed' => PlanOnExceed::Block,
+                'trial_days' => 14,
+                'is_public' => true,
             ],
         ];
 
         foreach ($plans as $key => $plan) {
-            ChannelPlan::query()->updateOrCreate(
-                ['key' => $key],
-                ['name' => $plan['name'], 'limits' => $plan['limits'], 'is_active' => true],
-            );
+            $row = ChannelPlan::query()->firstOrNew(['key' => $key]);
+            $row->fill([
+                'name' => $plan['name'],
+                'price_monthly' => $plan['price_monthly'],
+                'price_yearly' => $plan['price_yearly'],
+                'currency_id' => $currencyId !== null ? (int) $currencyId : null,
+                'limits' => $plan['limits'],
+                'features' => $plan['features'],
+                'on_exceed' => $plan['on_exceed'],
+                'trial_days' => $plan['trial_days'],
+                'is_public' => $plan['is_public'],
+                'is_active' => true,
+            ]);
+            if (! $row->exists) {
+                $row->status = PlanStatus::Active;
+            } elseif ($row->status === null) {
+                $row->status = PlanStatus::Active;
+            }
+            $row->save();
         }
     }
 }

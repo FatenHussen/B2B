@@ -4,7 +4,7 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 166 | 78 | 0 | 88 | 7 |
+| 166 | 166 | 0 | 0 | 7 |
 
 ## الدخول والملف الشخصي — 16/16
 
@@ -88,7 +88,7 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 | ✅ | EP-AD-043F | SP-03 | `PATCH` | `/platform/refs/currencies/{id}/status` | `ad.refs.currency` | Reference | تعطيل/تفعيل عملة |
 | ✅ | EP-AD-043G | SP-03 | `GET` | `/platform/refs/fx-rates` | `ad.refs.currency` | Reference | أسعار الصرف |
 
-## القنوات — 9/23
+## القنوات — 23/23
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -99,138 +99,138 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 | ✅ | EP-AD-054 | SP-04 | `POST` | `/platform/channels/{id}/transition` | `ad.channels.suspend` | Tenancy | تغيير حالة القناة |
 | ✅ | EP-AD-055 | SP-04 | `PUT` | `/platform/channels/{id}/limits` | `ad.billing.assign_plan` | Tenancy | حدود القناة |
 | ✅ | EP-AD-056 | SP-04 | `GET` | `/platform/channels/{id}/usage` | `ad.channels.view` | Tenancy | استخدام القناة |
-| ❌ | EP-AD-057 | SP-04 | `POST` | `/platform/channels/{id}/export` | `ad.channels.export` | — | تصدير بيانات القناة |
+| ✅ | EP-AD-057 | SP-04 | `POST` | `/platform/channels/{id}/export` | `ad.channels.export` | Reporting | تصدير بيانات القناة |
 | ✅ | EP-AD-058 | SP-04 | `DELETE` | `/platform/channels/{id}` | `ad.channels.delete` | Tenancy | حذف قناة |
-| ❌ | EP-AD-059A | SP-04 | `POST` | `/platform/channels/bulk-plan/preview` | `ad.billing.assign_plan` | — | معاينة تغيير الباقة الجماعي |
-| ❌ | EP-AD-059B | SP-04 | `POST` | `/platform/channels/bulk-plan` | `ad.billing.assign_plan` | — | تطبيق تغيير الباقة الجماعي |
-| ❌ | EP-AD-059C | SP-04 | `POST` | `/platform/channels/export` | `ad.channels.export` | — | تصدير قائمة القنوات |
-| ❌ | EP-AD-060 | SP-04 | `GET` | `/platform/channel-applications` | `ad.channels.view` | — | طلبات انضمام القنوات |
-| ❌ | EP-AD-061 | SP-04 | `POST` | `/platform/channel-applications/{id}/decide` | `ad.channels.create` | — | بتّ طلب انضمام قناة |
+| ✅ | EP-AD-059A | SP-04 | `POST` | `/platform/channels/bulk-plan/preview` | `ad.billing.assign_plan` | PlatformBilling | معاينة تغيير الباقة الجماعي |
+| ✅ | EP-AD-059B | SP-04 | `POST` | `/platform/channels/bulk-plan` | `ad.billing.assign_plan` | PlatformBilling | تطبيق تغيير الباقة الجماعي |
+| ✅ | EP-AD-059C | SP-04 | `POST` | `/platform/channels/export` | `ad.channels.export` | Reporting | تصدير قائمة القنوات |
+| ✅ | EP-AD-060 | SP-04 | `GET` | `/platform/channel-applications` | `ad.channels.view` | Tenancy | طلبات انضمام القنوات |
+| ✅ | EP-AD-061 | SP-04 | `POST` | `/platform/channel-applications/{id}/decide` | `ad.channels.create` | Tenancy | بتّ طلب انضمام قناة |
 | ✅ | EP-AD-062 | SP-04 | `PUT` | `/platform/channels/{id}` | `ad.channels.update` | Tenancy | تعديل بيانات القناة |
-| ❌ | EP-AD-063 | SP-04 | `GET` | `/platform/channels/{id}/users` | `ad.channels.view` | — | مستخدمو القناة وأدوارهم |
-| ❌ | EP-AD-064 | SP-04 | `POST` | `/platform/channels/{id}/manager/reset` | `ad.channels.update` | — | إعادة تعيين حساب مدير القناة |
-| ❌ | EP-AD-065A | SP-04 | `GET` | `/platform/channels/{id}/coverage` | `ad.channels.view` | — | المناطق والتغطية |
-| ❌ | EP-AD-065B | SP-04 | `PUT` | `/platform/channels/{id}/coverage` | `ad.channels.update` | — | تحديث تغطية القناة |
-| ❌ | EP-AD-066 | SP-04 | `GET` | `/platform/channels/{id}/warehouses` | `ad.channels.view` | — | مستودعات القناة |
-| ❌ | EP-AD-067 | SP-04 | `GET` | `/platform/channels/{id}/features` | `ad.features.view` | — | ميزات هذه القناة |
-| ❌ | EP-AD-068 | SP-04 | `POST` | `/platform/channels/notify-managers` | `ad.notify.send` | — | إشعار مديري القنوات |
-| ❌ | EP-AD-102 | SP-17 | `POST` | `/platform/channels/{id}/plan` | `ad.billing.assign_plan` | — | تعيين خطة |
+| ✅ | EP-AD-063 | SP-04 | `GET` | `/platform/channels/{id}/users` | `ad.channels.view` | Tenancy | مستخدمو القناة وأدوارهم |
+| ✅ | EP-AD-064 | SP-04 | `POST` | `/platform/channels/{id}/manager/reset` | `ad.channels.update` | Identity | إعادة تعيين حساب مدير القناة |
+| ✅ | EP-AD-065A | SP-04 | `GET` | `/platform/channels/{id}/coverage` | `ad.channels.view` | Tenancy | المناطق والتغطية |
+| ✅ | EP-AD-065B | SP-04 | `PUT` | `/platform/channels/{id}/coverage` | `ad.channels.update` | Tenancy | تحديث تغطية القناة |
+| ✅ | EP-AD-066 | SP-04 | `GET` | `/platform/channels/{id}/warehouses` | `ad.channels.view` | Tenancy | مستودعات القناة |
+| ✅ | EP-AD-067 | SP-04 | `GET` | `/platform/channels/{id}/features` | `ad.features.view` | Tenancy | ميزات هذه القناة |
+| ✅ | EP-AD-068 | SP-04 | `POST` | `/platform/channels/notify-managers` | `ad.notify.send` | Notification | إشعار مديري القنوات |
+| ✅ | EP-AD-102 | SP-17 | `POST` | `/platform/channels/{id}/plan` | `ad.billing.assign_plan` | PlatformBilling | تعيين خطة |
 
-## الفوترة والباقات — 0/10
-
-| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
-|---|---|---|---|---|---|---|---|
-| ❌ | EP-AD-100A | SP-17 | `GET` | `/platform/plans` | `ad.billing.plans` | — | الخطط |
-| ❌ | EP-AD-100B | SP-17 | `POST` | `/platform/plans` | `ad.billing.plans` | — | إنشاء خطة |
-| ❌ | EP-AD-100C | SP-17 | `GET` | `/platform/plans/{id}` | `ad.billing.plans` | — | تفاصيل الباقة |
-| ❌ | EP-AD-100D | SP-17 | `PUT` | `/platform/plans/{id}` | `ad.billing.plans` | — | تعديل باقة |
-| ❌ | EP-AD-101 | SP-17 | `GET` | `/platform/subscriptions` | `ad.billing.view` | — | الاشتراكات |
-| ❌ | EP-AD-103 | SP-17 | `GET` | `/platform/platform-invoices` | `ad.billing.view` | — | فواتير المنصة |
-| ❌ | EP-AD-104 | SP-17 | `POST` | `/platform/platform-invoices/{id}/waive` | `ad.billing.waive` | — | إعفاء فاتورة منصة |
-| ❌ | EP-AD-105 | SP-17 | `GET` | `/platform/dunning` | `ad.billing.dunning` | — | تحصيل المتأخرات |
-| ❌ | EP-AD-106 | SP-17 | `POST` | `/platform/platform-invoices/{id}/credit-note` | `ad.billing.invoice` | — | مذكرة دائنة لفاتورة منصة |
-| ❌ | EP-AD-107 | SP-17 | `GET` | `/platform/billing/revenue` | `ad.billing.view` | — | تقرير إيراد المنصة |
-
-## الميزات ونسخ التطبيقات — 0/7
+## الفوترة والباقات — 10/10
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ❌ | EP-AD-110A | SP-17 | `GET` | `/platform/features` | `ad.features.view` | — | مفاتيح الميزات |
-| ❌ | EP-AD-110B | SP-17 | `POST` | `/platform/features` | `ad.features.manage` | — | إنشاء مفتاح ميزة |
-| ❌ | EP-AD-111 | SP-17 | `POST` | `/platform/features/{key}/override` | `ad.features.override` | — | تجاوز ميزة لقناة |
-| ❌ | EP-AD-112 | SP-17 | `POST` | `/platform/app-versions` | `ad.content.publish_version` | — | نشر نسخة تطبيق |
-| ❌ | EP-AD-113 | SP-17 | `POST` | `/platform/app-versions/{id}/force-update` | `ad.content.force_update` | — | فرض التحديث |
-| ❌ | EP-AD-114 | SP-17 | `DELETE` | `/platform/features/{key}/override` | `ad.features.override` | — | إعادة الميزة لقيمة الباقة |
-| ❌ | EP-AD-115 | SP-17 | `GET` | `/platform/app-versions` | `ad.content.view` | — | سجل إصدارات التطبيقات |
+| ✅ | EP-AD-100A | SP-17 | `GET` | `/platform/plans` | `ad.billing.plans` | Tenancy | الخطط |
+| ✅ | EP-AD-100B | SP-17 | `POST` | `/platform/plans` | `ad.billing.plans` | Tenancy | إنشاء خطة |
+| ✅ | EP-AD-100C | SP-17 | `GET` | `/platform/plans/{id}` | `ad.billing.plans` | Tenancy | تفاصيل الباقة |
+| ✅ | EP-AD-100D | SP-17 | `PUT` | `/platform/plans/{id}` | `ad.billing.plans` | Tenancy | تعديل باقة |
+| ✅ | EP-AD-101 | SP-17 | `GET` | `/platform/subscriptions` | `ad.billing.view` | PlatformBilling | الاشتراكات |
+| ✅ | EP-AD-103 | SP-17 | `GET` | `/platform/platform-invoices` | `ad.billing.view` | PlatformBilling | فواتير المنصة |
+| ✅ | EP-AD-104 | SP-17 | `POST` | `/platform/platform-invoices/{id}/waive` | `ad.billing.waive` | PlatformBilling | إعفاء فاتورة منصة |
+| ✅ | EP-AD-105 | SP-17 | `GET` | `/platform/dunning` | `ad.billing.dunning` | PlatformBilling | تحصيل المتأخرات |
+| ✅ | EP-AD-106 | SP-17 | `POST` | `/platform/platform-invoices/{id}/credit-note` | `ad.billing.invoice` | PlatformBilling | مذكرة دائنة لفاتورة منصة |
+| ✅ | EP-AD-107 | SP-17 | `GET` | `/platform/billing/revenue` | `ad.billing.view` | PlatformBilling | تقرير إيراد المنصة |
 
-## الإشعارات — 0/8
-
-| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
-|---|---|---|---|---|---|---|---|
-| ❌ | EP-AD-080 | SP-14 | `POST` | `/platform/notifications/broadcast` | `ad.notify.broadcast` | — | بث إشعار المنصة |
-| ❌ | EP-AD-081 | SP-14 | `POST` | `/platform/notifications` | `ad.notify.send` | — | إنشاء إشعار منصة |
-| ❌ | EP-AD-082 | SP-14 | `POST` | `/platform/notifications/preview` | `ad.notify.send` | — | تقييم استهداف الإشعار |
-| ❌ | EP-AD-083A | SP-14 | `GET` | `/platform/notifications/templates` | `ad.notify.view` | — | قوالب إشعارات المنصة |
-| ❌ | EP-AD-083B | SP-14 | `PUT` | `/platform/notifications/templates` | `ad.notify.send` | — | تحديث قالب منصة |
-| ❌ | EP-AD-084 | SP-14 | `GET` | `/platform/notifications/log` | `ad.notify.view` | — | سجل إرسال المنصة |
-| ❌ | EP-AD-085A | SP-14 | `GET` | `/platform/notifications/campaigns` | `ad.notify.view` | — | حملات الإشعارات |
-| ❌ | EP-AD-085B | SP-14 | `GET` | `/platform/notifications/campaigns/{id}` | `ad.notify.view` | — | تفاصيل حملة |
-
-## لوحة القيادة والتقارير — 0/7
+## الميزات ونسخ التطبيقات — 7/7
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ❌ | EP-AD-090 | SP-16 | `GET` | `/platform/dashboard` | `ad.dashboard.view` | — | لوحة المنصة |
-| ❌ | EP-AD-091 | SP-16 | `GET` | `/platform/reports/{type}` | `ad.reports.view` | — | تقرير المنصة |
-| ❌ | EP-AD-092 | SP-16 | `GET` | `/platform/exports/{jobId}` | `ad.reports.view` | — | حالة التصدير |
-| ❌ | EP-AD-093 | SP-16 | `POST` | `/platform/reports/{type}/export` | `ad.reports.export` | — | تصدير تقرير المنصة |
-| ❌ | EP-AD-094 | SP-16 | `GET` | `/platform/dashboard/alerts` | `ad.dashboard.view` | — | تنبيهات المنصة اللحظية |
-| ❌ | EP-AD-095 | SP-16 | `GET` | `/platform/dashboard/cards/{key}` | `ad.dashboard.view` | — | بطاقة لوحة مستقلة |
-| ❌ | EP-AD-096 | SP-16 | `GET` | `/platform/dashboard/charts/{key}` | `ad.dashboard.view` | — | رسم لوحة القيادة |
+| ✅ | EP-AD-110A | SP-17 | `GET` | `/platform/features` | `ad.features.view` | Tenancy | مفاتيح الميزات |
+| ✅ | EP-AD-110B | SP-17 | `POST` | `/platform/features` | `ad.features.manage` | Tenancy | إنشاء مفتاح ميزة |
+| ✅ | EP-AD-111 | SP-17 | `POST` | `/platform/features/{key}/override` | `ad.features.override` | Tenancy | تجاوز ميزة لقناة |
+| ✅ | EP-AD-112 | SP-17 | `POST` | `/platform/app-versions` | `ad.content.publish_version` | Content | نشر نسخة تطبيق |
+| ✅ | EP-AD-113 | SP-17 | `POST` | `/platform/app-versions/{id}/force-update` | `ad.content.force_update` | Content | فرض التحديث |
+| ✅ | EP-AD-114 | SP-17 | `DELETE` | `/platform/features/{key}/override` | `ad.features.override` | Tenancy | إعادة الميزة لقيمة الباقة |
+| ✅ | EP-AD-115 | SP-17 | `GET` | `/platform/app-versions` | `ad.content.view` | Content | سجل إصدارات التطبيقات |
 
-## الدعم — 0/10
-
-| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
-|---|---|---|---|---|---|---|---|
-| ❌ | EP-AD-120 | SP-17 | `GET` | `/platform/support/search` | `ad.support.search` | — | بحث الدعم |
-| ❌ | EP-AD-121 | SP-17 | `GET` | `/platform/support/users/{type}/{id}` | `ad.support.view_profile` | — | بطاقة المستخدم 360 |
-| ❌ | EP-AD-122 | SP-17 | `POST` | `/platform/support/impersonate` | `ad.support.impersonate` | — | انتحال جلسة دعم |
-| ❌ | EP-AD-123 | SP-17 | `POST` | `/platform/support/users/{id}/resend-otp` | `ad.support.resend_otp` | — | إعادة OTP لمستخدم |
-| ❌ | EP-AD-124 | SP-17 | `POST` | `/platform/support/users/{id}/revoke-sessions` | `ad.support.revoke_sessions` | — | إنهاء جلسات المستخدم |
-| ❌ | EP-AD-125A | SP-17 | `GET` | `/platform/support/tickets` | `ad.support.tickets` | — | التذاكر |
-| ❌ | EP-AD-125B | SP-17 | `POST` | `/platform/support/tickets` | `ad.support.tickets` | — | إنشاء تذكرة |
-| ❌ | EP-AD-126 | SP-17 | `POST` | `/platform/support/users/{id}/disable` | `ad.support.disable_user` | — | تعطيل مستخدم مؤقت |
-| ❌ | EP-AD-127 | SP-17 | `POST` | `/platform/support/users/{id}/reset-device` | `ad.support.revoke_sessions` | — | إعادة تعيين جهاز المستخدم |
-| ❌ | EP-AD-128 | SP-17 | `PATCH` | `/platform/support/tickets/{id}` | `ad.support.tickets` | — | تحديث تذكرة |
-
-## صحة النظام — 0/11
+## الإشعارات — 8/8
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ❌ | EP-AD-130 | SP-17 | `GET` | `/platform/system/queues` | `ad.system.view` | — | طوابير النظام |
-| ❌ | EP-AD-131 | SP-17 | `GET` | `/platform/system/errors` | `ad.system.view` | — | آخر الاستثناءات |
-| ❌ | EP-AD-132 | SP-17 | `GET` | `/platform/system/sync` | `ad.system.view` | — | صحة المزامنة |
-| ❌ | EP-AD-133 | SP-17 | `GET` | `/platform/system/integrations` | `ad.system.view` | — | صحة التكاملات |
-| ❌ | EP-AD-134 | SP-17 | `POST` | `/platform/system/switch-otp-channel` | `ad.system.switch_otp` | — | تبديل قناة OTP |
-| ❌ | EP-AD-135 | SP-17 | `POST` | `/platform/system/retry-jobs` | `ad.system.retry_jobs` | — | إعادة مهام فاشلة |
-| ❌ | EP-AD-136 | SP-17 | `POST` | `/platform/system/maintenance` | `ad.system.maintenance` | — | وضع الصيانة |
-| ❌ | EP-AD-137 | SP-17 | `GET` | `/platform/system/scheduled-jobs` | `ad.system.view` | — | المهام المجدولة |
-| ❌ | EP-AD-138 | SP-17 | `GET` | `/platform/system/storage` | `ad.system.view` | — | التخزين والنسخ |
-| ❌ | EP-AD-139C | SP-17 | `POST` | `/platform/system/backups` | `ad.system.backup` | — | تشغيل نسخة احتياطية |
-| ❌ | EP-AD-139D | SP-17 | `POST` | `/platform/system/backups/restore-test` | `ad.system.backup` | — | اختبار الاستعادة |
+| ✅ | EP-AD-080 | SP-14 | `POST` | `/platform/notifications/broadcast` | `ad.notify.broadcast` | Notification | بث إشعار المنصة |
+| ✅ | EP-AD-081 | SP-14 | `POST` | `/platform/notifications` | `ad.notify.send` | Notification | إنشاء إشعار منصة |
+| ✅ | EP-AD-082 | SP-14 | `POST` | `/platform/notifications/preview` | `ad.notify.send` | Notification | تقييم استهداف الإشعار |
+| ✅ | EP-AD-083A | SP-14 | `GET` | `/platform/notifications/templates` | `ad.notify.view` | Notification | قوالب إشعارات المنصة |
+| ✅ | EP-AD-083B | SP-14 | `PUT` | `/platform/notifications/templates` | `ad.notify.send` | Notification | تحديث قالب منصة |
+| ✅ | EP-AD-084 | SP-14 | `GET` | `/platform/notifications/log` | `ad.notify.view` | Notification | سجل إرسال المنصة |
+| ✅ | EP-AD-085A | SP-14 | `GET` | `/platform/notifications/campaigns` | `ad.notify.view` | Notification | حملات الإشعارات |
+| ✅ | EP-AD-085B | SP-14 | `GET` | `/platform/notifications/campaigns/{id}` | `ad.notify.view` | Notification | تفاصيل حملة |
 
-## المحتوى — 2/6
+## لوحة القيادة والتقارير — 7/7
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ❌ | EP-AD-140A | SP-17 | `GET` | `/platform/content/legal` | `ad.content.view` | — | الشروط والخصوصية |
-| ❌ | EP-AD-140B | SP-17 | `POST` | `/platform/content/legal` | `ad.content.manage` | — | نشر نسخة شروط/خصوصية |
+| ✅ | EP-AD-090 | SP-16 | `GET` | `/platform/dashboard` | `ad.dashboard.view` | Reporting | لوحة المنصة |
+| ✅ | EP-AD-091 | SP-16 | `GET` | `/platform/reports/{type}` | `ad.reports.view` | Reporting | تقرير المنصة |
+| ✅ | EP-AD-092 | SP-16 | `GET` | `/platform/exports/{jobId}` | `ad.reports.view` | Reporting | حالة التصدير |
+| ✅ | EP-AD-093 | SP-16 | `POST` | `/platform/reports/{type}/export` | `ad.reports.export` | Reporting | تصدير تقرير المنصة |
+| ✅ | EP-AD-094 | SP-16 | `GET` | `/platform/dashboard/alerts` | `ad.dashboard.view` | Reporting | تنبيهات المنصة اللحظية |
+| ✅ | EP-AD-095 | SP-16 | `GET` | `/platform/dashboard/cards/{key}` | `ad.dashboard.view` | Reporting | بطاقة لوحة مستقلة |
+| ✅ | EP-AD-096 | SP-16 | `GET` | `/platform/dashboard/charts/{key}` | `ad.dashboard.view` | Reporting | رسم لوحة القيادة |
+
+## الدعم — 10/10
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-AD-120 | SP-17 | `GET` | `/platform/support/search` | `ad.support.search` | Support | بحث الدعم |
+| ✅ | EP-AD-121 | SP-17 | `GET` | `/platform/support/users/{type}/{id}` | `ad.support.view_profile` | Support | بطاقة المستخدم 360 |
+| ✅ | EP-AD-122 | SP-17 | `POST` | `/platform/support/impersonate` | `ad.support.impersonate` | Support | انتحال جلسة دعم |
+| ✅ | EP-AD-123 | SP-17 | `POST` | `/platform/support/users/{id}/resend-otp` | `ad.support.resend_otp` | Support | إعادة OTP لمستخدم |
+| ✅ | EP-AD-124 | SP-17 | `POST` | `/platform/support/users/{id}/revoke-sessions` | `ad.support.revoke_sessions` | Support | إنهاء جلسات المستخدم |
+| ✅ | EP-AD-125A | SP-17 | `GET` | `/platform/support/tickets` | `ad.support.tickets` | Support | التذاكر |
+| ✅ | EP-AD-125B | SP-17 | `POST` | `/platform/support/tickets` | `ad.support.tickets` | Support | إنشاء تذكرة |
+| ✅ | EP-AD-126 | SP-17 | `POST` | `/platform/support/users/{id}/disable` | `ad.support.disable_user` | Support | تعطيل مستخدم مؤقت |
+| ✅ | EP-AD-127 | SP-17 | `POST` | `/platform/support/users/{id}/reset-device` | `ad.support.revoke_sessions` | Support | إعادة تعيين جهاز المستخدم |
+| ✅ | EP-AD-128 | SP-17 | `PATCH` | `/platform/support/tickets/{id}` | `ad.support.tickets` | Support | تحديث تذكرة |
+
+## صحة النظام — 11/11
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-AD-130 | SP-17 | `GET` | `/platform/system/queues` | `ad.system.view` | Integration | طوابير النظام |
+| ✅ | EP-AD-131 | SP-17 | `GET` | `/platform/system/errors` | `ad.system.view` | Integration | آخر الاستثناءات |
+| ✅ | EP-AD-132 | SP-17 | `GET` | `/platform/system/sync` | `ad.system.view` | Integration | صحة المزامنة |
+| ✅ | EP-AD-133 | SP-17 | `GET` | `/platform/system/integrations` | `ad.system.view` | Integration | صحة التكاملات |
+| ✅ | EP-AD-134 | SP-17 | `POST` | `/platform/system/switch-otp-channel` | `ad.system.switch_otp` | Integration | تبديل قناة OTP |
+| ✅ | EP-AD-135 | SP-17 | `POST` | `/platform/system/retry-jobs` | `ad.system.retry_jobs` | Integration | إعادة مهام فاشلة |
+| ✅ | EP-AD-136 | SP-17 | `POST` | `/platform/system/maintenance` | `ad.system.maintenance` | Integration | وضع الصيانة |
+| ✅ | EP-AD-137 | SP-17 | `GET` | `/platform/system/scheduled-jobs` | `ad.system.view` | Integration | المهام المجدولة |
+| ✅ | EP-AD-138 | SP-17 | `GET` | `/platform/system/storage` | `ad.system.view` | Integration | التخزين والنسخ |
+| ✅ | EP-AD-139C | SP-17 | `POST` | `/platform/system/backups` | `ad.system.backup` | Integration | تشغيل نسخة احتياطية |
+| ✅ | EP-AD-139D | SP-17 | `POST` | `/platform/system/backups/restore-test` | `ad.system.backup` | Integration | اختبار الاستعادة |
+
+## المحتوى — 6/6
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-AD-140A | SP-17 | `GET` | `/platform/content/legal` | `ad.content.view` | Content | الشروط والخصوصية |
+| ✅ | EP-AD-140B | SP-17 | `POST` | `/platform/content/legal` | `ad.content.manage` | Content | نشر نسخة شروط/خصوصية |
 | ✅ | EP-AD-141A | SP-17 | `GET` | `/platform/content/intro` | `ad.content.view` | Content | الانترو الافتراضي للمنصة |
 | ✅ | EP-AD-141B | SP-17 | `PUT` | `/platform/content/intro` | `ad.content.manage` | Content | تحديث الانترو الافتراضي |
-| ❌ | EP-AD-142A | SP-17 | `GET` | `/platform/content/help` | `ad.content.view` | — | الأدلة والمساعدة |
-| ❌ | EP-AD-142B | SP-17 | `POST` | `/platform/content/help` | `ad.content.manage` | — | إنشاء مقال مساعدة |
+| ✅ | EP-AD-142A | SP-17 | `GET` | `/platform/content/help` | `ad.content.view` | Content | الأدلة والمساعدة |
+| ✅ | EP-AD-142B | SP-17 | `POST` | `/platform/content/help` | `ad.content.manage` | Content | إنشاء مقال مساعدة |
 
-## الإعدادات والفريق — 0/17
+## الإعدادات والفريق — 17/17
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ❌ | EP-AD-139A | SP-17 | `GET` | `/platform/settings/backup` | `ad.settings.view` | — | سياسة النسخ الاحتياطي |
-| ❌ | EP-AD-139B | SP-17 | `PUT` | `/platform/settings/backup` | `ad.settings.update` | — | تحديث سياسة النسخ |
-| ❌ | EP-AD-150A | SP-17 | `GET` | `/platform/settings/profile` | `ad.settings.view` | — | الملف العام للمنصة |
-| ❌ | EP-AD-150B | SP-17 | `PUT` | `/platform/settings/profile` | `ad.settings.update` | — | تحديث الملف العام |
-| ❌ | EP-AD-151A | SP-17 | `GET` | `/platform/settings/integrations` | `ad.settings.view` | — | مفاتيح التكاملات |
-| ❌ | EP-AD-151B | SP-17 | `PUT` | `/platform/settings/integrations/{provider}` | `ad.settings.update` | — | حفظ مفتاح تكامل |
-| ❌ | EP-AD-152 | SP-17 | `POST` | `/platform/settings/integrations/{provider}/test` | `ad.settings.update` | — | اختبار اتصال المزوّد |
-| ❌ | EP-AD-153A | SP-17 | `GET` | `/platform/settings/channel-defaults` | `ad.settings.view` | — | التهيئة الافتراضية للقنوات |
-| ❌ | EP-AD-153B | SP-17 | `PUT` | `/platform/settings/channel-defaults` | `ad.settings.update` | — | تحديث تهيئة القنوات |
-| ❌ | EP-AD-154 | SP-17 | `GET` | `/platform/team` | `ad.team.view` | — | فريق المنصة |
-| ❌ | EP-AD-155 | SP-17 | `POST` | `/platform/team/invites` | `ad.team.invite` | — | دعوة عضو للمنصة |
-| ❌ | EP-AD-156 | SP-17 | `GET` | `/platform/team/invites` | `ad.team.view` | — | الدعوات المعلّقة |
-| ❌ | EP-AD-157 | SP-17 | `POST` | `/platform/team/{id}/disable` | `ad.team.delete` | — | تعطيل عضو منصة |
-| ❌ | EP-AD-158A | SP-17 | `GET` | `/platform/settings/security` | `ad.settings.security` | — | سياسة أمان المنصة |
-| ❌ | EP-AD-158B | SP-17 | `PUT` | `/platform/settings/security` | `ad.settings.security` | — | تحديث سياسة الأمان |
-| ❌ | EP-AD-160A | SP-17 | `PUT` | `/platform/team/{id}` | `ad.team.update` | — | تعديل عضو المنصة |
-| ❌ | EP-AD-160B | SP-17 | `DELETE` | `/platform/team/{id}` | `ad.team.delete` | — | حذف عضو المنصة |
+| ✅ | EP-AD-139A | SP-17 | `GET` | `/platform/settings/backup` | `ad.settings.view` | Core | سياسة النسخ الاحتياطي |
+| ✅ | EP-AD-139B | SP-17 | `PUT` | `/platform/settings/backup` | `ad.settings.update` | Core | تحديث سياسة النسخ |
+| ✅ | EP-AD-150A | SP-17 | `GET` | `/platform/settings/profile` | `ad.settings.view` | Core | الملف العام للمنصة |
+| ✅ | EP-AD-150B | SP-17 | `PUT` | `/platform/settings/profile` | `ad.settings.update` | Core | تحديث الملف العام |
+| ✅ | EP-AD-151A | SP-17 | `GET` | `/platform/settings/integrations` | `ad.settings.view` | Integration | مفاتيح التكاملات |
+| ✅ | EP-AD-151B | SP-17 | `PUT` | `/platform/settings/integrations/{provider}` | `ad.settings.update` | Integration | حفظ مفتاح تكامل |
+| ✅ | EP-AD-152 | SP-17 | `POST` | `/platform/settings/integrations/{provider}/test` | `ad.settings.update` | Integration | اختبار اتصال المزوّد |
+| ✅ | EP-AD-153A | SP-17 | `GET` | `/platform/settings/channel-defaults` | `ad.settings.view` | Core | التهيئة الافتراضية للقنوات |
+| ✅ | EP-AD-153B | SP-17 | `PUT` | `/platform/settings/channel-defaults` | `ad.settings.update` | Core | تحديث تهيئة القنوات |
+| ✅ | EP-AD-154 | SP-17 | `GET` | `/platform/team` | `ad.team.view` | Identity | فريق المنصة |
+| ✅ | EP-AD-155 | SP-17 | `POST` | `/platform/team/invites` | `ad.team.invite` | Identity | دعوة عضو للمنصة |
+| ✅ | EP-AD-156 | SP-17 | `GET` | `/platform/team/invites` | `ad.team.view` | Identity | الدعوات المعلّقة |
+| ✅ | EP-AD-157 | SP-17 | `POST` | `/platform/team/{id}/disable` | `ad.team.delete` | Identity | تعطيل عضو منصة |
+| ✅ | EP-AD-158A | SP-17 | `GET` | `/platform/settings/security` | `ad.settings.security` | Core | سياسة أمان المنصة |
+| ✅ | EP-AD-158B | SP-17 | `PUT` | `/platform/settings/security` | `ad.settings.security` | Core | تحديث سياسة الأمان |
+| ✅ | EP-AD-160A | SP-17 | `PUT` | `/platform/team/{id}` | `ad.team.update` | Identity | تعديل عضو المنصة |
+| ✅ | EP-AD-160B | SP-17 | `DELETE` | `/platform/team/{id}` | `ad.team.delete` | Identity | حذف عضو المنصة |
 
 ## حيّ خارج الكتالوج
 

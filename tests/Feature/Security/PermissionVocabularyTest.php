@@ -183,15 +183,12 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // three `sc.reps.*` codes below.
     $catalog = doc08Codes();
 
-    // 134, up from 131: `sc.reps.view` (EP-SC-075/076 list|show, EP-SC-088/093A queues),
-    // `sc.reps.wallet` (EP-SC-087 GET /channel/reps/{id}/wallet) and `sc.reps.disable`
-    // (EP-SC-079 POST /channel/reps/{id}/disable) arrived with the channel rep surface.
-    // All three are DOC-08 names, so nothing joins DOC08_EXEMPT.
-    expect(Permission::query()->count())->toBe(134)
-        ->and(PermissionCatalog::codes())->toHaveCount(134)
-        // 37, down from 40: the three `sc.reps.*` codes were DOC-08 names waiting for a
-        // route. `sc.notify.view` (catalog-only, EP-SC-092) still sits in DOC08_EXEMPT.
-        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(37)
+    // 135, up from 134: `sc.retailers.groups` (EP-SC-142A–D /channel/retailer-groups)
+    // arrived with retailer-group CRUD for price lists and offer targeting.
+    expect(Permission::query()->count())->toBe(135)
+        ->and(PermissionCatalog::codes())->toHaveCount(135)
+        // 36, down from 37: `sc.retailers.groups` was a DOC-08 name waiting for a route.
+        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(36)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
         ->toBe(DOC08_EXEMPT);
 })->group('security');

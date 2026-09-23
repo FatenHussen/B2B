@@ -76,22 +76,34 @@ final class GenerateVariants
             return $out;
         });
 
-        $quoted = $this->pricing->quoteLine((int) $product->id, 1, 0, null, (int) $product->supply_channel_id);
-
         $this->audit->record('catalog.variants.generate', $actor, 'product', (int) $product->id, [
             'after' => ['count' => count($variants)],
         ], Tenant::currentId());
 
         return [
-            'variants' => array_map(fn (ProductVariant $v) => [
-                'id' => (int) $v->id,
-                'sku' => (string) $v->sku,
-                'combination' => $v->combination,
-                'price' => $quoted['unit_price'],
-                'stock' => 0,
-                'barcode' => $v->barcode,
-                'image' => null,
-            ], $variants),
+            'variants' => array_map(function (ProductVariant $v) use ($product): array {
+                $quoted = $this->pricing->quoteLine(
+                    (int) $product->id,
+                    1,
+                    0,
+                    null,
+                    (int) $product->supply_channel_id,
+                    [],
+                    (int) $v->id,
+                );
+
+                return [
+                    'id' => (int) $v->id,
+                    'sku' => (string) $v->sku,
+                    'combination' => $v->combination,
+                    'price' => $quoted['unit_price'],
+                    'stock' => 0,
+                    'barcode' => $v->barcode,
+                    'image' => $v->image_media_id !== null ? (string) $v->image_media_id : null,
+                    'status' => (string) $v->status,
+                    'price_override' => $v->price_override !== null ? (int) $v->price_override : null,
+                ];
+            }, $variants),
         ];
     }
 

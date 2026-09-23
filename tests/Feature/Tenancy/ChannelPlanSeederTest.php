@@ -30,7 +30,7 @@ it('gives growth the limits the catalog shows for plan 2', function () {
     $growth = ChannelPlan::query()->where('key', 'growth')->sole();
 
     expect($growth->limits)->toBe([
-        'users' => 25, 'warehouses' => 2, 'reps' => 20, 'skus' => 5000, 'storage_mb' => 2048,
+        'users' => 25, 'warehouses' => 2, 'reps' => 20, 'skus' => 5000, 'storage_mb' => 2048, 'otp_monthly' => 20000,
     ]);
 });
 
@@ -39,7 +39,7 @@ it('keeps every limit a whole number', function () {
     $this->seed(ChannelPlanSeeder::class);
 
     foreach (ChannelPlan::query()->get() as $plan) {
-        foreach (['users', 'warehouses', 'reps', 'skus', 'storage_mb'] as $key) {
+        foreach (['users', 'warehouses', 'reps', 'skus', 'storage_mb', 'otp_monthly'] as $key) {
             expect($plan->limits[$key])->toBeInt("{$plan->key}.{$key}");
         }
     }

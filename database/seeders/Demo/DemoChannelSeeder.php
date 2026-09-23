@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\Demo;
 
 use Illuminate\Support\Facades\Hash;
+use Modules\Core\Contracts\ChannelLimits;
 use Modules\Identity\Domain\Enums\UserStatus;
 use Modules\Identity\Domain\Models\ChannelUser;
 use Modules\Identity\Domain\Models\ChannelUserChannel;
@@ -98,9 +99,10 @@ final class DemoChannelSeeder extends DemoSeeder
         // The limits row provisioning would have written from the plan (BE-T04), so the
         // detail's `limits` and the usage's `limit_usage` read the same numbers.
         $plan = ChannelPlan::query()->findOrFail($channel->fresh()->plan_id);
+        $limitKeys = array_intersect_key($plan->limits, array_flip(ChannelLimits::KEYS));
         ChannelLimit::query()->firstOrCreate(
             ['channel_id' => $channel->id],
-            ['channel_id' => $channel->id] + $plan->limits,
+            ['channel_id' => $channel->id] + $limitKeys,
         );
     }
 

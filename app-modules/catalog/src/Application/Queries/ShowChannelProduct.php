@@ -8,15 +8,25 @@ use Modules\Catalog\Domain\Enums\ProductMediaRole;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Catalog\Domain\Models\ProductActivityType;
 use Modules\Catalog\Domain\Models\ProductMedia;
+use Modules\Catalog\Domain\Models\ProductRetailerGroup;
 use Modules\Catalog\Domain\Models\ProductSliderTag;
 use Modules\Catalog\Domain\Models\ProductSpec;
 use Modules\Catalog\Domain\Models\ProductUnitFactor;
+use Modules\Catalog\Domain\Models\ProductVariant;
+use Modules\Catalog\Domain\Models\ProductVariantAxis;
 use Modules\Catalog\Domain\Models\ProductZone;
+use Modules\Core\Contracts\PricingEngine;
+use Modules\Core\Contracts\ProductPricingReader;
 use Modules\Core\Domain\Enums\ErrorCode;
 use Modules\Core\Domain\Exceptions\DomainException;
 
 final class ShowChannelProduct
 {
+    public function __construct(
+        private readonly ProductPricingReader $pricing,
+        private readonly PricingEngine $engine,
+    ) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -39,6 +49,54 @@ final class ShowChannelProduct
         $primary = $media->first(fn (ProductMedia $m) => $m->role === ProductMediaRole::Primary)
             ?? $images->first();
         $video = $media->first(fn (ProductMedia $m) => $m->role === ProductMediaRole::Video);
+
+        $quoted = $this->engine->quoteLine(
+            (int) $product->id,
+            1,
+            0,
+            null,
+            (int) $product->supply_channel_id,
+        );
+
+        $axes = ProductVariantAxis::query()
+            ->where('product_id', $product->id)
+            ->orderBy('order')
+            ->with('values')
+            ->get()
+            ->map(fn (ProductVariantAxis $axis) => [
+                'name' => $axis->name,
+                'values' => $axis->values->pluck('value')->map(fn ($v) => (string) $v)->values()->all(),
+            ])
+            ->all();
+
+        $variants = ProductVariant::query()
+            ->where('product_id', $product->id)
+            ->orderBy('id')
+            ->get()
+            ->map(function (ProductVariant $v) use ($product): array {
+                $priceQuote = $this->engine->quoteLine(
+                    (int) $product->id,
+                    1,
+                    0,
+                    null,
+                    (int) $product->supply_channel_id,
+                    [],
+                    (int) $v->id,
+                );
+
+                return [
+                    'id' => (int) $v->id,
+                    'sku' => (string) $v->sku,
+                    'combination' => $v->combination,
+                    'barcode' => $v->barcode,
+                    'image' => $v->image_media_id !== null ? (string) $v->image_media_id : null,
+                    'status' => (string) $v->status,
+                    'price_override' => $v->price_override !== null ? (int) $v->price_override : null,
+                    'price' => $priceQuote['unit_price'],
+                    'stock' => 0,
+                ];
+            })
+            ->all();
 
         return [
             'id' => (int) $product->id,
@@ -76,7 +134,10 @@ final class ShowChannelProduct
             'min_order_qty' => (int) $product->min_order_qty,
             'order_multiple' => (int) $product->order_multiple,
             'weight_gram' => $product->weight_gram !== null ? (int) $product->weight_gram : null,
-            'pricing' => null,
+            'length_mm' => $product->length_mm !== null ? (int) $product->length_mm : null,
+            'width_mm' => $product->width_mm !== null ? (int) $product->width_mm : null,
+            'height_mm' => $product->height_mm !== null ? (int) $product->height_mm : null,
+            'pricing' => $this->pricing->show((int) $product->id),
             'inventory' => [
                 'tracked' => (bool) $product->tracked,
                 'reorder_point' => $product->reorder_point !== null ? (int) $product->reorder_point : null,
@@ -93,7 +154,11 @@ final class ShowChannelProduct
                     ->pluck('activity_type_id')
                     ->map(fn ($id) => (int) $id)
                     ->all(),
-                'retailer_group_ids' => [],
+                'retailer_group_ids' => ProductRetailerGroup::query()
+                    ->where('product_id', $product->id)
+                    ->pluck('group_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all(),
                 'lead_time_days' => $product->lead_time_days !== null ? (int) $product->lead_time_days : null,
             ],
             'marketing' => [
@@ -105,6 +170,8 @@ final class ShowChannelProduct
                     ->all(),
                 'priority' => (int) $product->priority,
             ],
+            'axes' => $axes,
+            'variants' => $variants,
         ];
     }
 }

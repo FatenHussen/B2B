@@ -666,6 +666,33 @@ return [
         ]],
         'd' => 'Retailers whose zone is in this channel coverage. Id is retailer_profile id for credit/payments.',
     ]),
+    ep('EP-SC-142A', 'SP-13', 'GET', '/channel/retailer-groups', 'channel', 'sc.retailers.groups', [
+        'name' => 'List retailer groups',
+        'name_ar' => 'مجموعات التجار',
+        'q' => listQuery(['filter[search]' => 'VIP']),
+        'r' => [['id' => 3, 'name' => 'VIP المزة', 'retailer_ids' => [481, 482], 'members_count' => 2]],
+        'd' => 'Channel-owned groups for price lists (type=group) and offer targeting (scope=groups).',
+    ]),
+    ep('EP-SC-142B', 'SP-13', 'POST', '/channel/retailer-groups', 'channel', 'sc.retailers.groups', [
+        'name' => 'Create retailer group',
+        'name_ar' => 'إنشاء مجموعة تجار',
+        'b' => ['name' => 'VIP المزة', 'retailer_ids' => [481, 482]],
+        'r' => ['id' => 3],
+        'd' => 'retailer_ids must be retailer_profile ids in this channel coverage. Empty membership allowed.',
+    ]),
+    ep('EP-SC-142C', 'SP-13', 'PUT', '/channel/retailer-groups/{id}', 'channel', 'sc.retailers.groups', [
+        'name' => 'Update retailer group',
+        'name_ar' => 'تعديل مجموعة تجار',
+        'b' => ['name' => 'VIP المزة', 'retailer_ids' => [481]],
+        'r' => ['id' => 3],
+        'd' => 'Replaces name and membership atomically.',
+    ]),
+    ep('EP-SC-142D', 'SP-13', 'DELETE', '/channel/retailer-groups/{id}', 'channel', 'sc.retailers.groups', [
+        'name' => 'Delete retailer group',
+        'name_ar' => 'حذف مجموعة تجار',
+        'r' => ['deleted' => true],
+        'd' => '422 ref_in_use when a price list or offer still targets the group.',
+    ]),
     ep('EP-SC-141', 'SP-09', 'GET', '/channel/warehouses', 'channel', 'sc.inventory.view', [
         'name' => 'List channel warehouses',
         'name_ar' => 'مستودعات القناة',

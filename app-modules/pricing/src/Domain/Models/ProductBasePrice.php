@@ -19,6 +19,8 @@ class ProductBasePrice extends Model
         'currency_id',
         'type',
         'base_price',
+        'cost_price',
+        'tax_percent',
     ];
 
     protected function casts(): array
@@ -26,6 +28,8 @@ class ProductBasePrice extends Model
         return [
             'type' => PriceType::class,
             'base_price' => 'integer',
+            'cost_price' => 'integer',
+            'tax_percent' => 'integer',
         ];
     }
 

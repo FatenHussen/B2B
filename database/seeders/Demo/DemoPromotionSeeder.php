@@ -199,7 +199,6 @@ final class DemoPromotionSeeder extends DemoSeeder
                 [
                     'type' => OfferType::from($row['type']),
                     'description' => $row['description'],
-                    'status' => OfferStatus::from($row['status']),
                     'stackable' => $row['stackable'],
                     'priority' => $row['priority'],
                     'starts_at' => now()->addDays($row['starts'])->startOfDay(),
@@ -214,6 +213,9 @@ final class DemoPromotionSeeder extends DemoSeeder
                     'stop_reason' => $row['stop_reason'] ?? null,
                 ],
             );
+            if ($offer->wasRecentlyCreated || $offer->status === null) {
+                $offer->forceFill(['status' => OfferStatus::from($row['status'])])->save();
+            }
 
             foreach ($row['components'] as $sku => $qty) {
                 OfferComponent::query()->firstOrCreate(

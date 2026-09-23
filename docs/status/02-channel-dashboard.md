@@ -4,7 +4,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 87 | 87 | 0 | 0 | 0 |
+| 100 | 100 | 0 | 0 | 0 |
 
 ## الدخول — 2/2
 
@@ -13,22 +13,30 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-CH-001 | SP-01 | `POST` | `/channel/auth/request-otp` | — | Identity | طلب رمز دخول القناة |
 | ✅ | EP-CH-002 | SP-01 | `POST` | `/channel/auth/verify-otp` | — | Identity | تحقق دخول القناة |
 
-## الكتالوج — 14/14
+## الكتالوج — 22/22
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-SC-010A | SP-06 | `GET` | `/channel/brands` | `sc.catalog.view` | Catalog | العلامات |
 | ✅ | EP-SC-010B | SP-06 | `POST` | `/channel/brands` | `sc.catalog.create` | Catalog | إنشاء علامة |
+| ✅ | EP-SC-010C | SP-06 | `GET` | `/channel/brands/{id}` | `sc.catalog.view` | Catalog | تفاصيل علامة |
+| ✅ | EP-SC-010D | SP-06 | `PUT` | `/channel/brands/{id}` | `sc.catalog.update` | Catalog | تحديث علامة |
 | ✅ | EP-SC-011 | SP-06 | `GET` | `/channel/categories/tree` | `sc.catalog.view` | Catalog | شجرة الفئات |
 | ✅ | EP-SC-012 | SP-06 | `POST` | `/channel/categories` | `sc.catalog.create` | Catalog | إنشاء فئة |
+| ✅ | EP-SC-012A | SP-06 | `PUT` | `/channel/categories/{id}` | `sc.catalog.update` | Catalog | تعديل فئة |
+| ✅ | EP-SC-012B | SP-06 | `PATCH` | `/channel/categories/{id}/status` | `sc.catalog.update` | Catalog | تعطيل/تفعيل فئة |
 | ✅ | EP-SC-013 | SP-06 | `POST` | `/channel/categories/reorder` | `sc.catalog.update` | Catalog | إعادة ترتيب الفئات |
 | ✅ | EP-SC-014 | SP-06 | `GET` | `/channel/products` | `sc.catalog.view` | Catalog | المنتجات |
 | ✅ | EP-SC-014A | SP-06 | `GET` | `/channel/products/{id}` | `sc.catalog.view` | Catalog | تفاصيل منتج |
 | ✅ | EP-SC-015 | SP-06 | `POST` | `/channel/products` | `sc.catalog.create` | Catalog | إنشاء منتج |
 | ✅ | EP-SC-016 | SP-06 | `PUT` | `/channel/products/{id}` | `sc.catalog.update` | Catalog | تحديث منتج |
+| ✅ | EP-SC-016A | SP-06 | `POST` | `/channel/products/{id}/duplicate` | `sc.catalog.create` | Catalog | نسخ منتج |
 | ✅ | EP-SC-017 | SP-06 | `POST` | `/channel/products/{id}/variants/generate` | `sc.catalog.variants` | Catalog | توليد التباينات |
+| ✅ | EP-SC-017A | SP-06 | `PUT` | `/channel/products/{id}/variants/{variantId}` | `sc.catalog.variants` | Catalog | تحديث توليفة |
+| ✅ | EP-SC-017B | SP-06 | `DELETE` | `/channel/products/{id}/variants/{variantId}` | `sc.catalog.variants` | Catalog | حذف توليفة |
 | ✅ | EP-SC-018 | SP-06 | `POST` | `/channel/products/bulk` | `sc.catalog.update` | Catalog | إجراء جماعي على المنتجات |
 | ✅ | EP-SC-019 | SP-06 | `POST` | `/channel/catalog/import` | `sc.catalog.import` | Catalog | استيراد الكتالوج |
+| ✅ | EP-SC-019A | SP-06 | `GET` | `/channel/catalog/import/template` | `sc.catalog.import` | Catalog | قالب استيراد الكتالوج |
 | ✅ | EP-SC-020 | SP-06 | `GET` | `/channel/catalog/export` | `sc.catalog.view` | Catalog | تصدير الكتالوج |
 | ✅ | EP-SC-031 | SP-07 | `PUT` | `/channel/products/{id}/pricing` | `sc.pricing.update` | Pricing | تسعير منتج |
 
@@ -157,9 +165,14 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-130A | SP-15 | `GET` | `/channel` | `sc.settings.view` | Tenancy | إعدادات القناة |
 | ✅ | EP-SC-130B | SP-15 | `PUT` | `/channel` | `sc.settings.update` | Tenancy | تحديث إعدادات القناة |
 
-## أخرى — 1/1
+## أخرى — 6/6
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
+| ✅ | EP-SC-021 | SP-06 | `POST` | `/channel/media/upload` | `sc.catalog.create` | Catalog | رفع وسائط |
 | ✅ | EP-SC-141 | SP-09 | `GET` | `/channel/warehouses` | `sc.inventory.view` | Tenancy | مستودعات القناة |
+| ✅ | EP-SC-142A | SP-13 | `GET` | `/channel/retailer-groups` | `sc.retailers.groups` | Identity | مجموعات التجار |
+| ✅ | EP-SC-142B | SP-13 | `POST` | `/channel/retailer-groups` | `sc.retailers.groups` | Identity | إنشاء مجموعة تجار |
+| ✅ | EP-SC-142C | SP-13 | `PUT` | `/channel/retailer-groups/{id}` | `sc.retailers.groups` | Identity | تعديل مجموعة تجار |
+| ✅ | EP-SC-142D | SP-13 | `DELETE` | `/channel/retailer-groups/{id}` | `sc.retailers.groups` | Identity | حذف مجموعة تجار |
 

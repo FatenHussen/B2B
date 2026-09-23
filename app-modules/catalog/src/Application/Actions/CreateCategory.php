@@ -31,7 +31,9 @@ final class CreateCategory
             InvalidFields::throw(['activity_type_ids' => 'catalog.activity_type_not_found']);
         }
 
-        $parentId = isset($data['parent_id']) ? (int) $data['parent_id'] : null;
+        $parentId = array_key_exists('parent_id', $data) && $data['parent_id'] !== null
+            ? (int) $data['parent_id']
+            : null;
         [$level, $storedParent, $rootId] = $this->resolveParent($parentId);
 
         if ($level > 5) {
@@ -41,9 +43,12 @@ final class CreateCategory
         $category = DB::transaction(function () use ($data, $activityIds, $actor, $level, $storedParent, $rootId): Category {
             $category = Category::query()->create([
                 'name' => $data['name'],
+                'description' => $data['description'] ?? null,
                 'parent_id' => $storedParent,
                 'root_category_id' => $rootId,
-                'image_media_id' => isset($data['image']) ? (int) $data['image'] : null,
+                'image_media_id' => isset($data['image']) && $data['image'] !== null && $data['image'] !== ''
+                    ? (int) $data['image']
+                    : null,
                 'icon' => $data['icon'] ?? null,
                 'order' => (int) ($data['order'] ?? 0),
                 'status' => CategoryStatus::Active,
@@ -72,8 +77,9 @@ final class CreateCategory
      */
     private function resolveParent(?int $parentId): array
     {
+        // Channel-owned root: appears beside platform roots in the tree.
         if ($parentId === null) {
-            InvalidFields::throw(['parent_id' => 'catalog.parent_required']);
+            return [1, null, null];
         }
 
         $parent = Category::query()->find($parentId);
@@ -81,7 +87,11 @@ final class CreateCategory
             return [
                 (int) $parent->level + 1,
                 (int) $parent->id,
-                $parent->root_category_id ? (int) $parent->root_category_id : null,
+                $parent->root_category_id ? (int) $parent->root_category_id : (
+                    (int) $parent->level === 1 && $parent->parent_id === null
+                        ? (int) $parent->id
+                        : null
+                ),
             ];
         }
 

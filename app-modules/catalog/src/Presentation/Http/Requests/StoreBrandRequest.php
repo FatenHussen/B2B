@@ -15,10 +15,10 @@ final class StoreBrandRequest extends ApiFormRequest
         return [
             'name_ar' => ['required', 'string', 'max:160'],
             'name_en' => ['nullable', 'string', 'max:160'],
-            'logo' => ['nullable'],
+            'logo' => ['required'],
             'banner' => ['nullable'],
-            'description' => ['nullable', 'string'],
-            'activity_type_ids' => ['nullable', 'array'],
+            'description' => ['required', 'string', 'max:300'],
+            'activity_type_ids' => ['required', 'array', 'min:1'],
             'activity_type_ids.*' => ['integer'],
             'order' => ['nullable', 'integer', 'min:0'],
             'status' => ['nullable', Rule::enum(BrandStatus::class)],

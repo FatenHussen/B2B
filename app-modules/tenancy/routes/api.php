@@ -2,7 +2,10 @@
 
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
+use Modules\Tenancy\Presentation\Http\Controllers\ChannelApplicationController;
 use Modules\Tenancy\Presentation\Http\Controllers\ChannelSettingsController;
+use Modules\Tenancy\Presentation\Http\Controllers\PlatformFeatureController;
+use Modules\Tenancy\Presentation\Http\Controllers\PlatformPlanController;
 use Modules\Tenancy\Presentation\Http\Controllers\SupplyChannelController;
 
 /*
@@ -57,6 +60,62 @@ Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', 'tenant',
         // EP-AD-056 (BE-T11).
         Route::get('{supplyChannel}/usage', [SupplyChannelController::class, 'usage'])
             ->middleware('permission:ad.channels.view');
+
+        // PA-03 — EP-AD-063, 065A/B, 066.
+        Route::get('{supplyChannel}/users', [SupplyChannelController::class, 'users'])
+            ->middleware('permission:ad.channels.view');
+        Route::get('{supplyChannel}/coverage', [SupplyChannelController::class, 'coverage'])
+            ->middleware('permission:ad.channels.view');
+        Route::put('{supplyChannel}/coverage', [SupplyChannelController::class, 'updateCoverage'])
+            ->middleware('permission:ad.channels.update');
+        Route::get('{supplyChannel}/warehouses', [SupplyChannelController::class, 'warehouses'])
+            ->middleware('permission:ad.channels.view');
+
+        // PA-08 — EP-AD-067.
+        Route::get('{supplyChannel}/features', [PlatformFeatureController::class, 'forChannel'])
+            ->middleware('permission:ad.features.view');
+    });
+
+// PA-08 — EP-AD-110A/B, 111, 114.
+Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', 'tenant', SubstituteBindings::class])
+    ->prefix('api/v1/platform/features')
+    ->group(function () {
+        Route::get('/', [PlatformFeatureController::class, 'index'])
+            ->middleware('permission:ad.features.view');
+        Route::post('/', [PlatformFeatureController::class, 'store'])
+            ->middleware('permission:ad.features.manage');
+        Route::post('{key}/override', [PlatformFeatureController::class, 'override'])
+            ->middleware('permission:ad.features.override');
+        Route::delete('{key}/override', [PlatformFeatureController::class, 'clearOverride'])
+            ->middleware('permission:ad.features.override');
+    });
+
+// PA-02 — EP-AD-100A/B/C/D.
+Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', 'tenant', SubstituteBindings::class])
+    ->prefix('api/v1/platform/plans')
+    ->group(function () {
+        Route::get('/', [PlatformPlanController::class, 'index'])
+            ->middleware('permission:ad.billing.plans');
+
+        Route::post('/', [PlatformPlanController::class, 'store'])
+            ->middleware('permission:ad.billing.plans');
+
+        Route::get('{plan}', [PlatformPlanController::class, 'show'])
+            ->middleware('permission:ad.billing.plans');
+
+        Route::put('{plan}', [PlatformPlanController::class, 'update'])
+            ->middleware('permission:ad.billing.plans');
+    });
+
+// PA-04 — EP-AD-060, 061.
+Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', 'tenant', SubstituteBindings::class])
+    ->prefix('api/v1/platform/channel-applications')
+    ->group(function () {
+        Route::get('/', [ChannelApplicationController::class, 'index'])
+            ->middleware('permission:ad.channels.view');
+
+        Route::post('{channelApplication}/decide', [ChannelApplicationController::class, 'decide'])
+            ->middleware('permission:ad.channels.create');
     });
 
 // A channel manager reading and editing their own channel.

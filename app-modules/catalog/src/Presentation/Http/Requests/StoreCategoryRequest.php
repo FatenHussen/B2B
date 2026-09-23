@@ -12,7 +12,8 @@ final class StoreCategoryRequest extends ApiFormRequest
     {
         return [
             'name' => ['required', 'string', 'max:160'],
-            'parent_id' => ['required', 'integer', 'min:1'],
+            'parent_id' => ['nullable', 'integer', 'min:1'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'image' => ['nullable'],
             'icon' => ['nullable', 'string', 'max:64'],
             'order' => ['nullable', 'integer', 'min:0'],

@@ -6,8 +6,10 @@ namespace Modules\Promotion;
 
 use Illuminate\Support\ServiceProvider;
 use Modules\Core\Contracts\OfferApplicator;
+use Modules\Core\Contracts\OfferConsumption;
 use Modules\Core\Contracts\OfferFeed;
 use Modules\Promotion\Infrastructure\EloquentOfferApplicator;
+use Modules\Promotion\Infrastructure\EloquentOfferConsumption;
 use Modules\Promotion\Infrastructure\EloquentOfferFeed;
 
 class PromotionServiceProvider extends ServiceProvider
@@ -16,6 +18,7 @@ class PromotionServiceProvider extends ServiceProvider
     {
         $this->app->singleton(OfferFeed::class, EloquentOfferFeed::class);
         $this->app->singleton(OfferApplicator::class, EloquentOfferApplicator::class);
+        $this->app->singleton(OfferConsumption::class, EloquentOfferConsumption::class);
     }
 
     public function boot(): void

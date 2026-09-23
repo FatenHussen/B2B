@@ -2,7 +2,10 @@
 
 namespace Modules\Returns;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Domain\Events\ReturnDecided;
+use Modules\Returns\Application\Listeners\ReverseOfferOnFullReturn;
 
 class ReturnsServiceProvider extends ServiceProvider
 {
@@ -18,5 +21,7 @@ class ReturnsServiceProvider extends ServiceProvider
         if (is_dir($migrations)) {
             $this->loadMigrationsFrom($migrations);
         }
+
+        Event::listen(ReturnDecided::class, ReverseOfferOnFullReturn::class);
     }
 }

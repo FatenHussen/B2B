@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Catalog\Application\Queries;
 
 use Illuminate\Http\Request;
+use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Core\Contracts\RepSellingContext;
@@ -30,6 +31,10 @@ final class ShowRepProduct
         $product = Product::withoutGlobalScope('channel')
             ->whereIn('supply_channel_id', $channelIds)
             ->where('status', ProductStatus::Active)
+            ->where(function ($q): void {
+                $q->whereNull('brand_id')
+                    ->orWhereHas('brand', fn ($b) => $b->where('status', BrandStatus::Active));
+            })
             ->with(['brand', 'variants', 'media'])
             ->whereKey($id)
             ->first();

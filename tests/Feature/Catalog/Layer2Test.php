@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Laravel\Sanctum\Sanctum;
+use Illuminate\Http\UploadedFile;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\RetailerProductFavorite;
@@ -79,6 +80,22 @@ function layer2Cover(SupplyChannel $channel, Zone $zone): void
     // Through ChannelZone, the channel's own write path — ChannelZoneLookup is read
     // only now. Tenant::as supplies the channel the scope stamps onto the row.
     Tenant::as($channel->id, fn () => ChannelZone::query()->create(['zone_id' => $zone->id]));
+}
+
+function layer2BrandId(array $refs): int
+{
+    $logo = test()->post('/api/v1/channel/media/upload', [
+        'file' => UploadedFile::fake()->image('brand.jpg', 512, 512),
+        'type' => 'image',
+    ], ['X-Idempotency-Key' => 'layer2-logo-'.uniqid()]);
+
+    return (int) test()->postJson('/api/v1/channel/brands', [
+        'name_ar' => 'ماركة',
+        'name_en' => 'Brand',
+        'logo' => (string) $logo->json('data.media_id'),
+        'description' => 'وصف العلامة',
+        'activity_type_ids' => [$refs['activity']->id],
+    ])->json('data.id');
 }
 
 function layer2Retailer(array $refs, Zone $zone): AppUser
@@ -222,7 +239,7 @@ it('hides a zone-13 product from a zone-12 retailer and never leaks supply_chann
 
     Sanctum::actingAs(layer2ChannelManager($channel), ['*'], 'channel');
     $cat = layer2CategoryId($refs['root']->id);
-    $brandId = $this->postJson('/api/v1/channel/brands', ['name_ar' => 'ماركة', 'name_en' => 'Brand'])->json('data.id');
+    $brandId = layer2BrandId($refs);
     $visibleId = $this->postJson('/api/v1/channel/products', layer2ProductPayload($refs, $cat, $refs['zone12'], [
         'sku' => 'VIS-12', 'brand_id' => $brandId,
     ]))->json('data.id');
@@ -255,7 +272,7 @@ it('shows channel on rep products and writes integer prices via the pricing writ
 
     Sanctum::actingAs(layer2ChannelManager($channel), ['*'], 'channel');
     $cat = layer2CategoryId($refs['root']->id);
-    $brandId = $this->postJson('/api/v1/channel/brands', ['name_ar' => 'ماركة', 'name_en' => 'Brand'])->json('data.id');
+    $brandId = layer2BrandId($refs);
     $productId = $this->postJson('/api/v1/channel/products', layer2ProductPayload($refs, $cat, $refs['zone12'], ['brand_id' => $brandId]))
         ->json('data.id');
 

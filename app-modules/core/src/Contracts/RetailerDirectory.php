@@ -62,6 +62,18 @@ interface RetailerDirectory
     public function zoneId(int $retailerId): ?int;
 
     /**
+     * The shop's activity type — Pricing/Promotion target offers by it.
+     */
+    public function activityTypeId(int $retailerId): ?int;
+
+    /**
+     * Retailer group membership ids for price lists and offer targeting.
+     *
+     * @return list<int>
+     */
+    public function groupIds(int $retailerId): array;
+
+    /**
      * How many retailer shops sit in a zone.
      *
      * For the impact count EP-AD-034 shows before a zone is disabled. It returns a number

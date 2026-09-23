@@ -6,6 +6,7 @@ namespace Modules\Catalog\Application\Queries;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Catalog\Domain\Enums\ProductMediaRole;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Product;
@@ -41,6 +42,11 @@ final class ListRepProducts
         $base = Product::withoutGlobalScope('channel')
             ->whereIn('supply_channel_id', $channelIds === [] ? [0] : $channelIds)
             ->where('status', ProductStatus::Active)
+            ->where(function ($q): void {
+                // Same hide rule as VisibleCatalogQuery: disabled brand → products drop from apps.
+                $q->whereNull('brand_id')
+                    ->orWhereHas('brand', fn ($b) => $b->where('status', BrandStatus::Active));
+            })
             ->with(['brand', 'variants', 'media']);
 
         return QueryBuilder::for($base)

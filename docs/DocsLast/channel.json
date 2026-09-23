@@ -10,8 +10,8 @@
         "not": "This is NOT the platform admin (guard platform, port 3000) and NOT the warehouse / Flutter apps.",
         "rule": "If this file and the catalog disagree, this file wins. Call only live:true. Never call forbidden. Never mock missing retailer/warehouse/product-show lists. Gate screens with permissions[] from verify-otp, not role names.",
         "counts": {
-            "live_endpoints": 95,
-            "matched_catalog": 89,
+            "live_endpoints": 108,
+            "matched_catalog": 102,
             "live_without_catalog": 6,
             "forbidden": 12
         }
@@ -81,7 +81,7 @@
         {
             "method": "POST",
             "path": "/api/v1/channel/media",
-            "reason": "No media upload on any guard."
+            "reason": "Use POST /channel/media/upload (multipart file + type)."
         },
         {
             "method": "*",
@@ -127,7 +127,7 @@
         "GET /channel/offers list rows are only id, name, type, status. There is no GET /channel/offers/{id}. Performance is a separate path. conversion_rate and net_margin are always 0.",
         "GET /channel/invoices list rows are only id, no, total, status. GET /channel/invoices/{id} returns lines[] for credit-note line_id.",
         "GET /channel/retailers lists shops in coverage zones (retailer_profile id). GET /channel/warehouses is the inventory picker.",
-        "No media upload on any guard. media_id / logo / banner / image are opaque strings. Store them as text; do not POST a file except catalog import.",
+        "No inventing retailer 360 approval, IAM, or fake media ids — use POST /channel/media/upload.",
         "POST /channel/catalog/import is multipart: file + type=products + optional dry_run. JSON body is 422.",
         "GET/POST /channel/zones delivery_fee and min_order_value are decimal strings (\"12.50\"), not int money. Unique exception on this guard.",
         "DELETE /channel/zones/{id} is 204 empty body.",
@@ -714,6 +714,96 @@
         {
             "live": true,
             "method": "GET",
+            "path": "/api/v1/channel/brands/{id}",
+            "catalog_path": "/channel/brands/{id}",
+            "code": "EP-SC-010C",
+            "name": "Brand detail",
+            "name_ar": "تفاصيل علامة",
+            "permission": "sc.catalog.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 12,
+                "name_ar": "نور",
+                "name_en": "Nour",
+                "logo": "42",
+                "logo_url": "https://cdn.example/media/42.jpg",
+                "banner": "43",
+                "banner_url": "https://cdn.example/media/43.jpg",
+                "description": "منتجات غذائية",
+                "activity_type_ids": [
+                    3
+                ],
+                "order": 1,
+                "status": "active",
+                "sliders": [
+                    {
+                        "id": 1,
+                        "name": "الأكثر مبيعاً",
+                        "source": "algorithm",
+                        "source_id": null,
+                        "count": 12,
+                        "order": 1
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "Full editor body. logo/banner are media_id strings; logo_url/banner_url are resolved. Foreign or other-channel id → 404.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/brands/{id}",
+            "catalog_path": "/channel/brands/{id}",
+            "code": "EP-SC-010D",
+            "name": "Update brand",
+            "name_ar": "تحديث علامة",
+            "permission": "sc.catalog.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": {
+                "name_ar": "نور",
+                "name_en": "Nour",
+                "logo": "42",
+                "banner": "43",
+                "description": "منتجات غذائية",
+                "activity_type_ids": [
+                    3
+                ],
+                "order": 1,
+                "status": "disabled",
+                "sliders": [
+                    {
+                        "name": "الأكثر مبيعاً",
+                        "source": "algorithm",
+                        "source_id": null,
+                        "count": 12,
+                        "order": 1
+                    }
+                ]
+            },
+            "response": {
+                "id": 12
+            },
+            "errors": {
+                "422": "validation_failed"
+            },
+            "description": "Same body as create. status=disabled hides the brand and its products from retailer/rep APIs without deleting channel data. sliders[] replaces the full set.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
             "path": "/api/v1/channel/brands",
             "catalog_path": "/channel/brands",
             "code": "EP-SC-010A",
@@ -741,6 +831,14 @@
                 {
                     "name": "filter[status]",
                     "example": "active"
+                },
+                {
+                    "name": "filter[activity_type_id]",
+                    "example": "3"
+                },
+                {
+                    "name": "filter[search]",
+                    "example": "نور"
                 }
             ],
             "body": null,
@@ -749,11 +847,12 @@
                     "id": 12,
                     "name_ar": "نور",
                     "name_en": "Nour",
-                    "status": "active"
+                    "status": "active",
+                    "order": 1
                 }
             ],
             "errors": [],
-            "description": "",
+            "description": "Thin list. Filters: filter[status], filter[activity_type_id], filter[search] (name_ar|name_en). Default sort order.",
             "note": null
         },
         {
@@ -774,8 +873,8 @@
             "body": {
                 "name_ar": "نور",
                 "name_en": "Nour",
-                "logo": "media_logo_1",
-                "banner": "media_banner_1",
+                "logo": "42",
+                "banner": "43",
                 "description": "منتجات غذائية",
                 "activity_type_ids": [
                     3
@@ -795,8 +894,10 @@
             "response": {
                 "id": 12
             },
-            "errors": [],
-            "description": "",
+            "errors": {
+                "422": "validation_failed"
+            },
+            "description": "logo required (media_id from EP-SC-021); square image ≥512×512. description required ≤300. activity_type_ids required ≥1. name_ar unique per channel. status active|disabled. sliders.source ∈ algorithm|manual. banner optional media_id.",
             "note": null
         },
         {
@@ -824,6 +925,50 @@
                 "job_id": "job_cat_exp_1"
             },
             "errors": [],
+            "description": "Async CSV with the same columns as import. Returns job_id only.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/catalog/import/template",
+            "catalog_path": "/channel/catalog/import/template",
+            "code": "EP-SC-019A",
+            "name": "Catalog import template",
+            "name_ar": "قالب استيراد الكتالوج",
+            "permission": "sc.catalog.import",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": null,
+            "response": {
+                "columns": [
+                    "sku",
+                    "name_ar",
+                    "name_en",
+                    "barcode",
+                    "brand_id",
+                    "category_id",
+                    "status",
+                    "base_price",
+                    "currency_id"
+                ],
+                "sample_row": {
+                    "sku": "OIL-SUN-1L",
+                    "name_ar": "زيت دوار الشمس",
+                    "name_en": "Sunflower Oil",
+                    "barcode": "6291000000000",
+                    "brand_id": 12,
+                    "category_id": 340,
+                    "status": "draft",
+                    "base_price": 12000,
+                    "currency_id": 1
+                }
+            },
+            "errors": [],
             "description": "",
             "note": null
         },
@@ -849,7 +994,13 @@
                 "dry_run": true
             },
             "response": {
-                "preview": [],
+                "preview": [
+                    {
+                        "sku": "OIL-SUN-1L",
+                        "name_ar": "زيت",
+                        "status": "draft"
+                    }
+                ],
                 "errors": [
                     {
                         "row": 4,
@@ -861,7 +1012,7 @@
                 ]
             },
             "errors": [],
-            "description": "",
+            "description": "Columns: sku,name_ar,name_en,barcode,brand_id,category_id,status,base_price,currency_id. Multipart only.",
             "note": "multipart/form-data: file, type=products, optional dry_run. Not JSON."
         },
         {
@@ -923,11 +1074,78 @@
                     "status": "active",
                     "direct_products": 14,
                     "total_products": 40,
+                    "description": "زيوت الطبخ",
                     "children": []
                 }
             ],
             "errors": [],
-            "description": "",
+            "description": "Platform root categories (level 1) plus any channel-owned roots (parent_id null). description is null on platform roots.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/channel/categories/{id}/status",
+            "catalog_path": "/channel/categories/{id}/status",
+            "code": "EP-SC-012B",
+            "name": "Change category status",
+            "name_ar": "تعطيل/تفعيل فئة",
+            "permission": "sc.catalog.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": {
+                "status": "disabled",
+                "reason": "دمج فئات"
+            },
+            "response": {
+                "id": 341,
+                "status": "disabled"
+            },
+            "errors": {
+                "404": "not_found",
+                "422": "ref_in_use"
+            },
+            "description": "Disable refused while the category (or any descendant) has active products or child categories — details.affected.{child_categories,active_products}. Soft disable only; no hard delete.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/categories/{id}",
+            "catalog_path": "/channel/categories/{id}",
+            "code": "EP-SC-012A",
+            "name": "Update category",
+            "name_ar": "تعديل فئة",
+            "permission": "sc.catalog.update",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": {
+                "name": "زيوت نباتية",
+                "description": "زيوت الطبخ",
+                "image": "42",
+                "icon": "oil",
+                "order": 2,
+                "activity_type_ids": [
+                    3,
+                    4
+                ]
+            },
+            "response": {
+                "id": 341
+            },
+            "errors": {
+                "404": "not_found",
+                "422": "validation_failed"
+            },
+            "description": "Does not move the node (use reorder) and does not change status (use PATCH …/status). image is a media_id string from EP-SC-021.",
             "note": null
         },
         {
@@ -948,6 +1166,7 @@
             "body": {
                 "name": "زيوت نباتية",
                 "parent_id": 10,
+                "description": "زيوت الطبخ",
                 "image": null,
                 "icon": "oil",
                 "order": 1,
@@ -961,7 +1180,7 @@
             "errors": {
                 "422": "validation_failed"
             },
-            "description": "422 at the 6th level.",
+            "description": "parent_id optional: omit or null to create a channel-owned root (level 1). Platform roots remain available as parents. 422 at the 6th level.",
             "note": null
         },
         {
@@ -984,14 +1203,45 @@
                     880,
                     881
                 ],
-                "action": "activate",
-                "payload": []
+                "action": "set_category",
+                "payload": {
+                    "category_id": 340
+                }
             },
             "response": {
                 "affected_count": 2
             },
             "errors": [],
-            "description": "",
+            "description": "action ∈ activate|disable|delete_draft|set_category|set_brand|set_zones|set_status. Cap 200. Price % stays EP-SC-033. payload.category_id / brand_id / zone_ids / status required per action.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/products/{id}/duplicate",
+            "catalog_path": "/channel/products/{id}/duplicate",
+            "code": "EP-SC-016A",
+            "name": "Duplicate product",
+            "name_ar": "نسخ منتج",
+            "permission": "sc.catalog.create",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": {
+                "sku": "OIL-SUN-1L-COPY",
+                "name_ar": "زيت دوار الشمس (نسخة)"
+            },
+            "response": {
+                "id": 881,
+                "sku": "OIL-SUN-1L-COPY"
+            },
+            "errors": {
+                "422": "validation_failed"
+            },
+            "description": "Clones product children (specs/media/units/zones/activities/groups/sliders/tags/inventory flags) and product pricing. Does not copy variants — regenerate via EP-SC-017. sku required and unique.",
             "note": null
         },
         {
@@ -1024,19 +1274,90 @@
                 "variants": [
                     {
                         "id": 1,
-                        "sku": "OIL-SUN-1L",
+                        "sku": "OIL-SUN-1L-1L",
                         "combination": {
                             "الحجم": "1L"
                         },
                         "price": 12000,
-                        "stock": 80,
-                        "barcode": "6291000000000",
-                        "image": null
+                        "stock": 0,
+                        "barcode": null,
+                        "image": null,
+                        "status": "active",
+                        "price_override": null
                     }
                 ]
             },
             "errors": [],
-            "description": "",
+            "description": "Cartesian regenerate. Existing variants matched by SKU keep barcode/image/price_override; unmatched SKUs are deleted.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "DELETE",
+            "path": "/api/v1/channel/products/{id}/variants/{variantId}",
+            "catalog_path": "/channel/products/{id}/variants/{variantId}",
+            "code": "EP-SC-017B",
+            "name": "Delete variant",
+            "name_ar": "حذف توليفة",
+            "permission": "sc.catalog.variants",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": null,
+            "response": {
+                "deleted": true
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "Deletes one combination without regenerating axes.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/products/{id}/variants/{variantId}",
+            "catalog_path": "/channel/products/{id}/variants/{variantId}",
+            "code": "EP-SC-017A",
+            "name": "Update variant",
+            "name_ar": "تحديث توليفة",
+            "permission": "sc.catalog.variants",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": {
+                "sku": "OIL-SUN-1L-1L",
+                "barcode": "6291000000001",
+                "image": "media_var_1",
+                "status": "active",
+                "price_override": 12500,
+                "warehouse_id": 1,
+                "stock": 40
+            },
+            "response": {
+                "id": 1,
+                "sku": "OIL-SUN-1L-1L",
+                "combination": {
+                    "الحجم": "1L"
+                },
+                "price": 12500,
+                "stock": 40,
+                "barcode": "6291000000001",
+                "image": "media_var_1",
+                "status": "active",
+                "price_override": 12500
+            },
+            "errors": {
+                "404": "not_found",
+                "422": "validation_failed"
+            },
+            "description": "price_override null clears inheritance override. Non-empty barcode unique within channel. stock+warehouse_id sets absolute on_hand for that warehouse (omit both to leave inventory untouched).",
             "note": null
         },
         {
@@ -1090,11 +1411,42 @@
                 "min_order_qty": 1,
                 "order_multiple": 1,
                 "weight_gram": 950,
-                "pricing": null,
+                "length_mm": 200,
+                "width_mm": 80,
+                "height_mm": 80,
+                "pricing": {
+                    "type": "tiered",
+                    "base_price": 12000,
+                    "currency_id": 1,
+                    "tax_percent": 0,
+                    "tiers": [
+                        {
+                            "from": 1,
+                            "to": 4,
+                            "price": 12000
+                        },
+                        {
+                            "from": 5,
+                            "to": 9,
+                            "price": 11500
+                        },
+                        {
+                            "from": 10,
+                            "to": null,
+                            "price": 11000
+                        }
+                    ]
+                },
                 "inventory": {
                     "tracked": true,
                     "reorder_point": 50,
-                    "allow_backorder": false
+                    "allow_backorder": false,
+                    "opening_stock": [
+                        {
+                            "warehouse_id": 1,
+                            "qty": 100
+                        }
+                    ]
                 },
                 "availability": {
                     "zone_ids": [
@@ -1117,10 +1469,34 @@
                     ],
                     "priority": 10
                 },
-                "id": 880
+                "id": 880,
+                "axes": [
+                    {
+                        "name": "الحجم",
+                        "values": [
+                            "1L",
+                            "2L"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "id": 1,
+                        "sku": "OIL-SUN-1L-1L",
+                        "combination": {
+                            "الحجم": "1L"
+                        },
+                        "barcode": "6291000000001",
+                        "image": null,
+                        "status": "active",
+                        "price_override": null,
+                        "price": 12000,
+                        "stock": 0
+                    }
+                ]
             },
             "errors": [],
-            "description": "Full create/update body for the editor. pricing may be null — use PUT /products/{id}/pricing. Foreign or other-channel id → 404.",
+            "description": "Full create/update body for the editor. pricing may be null when unset — use PUT /products/{id}/pricing. axes/variants from generate. Non-empty barcode must be unique within the channel (product or variant). Foreign or other-channel id → 404.",
             "note": "Full editor body. pricing may be null until PUT /products/{id}/pricing."
         },
         {
@@ -3789,6 +4165,166 @@
             },
             "errors": [],
             "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/media/upload",
+            "catalog_path": "/channel/media/upload",
+            "code": "EP-SC-021",
+            "name": "Upload media",
+            "name_ar": "رفع وسائط",
+            "permission": "sc.catalog.create",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "file": null,
+                "type": "image"
+            },
+            "response": {
+                "media_id": "42",
+                "url": "https://cdn.example/media/42.jpg",
+                "type": "image",
+                "mime": "image/jpeg",
+                "size": 184320
+            },
+            "errors": {
+                "422": "validation_failed"
+            },
+            "description": "Multipart only. type ∈ image|video. Returns media_id + url for product/brand/category fields. Max image 8MB, video 50MB. Brand logos (used in EP-SC-010B/D) must be square ≥512×512 — validated on brand write.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "DELETE",
+            "path": "/api/v1/channel/retailer-groups/{id}",
+            "catalog_path": "/channel/retailer-groups/{id}",
+            "code": "EP-SC-142D",
+            "name": "Delete retailer group",
+            "name_ar": "حذف مجموعة تجار",
+            "permission": "sc.retailers.groups",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": {
+                "deleted": true
+            },
+            "errors": [],
+            "description": "422 ref_in_use when a price list or offer still targets the group.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/retailer-groups/{id}",
+            "catalog_path": "/channel/retailer-groups/{id}",
+            "code": "EP-SC-142C",
+            "name": "Update retailer group",
+            "name_ar": "تعديل مجموعة تجار",
+            "permission": "sc.retailers.groups",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "VIP المزة",
+                "retailer_ids": [
+                    481
+                ]
+            },
+            "response": {
+                "id": 3
+            },
+            "errors": [],
+            "description": "Replaces name and membership atomically.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/retailer-groups",
+            "catalog_path": "/channel/retailer-groups",
+            "code": "EP-SC-142A",
+            "name": "List retailer groups",
+            "name_ar": "مجموعات التجار",
+            "permission": "sc.retailers.groups",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[search]",
+                    "example": "VIP"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 3,
+                    "name": "VIP المزة",
+                    "retailer_ids": [
+                        481,
+                        482
+                    ],
+                    "members_count": 2
+                }
+            ],
+            "errors": [],
+            "description": "Channel-owned groups for price lists (type=group) and offer targeting (scope=groups).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/retailer-groups",
+            "catalog_path": "/channel/retailer-groups",
+            "code": "EP-SC-142B",
+            "name": "Create retailer group",
+            "name_ar": "إنشاء مجموعة تجار",
+            "permission": "sc.retailers.groups",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "VIP المزة",
+                "retailer_ids": [
+                    481,
+                    482
+                ]
+            },
+            "response": {
+                "id": 3
+            },
+            "errors": [],
+            "description": "retailer_ids must be retailer_profile ids in this channel coverage. Empty membership allowed.",
             "note": null
         },
         {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Catalog\Application\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Application\Support\BrandLogoRules;
 use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Catalog\Domain\Models\Brand;
 use Modules\Catalog\Domain\Models\BrandActivityType;
@@ -28,16 +29,26 @@ final class CreateBrand
     public function __invoke(object $actor, array $data): array
     {
         $activityIds = array_map('intval', $data['activity_type_ids'] ?? []);
-        if (! $this->refs->allActivityTypesExist($activityIds)) {
+        if ($activityIds === [] || ! $this->refs->allActivityTypesExist($activityIds)) {
             InvalidFields::throw(['activity_type_ids' => 'catalog.activity_type_not_found']);
         }
 
-        $brand = DB::transaction(function () use ($data, $activityIds, $actor): Brand {
+        if (Brand::query()->where('name_ar', $data['name_ar'])->exists()) {
+            InvalidFields::throw(['name_ar' => 'catalog.brand_name_taken']);
+        }
+
+        $logoId = $this->mediaId($data['logo'] ?? null);
+        if ($logoId === null) {
+            InvalidFields::throw(['logo' => 'catalog.brand_logo_required']);
+        }
+        BrandLogoRules::assert($logoId);
+
+        $brand = DB::transaction(function () use ($data, $activityIds, $actor, $logoId): Brand {
             $brand = Brand::query()->create([
                 'name_ar' => $data['name_ar'],
                 'name_en' => $data['name_en'] ?? null,
-                'description' => $data['description'] ?? null,
-                'logo_media_id' => $this->mediaId($data['logo'] ?? null),
+                'description' => $data['description'],
+                'logo_media_id' => $logoId,
                 'banner_media_id' => $this->mediaId($data['banner'] ?? null),
                 'order' => (int) ($data['order'] ?? 0),
                 'status' => BrandStatus::tryFrom((string) ($data['status'] ?? 'active')) ?? BrandStatus::Active,

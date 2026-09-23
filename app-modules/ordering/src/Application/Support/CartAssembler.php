@@ -8,8 +8,10 @@ use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\PricingEngine;
 use Modules\Core\Contracts\RetailerDirectory;
+use Modules\Ordering\Domain\Enums\CartLineSource;
 use Modules\Ordering\Domain\Enums\CartStatus;
 use Modules\Ordering\Domain\Models\Cart;
+use Modules\Ordering\Domain\Models\CartLine;
 
 final class CartAssembler
 {
@@ -46,10 +48,16 @@ final class CartAssembler
     {
         $beforeOffers = $this->offerIds($cart);
         $cart->load('sections.lines');
+        $activityTypeId = $retailerId !== null ? $this->retailers->activityTypeId($retailerId) : null;
+        $groupIds = $retailerId !== null ? $this->retailers->groupIds($retailerId) : [];
 
         foreach ($cart->sections as $section) {
+            $paidLines = $section->lines
+                ->filter(fn (CartLine $line) => $line->source !== CartLineSource::Offer)
+                ->values();
+
             $lines = [];
-            foreach ($section->lines as $line) {
+            foreach ($paidLines as $line) {
                 $lines[] = [
                     'product_id' => (int) $line->product_id,
                     'variant_id' => $line->variant_id ? (int) $line->variant_id : null,
@@ -65,11 +73,13 @@ final class CartAssembler
                 'zone_id' => $zoneId,
                 'retailer_id' => $retailerId,
                 'channel_id' => $channelId ?? (int) $section->channel_id,
+                'activity_type_id' => $activityTypeId,
+                'group_ids' => $groupIds,
             ]);
 
-            foreach ($section->lines as $i => $line) {
+            foreach ($paidLines as $i => $line) {
                 $quoted = $quote['lines'][$i] ?? null;
-                if ($quoted === null) {
+                if ($quoted === null || (($quoted['gift'] ?? false) === true)) {
                     continue;
                 }
                 $line->forceFill([
@@ -79,6 +89,28 @@ final class CartAssembler
                     'applied_rule' => $quoted['applied_rule'] ?? null,
                     'offer_id' => $quoted['offer_id'] ?? null,
                 ])->save();
+            }
+
+            // Drop previous gift rows then recreate from quote extras (source = offer).
+            foreach ($section->lines->filter(fn (CartLine $l) => $l->source === CartLineSource::Offer) as $gift) {
+                $gift->delete();
+            }
+            foreach (array_slice($quote['lines'], $paidLines->count()) as $giftQuote) {
+                if (($giftQuote['gift'] ?? false) !== true) {
+                    continue;
+                }
+                CartLine::query()->create([
+                    'section_id' => $section->id,
+                    'product_id' => (int) $giftQuote['product_id'],
+                    'variant_id' => $giftQuote['variant_id'] ?? null,
+                    'qty' => (int) $giftQuote['qty'],
+                    'source' => CartLineSource::Offer,
+                    'unit_price' => 0,
+                    'discount' => 0,
+                    'line_total' => 0,
+                    'applied_rule' => $giftQuote['applied_rule'] ?? null,
+                    'offer_id' => $giftQuote['offer_id'] ?? null,
+                ]);
             }
         }
 

@@ -128,7 +128,17 @@ final class AppSurface
         $manager->assignRole('channel_manager');
         Sanctum::actingAs($manager, ['*'], 'channel');
 
-        $brandId = (int) $t->postJson('/api/v1/channel/brands', ['name_ar' => 'ماركة '.$sku, 'name_en' => 'Brand '.$sku])->json('data.id');
+        $logo = $t->post('/api/v1/channel/media/upload', [
+            'file' => \Illuminate\Http\UploadedFile::fake()->image('brand.jpg', 512, 512),
+            'type' => 'image',
+        ], ['X-Idempotency-Key' => 'appsurface-logo-'.uniqid()]);
+        $brandId = (int) $t->postJson('/api/v1/channel/brands', [
+            'name_ar' => 'ماركة '.$sku,
+            'name_en' => 'Brand '.$sku,
+            'logo' => (string) $logo->json('data.media_id'),
+            'description' => 'وصف العلامة',
+            'activity_type_ids' => [$refs['activity']->id],
+        ])->json('data.id');
         $categoryId = (int) $t->postJson('/api/v1/channel/categories', [
             'name' => 'زيوت', 'parent_id' => $refs['root']->id, 'activity_type_ids' => [],
         ])->json('data.id');

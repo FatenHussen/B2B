@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Catalog\Application\Support;
 
 use Illuminate\Database\Eloquent\Builder;
+use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Product;
 
@@ -21,6 +22,12 @@ final class VisibleCatalogQuery
             ->where('status', ProductStatus::Active)
             ->when($channelIds !== [], fn (Builder $q) => $q->whereIn('supply_channel_id', $channelIds))
             ->when($channelIds === [], fn (Builder $q) => $q->whereRaw('0 = 1'))
+            ->where(function (Builder $q): void {
+                // Disabled brands stay in the channel console but drop from retailer/rep
+                // browse; products with no brand remain visible.
+                $q->whereNull('brand_id')
+                    ->orWhereHas('brand', fn ($b) => $b->where('status', BrandStatus::Active));
+            })
             ->whereHas('zones', fn ($q) => $q->where('zone_id', $shopping['zone_id']))
             ->whereHas('activityTypes', fn ($q) => $q->where('activity_type_id', $shopping['activity_type_id']))
             ->when(

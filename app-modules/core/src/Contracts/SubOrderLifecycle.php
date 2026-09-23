@@ -38,6 +38,7 @@ interface SubOrderLifecycle
      *     unit_price: int,
      *     discount: int,
      *     line_total: int,
+     *     offer_id: int|null,
      *     name: string,
      *     brand: string|null
      * }>

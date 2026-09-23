@@ -46,6 +46,11 @@ interface CatalogProductLookup
     public function findByBarcode(string $barcode): ?array;
 
     /**
+     * Nullable unit-price override for a variant; null means inherit product pricing.
+     */
+    public function variantPriceOverride(?int $variantId): ?int;
+
+    /**
      * Channel categories hanging off a platform root category, across every channel —
      * the `child_categories` half of the in-use check on EP-AD-043C (BE-R05). A number,
      * never a row: Reference renders a refusal and reads no catalog table.

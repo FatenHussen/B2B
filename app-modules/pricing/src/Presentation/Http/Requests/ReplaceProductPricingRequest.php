@@ -14,6 +14,7 @@ final class ReplaceProductPricingRequest extends ApiFormRequest
             'type' => ['required', 'in:simple,tiered'],
             'base_price' => ['required', 'integer', 'min:0'],
             'currency_id' => ['nullable', 'integer'],
+            'tax_percent' => ['nullable', 'integer', 'min:0', 'max:100'],
             'tiers' => ['nullable', 'array'],
             'tiers.*.from' => ['required', 'integer', 'min:1'],
             'tiers.*.to' => ['nullable', 'integer'],

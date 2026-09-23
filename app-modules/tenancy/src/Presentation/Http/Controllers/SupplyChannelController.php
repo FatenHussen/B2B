@@ -7,16 +7,23 @@ use Illuminate\Http\Request;
 use Modules\Core\Http\ApiController;
 use Modules\Tenancy\Application\Actions\CreateChannel;
 use Modules\Tenancy\Application\Actions\OverrideChannelLimits;
+use Modules\Tenancy\Application\Actions\RequestChannelDeletion;
 use Modules\Tenancy\Application\Actions\RetryProvisioning;
 use Modules\Tenancy\Application\Actions\TransitionChannel;
 use Modules\Tenancy\Application\Actions\UpdateChannel;
+use Modules\Tenancy\Application\Actions\UpdateChannelCoverage;
 use Modules\Tenancy\Application\Queries\ChannelUsage;
 use Modules\Tenancy\Application\Queries\ShowChannel;
+use Modules\Tenancy\Application\Queries\ShowChannelCoverage;
+use Modules\Tenancy\Application\Queries\ShowChannelUsers;
+use Modules\Tenancy\Application\Queries\ShowChannelWarehouses;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
+use Modules\Tenancy\Presentation\Http\Requests\DeleteSupplyChannelRequest;
 use Modules\Tenancy\Presentation\Http\Requests\OverrideChannelLimitsRequest;
 use Modules\Tenancy\Presentation\Http\Requests\StoreSupplyChannelRequest;
 use Modules\Tenancy\Presentation\Http\Requests\TransitionChannelRequest;
+use Modules\Tenancy\Presentation\Http\Requests\UpdateChannelCoverageRequest;
 use Modules\Tenancy\Presentation\Http\Requests\UpdateSupplyChannelRequest;
 use Modules\Tenancy\Presentation\Http\Resources\SupplyChannelResource;
 
@@ -62,11 +69,18 @@ class SupplyChannelController extends ApiController
         return $this->ok($action($supplyChannel, $request->validated(), $actor));
     }
 
-    public function destroy(SupplyChannel $supplyChannel): JsonResponse
-    {
-        $supplyChannel->delete();
+    /**
+     * EP-AD-058 / PA-18. Dual-gated soft delete; returns deletion_request_id.
+     */
+    public function destroy(
+        DeleteSupplyChannelRequest $request,
+        SupplyChannel $supplyChannel,
+        RequestChannelDeletion $action,
+    ): JsonResponse {
+        /** @var object $actor */
+        $actor = $request->user();
 
-        return $this->noContent();
+        return $this->ok($action($supplyChannel, $request->validated(), $actor));
     }
 
     /**
@@ -112,5 +126,35 @@ class SupplyChannelController extends ApiController
     public function usage(Request $request, SupplyChannel $supplyChannel, ChannelUsage $query): JsonResponse
     {
         return $this->ok($query($supplyChannel, (string) $request->query('range', '30d')));
+    }
+
+    /** EP-AD-063 */
+    public function users(SupplyChannel $supplyChannel, ShowChannelUsers $query): JsonResponse
+    {
+        return $this->ok($query($supplyChannel));
+    }
+
+    /** EP-AD-065A */
+    public function coverage(SupplyChannel $supplyChannel, ShowChannelCoverage $query): JsonResponse
+    {
+        return $this->ok($query($supplyChannel));
+    }
+
+    /** EP-AD-065B */
+    public function updateCoverage(
+        UpdateChannelCoverageRequest $request,
+        SupplyChannel $supplyChannel,
+        UpdateChannelCoverage $action,
+    ): JsonResponse {
+        /** @var object $actor */
+        $actor = $request->user();
+
+        return $this->ok($action($supplyChannel, $request->validated(), $actor));
+    }
+
+    /** EP-AD-066 */
+    public function warehouses(SupplyChannel $supplyChannel, ShowChannelWarehouses $query): JsonResponse
+    {
+        return $this->ok($query($supplyChannel));
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Catalog\Application\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Application\Support\CatalogBarcode;
 use Modules\Catalog\Domain\Enums\ProductMediaRole;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Brand;
@@ -12,6 +13,7 @@ use Modules\Catalog\Domain\Models\Category;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Catalog\Domain\Models\ProductActivityType;
 use Modules\Catalog\Domain\Models\ProductMedia;
+use Modules\Catalog\Domain\Models\ProductRetailerGroup;
 use Modules\Catalog\Domain\Models\ProductSliderTag;
 use Modules\Catalog\Domain\Models\ProductSpec;
 use Modules\Catalog\Domain\Models\ProductUnitFactor;
@@ -21,6 +23,8 @@ use Modules\Core\Contracts\PricingDraft;
 use Modules\Core\Contracts\ProductPricingWriter;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Contracts\ReferenceDirectory;
+use Modules\Core\Contracts\StockLedger;
+use Modules\Core\Contracts\WarehouseDirectory;
 use Modules\Core\Support\InvalidFields;
 use Modules\Core\Support\Tenant;
 
@@ -31,6 +35,8 @@ final class SaveProduct
         private readonly ReferenceDirectory $refs,
         private readonly ChannelLimits $limits,
         private readonly RecordsAudit $audit,
+        private readonly StockLedger $stock,
+        private readonly WarehouseDirectory $warehouses,
     ) {}
 
     /**
@@ -48,6 +54,11 @@ final class SaveProduct
             ->exists();
         if ($dup) {
             InvalidFields::throw(['sku' => 'catalog.sku_taken']);
+        }
+
+        $barcode = isset($data['barcode']) ? trim((string) $data['barcode']) : '';
+        if ($barcode !== '') {
+            CatalogBarcode::assertUnique($barcode, $productId, null);
         }
 
         if ($productId === null) {
@@ -68,6 +79,10 @@ final class SaveProduct
 
             if (isset($data['pricing']) && is_array($data['pricing'])) {
                 $this->pricing->replace($channelId, (int) $product->id, PricingDraft::fromArray($data['pricing']));
+            }
+
+            if ($productId === null) {
+                $this->seedOpeningStock($actor, $channelId, (int) $product->id, $data['inventory']['opening_stock'] ?? []);
             }
 
             $this->audit->record(
@@ -137,6 +152,9 @@ final class SaveProduct
             'min_order_qty' => (int) ($data['min_order_qty'] ?? 1),
             'order_multiple' => (int) ($data['order_multiple'] ?? 1),
             'weight_gram' => $data['weight_gram'] ?? null,
+            'length_mm' => $data['length_mm'] ?? null,
+            'width_mm' => $data['width_mm'] ?? null,
+            'height_mm' => $data['height_mm'] ?? null,
             'tracked' => (bool) ($inventory['tracked'] ?? false),
             'reorder_point' => (int) ($inventory['reorder_point'] ?? 0),
             'allow_backorder' => (bool) ($inventory['allow_backorder'] ?? false),
@@ -215,12 +233,45 @@ final class SaveProduct
             ]);
         }
 
+        ProductRetailerGroup::query()->where('product_id', $product->id)->delete();
+        foreach ($data['availability']['retailer_group_ids'] ?? [] as $groupId) {
+            ProductRetailerGroup::query()->create([
+                'product_id' => $product->id,
+                'group_id' => (int) $groupId,
+            ]);
+        }
+
         $product->sliderTags()->delete();
         foreach ($data['marketing']['sliders'] ?? [] as $key) {
             ProductSliderTag::query()->create([
                 'product_id' => $product->id,
                 'slider_key' => (string) $key,
             ]);
+        }
+    }
+
+    /**
+     * @param  list<array{warehouse_id?: int, qty?: int, variant_id?: int|null}>  $rows
+     */
+    private function seedOpeningStock(object $actor, int $channelId, int $productId, array $rows): void
+    {
+        foreach ($rows as $i => $row) {
+            $warehouseId = (int) ($row['warehouse_id'] ?? 0);
+            $qty = (int) ($row['qty'] ?? 0);
+            if ($warehouseId < 1 || $qty < 1) {
+                continue;
+            }
+            if (! $this->warehouses->belongsToChannel($warehouseId, $channelId)) {
+                InvalidFields::throw(["inventory.opening_stock.{$i}.warehouse_id" => 'catalog.warehouse_not_found']);
+            }
+            $this->stock->adjust(
+                $warehouseId,
+                $productId,
+                isset($row['variant_id']) ? (int) $row['variant_id'] : null,
+                $qty,
+                'opening_stock',
+                $actor,
+            );
         }
     }
 }

@@ -22,7 +22,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\File;
 
 /** The baseline's sum, pinned. Lower it in the commit that pays findings down. */
-const PHPSTAN_BASELINE_FINDINGS = 475;
+const PHPSTAN_BASELINE_FINDINGS = 474;
 
 /**
  * @return array{sum: int, entries: int}

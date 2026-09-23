@@ -144,6 +144,8 @@ final class PermissionCatalog
         // EP-SC-087 GET /channel/reps/{id}/wallet
         'sc.reps.wallet' => ['name_ar' => 'الاطلاع على المحفظة', 'system' => 'channel', 'module' => 'reps', 'severity' => 'critical', 'dual_approval' => false, 'delegatable' => false],
         'sc.retailers.credit' => ['name_ar' => 'سقف ائتمان التاجر', 'system' => 'channel', 'module' => 'retailers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // EP-SC-142A–D /channel/retailer-groups — DOC-08 sc.retailers.groups.
+        'sc.retailers.groups' => ['name_ar' => 'إدارة مجموعات التجار', 'system' => 'channel', 'module' => 'retailers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         // EP-SC-140 GET /channel/retailers — DOC-08 sc.retailers.view.
         'sc.retailers.view' => ['name_ar' => 'قائمة التجّار', 'system' => 'channel', 'module' => 'retailers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.returns.decide' => ['name_ar' => 'قرار الإرجاع', 'system' => 'channel', 'module' => 'returns', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
