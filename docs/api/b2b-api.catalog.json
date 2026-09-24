@@ -31,7 +31,7 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-09-24T15:42:24+00:00",
+        "generated_at": "2026-09-24T15:57:34+00:00",
         "endpoint_count": 426,
         "surfaces": {
             "retailer_app": {
@@ -14599,7 +14599,7 @@
             "full_path": "/api/v1/platform/iam/roles/{id}/permissions",
             "audience": "platform",
             "guard": "platform",
-            "permission": "ad.iam.role_create",
+            "permission": "ad.iam.role_update",
             "auth": true,
             "name": "Replace role permissions",
             "name_ar": "تحديث صلاحيات الدور",

@@ -56,7 +56,7 @@ final class ReplaceRolePermissions
             AccessChangeRequest::query()->create([
                 'type' => AccessChangeType::RolePermissions,
                 'status' => AccessChangeStatus::Pending,
-                'permission' => 'ad.iam.role_create',
+                'permission' => 'ad.iam.role_update',
                 'action' => 'role.permissions',
                 'payload' => ['role_id' => $role->id, 'permissions' => $codes, 'reason' => $data['reason']],
                 'requester_id' => (int) $actor->getAuthIdentifier(),

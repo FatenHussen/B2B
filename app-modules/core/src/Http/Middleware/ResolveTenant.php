@@ -20,13 +20,12 @@ class ResolveTenant
             return $next($request);
         }
 
-        $header = $request->header((string) config('tenancy.header', 'X-Channel-Id'));
-
-        if ($header && $this->canSwitchChannel($user)) {
-            Tenant::set((int) $header);
-
-            return $next($request);
-        }
+        // `X-Channel-Id` is deliberately ignored. A former branch honoured it for
+        // `platform_admin` and switched the tenant on every `/platform/*` Tenancy and
+        // Reference route that runs this middleware. No documented flow sent it
+        // (`docs/DocsLast/platform.md`: do not send), and a switched tenant would have
+        // silently filtered any model that moved from exemption to relaxed. Closed BF-07
+        // 2026-09-24; pinned by `tests/Feature/Tenancy/PlatformTenantHeaderTest.php`.
 
         if (isset($user->supply_channel_id) && $user->supply_channel_id) {
             Tenant::set((int) $user->supply_channel_id);
@@ -52,10 +51,5 @@ class ResolveTenant
     {
         Tenant::forget();
         WarehouseScope::forget();
-    }
-
-    private function canSwitchChannel(object $user): bool
-    {
-        return method_exists($user, 'hasRole') && $user->hasRole('platform_admin');
     }
 }

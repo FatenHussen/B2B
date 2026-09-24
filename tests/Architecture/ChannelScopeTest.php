@@ -64,19 +64,6 @@ const CHANNEL_SCOPE_EXEMPT = [
     // common stops reading as an exception.
     'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
 
-    // The channel status trail (BE-T01): written by ChannelLifecycle from the platform
-    // back office, where no tenant is set, and read on the back-office timeline
-    // (EP-AD-052). It is the platform's record *about* a channel, not data the channel
-    // owns — `channel_id` is a foreign key to the tenant table, exactly as on AuditLog,
-    // and a tenant scope would hide the trail from the one audience that reads it.
-    // Relaxed mode would also run here; it stays exempt because its reader, the
-    // back-office timeline (EP-AD-052), sits on a Tenancy route where a platform_admin
-    // may switch tenant with `X-Channel-Id` (ResolveTenant, first branch), and a relaxed
-    // filter would then hide the trail from the one audience that reads it. Wrong the
-    // day that branch is closed or bound to a documented flow: re-evaluate towards
-    // relaxed then (docs/debt-ledger.md, 2026-09-24).
-    'Modules\Tenancy\Domain\Models\ChannelEvent',
-
     // A channel application (PA-04) exists before the channel does. Its `channel_id` is
     // written once, by DecideChannelApplication on approval, as a pointer to the outcome
     // — not ownership: no channel ever reads its own application, and the back office
@@ -84,16 +71,13 @@ const CHANNEL_SCOPE_EXEMPT = [
     // `/channel/*` route reads this table: it leaves this list then.
     'Modules\Tenancy\Domain\Models\ChannelApplication',
 
-    // Per-channel feature overrides (PA-08). Read across channels on every one of its
-    // routes: `GET /platform/features` lists the channel ids under each flag,
-    // `DELETE …/override` removes one channel's row, and `FeatureFlags::forChannel()`
-    // is asked about an explicit channel id from `/public/app-config`. All five routes
-    // run ResolveTenant, where a platform_admin may switch tenant with `X-Channel-Id`;
-    // relaxed there would silently list, delete and resolve only that channel's rows.
-    // Wrong the day that branch is closed or bound to a documented flow: re-evaluate
-    // towards relaxed then (docs/debt-ledger.md, 2026-09-24).
-    'Modules\Tenancy\Domain\Models\FeatureFlagOverride',
-
+    // ChannelEvent and FeatureFlagOverride were listed here and are not any more: they
+    // now carry the trait in relaxed mode ($channelScopeOptional = true). They stayed
+    // exempt while ResolveTenant honoured `X-Channel-Id` for platform_admin — a switched
+    // tenant would have silently hidden rows from the back office. That branch closed
+    // BF-07 2026-09-24; with no tenant on `/platform/*` relaxed filters never and is
+    // strictly better than exemption.
+    //
     // ChannelUserChannel, RepProfile and WarehouseDevice were listed here and are not
     // any more: they now carry the trait in relaxed mode
     // ($channelScopeOptional = true), which filters whenever a tenant is set and
@@ -246,9 +230,7 @@ it('exempts nothing without a written reason', function () {
     expect(CHANNEL_SCOPE_EXEMPT)->toBe([
         'Modules\Core\Domain\Models\AuditLog',
         'Modules\Tenancy\Domain\Models\ChannelZoneLookup',
-        'Modules\Tenancy\Domain\Models\ChannelEvent',
         'Modules\Tenancy\Domain\Models\ChannelApplication',
-        'Modules\Tenancy\Domain\Models\FeatureFlagOverride',
     ]);
 })->group('arch');
 

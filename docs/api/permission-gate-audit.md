@@ -112,20 +112,14 @@ and are tracked in `docs/debt-ledger.md` (row dated 2026-09-18) and listed on ev
 
 ---
 
-## One gate is wider than its route
+## One gate was wider than its route — closed BF-08
 
-`PUT /api/v1/platform/iam/roles/{id}/permissions` is gated on `ad.iam.role_create`, which
+`PUT /api/v1/platform/iam/roles/{id}/permissions` was gated on `ad.iam.role_create`, which
 DOC-08 defines as *creating* a custom role. The route rewrites the permissions of a role
-that already exists, so one name grants two distinct powers.
+that already exists, so one name granted two distinct powers.
 
-No better code exists. `ad.iam` has exactly seven members — `role_create`, `role_approve`,
-`role_assign`, `grant_temp`, `sod_rules`, `view_catalog`, `simulate` — and none describes
-editing an existing role. DOC-08 indicts itself here: `ad.refs` and `ad.team` both separate
-creation from modification (`refs.create`/`refs.update`, `team.invite`/`team.update`), and
-`ad.iam` alone does not.
-
-**DOC-08 needs `ad.iam.role_update`.** Until it has one, the current gate is the closest
-true code; the alternative is inventing a name, which is forbidden. Noted at the route.
+**Resolved 2026-09-24 (BF-08):** DOC-08 and `PermissionCatalog` now define
+`ad.iam.role_update`; the route and EP-AD-015 gate on it. Create ≠ update.
 
 ---
 

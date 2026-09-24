@@ -60843,7 +60843,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-AD-015** · SP-02 · تحديث صلاحيات الدور\n\nالدور: **مدير المنصة** (`platform_admin`)\n\nالصلاحية: `ad.iam.role_create`\n\nالحارس: `platform`\n\nMay return `meta.requires_dual_approval` and create an approval request instead of executing.",
+                                        "description": "**EP-AD-015** · SP-02 · تحديث صلاحيات الدور\n\nالدور: **مدير المنصة** (`platform_admin`)\n\nالصلاحية: `ad.iam.role_update`\n\nالحارس: `platform`\n\nMay return `meta.requires_dual_approval` and create an approval request instead of executing.",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"permissions\": [\n        \"sc.catalog.view\",\n        \"sc.catalog.update\"\n    ],\n    \"reason\": \"إزالة صلاحية الإنشاء\"\n}",
@@ -60913,7 +60913,7 @@
                                                         }
                                                     ]
                                                 },
-                                                "description": "**EP-AD-015** · SP-02 · تحديث صلاحيات الدور\n\nالدور: **مدير المنصة** (`platform_admin`)\n\nالصلاحية: `ad.iam.role_create`\n\nالحارس: `platform`\n\nMay return `meta.requires_dual_approval` and create an approval request instead of executing.",
+                                                "description": "**EP-AD-015** · SP-02 · تحديث صلاحيات الدور\n\nالدور: **مدير المنصة** (`platform_admin`)\n\nالصلاحية: `ad.iam.role_update`\n\nالحارس: `platform`\n\nMay return `meta.requires_dual_approval` and create an approval request instead of executing.",
                                                 "body": {
                                                     "mode": "raw",
                                                     "raw": "{\n    \"permissions\": [\n        \"sc.catalog.view\",\n        \"sc.catalog.update\"\n    ],\n    \"reason\": \"إزالة صلاحية الإنشاء\"\n}",

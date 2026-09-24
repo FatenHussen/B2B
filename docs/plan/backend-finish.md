@@ -41,8 +41,8 @@
 | BF-04 | VirtualHosts لوحات Sentrax (platform/channel/warehouse) | 1 | Ops | BF-01 | ⬜ |
 | BF-05 | حذف قناة: OTP منصة حقيقي (إكمال PA-18) | 1 | Tenancy + Identity | — | ✅ 2026-09-24 |
 | BF-06 | جلسة المندوب: `status` + `channel` | 2 | Identity | — | ✅ 2026-09-24 |
-| BF-07 | قرار `X-Channel-Id` على `/platform/*` | 2 | Tenancy / Core | — | ⬜ |
-| BF-08 | `ad.iam.role_update` في DOC-08 + بذر + gate | 2 | Access | — | ⬜ |
+| BF-07 | قرار `X-Channel-Id` على `/platform/*` | 2 | Tenancy / Core | — | ✅ 2026-09-24 |
+| BF-08 | `ad.iam.role_update` في DOC-08 + بذر + gate | 2 | Access | — | ✅ 2026-09-24 |
 | BF-09 | بوابة 17 مسار `/app/*` ذات صلاحية معروفة | 2 | Access + Ordering/… | — | ⬜ |
 | BF-10 | جلسة عقد: تعيين permission لكل مسار بلا صلاحية في الكتالوج | 2 | Catalog + Access | — | ⬜ |
 | BF-11 | بذر صلاحيات DOC-08 الناقصة **عند ظهور مسار** (~30) | 2 | Access | BF-10 جزئي | ⬜ مستمر |
@@ -110,19 +110,14 @@
 - **ما حصل:** مندوب يحصل على `status` (`pending_review|active|rejected|disabled`) و`channel` `{id, name}` · تحديث كتالوج EP-CM-004 · DocsLast · اختبار في `RepProfileStatusTest` / `RepSessionLimitsTest`.
 - **قبول:** مندوب `pending`/`disabled` يقرأ السبب من الجلسة قبل/مع 403؛ اختبار يثبت الحقول؛ لا كسر لعملاء يرجعون حقولاً قديمة (إضافة فقط).
 
-### BF-07 — `X-Channel-Id` على المنصة
+### BF-07 — `X-Channel-Id` على المنصة ✅ 2026-09-24
 
-- **يغلق صف دين:** ResolveTenant (2026-09-24).
-- **قرار واحد في التذكرة (لا الاثنين):**
-  - **أ)** إغلاق الفرع نهائياً + اختبار يمنع الرأس؛ أو
-  - **ب)** توثيق «تبديل مستأجر للدعم» + اختبار + في نفس الـ commit إعادة تقييم `FeatureFlagOverride` / `ChannelEvent` نحو relaxed إن سقط سبب الإعفاء.
-- **قبول:** السلوك موثّق في `DocsLast/platform.md` ومثبت باختبار؛ صف الدين يُحذف.
+- **قرار أ:** إغلاق الفرع نهائياً. الرأس مُتجاهَل؛ اختبار `PlatformTenantHeaderTest`؛
+  `FeatureFlagOverride` و`ChannelEvent` → relaxed؛ صف الدين محذوف.
 
-### BF-08 — `ad.iam.role_update`
+### BF-08 — `ad.iam.role_update` ✅ 2026-09-24
 
-- **المرجع:** `docs/api/permission-gate-audit.md` (§ One gate is wider).
-- **عمل:** إضافة الاسم إلى DOC-08 / `doc08.txt` · بذر في `PermissionCatalog` · نقل gate مسار `PUT /platform/iam/roles/{id}/permissions` إلى `ad.iam.role_update` · اختبار.
-- **قبول:** إنشاء دور ≠ تعديل صلاحيات دور موجود من ناحية الصلاحية؛ لا اختراع اسم خارج DOC-08.
+- DOC-08 + `PermissionCatalog` + gate EP-AD-015 + اختبار 403 بالمفتاح الصحيح.
 
 ### BF-09 — بوابة مسارات التطبيق ذات الصلاحية المعروفة
 
@@ -163,7 +158,7 @@
 | BF-17 | BF-SC-161 | EP-SC-161 | channel | تقويم توصيل أسبوعي |
 | BF-18 | BF-SC-162 | EP-SC-162 | channel | تصعيد SLA مرتجعات |
 | BF-19 | BF-SC-163 | EP-SC-163 | channel | مضلعات مناطق + نوافذ وقت |
-| BF-20 | BF-WH-050 | EP-WH-050 | warehouse | تقارير إنتاجية/دقة |
+| BF-20 | BF-WH-050 | EP-WH-050 | warehouse | ✅ تقارير إنتاجية/دقة (2026-09-24) |
 | BF-21 | BF-SC-165 | EP-SC-165 | channel | طابور موافقة ائتمان |
 
 **قالب تذكرة v1.1 (انسخه لكل صف):**

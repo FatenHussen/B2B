@@ -47,7 +47,7 @@
             "error": {
                 "code": "not_found",
                 "message": "...",
-                "permission": "ad.iam.role_create",
+                "permission": "ad.iam.role_update",
                 "details": {}
             }
         },
@@ -1933,7 +1933,7 @@
             "code": "EP-AD-015",
             "name": "Replace role permissions",
             "name_ar": "تحديث صلاحيات الدور",
-            "permission": "ad.iam.role_create",
+            "permission": "ad.iam.role_update",
             "role": null,
             "guard": "platform",
             "auth": true,
@@ -1956,7 +1956,7 @@
             },
             "errors": [],
             "description": "",
-            "note": "Full replacement. Gated on ad.iam.role_create."
+            "note": "Full replacement. Gated on ad.iam.role_update."
         },
         {
             "live": true,

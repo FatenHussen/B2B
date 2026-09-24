@@ -71,11 +71,11 @@ trait BelongsToChannel
      *    neither fails at the constraint rather than silently.
      *
      * Relaxed is not unscoped. With a tenant set the filter applies exactly as it does in
-     * strict mode; only the absence of one is tolerated. It is the wrong choice for one
-     * shape: a table read *across* channels on a route where a `platform_admin` may switch
-     * tenant with `X-Channel-Id` (ResolveTenant, first branch). There the filter would
-     * silently hide rows from the back office, and the model is exempted instead, with the
-     * reason written beside its name in `tests/Architecture/ChannelScopeTest.php`.
+     * strict mode; only the absence of one is tolerated. Prefer relaxed over exemption
+     * whenever absence of a tenant is the only reason a table cannot be strict —
+     * exemption filters never. Tables that must stay cross-channel even with a tenant
+     * set (audit log, zone lookup, channel applications) remain in
+     * `CHANNEL_SCOPE_EXEMPT` with a written reason.
      */
     public function channelScopeOptional(): bool
     {

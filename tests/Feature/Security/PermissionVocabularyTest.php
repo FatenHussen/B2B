@@ -73,8 +73,8 @@ const DOC08_EXEMPT = ['sc.notify.view'];
 /**
  * The DOC-08 catalog as the document defines it, read from the document rather than
  * from the code's copy of it. `docs/api/doc08.txt` is the extracted text of
- * DOC-08 / PERM-FSD v1.0, whose own header states it defines 170 permissions across
- * five systems; the regex finds exactly 170 distinct codes, so the extraction is whole.
+ * DOC-08 / PERM-FSD v1.0, whose own header states it defines 171 permissions across
+ * five systems; the regex finds exactly 171 distinct codes, so the extraction is whole.
  *
  * @return list<string>
  */
@@ -89,10 +89,10 @@ function doc08Codes(): array
     return $codes;
 }
 
-it('reads 170 permission codes out of DOC-08 itself', function () {
+it('reads 171 permission codes out of DOC-08 itself', function () {
     // The guard on every other test in this file. If the extraction ever stops finding
     // the number DOC-08 claims in its own header, the diffs below measure noise.
-    expect(doc08Codes())->toHaveCount(170);
+    expect(doc08Codes())->toHaveCount(171);
 })->group('security');
 
 it('seeds no permission name that DOC-08 does not define', function () {
@@ -183,10 +183,10 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // three `sc.reps.*` codes below.
     $catalog = doc08Codes();
 
-    // 141, up from 140: `wh.reports.view` (EP-WH-050).
-    expect(Permission::query()->count())->toBe(141)
-        ->and(PermissionCatalog::codes())->toHaveCount(141)
-        // 30, down from 31: wh.reports.view found its route.
+    // 142, up from 141: `ad.iam.role_update` (EP-AD-015, BF-08).
+    expect(Permission::query()->count())->toBe(142)
+        ->and(PermissionCatalog::codes())->toHaveCount(142)
+        // 30, unchanged: role_update landed in both DOC-08 and the catalog.
         ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(30)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
         ->toBe(DOC08_EXEMPT);

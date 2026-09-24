@@ -160,7 +160,7 @@ return [
         'crit' => true,
     ]),
 
-    ep('EP-AD-015', 'SP-02', 'PUT', '/platform/iam/roles/{id}/permissions', 'platform', 'ad.iam.role_create', [
+    ep('EP-AD-015', 'SP-02', 'PUT', '/platform/iam/roles/{id}/permissions', 'platform', 'ad.iam.role_update', [
         'name' => 'Replace role permissions',
         'name_ar' => 'تحديث صلاحيات الدور',
         'b' => [

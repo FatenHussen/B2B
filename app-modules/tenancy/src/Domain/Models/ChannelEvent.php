@@ -6,6 +6,7 @@ namespace Modules\Tenancy\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Modules\Core\Support\Concerns\BelongsToChannel;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
 
 /**
@@ -15,11 +16,10 @@ use Modules\Tenancy\Domain\Enums\ChannelStatus;
  * rule 8 asks for. `$timestamps` is off because `at` is the transition's own moment and
  * an `updated_at` on an immutable row would only ever lie.
  *
- * Carries no channel scope, and is listed as such in `ChannelScopeTest`: this is the
- * platform's record *about* a channel — written from the back office, read on the
- * back-office timeline (EP-AD-052) — not data the channel owns. `channel_id` here is a
- * foreign key to the tenant table, the same way `AuditLog.channel_id` is, and scoping it
- * by tenant would hide the trail from the only audience that reads it.
+ * Platform-written *about* a channel (EP-AD-052 timeline). Relaxed — filters when a
+ * tenant is set, tolerates its absence on the back office (no tenant after BF-07 closed
+ * the `X-Channel-Id` switch). Was exempt while that switch existed; re-evaluated to
+ * relaxed in the same commit. The writer sets `channel_id` explicitly.
  *
  * @property int $id
  * @property int $channel_id
@@ -32,9 +32,15 @@ use Modules\Tenancy\Domain\Enums\ChannelStatus;
  */
 class ChannelEvent extends Model
 {
+    use BelongsToChannel;
+
     protected $table = 'channel_events';
 
     public $timestamps = false;
+
+    protected string $channelColumn = 'channel_id';
+
+    protected bool $channelScopeOptional = true;
 
     protected $fillable = [
         'channel_id',

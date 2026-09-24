@@ -32951,7 +32951,7 @@
                         }
                     }
                 },
-                "x-permission": "ad.iam.role_create",
+                "x-permission": "ad.iam.role_update",
                 "x-sprint": "SP-02",
                 "x-code": "EP-AD-015",
                 "x-guard": "platform",

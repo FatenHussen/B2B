@@ -37,7 +37,7 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 | ✅ | EP-AD-012 | SP-02 | `GET` | `/platform/iam/roles` | `ad.iam.view_catalog` | Access | الأدوار |
 | ✅ | EP-AD-013 | SP-02 | `POST` | `/platform/iam/roles` | `ad.iam.role_create` | Access | إنشاء دور |
 | ✅ | EP-AD-014 | SP-02 | `POST` | `/platform/iam/roles/{id}/approve` | `ad.iam.role_approve` | Access | اعتماد الدور |
-| ✅ | EP-AD-015 | SP-02 | `PUT` | `/platform/iam/roles/{id}/permissions` | `ad.iam.role_create` | Access | تحديث صلاحيات الدور |
+| ✅ | EP-AD-015 | SP-02 | `PUT` | `/platform/iam/roles/{id}/permissions` | `ad.iam.role_update` | Access | تحديث صلاحيات الدور |
 | ✅ | EP-AD-016 | SP-02 | `POST` | `/platform/iam/assignments` | `ad.iam.role_assign` | Access | إسناد أدوار |
 | ✅ | EP-AD-017 | SP-02 | `DELETE` | `/platform/iam/assignments` | `ad.iam.role_assign` | Access | سحب دور |
 | ✅ | EP-AD-018 | SP-02 | `POST` | `/platform/iam/simulate` | `ad.iam.simulate` | Access | محاكاة صلاحية |

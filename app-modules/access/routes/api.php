@@ -24,23 +24,10 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:platform', 'guard.tok
                 ->middleware('permission:ad.iam.role_create');
             Route::post('roles/{id}/approve', [IamController::class, 'approveRole'])
                 ->middleware('permission:ad.iam.role_approve');
-            // `ad.iam.role_create` is wider than what this route does. DOC-08 defines it
-            // as "إنشاء دور مخصص" — creating a custom role — while this rewrites the
-            // permissions of a role that already exists and is possibly already approved.
-            // Holding it therefore grants two distinct powers under one name.
-            //
-            // There is no better code: `ad.iam.*` has exactly seven members —
-            // role_create, role_approve, role_assign, grant_temp, sod_rules,
-            // view_catalog, simulate — and none describes editing an existing role.
-            //
-            // That is a gap in DOC-08 rather than a choice, and the document says so
-            // itself: `ad.refs` and `ad.team` both separate creation from modification
-            // (refs.create/refs.update, team.invite/team.update). `ad.iam` alone does
-            // not. DOC-08 needs `ad.iam.role_update`; until it has one this gate is the
-            // closest true code, and picking anything else would be inventing a name.
-            // Recorded in docs/api/permission-gate-audit.md.
+            // DOC-08 defines `ad.iam.role_update` for rewriting permissions of an
+            // existing role (create ≠ update). Seeded BF-08 2026-09-24.
             Route::put('roles/{id}/permissions', [IamController::class, 'replacePermissions'])
-                ->middleware('permission:ad.iam.role_create');
+                ->middleware('permission:ad.iam.role_update');
             Route::post('assignments', [IamController::class, 'assign'])
                 ->middleware('permission:ad.iam.role_assign');
             Route::delete('assignments', [IamController::class, 'revoke'])

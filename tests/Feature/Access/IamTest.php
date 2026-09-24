@@ -229,6 +229,25 @@ it('previews a role, starts a review, and decides dual-approval via the inbox', 
     expect($roleId)->toBeInt();
 });
 
+it('gates replace-permissions on ad.iam.role_update, not role_create', function () {
+    $this->seed(RolesPermissionsSeeder::class);
+
+    $holder = PlatformUser::factory()->create();
+    $holder->givePermissionTo('ad.iam.role_create');
+
+    $roleId = AccessRole::query()->where('name', 'channel_manager')->value('id');
+
+    $this->putJson("/api/v1/platform/iam/roles/{$roleId}/permissions", [
+        'permissions' => ['sc.catalog.view'],
+        'reason' => 'محاولة تعديل بصلاحية الإنشاء فقط',
+    ], [
+        'Authorization' => 'Bearer '.$holder->createToken('create-only', ['*'])->plainTextToken,
+    ])
+        ->assertStatus(403)
+        ->assertJsonPath('error.code', 'insufficient_permission')
+        ->assertJsonPath('error.permission', 'ad.iam.role_update');
+})->group('permissions');
+
 it('exposes every catalog code through SP-17', function () {
     // `ad.billing.manage` was asserted here and has been removed: it was in neither
     // DOC-08 nor the API catalog, and this assertion was one of the two things keeping

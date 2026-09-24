@@ -49,6 +49,7 @@ final class PermissionCatalog
         'ad.iam.role_approve' => ['name_ar' => 'اعتماد الدور', 'system' => 'platform', 'module' => 'iam', 'severity' => 'critical', 'dual_approval' => true, 'delegatable' => false],
         'ad.iam.role_assign' => ['name_ar' => 'إسناد أدوار', 'system' => 'platform', 'module' => 'iam', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'ad.iam.role_create' => ['name_ar' => 'إنشاء دور', 'system' => 'platform', 'module' => 'iam', 'severity' => 'standard', 'dual_approval' => true, 'delegatable' => true],
+        'ad.iam.role_update' => ['name_ar' => 'تعديل صلاحيات الدور', 'system' => 'platform', 'module' => 'iam', 'severity' => 'critical', 'dual_approval' => true, 'delegatable' => true],
         'ad.iam.simulate' => ['name_ar' => 'محاكاة صلاحية', 'system' => 'platform', 'module' => 'iam', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'ad.iam.sod_rules' => ['name_ar' => 'قواعد فصل المهام', 'system' => 'platform', 'module' => 'iam', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'ad.iam.view_catalog' => ['name_ar' => 'كتالوج الصلاحيات', 'system' => 'platform', 'module' => 'iam', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],

@@ -116,10 +116,11 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
     **Three exemptions**, all cross-channel by design: `AuditLog`, read from the platform back office
     across every channel — scoping it would hide exactly the activity an audit log exists to show;
     `ChannelZoneLookup`, a read-only view of `channel_zone` whose `$fillable` is empty, so every
-    write goes through Reference's scoped `ChannelZone`; and `ChannelEvent`, the channel status
-    trail written by `ChannelLifecycle` from the back office and read on its timeline — the
-    platform's record *about* a channel, not data the channel owns, with `channel_id` a foreign key
-    to the tenant table exactly as on `AuditLog`.
+    write goes through Reference's scoped `ChannelZone`; and `ChannelApplication`, which exists
+    before the channel does and is listed across every channel from the back office. `ChannelEvent`
+    and `FeatureFlagOverride` were once exempt for the same cross-channel read reason while
+    `ResolveTenant` could switch tenant via `X-Channel-Id` for `platform_admin`; that branch closed
+    BF-07 (2026-09-24) and both models now use relaxed scope instead.
 
     **The scope is lifted only with the reason written beside it, never as a habit — and both
     spellings count.** `acrossChannels()` and the raw `withoutGlobalScope('channel')` it wraps are the
@@ -221,13 +222,13 @@ minute it was written.
 
 DOC-08 and the API catalog **intersect; neither contains the other.**
 
-- DOC-08 (`docs/api/doc08.txt`) defines **170** permission codes. It is the source of a
-  permission **name**.
+- DOC-08 (`docs/api/doc08.txt`) defines **171** permission codes. It is the source of a
+ permission **name**.
 - The API catalog (`docs/api/catalog/`) defines the routes. Some routes carry a permission
-  DOC-08 does not define — `sc.notify.view` on `EP-SC-092 GET /channel/notifications/log`
-  is a real endpoint whose permission the document has not caught up with.
+ DOC-08 does not define — `sc.notify.view` on `EP-SC-092 GET /channel/notifications/log`
+ is a real endpoint whose permission the document has not caught up with.
 
-As of 2026-09-17: PermissionCatalog seeds 134 codes. 37 DOC-08 codes are not yet
+As of 2026-09-24: PermissionCatalog seeds 142 codes. 30 DOC-08 codes are not yet
 seeded — a code is added when a route needs it, never speculatively.
 
 On a conflict: **the catalog is the source of the path, DOC-08 is the source of the

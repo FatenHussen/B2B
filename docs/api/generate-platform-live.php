@@ -204,7 +204,7 @@ $pack = [
     'envelope' => [
         'success' => ['data' => new stdClass, 'meta' => ['server_time' => '...']],
         'list' => ['data' => [], 'meta' => ['page' => 1, 'per_page' => 25, 'total' => 0, 'last_page' => 1]],
-        'error' => ['error' => ['code' => 'not_found', 'message' => '...', 'permission' => 'ad.iam.role_create', 'details' => new stdClass]],
+        'error' => ['error' => ['code' => 'not_found', 'message' => '...', 'permission' => 'ad.iam.role_update', 'details' => new stdClass]],
         'money' => 'integer minor units. SYP decimals = 0. Never /100. Do not invent GMV.',
         'sort' => 'roles list allows sort=id|name|created_at. Other lists: never send sort unless this file names it.',
         'not_found' => '404 means missing OR not yours — never render forbidden',
@@ -434,7 +434,7 @@ function notes(): array
         'GET /platform/iam/permissions/{}/holders' => 'users[].name is "#id". Capped at 50. Not a list envelope.',
         'POST /platform/iam/roles' => '201 status=draft. Grants nothing until a second admin approves.',
         'POST /platform/iam/roles/{}/approve' => 'Creator cannot approve → 403 sod_violation. Never retry.',
-        'PUT /platform/iam/roles/{}/permissions' => 'Full replacement. Gated on ad.iam.role_create.',
+        'PUT /platform/iam/roles/{}/permissions' => 'Full replacement. Gated on ad.iam.role_update.',
         'POST /platform/iam/assignments' => 'Max 50 ids. 200 with assigned[] and rejected[].',
         'DELETE /platform/iam/assignments' => 'DELETE with body {user_id, role_id, reason}.',
         'POST /platform/iam/simulate' => 'tenant layer is hardcoded pass. allowed = guard && (permission || temp-grant) && !sod.',
