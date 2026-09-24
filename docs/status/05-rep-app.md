@@ -81,11 +81,11 @@ guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-0
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ✅ | EP-RP-060 | SP-13 | `POST` | `/app/rep/payments` | `rp.payment.collect` | Finance | gated by `app.kind:rep` — the kind implies `rp.payment.collect` |
-| ✅ | EP-RP-061 | SP-13 | `GET` | `/app/rep/wallet` | `rp.wallet.view` | Finance | gated by `app.kind:rep` — the kind implies `rp.wallet.view` |
-| ✅ | EP-RP-062 | SP-13 | `POST` | `/app/rep/wallet/withdrawals` | `rp.payment.withdraw` | Finance | gated by `app.kind:rep` — the kind implies `rp.payment.withdraw` |
-| ✅ | EP-RP-063 | SP-13 | `GET` | `/app/rep/wallet/withdrawals` | `rp.wallet.view` | Finance | gated by `app.kind:rep` — the kind implies `rp.wallet.view` |
-| ✅ | EP-RP-064 | SP-13 | `GET` | `/app/rep/receivables` | `rp.wallet.view` | Finance | gated by `app.kind:rep` — the kind implies `rp.wallet.view` |
+| ✅ | EP-RP-060 | SP-13 | `POST` | `/app/rep/payments` | `rp.payment.collect` | Finance | تحصيل دفعة |
+| ✅ | EP-RP-061 | SP-13 | `GET` | `/app/rep/wallet` | `rp.wallet.view` | Finance | المحفظة |
+| ✅ | EP-RP-062 | SP-13 | `POST` | `/app/rep/wallet/withdrawals` | `rp.payment.withdraw` | Finance | تسليم نقدية |
+| ✅ | EP-RP-063 | SP-13 | `GET` | `/app/rep/wallet/withdrawals` | `rp.wallet.view` | Finance | سجل التسليمات |
+| ✅ | EP-RP-064 | SP-13 | `GET` | `/app/rep/receivables` | `rp.wallet.view` | Finance | ذمم المحلات |
 
 ## أخرى — 1/1
 

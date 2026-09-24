@@ -25,7 +25,7 @@ guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آل
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ✅ | EP-CM-050 | SP-13 | `POST` | `/app/receipts/reserve` | `rp.payment.collect` | Finance | gated by `app.kind:rep` — the kind implies `rp.payment.collect` |
+| ✅ | EP-CM-050 | SP-13 | `POST` | `/app/receipts/reserve` | `rp.payment.collect` | Finance | حجز رقم وصل |
 
 ## الإشعارات والأجهزة — 4/4
 

@@ -68,9 +68,9 @@ guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ✅ | EP-RT-050 | SP-13 | `POST` | `/app/retailer/payments` | `rt.payment.record` | Finance | gated by `app.kind:retailer` — the kind implies `rt.payment.record` |
+| ✅ | EP-RT-050 | SP-13 | `POST` | `/app/retailer/payments` | `rt.payment.record` | Finance | تسجيل دفعة |
 | ✅ | EP-RT-051 | SP-13 | `GET` | `/app/retailer/account/summary` | — | Finance | ملخص الحساب |
-| ✅ | EP-RT-052 | SP-13 | `GET` | `/app/retailer/account/statement` | `rt.account.statement` | Finance | gated by `app.kind:retailer` — the kind implies `rt.account.statement` |
-| ✅ | EP-RT-053 | SP-13 | `POST` | `/app/retailer/account/statement/export` | `rt.account.statement` | Finance | gated by `app.kind:retailer` — the kind implies `rt.account.statement` |
+| ✅ | EP-RT-052 | SP-13 | `GET` | `/app/retailer/account/statement` | `rt.account.statement` | Finance | كشف الحساب |
+| ✅ | EP-RT-053 | SP-13 | `POST` | `/app/retailer/account/statement/export` | `rt.account.statement` | Finance | تصدير الكشف |
 | ✅ | EP-RT-054 | SP-13 | `GET` | `/app/retailer/debts` | — | Finance | الذمم |
 

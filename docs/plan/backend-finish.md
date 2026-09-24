@@ -44,7 +44,7 @@
 | BF-07 | قرار `X-Channel-Id` على `/platform/*` | 2 | Tenancy / Core | — | ✅ 2026-09-24 |
 | BF-08 | `ad.iam.role_update` في DOC-08 + بذر + gate | 2 | Access | — | ✅ 2026-09-24 |
 | BF-09 | بوابة 17 مسار `/app/*` ذات صلاحية معروفة | 2 | Access + Ordering/… | — | ✅ 2026-09-25 |
-| BF-10 | جلسة عقد: تعيين permission لكل مسار بلا صلاحية في الكتالوج | 2 | Catalog + Access | — | ⬜ |
+| BF-10 | جلسة عقد: تعيين permission لكل مسار بلا صلاحية في الكتالوج | 2 | Catalog + Access | — | ✅ 2026-09-25 |
 | BF-11 | بذر صلاحيات DOC-08 الناقصة **عند ظهور مسار** (~30) | 2 | Access | BF-10 جزئي | ⬜ مستمر |
 | BF-12 | تكامل Push/WhatsApp إنتاجي (أو إعلان صريح «غير مضبوط») | 2 | Integration | BF-02 | ⬜ |
 | BF-13…BF-21 | صفوف v1.1 المتبقية | 3 | انظر الجدول أدناه | كتالوج أولاً | ⬜ |
@@ -123,11 +123,11 @@
 
 - 17 مساراً: `rp.delivery.*` · `rp.warehouse.receive` · `rt.receive.*` + `AppPermissionGateTest`.
 
-### BF-10 — جلسة عقد للمسارات بلا permission في الكتالوج
+### BF-10 — جلسة عقد للمسارات بلا permission في الكتالوج ✅ 2026-09-25
 
-- **المرجع:** permission-gate-audit §2.
-- **عمل:** لكل مسار حيّ بلا `permission` في `ep()`: إمّا تعيين كود DOC-08 موجود، أو قرار مكتوب «عمداً بلا صلاحية (حارس فقط)» في الكتالوج.
-- **قبول:** تقرير قصير في PR؛ صفر مسار «نسيانه»؛ لا أسماء مخترعة في الكود.
+- سياسة: `permission: null` ⇒ `guard_only` (حارس/kind فقط).
+- 9 مسارات مالية كانت مسماة في الكتالوج بلا middleware → gated.
+- `CatalogPermissionContractTest` يثبت صفر منسيّ.
 
 ### BF-11 — بذر المتبقي من DOC-08 (~30)
 

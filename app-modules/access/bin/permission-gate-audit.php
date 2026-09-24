@@ -57,6 +57,7 @@ foreach ($catalog as $endpoint) {
 
 $gated = [];
 $ungatedNamed = [];
+$ungatedGuardOnly = [];
 $ungatedUnnamed = [];
 
 foreach ($routes as $route) {
@@ -94,19 +95,23 @@ foreach ($routes as $route) {
                 $verb, $route['uri'], $endpoint['code'], $endpoint['permission'],
                 ! empty($endpoint['critical']) ? 'CRITICAL' : '',
             );
+        } elseif ($endpoint !== null && ! empty($endpoint['guard_only'])) {
+            $ungatedGuardOnly[] = sprintf('%-6s %s', $verb, $route['uri']);
         } else {
             $ungatedUnnamed[] = sprintf('%-6s %s', $verb, $route['uri']);
         }
     }
 }
 
-$total = count($gated) + count($ungatedNamed) + count($ungatedUnnamed);
+$total = count($gated) + count($ungatedNamed) + count($ungatedGuardOnly) + count($ungatedUnnamed);
+$ungated = count($ungatedNamed) + count($ungatedGuardOnly) + count($ungatedUnnamed);
 
 printf("total (non-public, per verb) : %d\n", $total);
 printf("gated by a permission        : %d (%.0f%%)\n", count($gated), 100 * count($gated) / max($total, 1));
-printf("ungated                      : %d (%.0f%%)\n", count($gated) ? $total - count($gated) : 0, 100 * ($total - count($gated)) / max($total, 1));
+printf("ungated                      : %d (%.0f%%)\n", $ungated, 100 * $ungated / max($total, 1));
 printf("  with a catalog permission  : %d\n", count($ungatedNamed));
-printf("  with none                  : %d\n\n", count($ungatedUnnamed));
+printf("  catalog guard_only         : %d\n", count($ungatedGuardOnly));
+printf("  forgotten (no decision)    : %d\n\n", count($ungatedUnnamed));
 
 $critical = array_values(array_filter($ungatedNamed, static fn (string $l): bool => str_contains($l, 'CRITICAL')));
 
@@ -120,7 +125,10 @@ foreach ($ungatedNamed as $line) {
     echo "  $line\n";
 }
 
-echo "\n=== ungated, catalog names no permission (needs a contract decision) ===\n";
+echo "\n=== ungated, catalog guard_only (deliberate, BF-10) ===\n";
+printf("  (%d routes — listed only as a count; see catalog guard_only)\n", count($ungatedGuardOnly));
+
+echo "\n=== ungated, forgotten (no catalog decision) ===\n";
 foreach ($ungatedUnnamed as $line) {
     echo "  $line\n";
 }

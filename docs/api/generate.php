@@ -11,7 +11,6 @@ declare(strict_types=1);
  *
  * Source: DOC-11B (binding API catalog) + DOC-12A/12B extras + DOC-10 envelope.
  */
-
 function ep(
     string $code,
     string $sprint,
@@ -22,6 +21,13 @@ function ep(
     array $x = [],
 ): array {
     $write = in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true);
+    // BF-10: `permission: null` is not a forgotten gate — it is the contract for
+    // auth/kind-only surfaces (login, session, cart, browse). Emit `guard_only` so
+    // audits can tell a deliberate null from a missing decision. Override with
+    // `'guard_only' => false` only when a ticket is about to assign a DOC-08 code.
+    $guardOnly = $permission === null
+        ? (bool) ($x['guard_only'] ?? true)
+        : false;
 
     return [
         'code' => $code,
@@ -39,6 +45,7 @@ function ep(
             default => $audience,
         },
         'permission' => $permission,
+        'guard_only' => $guardOnly,
         'auth' => array_key_exists('auth', $x) ? (bool) $x['auth'] : $audience !== 'public',
         'name' => $x['name'] ?? $code,
         'name_ar' => $x['name_ar'] ?? '',

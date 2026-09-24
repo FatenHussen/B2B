@@ -24,23 +24,35 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::post('credit-approvals/{id}/decide', [ChannelFinanceController::class, 'decideCreditApproval'])->middleware('permission:sc.retailers.credit');
     });
 
-Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:rep'])
+Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])
     ->prefix('api/v1')
     ->group(function (): void {
-        Route::post('app/receipts/reserve', [RepFinanceController::class, 'reserve']);
-        Route::post('app/rep/payments', [RepFinanceController::class, 'collect']);
-        Route::get('app/rep/wallet', [RepFinanceController::class, 'wallet']);
-        Route::post('app/rep/wallet/withdrawals', [RepFinanceController::class, 'withdraw']);
-        Route::get('app/rep/wallet/withdrawals', [RepFinanceController::class, 'withdrawals']);
-        Route::get('app/rep/receivables', [RepFinanceController::class, 'receivables']);
+        // permission before app.kind (BF-09/BF-10).
+        Route::post('app/receipts/reserve', [RepFinanceController::class, 'reserve'])
+            ->middleware(['permission:rp.payment.collect', 'app.kind:rep']);
+        Route::post('app/rep/payments', [RepFinanceController::class, 'collect'])
+            ->middleware(['permission:rp.payment.collect', 'app.kind:rep']);
+        Route::get('app/rep/wallet', [RepFinanceController::class, 'wallet'])
+            ->middleware(['permission:rp.wallet.view', 'app.kind:rep']);
+        Route::post('app/rep/wallet/withdrawals', [RepFinanceController::class, 'withdraw'])
+            ->middleware(['permission:rp.payment.withdraw', 'app.kind:rep']);
+        Route::get('app/rep/wallet/withdrawals', [RepFinanceController::class, 'withdrawals'])
+            ->middleware(['permission:rp.wallet.view', 'app.kind:rep']);
+        Route::get('app/rep/receivables', [RepFinanceController::class, 'receivables'])
+            ->middleware(['permission:rp.wallet.view', 'app.kind:rep']);
     });
 
-Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:retailer'])
+Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])
     ->prefix('api/v1/app/retailer')
     ->group(function (): void {
-        Route::post('payments', [RetailerFinanceController::class, 'payment']);
-        Route::get('account/summary', [RetailerFinanceController::class, 'summary']);
-        Route::get('account/statement', [RetailerFinanceController::class, 'statement']);
-        Route::post('account/statement/export', [RetailerFinanceController::class, 'exportStatement']);
-        Route::get('debts', [RetailerFinanceController::class, 'debts']);
+        Route::post('payments', [RetailerFinanceController::class, 'payment'])
+            ->middleware(['permission:rt.payment.record', 'app.kind:retailer']);
+        Route::get('account/summary', [RetailerFinanceController::class, 'summary'])
+            ->middleware('app.kind:retailer');
+        Route::get('account/statement', [RetailerFinanceController::class, 'statement'])
+            ->middleware(['permission:rt.account.statement', 'app.kind:retailer']);
+        Route::post('account/statement/export', [RetailerFinanceController::class, 'exportStatement'])
+            ->middleware(['permission:rt.account.statement', 'app.kind:retailer']);
+        Route::get('debts', [RetailerFinanceController::class, 'debts'])
+            ->middleware('app.kind:retailer');
     });

@@ -81,6 +81,25 @@ it('names rt.receive.return_request when a rep posts a retailer return', functio
         ->assertJsonPath('error.permission', 'rt.receive.return_request');
 })->group('permissions');
 
+it('names rp.payment.collect when a retailer hits rep payments', function () {
+    Sanctum::actingAs(AppSurface::retailer(AppSurface::refs()), ['*'], 'app');
+
+    $this->postJson('/api/v1/app/rep/payments', [])
+        ->assertStatus(403)
+        ->assertJsonPath('error.code', 'insufficient_permission')
+        ->assertJsonPath('error.permission', 'rp.payment.collect');
+})->group('permissions');
+
+it('names rt.payment.record when a rep hits retailer payments', function () {
+    $refs = AppSurface::refs();
+    Sanctum::actingAs(AppSurface::rep(AppSurface::channel($refs), $refs), ['*'], 'app');
+
+    $this->postJson('/api/v1/app/retailer/payments', [])
+        ->assertStatus(403)
+        ->assertJsonPath('error.code', 'insufficient_permission')
+        ->assertJsonPath('error.permission', 'rt.payment.record');
+})->group('permissions');
+
 it('lets a same-kind caller through the permission gate', function () {
     $refs = AppSurface::refs();
     $channel = AppSurface::channel($refs);
@@ -91,6 +110,7 @@ it('lets a same-kind caller through the permission gate', function () {
     $this->getJson('/api/v1/app/rep/deliveries')->assertOk();
     $this->getJson('/api/v1/app/rep/assignments')->assertOk();
     $this->getJson('/api/v1/app/rep/warehouse-receipts')->assertOk();
+    $this->getJson('/api/v1/app/rep/wallet')->assertOk();
 
     app('auth')->forgetGuards();
     Sanctum::actingAs($retailer, ['*'], 'app');

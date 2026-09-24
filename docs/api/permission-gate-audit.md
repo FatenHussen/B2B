@@ -43,11 +43,12 @@ bound until proven complete.
 
 | | Routes | |
 |---|---:|---|
-| **Total** (non-public, per verb) | **175** | |
-| **Gated by a permission** | **106** | 61% |
-| **Ungated** | **69** | 39% |
-| — of which the catalog names a permission | 0 | closed BF-09 |
-| — of which the catalog names none | 69 | needs a contract decision (BF-10) |
+| **Total** (non-public, per verb) | **419** | |
+| **Gated by a permission** | **330** | 79% |
+| **Ungated** | **89** | 21% |
+| — of which the catalog names a permission | 0 | closed BF-09 + BF-10 finance |
+| — of which catalog is `guard_only` | 89 | deliberate (BF-10) |
+| — of which forgotten (no catalog decision) | 0 | pinned |
 
 **Ungated and catalogue-critical: zero.** Every endpoint the API catalog marks `critical`
 carries its permission today. That includes all of `sc.inventory.adjust`,
@@ -75,14 +76,25 @@ middleware priority runs the permission check before `app.kind` so a cross-kind 
 gets `403 insufficient_permission` with the permission key. Pinned by
 `AppPermissionGateTest`.
 
-### 2. Sixty-nine routes the catalog gives no permission — contract decision
+### 2. Catalog endpoints with no permission — closed BF-10
 
-The catalog specifies no `permission` for these endpoints, so there is no code to apply
-without inventing one. Inventing permission names in code is exactly what produced the
-`settings.*` breach.
+**Policy (2026-09-25):** `permission: null` in `ep()` means **intentionally guard-only**
+(auth + optional `app.kind`). The generator emits `guard_only: true` on those rows.
+Assigning a DOC-08 code is the only way to require a `permission:` middleware gate.
 
-**Decision: needs a dedicated session** to assign DOC-08 codes endpoint by endpoint, as a
-contract change, not an implementation one.
+**Also gated in BF-10** (were live with a named catalog permission but no middleware —
+the leftover after BF-09's delivery/receipt family):
+
+| Permission | Routes |
+|---|---|
+| `rp.payment.collect` | `POST …/receipts/reserve`, `POST …/rep/payments` |
+| `rp.wallet.view` | wallet + withdrawals list + receivables |
+| `rp.payment.withdraw` | `POST …/wallet/withdrawals` |
+| `rt.payment.record` | `POST …/retailer/payments` |
+| `rt.account.statement` | statement GET + export |
+
+Pinned by `CatalogPermissionContractTest` (zero forgotten nulls; zero ungated-with-named-permission)
+and finance cases in `AppPermissionGateTest`.
 
 ### 3. Twenty-seven orphaned `sc.` codes — a documentation gap
 
