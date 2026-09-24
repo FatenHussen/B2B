@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Identity\Application\Queries;
 
 use Modules\Core\Contracts\AccessCatalog;
+use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\RepCommercialLimits;
 use Modules\Core\Contracts\RepDirectory;
 use Modules\Core\Contracts\RepDutyLookup;
@@ -18,6 +19,7 @@ final class AppSession
         private readonly RepDirectory $reps,
         private readonly RepCommercialLimits $limits,
         private readonly RepDutyLookup $duty,
+        private readonly ChannelDirectory $channels,
     ) {}
 
     /**
@@ -59,6 +61,15 @@ final class AppSession
                 'on_duty' => $this->duty->isOnDuty((int) $user->id),
                 'tracking_enabled' => $this->duty->trackingEnabled((int) $user->id),
             ];
+            // BF-06 — pending/disabled reps can still read session; surface why
+            // operational routes return 403 insufficient_permission.
+            $payload['status'] = $user->repProfile?->status?->value;
+            $payload['channel'] = $channelId === null
+                ? null
+                : [
+                    'id' => $channelId,
+                    'name' => $this->channels->name($channelId),
+                ];
         }
 
         return $payload;

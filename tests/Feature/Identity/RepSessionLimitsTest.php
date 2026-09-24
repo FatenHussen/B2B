@@ -21,7 +21,10 @@ it('exposes the rep commercial limits on session', function () {
     expect($empty->json('data.commercial_limits.max_discount_percent'))->toBe(0)
         ->and($empty->json('data.commercial_limits.max_cash_hold'))->toBe(0)
         ->and($empty->json('data.duty.on_duty'))->toBeFalse()
-        ->and($empty->json('data.user.avatar'))->toBeNull();
+        ->and($empty->json('data.user.avatar'))->toBeNull()
+        ->and($empty->json('data.status'))->toBe('active')
+        ->and((int) $empty->json('data.channel.id'))->toBe((int) $channel->id)
+        ->and($empty->json('data.channel.name'))->toBe($channel->name);
 
     $manager = ChannelUser::factory()->forChannel($channel)->create();
     $manager->assignRole('channel_manager');

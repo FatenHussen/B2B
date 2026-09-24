@@ -21,7 +21,7 @@ return [
             'requires_legal_accept' => false,
             'legal' => ['privacy_version' => '2026-03', 'terms_version' => '2026-01'],
         ],
-        'd' => 'Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}.',
+        'd' => 'Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits, duty {on_duty, tracking_enabled}, status (profile: pending_review|active|rejected|disabled), and channel {id, name|null} (BF-06).',
     ]),
     ep('EP-CM-005', 'SP-01', 'POST', '/app/auth/logout', 'app', null, [
         'name' => 'App logout',

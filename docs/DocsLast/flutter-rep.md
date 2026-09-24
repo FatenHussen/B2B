@@ -811,7 +811,9 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
       "max_discount_percent": 10,
       "max_cash_hold": 5000000
     },
-    "duty": { "on_duty": true, "tracking_enabled": true }
+    "duty": { "on_duty": true, "tracking_enabled": true },
+    "status": "active",
+    "channel": { "id": 1, "name": "شركة النور" }
   }
 }
 ```
@@ -821,6 +823,8 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 | `commercial_limits.max_discount_percent` | شريط الخصم في السلة. **0 = أخفِ الحقل** |
 | `max_cash_hold` | سقف التحصيل. **0 = لا سقف** (أخفِ التحذير) |
 | `duty.on_duty` | مفتاح داخل/خارج الخدمة في رأس الرئيسية |
+| `status` | حالة ملف المندوب: `pending_review` \| `active` \| `rejected` \| `disabled` — اشرح لماذا `/app/rep/*` يعطي 403 |
+| `channel` | `{ id, name }` قناة التوريد؛ `name` قد يكون null |
 | `user.avatar` | دائماً `null` — حرف من الاسم |
 | `feature_flags.offline_orders` | اليوم `false` — الطابور المحلي إعادة طلبات حيّة لا sync API |
 | `feature_flags.loyalty` | إن false أخفِ شريط النقاط |

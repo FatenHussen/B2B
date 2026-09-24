@@ -86,6 +86,20 @@ it('lets an active rep through and a not-yet-active rep see their session and si
     CatalogAssert::ok($this->postJson('/api/v1/app/auth/logout', [], $headers));
 });
 
+it('exposes status and channel on session for a pending rep (BF-06)', function () {
+    $refs = AppSurface::refs();
+    $channel = AppSurface::channel($refs);
+    $rep = AppSurface::rep($channel, $refs);
+    RepProfile::query()->where('app_user_id', $rep->id)->update(['status' => ProfileStatus::PendingReview->value]);
+    $token = $rep->createToken('device', ['*'])->plainTextToken;
+
+    $session = $this->getJson('/api/v1/app/session', ['Authorization' => 'Bearer '.$token]);
+    CatalogAssert::ok($session, ['user', 'status', 'channel', 'commercial_limits', 'duty']);
+    expect($session->json('data.status'))->toBe(ProfileStatus::PendingReview->value)
+        ->and((int) $session->json('data.channel.id'))->toBe((int) $channel->id)
+        ->and($session->json('data.channel.name'))->toBe($channel->name);
+});
+
 it('attaches rep.profile to every app route, so no module can publish a rep route without it', function () {
     $appRoutes = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($route) => str_starts_with($route->uri(), 'api/v1/app/'));

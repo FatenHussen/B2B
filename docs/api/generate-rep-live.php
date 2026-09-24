@@ -609,6 +609,11 @@ function overlays(): array
                     'on_duty' => false,
                     'tracking_enabled' => false,
                 ],
+                'status' => 'active',
+                'channel' => [
+                    'id' => 1,
+                    'name' => 'شركة النور',
+                ],
             ],
         ],
         'GET /app/rep/home' => [
@@ -729,7 +734,7 @@ function overlays(): array
 function notes(): array
 {
     return [
-        'GET /app/session' => 'Rep-only extras: commercial_limits and duty {on_duty, tracking_enabled}. user.avatar is always null. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them.',
+        'GET /app/session' => 'Rep-only extras: commercial_limits, duty {on_duty, tracking_enabled}, status (profile), channel {id, name}. user.avatar is always null. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them.',
         'GET /app/rep/home' => 'Morning snapshot. Bind the six task badges here — do not call GET /deliveries from Home (that list materialises rows). loyalty is the EP-APP-110 snapshot (points/tier; bronze/0 when empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer; guest browse is local.',
         'GET /public/content/intro' => 'No auth. Same singleton PUT /platform/content/intro writes. Vacant store: enabled false, text/media null, duration 0 — that is correct, do not fake a video. Returning token skips this screen. media_id is opaque, not a URL (http → play; else assets/intro/{id}; else logo+text). Ignore targeting on first run. Do not call /platform or /channel intro (wrong_guard).',
         'GET /public/refs' => 'Flat arrays, not nested. Flutter dropdowns: governorates = single-select FILTER (do not POST). zones = multi-select, value=id, label=name, group by governorate_id, POST as zone_ids:[12,13] (min 1). activity_types = single-select → activity_type_id. Hide status!=active. Channels are never here.',

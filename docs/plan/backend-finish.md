@@ -40,7 +40,7 @@
 | BF-03 | Horizon + طوابير + جدولة اللقطة اليومية على السيرفر | 1 | Ops | BF-01 | ⬜ |
 | BF-04 | VirtualHosts لوحات Sentrax (platform/channel/warehouse) | 1 | Ops | BF-01 | ⬜ |
 | BF-05 | حذف قناة: OTP منصة حقيقي (إكمال PA-18) | 1 | Tenancy + Identity | — | ✅ 2026-09-24 |
-| BF-06 | جلسة المندوب: `status` + `channel` | 2 | Identity | — | ⬜ |
+| BF-06 | جلسة المندوب: `status` + `channel` | 2 | Identity | — | ✅ 2026-09-24 |
 | BF-07 | قرار `X-Channel-Id` على `/platform/*` | 2 | Tenancy / Core | — | ⬜ |
 | BF-08 | `ad.iam.role_update` في DOC-08 + بذر + gate | 2 | Access | — | ⬜ |
 | BF-09 | بوابة 17 مسار `/app/*` ذات صلاحية معروفة | 2 | Access + Ordering/… | — | ⬜ |
@@ -103,11 +103,11 @@
 
 ## المرحلة 2 — عقد وصلابة (باك «منتهٍ» دون v1.1)
 
-### BF-06 — جلسة المندوب تحمل السبب
+### BF-06 — جلسة المندوب تحمل السبب ✅ 2026-09-24
 
 - **يغلق صف دين:** session صامتة (2026-09-19).
 - **وحدة:** Identity — `AppSession` / `GET /app/session`.
-- **عمل:** إضافة `status` و`channel` (شكل يُذكر في PR كتغيير عقد) · تحديث كتالوج/OpenAPI · DocsLast إن لزم.
+- **ما حصل:** مندوب يحصل على `status` (`pending_review|active|rejected|disabled`) و`channel` `{id, name}` · تحديث كتالوج EP-CM-004 · DocsLast · اختبار في `RepProfileStatusTest` / `RepSessionLimitsTest`.
 - **قبول:** مندوب `pending`/`disabled` يقرأ السبب من الجلسة قبل/مع 403؛ اختبار يثبت الحقول؛ لا كسر لعملاء يرجعون حقولاً قديمة (إضافة فقط).
 
 ### BF-07 — `X-Channel-Id` على المنصة

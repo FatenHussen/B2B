@@ -1067,7 +1067,9 @@ After success → `SessionController.bootstrap()`. A rep in `pending_review` is 
   "requires_legal_accept": false,
   "legal": { "privacy_version": "2026-03", "terms_version": "2026-01" },
   "commercial_limits": { "max_discount_percent": 10, "max_cash_hold": 5000000 },
-  "duty": { "on_duty": true, "tracking_enabled": true }
+  "duty": { "on_duty": true, "tracking_enabled": true },
+  "status": "active",
+  "channel": { "id": 1, "name": "شركة النور" }
 }
 ```
 
@@ -1075,6 +1077,8 @@ After success → `SessionController.bootstrap()`. A rep in `pending_review` is 
 |---|---|
 | `user.user_type` | must be `rep`; `retailer` → wrong app |
 | `user.profile_completed` | `false` → Register |
+| `status` | rep profile: `pending_review` \| `active` \| `rejected` \| `disabled` — show why `/app/rep/*` is 403 |
+| `channel` | `{ id, name }` of the supply channel; `name` may be null |
 | `permissions` | informational only — do not hide screens |
 | `commercial_limits.max_discount_percent` | cap for the cart discount slider; `0` → hide the discount field |
 | `commercial_limits.max_cash_hold` | `0` = no cap; else block a collection locally when `net_balance + amount > cap` |

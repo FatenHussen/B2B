@@ -663,11 +663,16 @@
                 "duty": {
                     "on_duty": false,
                     "tracking_enabled": false
+                },
+                "status": "active",
+                "channel": {
+                    "id": 1,
+                    "name": "شركة النور"
                 }
             },
             "errors": [],
             "description": "Called on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}.",
-            "note": "Rep-only extras: commercial_limits and duty {on_duty, tracking_enabled}. user.avatar is always null. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them."
+            "note": "Rep-only extras: commercial_limits, duty {on_duty, tracking_enabled}, status (profile), channel {id, name}. user.avatar is always null. max_cash_hold 0 = no cap. permissions are kind-based, not Spatie grants; routes do not check them."
         },
         {
             "live": true,
