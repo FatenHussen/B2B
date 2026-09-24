@@ -251,10 +251,15 @@ final class EloquentPricingEngine implements PricingEngine
             ];
         };
 
-        // Catalog: retailer_price ← group_list ← zone_list ← qty_tier ← base_price
-        $apply(PriceListType::Zone);
-        $apply(PriceListType::Group);
-        $apply(PriceListType::Retailer);
+        // Catalog / DOC 4.3.2: stop-at-first-match, most specific wins.
+        // Precedence: retailer_price ← group_list ← zone_list ← qty_tier ← base_price.
+        // Lists do not stack adjustments on top of each other.
+        foreach ([PriceListType::Retailer, PriceListType::Group, PriceListType::Zone] as $type) {
+            $apply($type);
+            if ($rule !== null) {
+                break;
+            }
+        }
 
         return ['unit' => $unit, 'rule' => $rule];
     }

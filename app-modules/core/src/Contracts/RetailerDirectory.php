@@ -74,6 +74,37 @@ interface RetailerDirectory
     public function groupIds(int $retailerId): array;
 
     /**
+     * App users whose shops sit in any of the given zones — channel notification targeting.
+     *
+     * @param  list<int>  $zoneIds
+     * @return list<int>
+     */
+    public function appUserIdsInZones(array $zoneIds): array;
+
+    /**
+     * App users who own the given retailer profiles — notification `targeting.type=retailer`.
+     *
+     * @param  list<int>  $retailerProfileIds
+     * @return list<int>
+     */
+    public function appUserIdsForProfiles(array $retailerProfileIds): array;
+
+    /**
+     * App users whose shops declare one of the given activity types.
+     *
+     * @param  list<int>  $activityTypeIds
+     * @return list<int>
+     */
+    public function appUserIdsByActivityTypes(array $activityTypeIds): array;
+
+    /**
+     * Every retailer app_user id — `targeting.type=all` for a channel broadcast.
+     *
+     * @return list<int>
+     */
+    public function allAppUserIds(): array;
+
+    /**
      * How many retailer shops sit in a zone.
      *
      * For the impact count EP-AD-034 shows before a zone is disabled. It returns a number

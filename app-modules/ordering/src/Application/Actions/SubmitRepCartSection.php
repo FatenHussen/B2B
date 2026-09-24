@@ -114,11 +114,13 @@ final class SubmitRepCartSection
             ]);
             $sub->forceFill(['sub_order_no' => 'SO-'.$sub->id])->save();
 
+            $appliedOfferIds = [];
             foreach ($section->lines as $line) {
                 $lineTotal = (int) $line->line_total;
                 if ($percent > 0) {
                     $lineTotal -= intdiv($lineTotal * $percent, 100);
                 }
+                $offerId = $line->getAttribute('offer_id');
                 SubOrderLine::query()->create([
                     'sub_order_id' => $sub->id,
                     'product_id' => $line->product_id,
@@ -128,14 +130,10 @@ final class SubmitRepCartSection
                     'discount' => $line->discount,
                     'line_total' => $lineTotal,
                     'applied_rule' => $line->applied_rule,
-                    'offer_id' => $line->offer_id,
+                    'offer_id' => $offerId,
                 ]);
-            }
-
-            $appliedOfferIds = [];
-            foreach ($section->lines as $line) {
-                if ($line->offer_id) {
-                    $appliedOfferIds[(int) $line->offer_id] = true;
+                if ($offerId) {
+                    $appliedOfferIds[(int) $offerId] = true;
                 }
             }
             foreach (array_keys($appliedOfferIds) as $offerId) {

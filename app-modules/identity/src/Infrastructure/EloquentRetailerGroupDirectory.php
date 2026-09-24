@@ -9,6 +9,7 @@ use Modules\Core\Contracts\RetailerGroupDirectory;
 use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Models\RetailerGroup;
 use Modules\Identity\Domain\Models\RetailerGroupMember;
+use Modules\Identity\Domain\Models\RetailerProfile;
 
 final class EloquentRetailerGroupDirectory implements RetailerGroupDirectory
 {
@@ -54,5 +55,32 @@ final class EloquentRetailerGroupDirectory implements RetailerGroupDirectory
             ->exists();
 
         return $inPriceLists || $inOffers;
+    }
+
+    public function appUserIdsInGroups(array $groupIds): array
+    {
+        if ($groupIds === []) {
+            return [];
+        }
+
+        $profileIds = RetailerGroupMember::query()
+            ->whereIn('retailer_group_id', $groupIds)
+            ->pluck('retailer_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->all();
+
+        if ($profileIds === []) {
+            return [];
+        }
+
+        return RetailerProfile::query()
+            ->whereKey($profileIds)
+            ->whereNotNull('app_user_id')
+            ->pluck('app_user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 }

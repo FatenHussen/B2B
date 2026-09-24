@@ -1061,6 +1061,8 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 **البند 5 — السلايدرات:** `GET /app/content/home-blocks` ✅ (EP-APP-100) يعيد `banners[]` و`sliders[]`، وكل شريحة `{ key, title, items, show_all }`. اعرض ما يعيده الخادم بعنوانه — إن كانت `items` فارغة **أخفِ الشريحة** ولا تستبدلها بترتيب مختلق. إن كان الرد بلا شرائح أصلاً فارجع للسلوك السابق: سلايدر أفقي من أول عناصر نفس `GET /products` (`defaultSort -created_at` = الأحدث) بعنوان «الأحدث» لا «الأكثر طلباً».
 
+نقر البانر: افتح `link` (`{ type, target }`) **و**أرسل `POST /app/content/banners/{id}/click` 🔁 (EP-APP-101) → `{ "clicks": 841 }`. لا تنتظر الرد لفتح الوجهة، ولا تعرض الرقم للمندوب — هو عدّاد للقناة. بانر ليس لك → 404، تجاهله بصمت.
+
 **البند 7 — كل منتجات المندوب:** قائمة رأسية تحت السلايدرات، صفحات، بطاقة كاملة مع المتغيرات (§7.3).
 
 ### 7.2b تفاصيل المنتج ✅
@@ -2101,6 +2103,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 | EP-CM-062 | DELETE | `/app/notifications` | ✔ | ✅ |
 | EP-CM-063 | POST | `/app/devices/push-token` | ✔ | ✅ |
 | EP-APP-100 | GET | `/app/content/home-blocks` | | ✅ |
+| EP-APP-101 | POST | `/app/content/banners/{id}/click` | ✔ | ✅ |
 | EP-APP-110 | GET | `/app/loyalty` | | ✅ |
 | EP-APP-111 | POST | `/app/loyalty/redeem` | ✔ | ✅ |
 
@@ -2401,7 +2404,8 @@ class Money {
 - ✅ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` حيّة (`plan/apps.md` AP-02…06 ✅). `app-config` للتحديث الإجباري فقط، ليس للانترو.
 - 2026-09-20: الشاشات الست في بلوك المهام مطابقة لموجّه المنتج حرفياً (§7 تسجيل طلب، §8.3 تسليم، §9.2 استلام دفعة، §8.1 قبول، §8.9 مجدولة ببطاقات أفقية وحالة وأيقونة، §8.2 مستودع بجدول تأكيد العهدة).
 - 2026-09-20 (نسخة العميل): `GET /products/{id}` + `variants[]` على القائمة، بطاقة محل كاملة، `GET /customers/{id}`، `GET /zones`، `GET /orders` (`rep_id` عند الإرسال)، السلة بالاسم والقناة، إضافة محل بالعنوان والفئات. OTP مؤجّل كما هو. الإشعارات/الولاء/المزامنة مربوطة بالـ API الحي.
-- 2026-09-24: `flutter-rep.json` صار يشمل المسارات المشتركة الاثني عشر التي كانت غائبة عن **القائمتين** (لا في `endpoints` ولا في `forbidden`) لأن فلتر المولّد لم يكن يشملها: `/app/notifications` (+ read-all · clear · push-token)، `/app/sync/*`، `/app/content/home-blocks`، `/app/loyalty` (+ redeem)، و`GET /public/app-config`. العدّ **61 حيّاً / 6 ممنوعاً**. وصفوف ⛔ الباقية في §10 و§11 و§13 و§14 قُلبت إلى ✅ لتطابق `route:list` و`docs/status/06-shared-app.md`. كذلك `PATCH /app/rep/profile` (EP-RP-073) كان حيّاً والملف يقول «لا مسار».
+- 2026-09-24: `flutter-rep.json` صار يشمل المسارات المشتركة **الثلاثة عشر** التي كانت غائبة عن **القائمتين** (لا في `endpoints` ولا في `forbidden`) لأن فلتر المولّد لم يكن يشملها: `/app/notifications` (+ read-all · clear · push-token)، `/app/sync/*`، `/app/content/home-blocks`، `/app/content/banners/{id}/click`، `/app/loyalty` (+ redeem)، و`GET /public/app-config`. العدّ **62 حيّاً / 6 ممنوعاً**. وصفوف ⛔ الباقية في §10 و§11 و§13 و§14 قُلبت إلى ✅ لتطابق `route:list` و`docs/status/06-shared-app.md`. كذلك `PATCH /app/rep/profile` (EP-RP-073) كان حيّاً والملف يقول «لا مسار»، و`PATCH`/`DELETE /app/rep/cart/lines/{id}` (EP-RP-025/026) حيّان.
+- 2026-09-24 (حارس): المولّد صار يتحقق قبل الكتابة أن كل مسار `/app/*` و`/public/*` في الكتالوج (عدا `/app/retailer/*`، الممنوع بالسابقة كاملة §11.4) يقع في **إحدى** القائمتين بالضبط. يسقط من الاثنتين أو يظهر فيهما → المولّد يفشل ويسمّي المسار ولا يكتب شيئاً. هذا الحارس هو ما أمسك `EP-APP-101` نفسه.
 - هذا الملف يضيف: GetX، موجّه المنتج، زائر، انترو، outbox، علي بابا، PDF محلي، وخريطة صريحة لما بقي (OTP، ميديا، قائمة مرتجعات).
 
 عندما يصل مستودع Flutter: راجع كل شاشة مقابل §15 وهذا الملف، وأكمل الناقص دون اختراع API.

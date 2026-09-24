@@ -16,7 +16,10 @@ interface ChannelOrderMetrics
      *     avg_confirm_time: int,
      *     avg_delivery_time: int,
      *     fill_rate: int,
-     *     retailers: array{active: int, registered: int, new: int}
+     *     retailers: array{active: int, registered: int, new: int},
+     *     charts?: array<string, mixed>,
+     *     alerts?: list<array<string, mixed>>,
+     *     margins?: array{by_product: list<array<string, mixed>>, by_zone: list<array<string, mixed>>}
      * }
      */
     public function snapshot(int $channelId, string $onDate): array;

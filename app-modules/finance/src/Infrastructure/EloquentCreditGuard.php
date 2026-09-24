@@ -23,6 +23,8 @@ final class EloquentCreditGuard implements CreditGuard
                 return;
             }
 
+            // block and manual_approval both refuse confirm (423). manual_approval is
+            // stored for the editor but has no approval queue until a dedicated EP lands.
             $outstanding = (int) Invoice::query()
                 ->where('retailer_id', $retailerId)
                 ->where('status', 'open')

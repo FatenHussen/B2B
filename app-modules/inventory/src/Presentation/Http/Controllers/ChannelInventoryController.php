@@ -11,6 +11,7 @@ use Modules\Inventory\Application\Actions\CreateStockTransfer;
 use Modules\Inventory\Application\Actions\UpsertReorderPoints;
 use Modules\Inventory\Application\Queries\ListStockLevels;
 use Modules\Inventory\Application\Queries\ListStockMovements;
+use Modules\Inventory\Application\Queries\ListStockTransfers;
 use Modules\Inventory\Presentation\Http\Requests\AdjustStockRequest;
 use Modules\Inventory\Presentation\Http\Requests\StoreTransferRequest;
 use Modules\Inventory\Presentation\Http\Requests\UpsertReorderPointsRequest;
@@ -30,6 +31,11 @@ final class ChannelInventoryController extends ApiController
         }
 
         return $this->ok($result);
+    }
+
+    public function transfers(ListStockTransfers $query): JsonResponse
+    {
+        return $this->paginated($query(), fn ($row) => $query->map($row));
     }
 
     public function transfer(StoreTransferRequest $request, CreateStockTransfer $action): JsonResponse

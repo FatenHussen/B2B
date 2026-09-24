@@ -26,6 +26,10 @@ final class UpsertChannelZoneRequest extends ApiFormRequest
             'zone_id' => ['required', 'integer', 'exists:zones,id'],
             'delivery_days' => ['nullable', 'array'],
             'delivery_days.*' => ['string', 'in:sun,mon,tue,wed,thu,fri,sat'],
+            'delivery_windows' => ['nullable', 'array'],
+            'delivery_windows.*.day' => ['required', 'string', 'in:sun,mon,tue,wed,thu,fri,sat'],
+            'delivery_windows.*.start' => ['required', 'date_format:H:i'],
+            'delivery_windows.*.end' => ['required', 'date_format:H:i'],
             'delivery_fee' => ['nullable', 'decimal:0,2', 'min:0'],
             'min_order_value' => ['nullable', 'decimal:0,2', 'min:0'],
         ];

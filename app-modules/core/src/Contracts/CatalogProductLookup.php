@@ -35,7 +35,8 @@ interface CatalogProductLookup
      *     reorder_point: int,
      *     min_order_qty: int,
      *     sale_unit: string|null,
-     *     image: string|null
+     *     image: string|null,
+     *     variant: string|null
      * }|null
      */
     public function snapshot(int $productId, ?int $variantId = null): ?array;
@@ -73,4 +74,26 @@ interface CatalogProductLookup
      * Products a channel holds against its `skus` plan limit (EP-AD-056 `limit_usage`).
      */
     public function countInChannel(int $channelId): int;
+
+    /**
+     * Product cards for a home slider, filtered by the caller's shopping context.
+     *
+     * @param  array{zone_id: int, activity_type_id: int, channel_ids: list<int>}  $shopping
+     * @return list<array{id: int, name: string, image: string|null}>
+     */
+    public function sliderCards(
+        int $channelId,
+        string $source,
+        ?string $sourceRef,
+        ?string $algorithm,
+        int $limit,
+        array $shopping,
+    ): array;
+
+    /**
+     * Active product ids in the same category (excluding self) — picking shortage alternatives.
+     *
+     * @return list<int>
+     */
+    public function alternativesInCategory(int $productId, int $limit = 5): array;
 }

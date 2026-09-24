@@ -120,6 +120,8 @@ Route::middleware(['api', 'auth:channel', 'tenant', SubstituteBindings::class])
     ->prefix('api/v1/channel')
     ->group(function (): void {
         Route::middleware('can:sc.zones.view')->group(function (): void {
+            Route::get('delivery-calendar', [ChannelZoneController::class, 'deliveryCalendar']); // EP-SC-161 — before zones/{id}
+            Route::get('zones/map', [ChannelZoneController::class, 'map']); // EP-SC-163 — before zones/{id}
             Route::get('zones', [ChannelZoneController::class, 'index']);
             Route::post('zones', [ChannelZoneController::class, 'store'])->middleware('can:sc.zones.manage');
             Route::delete('zones/{channelZone}', [ChannelZoneController::class, 'destroy'])->middleware('can:sc.zones.manage');

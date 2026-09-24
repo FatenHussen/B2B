@@ -155,6 +155,35 @@ it('rolls back the transfer row when a later line has no stock', function () {
         ->and(DB::table('stock_transfer_lines')->count())->toBe(0);
 });
 
+it('lists stock transfers with warehouse filter', function () {
+    $channel = SupplyChannel::factory()->create();
+    $from = inventoryBalance($channel->id, 'TRN-LIST', 40);
+    $toWarehouseId = (int) DB::table('warehouses')->insertGetId([
+        'channel_id' => $channel->id,
+        'name' => 'مستودع الهدف',
+        'status' => WarehouseStatus::Active->value,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Sanctum::actingAs(inventoryManager($channel), ['*'], 'channel');
+    $created = $this->postJson('/api/v1/channel/inventory/transfers', [
+        'from_warehouse_id' => $from['warehouse_id'],
+        'to_warehouse_id' => $toWarehouseId,
+        'lines' => [
+            ['product_id' => $from['product_id'], 'qty' => 2],
+        ],
+    ]);
+    $created->assertCreated();
+
+    $list = $this->getJson('/api/v1/channel/inventory/transfers?filter[warehouse_id]='.$from['warehouse_id']);
+    CatalogAssert::ok($list);
+    expect($list->json('data.0.from_warehouse_id'))->toBe($from['warehouse_id'])
+        ->and($list->json('data.0.to_warehouse_id'))->toBe($toWarehouseId)
+        ->and($list->json('data.0.status'))->toBe('sent')
+        ->and($list->json('data.0.lines_count'))->toBe(1);
+});
+
 it('writes reorder points in one transaction', function () {
     $channel = SupplyChannel::factory()->create();
     $row = inventoryBalance($channel->id, 'ROP-1');

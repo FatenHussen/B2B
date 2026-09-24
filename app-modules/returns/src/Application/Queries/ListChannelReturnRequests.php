@@ -28,15 +28,21 @@ final class ListChannelReturnRequests
     }
 
     /**
-     * @return array{id: int, request_no: string, type: string, status: string}
+     * @return array{id: int, request_no: string, type: string, status: string, sla_due_at: string|null, overdue: bool}
      */
     public function map(ReturnRequest $row): array
     {
+        $due = $row->sla_due_at;
+        $open = in_array((string) $row->status, ['pending', 'approved'], true);
+        $overdue = $open && $due !== null && $due->lt(now());
+
         return [
             'id' => (int) $row->id,
             'request_no' => (string) $row->request_no,
             'type' => (string) $row->type,
             'status' => (string) $row->status,
+            'sla_due_at' => $due?->timezone('Asia/Damascus')->toIso8601String(),
+            'overdue' => $overdue,
         ];
     }
 }

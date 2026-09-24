@@ -1,10 +1,10 @@
 # لوحة قناة التوريد — حالة الواجهات
 
-guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 2026-09-24 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 100 | 100 | 0 | 0 | 0 |
+| 121 | 121 | 0 | 0 | 0 |
 
 ## الدخول — 2/2
 
@@ -40,11 +40,12 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-020 | SP-06 | `GET` | `/channel/catalog/export` | `sc.catalog.view` | Catalog | تصدير الكتالوج |
 | ✅ | EP-SC-031 | SP-07 | `PUT` | `/channel/products/{id}/pricing` | `sc.pricing.update` | Pricing | تسعير منتج |
 
-## المندوبون — 12/12
+## المندوبون — 14/14
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-SC-075 | SP-06 | `GET` | `/channel/reps` | `sc.reps.view` | Identity | قائمة المندوبين |
+| ✅ | EP-SC-075A | SP-06 | `GET` | `/channel/reps/{id}/live` | `sc.reps.view` | Identity | موقع المندوب الحي |
 | ✅ | EP-SC-076 | SP-06 | `GET` | `/channel/reps/{id}` | `sc.reps.view` | Identity | بطاقة مندوب |
 | ✅ | EP-SC-077 | SP-06 | `POST` | `/channel/reps/{id}/approve` | `sc.reps.update` | Identity | اعتماد مندوب |
 | ✅ | EP-SC-078 | SP-06 | `POST` | `/channel/reps/{id}/reject` | `sc.reps.update` | Identity | رفض مندوب |
@@ -53,6 +54,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-089 | SP-06 | `POST` | `/channel/rep-zone-requests/{id}/decide` | `sc.reps.update` | Identity | قرار طلب منطقة مندوب |
 | ✅ | EP-SC-093A | SP-06 | `GET` | `/channel/rep-sourced-shops` | `sc.reps.view` | Identity | محلات سجّلها المندوب |
 | ✅ | EP-SC-093B | SP-06 | `POST` | `/channel/rep-sourced-shops/{id}/decide` | `sc.reps.update` | Identity | قرار محل مندوب |
+| ✅ | EP-SC-160 | SP-06 | `GET` | `/channel/reps/live` | `sc.reps.track` | Identity | خريطة المندوبين المباشرين |
 | ✅ | EP-SC-035 | SP-07 | `PUT` | `/channel/reps/{id}/discount-cap` | `sc.reps.update` | Pricing | سقف خصم المندوب |
 | ✅ | EP-SC-084 | SP-13 | `POST` | `/channel/reps/{id}/settle` | `sc.reps.settle` | Finance | تسوية عهدة المندوب |
 | ✅ | EP-SC-087 | SP-13 | `GET` | `/channel/reps/{id}/wallet` | `sc.reps.wallet` | Finance | محفظة المندوب |
@@ -67,22 +69,26 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-033 | SP-07 | `POST` | `/channel/pricing/bulk-update` | `sc.pricing.update` | Pricing | تحديث أسعار جماعي |
 | ✅ | EP-SC-034 | SP-07 | `GET` | `/channel/pricing/change-log` | `sc.pricing.view` | Pricing | سجل تغيير الأسعار |
 
-## العروض — 4/4
+## العروض — 7/7
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-SC-040A | SP-08 | `GET` | `/channel/offers` | `sc.offers.view` | Promotion | العروض |
 | ✅ | EP-SC-040B | SP-08 | `POST` | `/channel/offers` | `sc.offers.create` | Promotion | إنشاء عرض |
+| ✅ | EP-SC-040C | SP-08 | `GET` | `/channel/offers/{id}` | `sc.offers.view` | Promotion | تفاصيل عرض |
+| ✅ | EP-SC-040D | SP-08 | `PUT` | `/channel/offers/{id}` | `sc.offers.create` | Promotion | تعديل عرض |
 | ✅ | EP-SC-041 | SP-08 | `PATCH` | `/channel/offers/{id}/stop` | `sc.offers.stop` | Promotion | إيقاف عرض |
+| ✅ | EP-SC-041A | SP-08 | `PATCH` | `/channel/offers/{id}/activate` | `sc.offers.create` | Promotion | تفعيل عرض |
 | ✅ | EP-SC-042 | SP-08 | `GET` | `/channel/offers/{id}/performance` | `sc.offers.view` | Promotion | أداء العرض |
 
-## المخزون — 5/5
+## المخزون — 6/6
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-SC-050 | SP-09 | `GET` | `/channel/inventory/levels` | `sc.inventory.view` | Inventory | أرصدة المخزون |
 | ✅ | EP-SC-051 | SP-09 | `POST` | `/channel/inventory/adjust` | `sc.inventory.adjust` | Inventory | تسوية مخزون |
 | ✅ | EP-SC-052 | SP-09 | `POST` | `/channel/inventory/transfers` | `sc.inventory.transfer` | Inventory | تحويل مخزون |
+| ✅ | EP-SC-052A | SP-09 | `GET` | `/channel/inventory/transfers` | `sc.inventory.transfer` | Inventory | تحويلات المخزون |
 | ✅ | EP-SC-053 | SP-09 | `GET` | `/channel/inventory/movements` | `sc.inventory.view` | Inventory | حركة المخزون |
 | ✅ | EP-SC-054 | SP-09 | `PUT` | `/channel/inventory/reorder-points` | `sc.inventory.reorder` | Inventory | نقاط إعادة الطلب |
 
@@ -101,14 +107,15 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-068 | SP-10 | `POST` | `/channel/sub-orders/{id}/schedule` | `sc.orders.schedule` | Ordering | جدولة طلب |
 | ✅ | EP-SC-069 | SP-10 | `POST` | `/channel/sub-orders/{id}/cancel` | `sc.orders.cancel` | Ordering | إلغاء طلب |
 
-## المرتجعات — 2/2
+## المرتجعات — 3/3
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-SC-070 | SP-12 | `GET` | `/channel/return-requests` | `sc.returns.view` | Returns | طلبات الإرجاع |
 | ✅ | EP-SC-071 | SP-12 | `POST` | `/channel/return-requests/{id}/decide` | `sc.returns.decide` | Returns | قرار الإرجاع |
+| ✅ | EP-SC-162 | SP-12 | `POST` | `/channel/return-requests/{id}/escalate` | `sc.returns.decide` | Returns | تصعيد مرتجع متأخر |
 
-## المالية — 8/8
+## المالية — 10/10
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -120,6 +127,8 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-085 | SP-13 | `GET` | `/channel/finance/aging` | `sc.finance.aging` | Finance | أعمار الذمم |
 | ✅ | EP-SC-086 | SP-13 | `PUT` | `/channel/retailers/{id}/credit` | `sc.retailers.credit` | Finance | سقف ائتمان التاجر |
 | ✅ | EP-SC-140 | SP-13 | `GET` | `/channel/retailers` | `sc.retailers.view` | Identity | تجّار التغطية |
+| ✅ | EP-SC-140A | SP-13 | `GET` | `/channel/retailers/{id}` | `sc.retailers.view` | Identity | ملف التاجر |
+| ✅ | EP-SC-164 | SP-13 | `GET` | `/channel/retailers/{id}` | `sc.retailers.view` | Identity | بطاقة التاجر الموسّعة |
 
 ## الإشعارات — 4/4
 
@@ -130,7 +139,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-091B | SP-14 | `PUT` | `/channel/notifications/templates` | `sc.notify.templates` | Notification | تحديث قالب إشعار |
 | ✅ | EP-SC-092 | SP-14 | `GET` | `/channel/notifications/log` | `sc.notify.view` | Notification | سجل الإشعارات |
 
-## المحتوى والولاء — 11/11
+## المحتوى والولاء — 17/17
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -138,13 +147,19 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-100B | SP-15 | `PUT` | `/channel/content/intro` | `sc.content.intro` | Content | تحديث الانترو |
 | ✅ | EP-SC-101A | SP-15 | `GET` | `/channel/content/banners` | `sc.content.banners` | Content | البنرات |
 | ✅ | EP-SC-101B | SP-15 | `POST` | `/channel/content/banners` | `sc.content.banners` | Content | إنشاء بنر |
+| ✅ | EP-SC-101C | SP-15 | `PUT` | `/channel/content/banners/{id}` | `sc.content.banners` | Content | تعديل بنر |
+| ✅ | EP-SC-101D | SP-15 | `DELETE` | `/channel/content/banners/{id}` | `sc.content.banners` | Content | حذف بنر |
 | ✅ | EP-SC-102 | SP-15 | `GET` | `/channel/content/banners/{id}/stats` | `sc.content.banners` | Content | إحصاء البنر |
 | ✅ | EP-SC-103A | SP-15 | `GET` | `/channel/content/sliders` | `sc.content.sliders` | Content | الساليدرات |
 | ✅ | EP-SC-103B | SP-15 | `POST` | `/channel/content/sliders` | `sc.content.sliders` | Content | إنشاء ساليدر |
+| ✅ | EP-SC-103C | SP-15 | `PUT` | `/channel/content/sliders/{id}` | `sc.content.sliders` | Content | تعديل ساليدر |
+| ✅ | EP-SC-103D | SP-15 | `DELETE` | `/channel/content/sliders/{id}` | `sc.content.sliders` | Content | حذف ساليدر |
 | ✅ | EP-SC-110A | SP-15 | `GET` | `/channel/loyalty/rules` | `sc.loyalty.manage` | Loyalty | قواعد النقاط |
 | ✅ | EP-SC-110B | SP-15 | `PUT` | `/channel/loyalty/rules` | `sc.loyalty.manage` | Loyalty | تحديث قواعد النقاط |
 | ✅ | EP-SC-111A | SP-15 | `GET` | `/channel/loyalty/rewards` | `sc.loyalty.manage` | Loyalty | المكافآت |
 | ✅ | EP-SC-111B | SP-15 | `POST` | `/channel/loyalty/rewards` | `sc.loyalty.manage` | Loyalty | إنشاء مكافأة |
+| ✅ | EP-SC-111C | SP-15 | `PUT` | `/channel/loyalty/rewards/{id}` | `sc.loyalty.manage` | Loyalty | تعديل مكافأة |
+| ✅ | EP-SC-111D | SP-15 | `PATCH` | `/channel/loyalty/rewards/{id}/stop` | `sc.loyalty.manage` | Loyalty | إيقاف مكافأة |
 
 ## لوحة القيادة والتقارير — 4/4
 
@@ -155,24 +170,30 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-122 | SP-16 | `POST` | `/channel/reports/{type}/export` | `sc.reports.export` | Reporting | تصدير تقرير |
 | ✅ | EP-SC-123 | SP-16 | `GET` | `/channel/reports/margins` | `sc.reports.margins` | Reporting | تقرير الهوامش |
 
-## إعدادات القناة والمناطق — 5/5
+## إعدادات القناة والمناطق — 7/7
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-SC-131A | SP-03 | `GET` | `/channel/zones` | `sc.zones.view` | Reference | مناطق تغطية القناة |
 | ✅ | EP-SC-131B | SP-03 | `POST` | `/channel/zones` | `sc.zones.manage` | Reference | إضافة/تحديث تغطية منطقة |
 | ✅ | EP-SC-131C | SP-03 | `DELETE` | `/channel/zones/{id}` | `sc.zones.manage` | Reference | حذف تغطية منطقة |
+| ✅ | EP-SC-131D | SP-03 | `GET` | `/channel/zones/coverage` | `sc.zones.view` | Identity | فجوات تغطية المناطق |
+| ✅ | EP-SC-163 | SP-03 | `GET` | `/channel/zones/map` | `sc.zones.view` | Reference | خريطة المناطق بالمضلعات |
 | ✅ | EP-SC-130A | SP-15 | `GET` | `/channel` | `sc.settings.view` | Tenancy | إعدادات القناة |
 | ✅ | EP-SC-130B | SP-15 | `PUT` | `/channel` | `sc.settings.update` | Tenancy | تحديث إعدادات القناة |
 
-## أخرى — 6/6
+## أخرى — 10/10
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
+| ✅ | EP-SC-161 | SP-03 | `GET` | `/channel/delivery-calendar` | `sc.zones.view` | Reference | تقويم التوصيل الأسبوعي |
 | ✅ | EP-SC-021 | SP-06 | `POST` | `/channel/media/upload` | `sc.catalog.create` | Catalog | رفع وسائط |
 | ✅ | EP-SC-141 | SP-09 | `GET` | `/channel/warehouses` | `sc.inventory.view` | Tenancy | مستودعات القناة |
 | ✅ | EP-SC-142A | SP-13 | `GET` | `/channel/retailer-groups` | `sc.retailers.groups` | Identity | مجموعات التجار |
 | ✅ | EP-SC-142B | SP-13 | `POST` | `/channel/retailer-groups` | `sc.retailers.groups` | Identity | إنشاء مجموعة تجار |
 | ✅ | EP-SC-142C | SP-13 | `PUT` | `/channel/retailer-groups/{id}` | `sc.retailers.groups` | Identity | تعديل مجموعة تجار |
 | ✅ | EP-SC-142D | SP-13 | `DELETE` | `/channel/retailer-groups/{id}` | `sc.retailers.groups` | Identity | حذف مجموعة تجار |
+| ✅ | EP-SC-150A | SP-15 | `GET` | `/channel/users` | `sc.iam.users_view` | Identity | مستخدمو القناة |
+| ✅ | EP-SC-150B | SP-15 | `POST` | `/channel/users/invite` | `sc.iam.users_manage` | Identity | دعوة مستخدم قناة |
+| ✅ | EP-SC-124 | SP-16 | `GET` | `/channel/jobs/{id}` | `sc.reports.view` | Reporting | حالة مهمة |
 

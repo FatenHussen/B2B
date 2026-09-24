@@ -35,7 +35,8 @@ it('queues a channel notification and lists it on the log', function () {
 
     $log = $this->getJson('/api/v1/channel/notifications/log');
     CatalogAssert::ok($log);
-    expect($log->json('data.0.status'))->toBe('queued');
+    // Sync queue delivers immediately; targeting zone 12 has no shops → sent with null recipient.
+    expect($log->json('data.0.status'))->toBe('sent');
 });
 
 it('upserts a notification template', function () {

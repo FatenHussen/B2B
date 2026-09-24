@@ -144,14 +144,15 @@ final class OtpService
     }
 
     /**
-     * `otp.bypass` turns verification off for development: nothing is sent, nothing
-     * is checked, and the verify requests stop validating the code's shape. It never
-     * applies in production: a login that accepts every code is not a login, and an
-     * env file copied from staging must not be able to switch it on.
+     * `otp.bypass` turns verification off for local/testing only: nothing is sent,
+     * nothing is checked, and the verify requests stop validating the code's shape.
+     * Staging and production ignore the flag — a launch host with APP_ENV=staging
+     * must not accept every code (see docs/debt-ledger.md OTP row).
      */
     public static function bypassed(): bool
     {
-        return (bool) config('otp.bypass', false) && ! app()->isProduction();
+        return (bool) config('otp.bypass', false)
+            && in_array(app()->environment(), ['local', 'testing'], true);
     }
 
     private function send(string $phone, string $code, OtpPurpose $purpose, OtpChannelUsed $prefer): OtpChannelUsed

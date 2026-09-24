@@ -8,6 +8,8 @@ use Illuminate\Support\Carbon;
 use Modules\Content\Domain\Models\Banner;
 use Modules\Content\Domain\Models\HomeBlock;
 use Modules\Content\Domain\Models\Slider;
+use Modules\Core\Contracts\CatalogProductLookup;
+use Modules\Core\Contracts\OfferFeed;
 use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerShoppingContext;
 
@@ -16,6 +18,8 @@ final class ListHomeBlocks
     public function __construct(
         private readonly RetailerShoppingContext $shopping,
         private readonly RepSellingContext $selling,
+        private readonly CatalogProductLookup $products,
+        private readonly OfferFeed $offers,
     ) {}
 
     /**
@@ -27,6 +31,12 @@ final class ListHomeBlocks
         if ($channelIds === []) {
             return ['banners' => [], 'sliders' => []];
         }
+
+        $shopping = [
+            'zone_id' => $zoneId,
+            'activity_type_id' => $activityTypeId,
+            'channel_ids' => $channelIds,
+        ];
 
         $now = now();
         $banners = [];
@@ -85,6 +95,7 @@ final class ListHomeBlocks
                 'image' => $row->media_id,
                 'link' => $row->link,
             ];
+            $row->increment('impressions');
         }
 
         // Same lift as banners — Slider is strict and this route has no tenant.
@@ -103,12 +114,39 @@ final class ListHomeBlocks
             $sliders[] = [
                 'key' => $row->algorithm ?: $row->source,
                 'title' => $row->name,
-                'items' => [],
+                'items' => $this->sliderItems($row, $shopping),
                 'show_all' => (bool) $row->show_all_button,
             ];
         }
 
         return ['banners' => $banners, 'sliders' => $sliders];
+    }
+
+    /**
+     * @param  array{zone_id: int, activity_type_id: int, channel_ids: list<int>}  $shopping
+     * @return list<array<string, mixed>>
+     */
+    private function sliderItems(Slider $row, array $shopping): array
+    {
+        $limit = max(1, (int) $row->items_count);
+        $channelId = (int) $row->supply_channel_id;
+
+        if ($row->source === 'offers') {
+            return $this->offers->sliderFor(
+                $shopping['zone_id'],
+                $shopping['activity_type_id'],
+                [$channelId],
+            );
+        }
+
+        return $this->products->sliderCards(
+            $channelId,
+            (string) $row->source,
+            $row->source_ref,
+            $row->algorithm,
+            $limit,
+            $shopping,
+        );
     }
 
     /**

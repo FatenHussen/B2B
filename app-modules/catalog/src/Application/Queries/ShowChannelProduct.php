@@ -17,6 +17,8 @@ use Modules\Catalog\Domain\Models\ProductVariantAxis;
 use Modules\Catalog\Domain\Models\ProductZone;
 use Modules\Core\Contracts\PricingEngine;
 use Modules\Core\Contracts\ProductPricingReader;
+use Modules\Core\Contracts\StockLedger;
+use Modules\Core\Contracts\WarehouseDirectory;
 use Modules\Core\Domain\Enums\ErrorCode;
 use Modules\Core\Domain\Exceptions\DomainException;
 
@@ -25,6 +27,8 @@ final class ShowChannelProduct
     public function __construct(
         private readonly ProductPricingReader $pricing,
         private readonly PricingEngine $engine,
+        private readonly StockLedger $ledger,
+        private readonly WarehouseDirectory $warehouses,
     ) {}
 
     /**
@@ -69,11 +73,13 @@ final class ShowChannelProduct
             ])
             ->all();
 
+        $warehouseId = $this->warehouses->defaultIdForChannel((int) $product->supply_channel_id);
+
         $variants = ProductVariant::query()
             ->where('product_id', $product->id)
             ->orderBy('id')
             ->get()
-            ->map(function (ProductVariant $v) use ($product): array {
+            ->map(function (ProductVariant $v) use ($product, $warehouseId): array {
                 $priceQuote = $this->engine->quoteLine(
                     (int) $product->id,
                     1,
@@ -84,6 +90,15 @@ final class ShowChannelProduct
                     (int) $v->id,
                 );
 
+                $stock = 0;
+                if ($warehouseId !== null) {
+                    $stock = $this->ledger->available(
+                        $warehouseId,
+                        (int) $product->id,
+                        (int) $v->id,
+                    );
+                }
+
                 return [
                     'id' => (int) $v->id,
                     'sku' => (string) $v->sku,
@@ -93,7 +108,7 @@ final class ShowChannelProduct
                     'status' => (string) $v->status,
                     'price_override' => $v->price_override !== null ? (int) $v->price_override : null,
                     'price' => $priceQuote['unit_price'],
-                    'stock' => 0,
+                    'stock' => $stock,
                 ];
             })
             ->all();

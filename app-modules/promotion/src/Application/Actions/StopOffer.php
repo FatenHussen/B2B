@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Promotion\Application\Actions;
 
 use Modules\Core\Contracts\RecordsAudit;
+use Modules\Core\Domain\Enums\ErrorCode;
+use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\Tenant;
 use Modules\Promotion\Domain\Enums\OfferStatus;
 use Modules\Promotion\Domain\Models\Offer;
@@ -23,6 +25,10 @@ final class StopOffer
         $offer = Offer::query()->find($id);
         if ($offer === null) {
             throw new NotFoundHttpException;
+        }
+
+        if (in_array($offer->status, [OfferStatus::Stopped, OfferStatus::Expired], true)) {
+            throw DomainException::of(ErrorCode::IllegalTransition, __('promotion.illegal_transition'));
         }
 
         $offer->forceFill([

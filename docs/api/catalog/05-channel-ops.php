@@ -42,6 +42,20 @@ return [
         'r' => ['id' => 55, 'status' => 'sent'],
         'd' => 'Statuses: sent then received.',
     ]),
+    ep('EP-SC-052A', 'SP-09', 'GET', '/channel/inventory/transfers', 'channel', 'sc.inventory.transfer', [
+        'name' => 'List transfers',
+        'name_ar' => 'تحويلات المخزون',
+        'q' => listQuery(['filter[status]' => 'sent', 'filter[warehouse_id]' => '1']),
+        'r' => [[
+            'id' => 55,
+            'from_warehouse_id' => 1,
+            'to_warehouse_id' => 2,
+            'status' => 'sent',
+            'lines_count' => 1,
+            'created_at' => '2026-03-01T09:00:00+03:00',
+        ]],
+        'd' => 'filter[warehouse_id] matches from or to. Paginated.',
+    ]),
     ep('EP-SC-053', 'SP-09', 'GET', '/channel/inventory/movements', 'channel', 'sc.inventory.view', [
         'name' => 'Inventory movements',
         'name_ar' => 'حركة المخزون',
@@ -127,7 +141,7 @@ return [
         ],
         'r' => ['assigned' => [9001]],
         'e' => [422 => 'validation_failed'],
-        'd' => 'mode: manual|auto|bulk_zone. 422 if rep is off-duty or outside zones (BR-19).',
+        'd' => 'mode: manual|auto|bulk_zone. auto picks the first on-duty rep covering the sub-order zone; bulk_zone assigns every confirmed/postponed sub-order in zone_id (or the first id\'s zone) to rep_id or that on-duty rep. 422 if no on-duty rep covers the zone (BR-19).',
         'in' => 'REQ-IN-03',
     ]),
     ep('EP-SC-067', 'SP-10', 'POST', '/channel/sub-orders/{id}/reassign', 'channel', 'sc.orders.reassign', [
@@ -164,7 +178,15 @@ return [
             'filter[rep_id]' => '70',
             'filter[zone_id]' => '12',
         ]),
-        'r' => [['id' => 200, 'request_no' => 'RR-200', 'type' => 'return', 'status' => 'pending']],
+        'r' => [[
+            'id' => 200,
+            'request_no' => 'RR-200',
+            'type' => 'return',
+            'status' => 'pending',
+            'sla_due_at' => '2026-03-02T12:00:00+03:00',
+            'overdue' => false,
+        ]],
+        'd' => 'sla_due_at set on create from channel settings.returns_sla_hours (default 24). overdue when pending/approved and sla_due_at < now.',
         'in' => 'REQ-IN-04',
     ]),
     ep('EP-SC-071', 'SP-12', 'POST', '/channel/return-requests/{id}/decide', 'channel', 'sc.returns.decide', [
@@ -174,6 +196,13 @@ return [
         'r' => ['status' => 'approved'],
         'd' => 'Financial and stock impact per BR-13. decision: approve|reject.',
         'in' => 'REQ-IN-04',
+    ]),
+    ep('EP-SC-162', 'SP-12', 'POST', '/channel/return-requests/{id}/escalate', 'channel', 'sc.returns.decide', [
+        'name' => 'Escalate overdue return SLA',
+        'name_ar' => 'تصعيد مرتجع متأخر',
+        'b' => ['message' => 'تجاوز SLA'],
+        'r' => ['id' => 1, 'overdue' => true, 'escalated_at' => '2026-09-24T12:00:00+03:00', 'notified' => true],
+        'd' => 'Only open+overdue return requests. Records audit and notifies channel managers via inbox/notification path.',
     ]),
 
     ep('EP-SC-075', 'SP-06', 'GET', '/channel/reps', 'channel', 'sc.reps.view', [
@@ -318,7 +347,7 @@ return [
             'on_exceed' => 'block',
         ],
         'r' => ['retailer_id' => 481, 'credit_limit' => 500000, 'on_exceed' => 'block'],
-        'd' => 'on_exceed: warn|block|manual_approval. Confirm may return 423 credit_limit_exceeded.',
+        'd' => 'on_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.',
     ]),
     ep('EP-SC-087', 'SP-13', 'GET', '/channel/reps/{id}/wallet', 'channel', 'sc.reps.wallet', [
         'name' => 'Rep wallet (channel read)',
@@ -458,6 +487,29 @@ return [
         ],
         'r' => ['id' => 9],
     ]),
+    ep('EP-SC-101C', 'SP-15', 'PUT', '/channel/content/banners/{id}', 'channel', 'sc.content.banners', [
+        'name' => 'Update banner',
+        'name_ar' => 'تعديل بنر',
+        'b' => [
+            'media_type' => 'image',
+            'media_id' => '42',
+            'link' => ['type' => 'offer', 'target' => 44],
+            'placements' => ['home_top'],
+            'targeting' => ['activity_type_ids' => [3], 'zone_ids' => [12]],
+            'starts_at' => '2026-03-01T00:00:00+03:00',
+            'ends_at' => '2026-03-31T23:59:59+03:00',
+            'order' => 1,
+            'weight' => 10,
+        ],
+        'r' => ['id' => 9],
+        'e' => [404 => 'not_found'],
+    ]),
+    ep('EP-SC-101D', 'SP-15', 'DELETE', '/channel/content/banners/{id}', 'channel', 'sc.content.banners', [
+        'name' => 'Delete banner',
+        'name_ar' => 'حذف بنر',
+        'r' => ['deleted' => true],
+        'e' => [404 => 'not_found'],
+    ]),
     ep('EP-SC-102', 'SP-15', 'GET', '/channel/content/banners/{id}/stats', 'channel', 'sc.content.banners', [
         'name' => 'Banner stats',
         'name_ar' => 'إحصاء البنر',
@@ -484,6 +536,28 @@ return [
         ],
         'r' => ['id' => 4],
         'd' => 'source: manual|brand|category|offers|algorithm. algorithm: new_arrivals|best_selling|most_ordered_by_retailer|suggested|similar|same_brand.',
+    ]),
+    ep('EP-SC-103C', 'SP-15', 'PUT', '/channel/content/sliders/{id}', 'channel', 'sc.content.sliders', [
+        'name' => 'Update slider',
+        'name_ar' => 'تعديل ساليدر',
+        'b' => [
+            'name' => 'الأكثر مبيعاً',
+            'source' => 'algorithm',
+            'source_ref' => null,
+            'algorithm' => 'best_selling',
+            'placements' => ['home'],
+            'items_count' => 12,
+            'show_all_button' => true,
+            'targeting' => ['activity_type_ids' => [3]],
+        ],
+        'r' => ['id' => 4],
+        'e' => [404 => 'not_found'],
+    ]),
+    ep('EP-SC-103D', 'SP-15', 'DELETE', '/channel/content/sliders/{id}', 'channel', 'sc.content.sliders', [
+        'name' => 'Delete slider',
+        'name_ar' => 'حذف ساليدر',
+        'r' => ['deleted' => true],
+        'e' => [404 => 'not_found'],
     ]),
 
     ep('EP-SC-110A', 'SP-15', 'GET', '/channel/loyalty/rules', 'channel', 'sc.loyalty.manage', [
@@ -520,6 +594,21 @@ return [
         'name_ar' => 'إنشاء مكافأة',
         'b' => ['name' => 'كرتون زيت', 'points_cost' => 2000, 'stock' => 40, 'expires_at' => '2026-12-31'],
         'r' => ['id' => 3],
+    ]),
+    ep('EP-SC-111C', 'SP-15', 'PUT', '/channel/loyalty/rewards/{id}', 'channel', 'sc.loyalty.manage', [
+        'name' => 'Update reward',
+        'name_ar' => 'تعديل مكافأة',
+        'b' => ['name' => 'كرتون زيت', 'points_cost' => 1800, 'stock' => 35, 'expires_at' => '2026-12-31'],
+        'r' => ['id' => 3],
+        'e' => [404 => 'not_found', 409 => 'illegal_transition'],
+        'd' => 'Stopped rewards → 409.',
+    ]),
+    ep('EP-SC-111D', 'SP-15', 'PATCH', '/channel/loyalty/rewards/{id}/stop', 'channel', 'sc.loyalty.manage', [
+        'name' => 'Stop reward',
+        'name_ar' => 'إيقاف مكافأة',
+        'b' => ['reason' => 'نفاد المخزون'],
+        'r' => ['status' => 'stopped'],
+        'e' => [404 => 'not_found', 409 => 'illegal_transition'],
     ]),
 
     ep('EP-SC-120', 'SP-16', 'GET', '/channel/dashboard', 'channel', 'sc.dashboard.view', [
@@ -568,6 +657,22 @@ return [
         'r' => ['by_product' => [], 'by_zone' => []],
         'crit' => true,
     ]),
+    ep('EP-SC-124', 'SP-16', 'GET', '/channel/jobs/{id}', 'channel', 'sc.reports.view', [
+        'name' => 'Job status',
+        'name_ar' => 'حالة مهمة',
+        'r' => [
+            'id' => 'job_rep_exp_1',
+            'type' => 'report_export',
+            'status' => 'done',
+            'progress' => 100,
+            'result' => ['download_url' => 'https://cdn.example/exports/rep.xlsx'],
+            'error' => null,
+            'created_at' => '2026-03-01T09:00:00+03:00',
+            'finished_at' => '2026-03-01T09:00:12+03:00',
+        ],
+        'e' => [404 => 'not_found'],
+        'd' => 'type ∈ catalog_export|catalog_import|report_export|price_list_schedule. status ∈ queued|running|done|failed. progress 0–100. Channel-scoped; foreign job → 404.',
+    ]),
 
     // Previously live outside the catalog (status "حيّ خارج الكتالوج"). Contract commit.
     ep('EP-SC-130A', 'SP-15', 'GET', '/channel', 'channel', 'sc.settings.view', [
@@ -597,7 +702,11 @@ return [
             'tax_number' => '123456789',
             'phone' => '+963911000001',
             'email' => 'ops@alnoor.example',
-            'settings' => ['locale' => 'ar'],
+            'settings' => [
+                'locale' => 'ar',
+                'quiet_hours' => ['start' => '22:00', 'end' => '08:00', 'timezone' => 'Asia/Damascus'],
+                'returns_sla_hours' => 24,
+            ],
         ],
         'r' => [
             'id' => 1,
@@ -609,10 +718,14 @@ return [
             'email' => 'ops@alnoor.example',
             'status' => 'active',
             'allowed_next' => ['suspended', 'archived'],
-            'settings' => ['locale' => 'ar'],
+            'settings' => [
+                'locale' => 'ar',
+                'quiet_hours' => ['start' => '22:00', 'end' => '08:00', 'timezone' => 'Asia/Damascus'],
+                'returns_sla_hours' => 24,
+            ],
             'created_at' => '2026-01-01T00:00:00+03:00',
         ],
-        'd' => 'Partial update. status is not writable here — lifecycle stays on the platform.',
+        'd' => 'Partial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create.',
     ]),
     ep('EP-SC-131A', 'SP-03', 'GET', '/channel/zones', 'channel', 'sc.zones.view', [
         'name' => 'Channel coverage zones',
@@ -633,6 +746,7 @@ return [
         'b' => [
             'zone_id' => 12,
             'delivery_days' => ['sun', 'tue', 'thu'],
+            'delivery_windows' => [['day' => 'sun', 'start' => '09:00', 'end' => '17:00']],
             'delivery_fee' => '50000.00',
             'min_order_value' => '100000.00',
         ],
@@ -644,7 +758,7 @@ return [
             'delivery_fee' => '50000.00',
             'min_order_value' => '100000.00',
         ],
-        'd' => 'updateOrCreate on zone_id within the tenant.',
+        'd' => 'updateOrCreate on zone_id within the tenant. Optional delivery_windows: array of {day ∈ sun…sat, start/end H:i}.',
     ]),
     ep('EP-SC-131C', 'SP-03', 'DELETE', '/channel/zones/{id}', 'channel', 'sc.zones.manage', [
         'name' => 'Remove coverage zone',
@@ -665,6 +779,84 @@ return [
             'status' => 'active',
         ]],
         'd' => 'Retailers whose zone is in this channel coverage. Id is retailer_profile id for credit/payments.',
+    ]),
+    ep('EP-SC-164', 'SP-13', 'GET', '/channel/retailers/{id}', 'channel', 'sc.retailers.view', [
+        'name' => 'Retailer 360 (rich)',
+        'name_ar' => 'بطاقة التاجر الموسّعة',
+        'r' => [
+            'id' => 481,
+            'shop_name' => 'بقالية النور',
+            'phone' => '+963931000002',
+            'zone_id' => 12,
+            'activity_type_id' => 3,
+            'status' => 'active',
+            'credit' => ['credit_limit' => 500000, 'grace_days' => 7, 'on_exceed' => 'block'],
+            'outstanding' => 120000,
+            'groups' => [['id' => 1, 'name' => 'VIP']],
+            'assigned_rep_ids' => [70],
+            'last_order_at' => '2026-09-20T10:00:00+03:00',
+            'recent_orders' => [['id' => 9001, 'sub_order_no' => 'SO-9001', 'status' => 'delivered', 'total' => 120000]],
+            'top_products' => [['product_id' => 880, 'name' => 'زيت', 'qty' => 40]],
+        ],
+        'e' => [404 => 'not_found'],
+        'd' => 'Same handler as EP-SC-140A; richer fields (outstanding, groups, assigned_rep_ids, last_order_at). Duplicate path for status tracking — OpenAPI operationId is EP-SC-164 (later code wins).',
+    ]),
+    ep('EP-SC-140A', 'SP-13', 'GET', '/channel/retailers/{id}', 'channel', 'sc.retailers.view', [
+        'name' => 'Retailer 360',
+        'name_ar' => 'ملف التاجر',
+        'r' => [
+            'id' => 481,
+            'shop_name' => 'بقالية النور',
+            'phone' => '+963931000002',
+            'zone_id' => 12,
+            'activity_type_id' => 3,
+            'status' => 'active',
+            'credit' => ['credit_limit' => 500000, 'grace_days' => 7, 'on_exceed' => 'block'],
+            'outstanding' => 120000,
+            'groups' => [['id' => 1, 'name' => 'VIP']],
+            'assigned_rep_ids' => [70],
+            'last_order_at' => '2026-09-20T10:00:00+03:00',
+            'recent_orders' => [['id' => 9001, 'sub_order_no' => 'SO-9001', 'status' => 'delivered', 'total' => 120000]],
+            'top_products' => [['product_id' => 880, 'name' => 'زيت', 'qty' => 40]],
+        ],
+        'e' => [404 => 'not_found'],
+        'd' => 'Coverage-scoped. Foreign or out-of-coverage id → 404. credit/outstanding from finance; groups + assigned_rep_ids from identity; recent_orders/top_products/last_order_at via ordering contract. Richer fields also tracked as EP-SC-164 on this same path.',
+    ]),
+    ep('EP-SC-075A', 'SP-06', 'GET', '/channel/reps/{id}/live', 'channel', 'sc.reps.view', [
+        'name' => 'Rep live location',
+        'name_ar' => 'موقع المندوب الحي',
+        'r' => ['lat' => 33.51, 'lng' => 36.29, 'at' => '2026-03-01T10:00:00+03:00', 'on_duty' => true],
+        'e' => [404 => 'not_found'],
+        'd' => 'Latest RepLocationPing for a rep on this channel. No ping → lat/lng/at null, on_duty still reported.',
+    ]),
+    ep('EP-SC-131D', 'SP-03', 'GET', '/channel/zones/coverage', 'channel', 'sc.zones.view', [
+        'name' => 'Zone coverage gaps',
+        'name_ar' => 'فجوات تغطية المناطق',
+        'r' => [
+            'without_reps' => [15],
+            'without_warehouse' => [],
+        ],
+        'd' => 'Channel coverage zones with zero active reps, and zones with no default warehouse for the channel (all coverage zones when default warehouse is missing).',
+    ]),
+    ep('EP-SC-150A', 'SP-15', 'GET', '/channel/users', 'channel', 'sc.iam.users_view', [
+        'name' => 'List channel users',
+        'name_ar' => 'مستخدمو القناة',
+        'r' => [[
+            'id' => 1,
+            'name' => 'محمد',
+            'phone' => '+963911000001',
+            'role' => 'channel_manager',
+            'status' => 'active',
+            'last_login_at' => null,
+        ]],
+        'd' => 'Memberships for the current tenant. DOC-08 sc.iam.users_view.',
+    ]),
+    ep('EP-SC-150B', 'SP-15', 'POST', '/channel/users/invite', 'channel', 'sc.iam.users_manage', [
+        'name' => 'Invite channel user',
+        'name_ar' => 'دعوة مستخدم قناة',
+        'b' => ['name' => 'سارة', 'phone' => '+963933000001', 'invite_via' => 'sms'],
+        'r' => ['invite_id' => 12, 'expires_at' => '2026-03-04T10:00:00+03:00'],
+        'd' => 'Creates/updates ChannelUser, membership, and a 72h ChannelManagerInvite. DOC-08 sc.iam.users_manage.',
     ]),
     ep('EP-SC-142A', 'SP-13', 'GET', '/channel/retailer-groups', 'channel', 'sc.retailers.groups', [
         'name' => 'List retailer groups',
@@ -698,5 +890,26 @@ return [
         'name_ar' => 'مستودعات القناة',
         'r' => [['id' => 1, 'name' => 'مستودع المزة', 'status' => 'active']],
         'd' => 'Unpaginated picker for inventory adjust/transfer. No create on this path.',
+    ]),
+    ep('EP-SC-160', 'SP-06', 'GET', '/channel/reps/live', 'channel', 'sc.reps.track', [
+        'name' => 'Live map of on-duty reps',
+        'name_ar' => 'خريطة المندوبين المباشرين',
+        'r' => [['rep_id' => 70, 'name' => 'أحمد', 'zone_ids' => [12], 'lat' => 33.51, 'lng' => 36.29, 'at' => '2026-09-24T12:00:00+03:00', 'on_duty' => true]],
+        'd' => 'On-duty reps for the tenant. lat/lng/at null when no ping. Single-rep live remains GET /channel/reps/{id}/live.',
+    ]),
+
+    ep('EP-SC-161', 'SP-03', 'GET', '/channel/delivery-calendar', 'channel', 'sc.zones.view', [
+        'name' => 'Weekly delivery calendar',
+        'name_ar' => 'تقويم التوصيل الأسبوعي',
+        'q' => ['week' => '2026-09-21'],
+        'r' => ['week_start' => '2026-09-20', 'days' => [['date' => '2026-09-20', 'weekday' => 'sun', 'zones' => [['zone_id' => 12, 'zone_name' => 'المزة']]]]],
+        'd' => 'Derived from channel_zone.delivery_days. week= any date in the week (Asia/Damascus); week_start is Sunday. No new table.',
+    ]),
+
+    ep('EP-SC-163', 'SP-03', 'GET', '/channel/zones/map', 'channel', 'sc.zones.view', [
+        'name' => 'Zone map with polygons',
+        'name_ar' => 'خريطة المناطق بالمضلعات',
+        'r' => [['zone_id' => 12, 'zone_name' => 'المزة', 'polygon' => null, 'delivery_days' => ['sun', 'wed'], 'delivery_windows' => [['day' => 'sun', 'start' => '09:00', 'end' => '17:00']]]],
+        'd' => 'Joins channel_zone coverage with reference zones.polygon. delivery_windows from channel_zone JSON.',
     ]),
 ];

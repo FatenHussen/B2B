@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Schedule;
 use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Core\Contracts\ChannelFinanceMetrics;
@@ -72,6 +73,17 @@ it('reads dashboard figures from the latest snapshot rather than live joins', fu
     ]);
     CatalogAssert::ok($export);
     expect($export->json('data.job_id'))->toStartWith('job_rep_exp_');
+
+    $jobId = $export->json('data.job_id');
+    $job = $this->getJson("/api/v1/channel/jobs/{$jobId}");
+    CatalogAssert::ok($job);
+    expect($job->json('data.id'))->toBe($jobId)
+        ->and($job->json('data.type'))->toBe('report_export')
+        ->and($job->json('data.status'))->toBe('done')
+        ->and($job->json('data.progress'))->toBe(100)
+        ->and($job->json('data.result.download_url'))->toBeString();
+
+    CatalogAssert::error($this->getJson('/api/v1/channel/jobs/missing'), 404, 'not_found');
 });
 
 it('selects a DailySnapshot inside date_from/date_to for reports and margins', function () {
@@ -143,4 +155,13 @@ it('queues a snapshot job per supply channel', function () {
     $this->artisan('reports:daily-snapshots', ['--date' => '2026-09-14'])->assertSuccessful();
 
     Bus::assertDispatched(GenerateDailySnapshot::class, 2);
+});
+
+it('schedules daily snapshots for launch hosts at 00:05 Asia/Damascus', function () {
+    $events = Schedule::events();
+    $match = collect($events)->first(
+        fn ($e) => str_contains($e->command ?? $e->description ?? '', 'reports:daily-snapshots'),
+    );
+    expect($match)->not->toBeNull()
+        ->and($match->timezone)->toBe('Asia/Damascus');
 });

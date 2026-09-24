@@ -82,4 +82,24 @@ interface SubOrderLifecycle
      * @return list<int>
      */
     public function idsForRetailer(int $retailerId): array;
+
+    /**
+     * Recent sub-orders for a retailer on one channel (retailer 360).
+     *
+     * @return list<array{id: int, sub_order_no: string, status: string, total: int}>
+     */
+    public function recentForRetailerInChannel(int $retailerId, int $channelId, int $limit = 5): array;
+
+    /**
+     * ISO-8601 (Asia/Damascus) of the newest sub-order for a retailer on one channel,
+     * or null when none exist — retailer 360 `last_order_at` (EP-SC-164).
+     */
+    public function lastOrderAtForRetailerInChannel(int $retailerId, int $channelId): ?string;
+
+    /**
+     * Top products by qty for a retailer on one channel (retailer 360).
+     *
+     * @return list<array{product_id: int, name: string, qty: int}>
+     */
+    public function topProductsForRetailerInChannel(int $retailerId, int $channelId, int $limit = 5): array;
 }

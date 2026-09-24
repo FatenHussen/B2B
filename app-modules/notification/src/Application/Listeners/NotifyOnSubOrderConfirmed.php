@@ -7,7 +7,9 @@ namespace Modules\Notification\Application\Listeners;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Domain\Events\SubOrderConfirmed;
+use Modules\Notification\Application\Support\EventTemplateResolver;
 use Modules\Notification\Application\Support\InboxWriter;
+use Modules\Notification\Domain\Models\NotificationDeliveryLog;
 
 final class NotifyOnSubOrderConfirmed
 {
@@ -15,6 +17,7 @@ final class NotifyOnSubOrderConfirmed
         private readonly InboxWriter $inbox,
         private readonly SubOrderLifecycle $orders,
         private readonly RetailerDirectory $retailers,
+        private readonly EventTemplateResolver $templates,
     ) {}
 
     public function handle(SubOrderConfirmed $event): void
@@ -29,16 +32,41 @@ final class NotifyOnSubOrderConfirmed
             return;
         }
 
-        $no = $header['sub_order_no'];
-
-        $this->inbox->write(
-            'retailer',
-            $userId,
+        $no = (string) $header['sub_order_no'];
+        $tpl = $this->templates->resolve(
             $event->channelId,
-            'order',
+            'order.confirmed',
             'تم تأكيد طلبك',
             "الطلب {$no} قيد التجهيز",
-            ['type' => 'order', 'target' => $event->subOrderId],
+            ['sub_order_no' => $no, 'order_no' => $no],
         );
+
+        if (! $tpl['enabled'] || $tpl['channels'] === []) {
+            return;
+        }
+
+        if (in_array('in_app', $tpl['channels'], true)) {
+            $this->inbox->write(
+                'retailer',
+                $userId,
+                $event->channelId,
+                'order',
+                $tpl['title'],
+                $tpl['body'],
+                ['type' => 'order', 'target' => $event->subOrderId],
+            );
+        }
+
+        NotificationDeliveryLog::query()->create([
+            'supply_channel_id' => $event->channelId,
+            'notification_id' => null,
+            'recipient' => $userId,
+            'template' => 'order.confirmed',
+            'status' => in_array('in_app', $tpl['channels'], true) ? 'sent' : 'skipped',
+            'failure_reason' => in_array('push', $tpl['channels'], true) || in_array('whatsapp', $tpl['channels'], true)
+                ? 'push_whatsapp_not_wired'
+                : null,
+            'at' => now(),
+        ]);
     }
 }

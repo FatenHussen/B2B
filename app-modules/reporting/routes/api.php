@@ -14,6 +14,7 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::get('reports/margins', [ChannelDashboardController::class, 'margins'])->middleware('permission:sc.reports.margins');
         Route::get('reports/{type}', [ChannelDashboardController::class, 'report'])->middleware('permission:sc.reports.view');
         Route::post('reports/{type}/export', [ChannelDashboardController::class, 'export'])->middleware('permission:sc.reports.export');
+        Route::get('jobs/{id}', [ChannelDashboardController::class, 'job'])->middleware('permission:sc.reports.view');
     });
 
 Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', SubstituteBindings::class])

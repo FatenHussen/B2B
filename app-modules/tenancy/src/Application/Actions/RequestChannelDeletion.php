@@ -121,8 +121,8 @@ final class RequestChannelDeletion
         }
 
         // Production OTP challenge for platform delete is PA-14/Identity follow-up;
-        // tests and non-production may bypass via otp.bypass (same rule as OtpService).
-        if ((bool) config('otp.bypass', false) && ! app()->isProduction()) {
+        // local/testing may bypass via otp.bypass (same rule as OtpService).
+        if ((bool) config('otp.bypass', false) && in_array(app()->environment(), ['local', 'testing'], true)) {
             return;
         }
 

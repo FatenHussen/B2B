@@ -11,6 +11,7 @@ use Modules\Returns\Application\Queries\ListChannelReturnRequests;
 use Modules\Returns\Application\ReturnsWorkspace;
 use Modules\Returns\Presentation\Http\Requests\CreateReturnRequest;
 use Modules\Returns\Presentation\Http\Requests\DecideReturnRequest;
+use Modules\Returns\Presentation\Http\Requests\EscalateReturnRequest;
 use Modules\Returns\Presentation\Http\Requests\SortReturnRequest;
 
 final class ReturnsController extends ApiController
@@ -38,6 +39,11 @@ final class ReturnsController extends ApiController
     public function decide(DecideReturnRequest $request, ReturnsWorkspace $ops, int $id): JsonResponse
     {
         return $this->ok($ops->decide($id, $request->validated(), $request->user()));
+    }
+
+    public function escalate(EscalateReturnRequest $request, ReturnsWorkspace $ops, int $id): JsonResponse
+    {
+        return $this->ok($ops->escalate($id, $request->validated(), $request->user()));
     }
 
     public function sort(SortReturnRequest $request, ReturnsWorkspace $ops, int $id): JsonResponse

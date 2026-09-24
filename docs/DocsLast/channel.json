@@ -1,18 +1,18 @@
 {
     "info": {
         "title": "Channel dashboard — live API only",
-        "generated_at": "2026-09-23",
+        "generated_at": "2026-09-24",
         "base_path": "/api/v1",
         "guard": "channel",
         "x_client": "channel-web",
         "port": 3001,
-        "seed": "+963900000001 — role channel_manager on demo-channel (id 1). OTP_BYPASS=true: any code verifies. Without bypass, random 6 digits (not all zeros — zeros are rep-* only).",
+        "seed": "+963900000001 — role channel_manager on demo-channel (id 1). OTP_BYPASS=true only under local|testing. Staging/production ignore the flag. Without bypass, random 6 digits (not all zeros — zeros are rep-* only).",
         "not": "This is NOT the platform admin (guard platform, port 3000) and NOT the warehouse / Flutter apps.",
         "rule": "If this file and the catalog disagree, this file wins. Call only live:true. Never call forbidden. Never mock missing retailer/warehouse/product-show lists. Gate screens with permissions[] from verify-otp, not role names.",
         "counts": {
-            "live_endpoints": 108,
-            "matched_catalog": 102,
-            "live_without_catalog": 6,
+            "live_endpoints": 128,
+            "matched_catalog": 128,
+            "live_without_catalog": 0,
             "forbidden": 12
         }
     },
@@ -122,9 +122,14 @@
     "gotchas": [
         "No POST /channel/auth/logout. Discard the token locally. There is no GET /channel/me — the session is the verify-otp payload (token, channels[], permissions[]).",
         "X-Channel-Id is ignored for channel users. channels[] from login is display-only — no tenant switch API on this guard.",
-        "OTP_BYPASS (non-production) accepts any code. Without it, channel codes are random 6 digits, not 000000. X-Client channel-web does not get the rep all-zero shortcut.",
-        "GET /channel/products list rows are only id, sku, name_ar, status. GET /channel/products/{id} returns the full editor body (pricing may be null — use PUT /products/{id}/pricing).",
-        "GET /channel/offers list rows are only id, name, type, status. There is no GET /channel/offers/{id}. Performance is a separate path. conversion_rate and net_margin are always 0.",
+        "OTP_BYPASS is honoured only when APP_ENV is local or testing. Staging and production ignore it. Without bypass, channel codes are random 6 digits, not 000000. X-Client channel-web does not get the rep all-zero shortcut.",
+        "GET /channel/products list rows are only id, sku, name_ar, status. GET /channel/products/{id} returns the full editor body (pricing may be null — use PUT /products/{id}/pricing). variants[].stock is available qty on the channel default warehouse (0 when none).",
+        "GET /channel/categories/tree nodes include media_id (editable) and activity_type_ids; image remains a resolved URL.",
+        "POST /channel/sub-orders/assign mode auto|bulk_zone is real: first on-duty rep covering the zone (or rep_id on bulk_zone). No candidate → 422.",
+        "Pricing lists stop-at-first-match (retailer ← group ← zone); they do not stack adjustments.",
+        "Retailer credit on_exceed=manual_approval is stored but behaves as block (423) until a credit-approval queue EP exists.",
+        "Banner impressions increment when GET /app/content/home-blocks serves a Banner row. Clicks via POST /app/content/banners/{id}/click. stats.ctr is integer basis points at scale 10^4.",
+        "GET /channel/offers list rows are only id, name, type, status. GET/PUT /channel/offers/{id} and activate exist. conversion_rate is scale 10^4 from unique retailer views; net_margin is linked_sales minus product cost_price.",
         "GET /channel/invoices list rows are only id, no, total, status. GET /channel/invoices/{id} returns lines[] for credit-note line_id.",
         "GET /channel/retailers lists shops in coverage zones (retailer_profile id). GET /channel/warehouses is the inventory picker.",
         "No inventing retailer 360 approval, IAM, or fake media ids — use POST /channel/media/upload.",
@@ -133,7 +138,7 @@
         "DELETE /channel/zones/{id} is 204 empty body.",
         "PUT /channel/content/intro returns {enabled} only — re-GET for the form.",
         "Banner stats.ctr is integer basis points at scale 10^4 (840 clicks / 12000 impressions = 700), never a 0.07 float.",
-        "GET /channel/dashboard KPIs are 0 / empty until DailySnapshot has a row. Never fabricate GMV. meta.snapshot_date may be null. Run GenerateDailySnapshot for demos.",
+        "GET /channel/dashboard KPIs are 0 / empty until DailySnapshot has a row. Never fabricate GMV. meta.snapshot_date may be null. Run `php artisan reports:daily-snapshots` (scheduled 00:05 Asia/Damascus) for demos.",
         "GET /channel/reports/{type} prefers a DailySnapshot whose snapshot_date is inside date_from/date_to; otherwise the latest. Unknown type still 200 with empty rows. Allowed types: sales|products|retailers|reps|zones|inventory|finance|offers|operations.",
         "GET /channel/finance/aging: buckets are channel totals; groups[] splits by zone_id or rep_id when group_by is set.",
         "POST /channel/inventory/adjust, credit-note and void may return approval_request_id instead of the mutation. Replay from a second user. channel_manager is exempt from SOD-01; still do not hide the payment button.",
@@ -179,10 +184,10 @@
             "live": true,
             "method": "GET",
             "path": "/api/v1/currencies/{currency}",
-            "catalog_path": "/currencies/{currency}",
-            "code": null,
-            "name": "GET /currencies/{currency}",
-            "name_ar": "",
+            "catalog_path": "/currencies/{id}",
+            "code": "EP-SH-REF-006",
+            "name": "Shared show currency",
+            "name_ar": "عملة (مشترك)",
             "permission": null,
             "guard": "platform,channel,warehouse,app",
             "auth": true,
@@ -191,8 +196,14 @@
             "folder": "01. Shared refs",
             "query": [],
             "body": null,
-            "response": null,
-            "errors": [],
+            "response": {
+                "id": 1,
+                "iso": "SYP",
+                "decimals": 0
+            },
+            "errors": {
+                "404": "not_found"
+            },
             "description": "",
             "note": null
         },
@@ -201,9 +212,9 @@
             "method": "GET",
             "path": "/api/v1/currencies",
             "catalog_path": "/currencies",
-            "code": null,
-            "name": "GET /currencies",
-            "name_ar": "",
+            "code": "EP-SH-REF-005",
+            "name": "Shared list currencies",
+            "name_ar": "عملات (مشترك)",
             "permission": null,
             "guard": "platform,channel,warehouse,app",
             "auth": true,
@@ -231,10 +242,10 @@
             "live": true,
             "method": "GET",
             "path": "/api/v1/governorates/{governorate}",
-            "catalog_path": "/governorates/{governorate}",
-            "code": null,
-            "name": "GET /governorates/{governorate}",
-            "name_ar": "",
+            "catalog_path": "/governorates/{id}",
+            "code": "EP-SH-REF-002",
+            "name": "Shared show governorate",
+            "name_ar": "محافظة (مشترك)",
             "permission": null,
             "guard": "platform,channel,warehouse,app",
             "auth": true,
@@ -243,8 +254,14 @@
             "folder": "01. Shared refs",
             "query": [],
             "body": null,
-            "response": null,
-            "errors": [],
+            "response": {
+                "id": 1,
+                "name": "دمشق",
+                "status": "active"
+            },
+            "errors": {
+                "404": "not_found"
+            },
             "description": "",
             "note": null
         },
@@ -253,9 +270,9 @@
             "method": "GET",
             "path": "/api/v1/governorates",
             "catalog_path": "/governorates",
-            "code": null,
-            "name": "GET /governorates",
-            "name_ar": "",
+            "code": "EP-SH-REF-001",
+            "name": "Shared list governorates",
+            "name_ar": "محافظات (مشترك)",
             "permission": null,
             "guard": "platform,channel,warehouse,app",
             "auth": true,
@@ -277,7 +294,7 @@
                 }
             ],
             "errors": [],
-            "description": "",
+            "description": "auth:platform,channel,warehouse,app. Prefer /platform/refs or /public/refs for new clients.",
             "note": "Needs a channel (or any) Bearer. Paginated. search is top-level. filter[status] works. Do not call /platform/refs/governorates from this app (wrong_guard)."
         },
         {
@@ -371,10 +388,10 @@
             "live": true,
             "method": "GET",
             "path": "/api/v1/zones/{zone}",
-            "catalog_path": "/zones/{zone}",
-            "code": null,
-            "name": "GET /zones/{zone}",
-            "name_ar": "",
+            "catalog_path": "/zones/{id}",
+            "code": "EP-SH-REF-004",
+            "name": "Shared show zone",
+            "name_ar": "منطقة (مشترك)",
             "permission": null,
             "guard": "platform,channel,warehouse,app",
             "auth": true,
@@ -383,8 +400,13 @@
             "folder": "01. Shared refs",
             "query": [],
             "body": null,
-            "response": null,
-            "errors": [],
+            "response": {
+                "id": 12,
+                "name": "المزة"
+            },
+            "errors": {
+                "404": "not_found"
+            },
             "description": "",
             "note": null
         },
@@ -393,9 +415,9 @@
             "method": "GET",
             "path": "/api/v1/zones",
             "catalog_path": "/zones",
-            "code": null,
-            "name": "GET /zones",
-            "name_ar": "",
+            "code": "EP-SH-REF-003",
+            "name": "Shared list zones",
+            "name_ar": "مناطق (مشترك)",
             "permission": null,
             "guard": "platform,channel,warehouse,app",
             "auth": true,
@@ -558,7 +580,7 @@
                 }
             },
             "errors": [],
-            "description": "Partial update. status is not writable here — lifecycle stays on the platform.",
+            "description": "Partial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create.",
             "note": "EP-SC-130B. Partial. name/legal_name/tax_number/phone/email/settings. Cannot change status or slug."
         },
         {
@@ -1067,6 +1089,7 @@
                     "id": 340,
                     "name": "زيوت",
                     "image": null,
+                    "media_id": null,
                     "icon": "oil",
                     "parent_id": 10,
                     "level": 2,
@@ -1075,11 +1098,14 @@
                     "direct_products": 14,
                     "total_products": 40,
                     "description": "زيوت الطبخ",
+                    "activity_type_ids": [
+                        3
+                    ],
                     "children": []
                 }
             ],
             "errors": [],
-            "description": "Platform root categories (level 1) plus any channel-owned roots (parent_id null). description is null on platform roots.",
+            "description": "Platform root categories (level 1) plus any channel-owned roots (parent_id null). description/media_id/activity_type_ids are null/[] on platform roots. image is a resolved URL; media_id is the editable id for PUT.",
             "note": null
         },
         {
@@ -1882,7 +1908,7 @@
                 "status": "active"
             },
             "errors": [],
-            "description": "type: base|zone|group|retailer. Precedence: retailer_price ← group_list ← zone_list ← qty_tier ← base_price.",
+            "description": "type: base|zone|group|retailer. Precedence stop-at-first-match (most specific wins; lists do not stack): retailer_price ← group_list ← zone_list ← qty_tier ← base_price.",
             "note": null
         },
         {
@@ -2017,6 +2043,34 @@
         },
         {
             "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/channel/offers/{id}/activate",
+            "catalog_path": "/channel/offers/{id}/activate",
+            "code": "EP-SC-041A",
+            "name": "Activate offer",
+            "name_ar": "تفعيل عرض",
+            "permission": "sc.offers.create",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "07. Offers",
+            "query": [],
+            "body": {
+                "reason": "إعادة الحملة"
+            },
+            "response": {
+                "status": "active"
+            },
+            "errors": {
+                "404": "not_found",
+                "409": "illegal_transition"
+            },
+            "description": "From stopped or draft only. Expired → 409.",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "GET",
             "path": "/api/v1/channel/offers/{id}/performance",
             "catalog_path": "/channel/offers/{id}/performance",
@@ -2046,8 +2100,8 @@
                 "conversion_rate": 0
             },
             "errors": [],
-            "description": "",
-            "note": "net_margin and conversion_rate are always 0 (no cost / no views). Do not display them as real rates."
+            "description": "conversion_rate is integer at scale 10^4 (0.22 → 2200). null when no views recorded. net_margin null when cost is unknown — never a fake 0.",
+            "note": "conversion_rate is scale 10^4 (unique viewers). net_margin = linked_sales − cost_price×qty when cost is set."
         },
         {
             "live": true,
@@ -2070,8 +2124,149 @@
             "response": {
                 "status": "stopped"
             },
-            "errors": [],
+            "errors": {
+                "404": "not_found",
+                "409": "illegal_transition"
+            },
             "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/offers/{id}",
+            "catalog_path": "/channel/offers/{id}",
+            "code": "EP-SC-040C",
+            "name": "Offer detail",
+            "name_ar": "تفاصيل عرض",
+            "permission": "sc.offers.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "07. Offers",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 44,
+                "name": "اشترِ 10 واحصل على 1",
+                "type": "buy_x_get_y",
+                "description": "على زيت دوار الشمس",
+                "status": "active",
+                "media": [
+                    "9"
+                ],
+                "components": [
+                    {
+                        "product_id": 880,
+                        "qty": 10
+                    }
+                ],
+                "rules": {
+                    "buy_qty": 10,
+                    "get_qty": 1
+                },
+                "rewards": {
+                    "product_id": 880,
+                    "qty": 1
+                },
+                "targeting": {
+                    "scope": "zones",
+                    "activity_type_ids": [
+                        3
+                    ],
+                    "zone_ids": [
+                        12
+                    ],
+                    "group_ids": [],
+                    "retailer_ids": []
+                },
+                "constraints": {
+                    "starts_at": "2026-03-01T00:00:00+03:00",
+                    "ends_at": "2026-03-31T23:59:59+03:00",
+                    "total_qty": 500,
+                    "per_retailer_max": 3,
+                    "per_order_max": 1,
+                    "min_invoice_value": 0,
+                    "min_items": 1
+                },
+                "stackable": false,
+                "priority": 10
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "Full create/update body for the editor. Foreign or other-channel id → 404.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/offers/{id}",
+            "catalog_path": "/channel/offers/{id}",
+            "code": "EP-SC-040D",
+            "name": "Update offer",
+            "name_ar": "تعديل عرض",
+            "permission": "sc.offers.create",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "07. Offers",
+            "query": [],
+            "body": {
+                "name": "اشترِ 10 واحصل على 1",
+                "type": "buy_x_get_y",
+                "media": [
+                    "9"
+                ],
+                "description": "على زيت دوار الشمس",
+                "components": [
+                    {
+                        "product_id": 880,
+                        "qty": 10
+                    }
+                ],
+                "rules": {
+                    "buy_qty": 10,
+                    "get_qty": 1
+                },
+                "rewards": {
+                    "product_id": 880,
+                    "qty": 1
+                },
+                "targeting": {
+                    "scope": "zones",
+                    "activity_type_ids": [
+                        3
+                    ],
+                    "zone_ids": [
+                        12
+                    ],
+                    "group_ids": [],
+                    "retailer_ids": []
+                },
+                "constraints": {
+                    "starts_at": "2026-03-01T00:00:00+03:00",
+                    "ends_at": "2026-03-31T23:59:59+03:00",
+                    "total_qty": 500,
+                    "per_retailer_max": 3,
+                    "per_order_max": 1,
+                    "min_invoice_value": 0,
+                    "min_items": 1
+                },
+                "stackable": false,
+                "priority": 10
+            },
+            "response": {
+                "id": 44
+            },
+            "errors": {
+                "404": "not_found",
+                "409": "illegal_transition",
+                "422": "validation_failed"
+            },
+            "description": "Same body as create minus status. Status changes only via stop/activate. Stopped/expired → 409 illegal_transition.",
             "note": null
         },
         {
@@ -2361,6 +2556,57 @@
         },
         {
             "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/inventory/transfers",
+            "catalog_path": "/channel/inventory/transfers",
+            "code": "EP-SC-052A",
+            "name": "List transfers",
+            "name_ar": "تحويلات المخزون",
+            "permission": "sc.inventory.transfer",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "08. Inventory",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[status]",
+                    "example": "sent"
+                },
+                {
+                    "name": "filter[warehouse_id]",
+                    "example": "1"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 55,
+                    "from_warehouse_id": 1,
+                    "to_warehouse_id": 2,
+                    "status": "sent",
+                    "lines_count": 1,
+                    "created_at": "2026-03-01T09:00:00+03:00"
+                }
+            ],
+            "errors": [],
+            "description": "filter[warehouse_id] matches from or to. Paginated.",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "POST",
             "path": "/api/v1/channel/inventory/transfers",
             "catalog_path": "/channel/inventory/transfers",
@@ -2423,7 +2669,7 @@
             "errors": {
                 "422": "validation_failed"
             },
-            "description": "mode: manual|auto|bulk_zone. 422 if rep is off-duty or outside zones (BR-19).",
+            "description": "mode: manual|auto|bulk_zone. auto picks the first on-duty rep covering the sub-order zone; bulk_zone assigns every confirmed/postponed sub-order in zone_id (or the first id's zone) to rep_id or that on-duty rep. 422 if no on-duty rep covers the zone (BR-19).",
             "note": null
         },
         {
@@ -2777,6 +3023,34 @@
         },
         {
             "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/return-requests/{id}/escalate",
+            "catalog_path": "/channel/return-requests/{id}/escalate",
+            "code": "EP-SC-162",
+            "name": "Escalate overdue return SLA",
+            "name_ar": "تصعيد مرتجع متأخر",
+            "permission": "sc.returns.decide",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "10. Returns",
+            "query": [],
+            "body": {
+                "message": "تجاوز SLA"
+            },
+            "response": {
+                "id": 1,
+                "overdue": true,
+                "escalated_at": "2026-09-24T12:00:00+03:00",
+                "notified": true
+            },
+            "errors": [],
+            "description": "Only open+overdue return requests. Records audit and notifies channel managers via inbox/notification path.",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "GET",
             "path": "/api/v1/channel/return-requests",
             "catalog_path": "/channel/return-requests",
@@ -2825,11 +3099,13 @@
                     "id": 200,
                     "request_no": "RR-200",
                     "type": "return",
-                    "status": "pending"
+                    "status": "pending",
+                    "sla_due_at": "2026-03-02T12:00:00+03:00",
+                    "overdue": false
                 }
             ],
             "errors": [],
-            "description": "",
+            "description": "sla_due_at set on create from channel settings.returns_sla_hours (default 24). overdue when pending/approved and sla_due_at < now.",
             "note": null
         },
         {
@@ -2982,6 +3258,39 @@
         },
         {
             "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/reps/live",
+            "catalog_path": "/channel/reps/live",
+            "code": "EP-SC-160",
+            "name": "Live map of on-duty reps",
+            "name_ar": "خريطة المندوبين المباشرين",
+            "permission": "sc.reps.track",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "11. Reps",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "rep_id": 70,
+                    "name": "أحمد",
+                    "zone_ids": [
+                        12
+                    ],
+                    "lat": 33.51,
+                    "lng": 36.29,
+                    "at": "2026-09-24T12:00:00+03:00",
+                    "on_duty": true
+                }
+            ],
+            "errors": [],
+            "description": "On-duty reps for the tenant. lat/lng/at null when no ping. Single-rep live remains GET /channel/reps/{id}/live.",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "POST",
             "path": "/api/v1/channel/reps/{id}/approve",
             "catalog_path": "/channel/reps/{id}/approve",
@@ -3061,6 +3370,34 @@
             "errors": [],
             "description": "Exceeding cap at submit → 403 discount_cap_exceeded (BR-12).",
             "note": "max_discount_percent 0–100 int. max_cash_hold int minor units, 0 = no cap."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/reps/{id}/live",
+            "catalog_path": "/channel/reps/{id}/live",
+            "code": "EP-SC-075A",
+            "name": "Rep live location",
+            "name_ar": "موقع المندوب الحي",
+            "permission": "sc.reps.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "11. Reps",
+            "query": [],
+            "body": null,
+            "response": {
+                "lat": 33.51,
+                "lng": 36.29,
+                "at": "2026-03-01T10:00:00+03:00",
+                "on_duty": true
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "Latest RepLocationPing for a rep on this channel. No ping → lat/lng/at null, on_duty still reported.",
+            "note": null
         },
         {
             "live": true,
@@ -3477,7 +3814,68 @@
                 "on_exceed": "block"
             },
             "errors": [],
-            "description": "on_exceed: warn|block|manual_approval. Confirm may return 423 credit_limit_exceeded.",
+            "description": "on_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/retailers/{id}",
+            "catalog_path": "/channel/retailers/{id}",
+            "code": "EP-SC-164",
+            "name": "Retailer 360 (rich)",
+            "name_ar": "بطاقة التاجر الموسّعة",
+            "permission": "sc.retailers.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "12. Finance",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": 481,
+                "shop_name": "بقالية النور",
+                "phone": "+963931000002",
+                "zone_id": 12,
+                "activity_type_id": 3,
+                "status": "active",
+                "credit": {
+                    "credit_limit": 500000,
+                    "grace_days": 7,
+                    "on_exceed": "block"
+                },
+                "outstanding": 120000,
+                "groups": [
+                    {
+                        "id": 1,
+                        "name": "VIP"
+                    }
+                ],
+                "assigned_rep_ids": [
+                    70
+                ],
+                "last_order_at": "2026-09-20T10:00:00+03:00",
+                "recent_orders": [
+                    {
+                        "id": 9001,
+                        "sub_order_no": "SO-9001",
+                        "status": "delivered",
+                        "total": 120000
+                    }
+                ],
+                "top_products": [
+                    {
+                        "product_id": 880,
+                        "name": "زيت",
+                        "qty": 40
+                    }
+                ]
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "Same handler as EP-SC-140A; richer fields (outstanding, groups, assigned_rep_ids, last_order_at). Status-tracking alias — OpenAPI keeps EP-SC-140A as operationId.",
             "note": null
         },
         {
@@ -3525,6 +3923,70 @@
             "errors": [],
             "description": "Retailers whose zone is in this channel coverage. Id is retailer_profile id for credit/payments.",
             "note": "Paginated shops in coverage zones. id is retailer_profile id for credit/payments."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/zones/coverage",
+            "catalog_path": "/channel/zones/coverage",
+            "code": "EP-SC-131D",
+            "name": "Zone coverage gaps",
+            "name_ar": "فجوات تغطية المناطق",
+            "permission": "sc.zones.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "13. Coverage zones",
+            "query": [],
+            "body": null,
+            "response": {
+                "without_reps": [
+                    15
+                ],
+                "without_warehouse": []
+            },
+            "errors": [],
+            "description": "Channel coverage zones with zero active reps, and zones with no default warehouse for the channel (all coverage zones when default warehouse is missing).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/zones/map",
+            "catalog_path": "/channel/zones/map",
+            "code": "EP-SC-163",
+            "name": "Zone map with polygons",
+            "name_ar": "خريطة المناطق بالمضلعات",
+            "permission": "sc.zones.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "13. Coverage zones",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "zone_id": 12,
+                    "zone_name": "المزة",
+                    "polygon": null,
+                    "delivery_days": [
+                        "sun",
+                        "wed"
+                    ],
+                    "delivery_windows": [
+                        {
+                            "day": "sun",
+                            "start": "09:00",
+                            "end": "17:00"
+                        }
+                    ]
+                }
+            ],
+            "errors": [],
+            "description": "Joins channel_zone coverage with reference zones.polygon. delivery_windows from channel_zone JSON.",
+            "note": "EP-SC-163. Coverage rows with zone.polygon and delivery_windows. Unpaginated."
         },
         {
             "live": true,
@@ -3619,8 +4081,8 @@
                 "min_order_value": "50000.00"
             },
             "errors": [],
-            "description": "updateOrCreate on zone_id within the tenant.",
-            "note": "EP-SC-131B. Upsert by zone_id. delivery_days ∈ sun…sat. Fees are decimal:0,2 not int money."
+            "description": "updateOrCreate on zone_id within the tenant. Optional delivery_windows: array of {day ∈ sun…sat, start/end H:i}.",
+            "note": "EP-SC-131B. Upsert by zone_id. delivery_days ∈ sun…sat. Optional delivery_windows: {day, start H:i, end H:i}. Fees are decimal:0,2 not int money."
         },
         {
             "live": true,
@@ -3797,6 +4259,78 @@
         },
         {
             "live": true,
+            "method": "DELETE",
+            "path": "/api/v1/channel/content/banners/{id}",
+            "catalog_path": "/channel/content/banners/{id}",
+            "code": "EP-SC-101D",
+            "name": "Delete banner",
+            "name_ar": "حذف بنر",
+            "permission": "sc.content.banners",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "15. Content",
+            "query": [],
+            "body": null,
+            "response": {
+                "deleted": true
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/content/banners/{id}",
+            "catalog_path": "/channel/content/banners/{id}",
+            "code": "EP-SC-101C",
+            "name": "Update banner",
+            "name_ar": "تعديل بنر",
+            "permission": "sc.content.banners",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "15. Content",
+            "query": [],
+            "body": {
+                "media_type": "image",
+                "media_id": "42",
+                "link": {
+                    "type": "offer",
+                    "target": 44
+                },
+                "placements": [
+                    "home_top"
+                ],
+                "targeting": {
+                    "activity_type_ids": [
+                        3
+                    ],
+                    "zone_ids": [
+                        12
+                    ]
+                },
+                "starts_at": "2026-03-01T00:00:00+03:00",
+                "ends_at": "2026-03-31T23:59:59+03:00",
+                "order": 1,
+                "weight": 10
+            },
+            "response": {
+                "id": 9
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "GET",
             "path": "/api/v1/channel/content/banners",
             "catalog_path": "/channel/content/banners",
@@ -3952,6 +4486,71 @@
         },
         {
             "live": true,
+            "method": "DELETE",
+            "path": "/api/v1/channel/content/sliders/{id}",
+            "catalog_path": "/channel/content/sliders/{id}",
+            "code": "EP-SC-103D",
+            "name": "Delete slider",
+            "name_ar": "حذف ساليدر",
+            "permission": "sc.content.sliders",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "15. Content",
+            "query": [],
+            "body": null,
+            "response": {
+                "deleted": true
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/content/sliders/{id}",
+            "catalog_path": "/channel/content/sliders/{id}",
+            "code": "EP-SC-103C",
+            "name": "Update slider",
+            "name_ar": "تعديل ساليدر",
+            "permission": "sc.content.sliders",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "15. Content",
+            "query": [],
+            "body": {
+                "name": "الأكثر مبيعاً",
+                "source": "algorithm",
+                "source_ref": null,
+                "algorithm": "best_selling",
+                "placements": [
+                    "home"
+                ],
+                "items_count": 12,
+                "show_all_button": true,
+                "targeting": {
+                    "activity_type_ids": [
+                        3
+                    ]
+                }
+            },
+            "response": {
+                "id": 4
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "GET",
             "path": "/api/v1/channel/content/sliders",
             "catalog_path": "/channel/content/sliders",
@@ -4014,6 +4613,65 @@
             },
             "errors": [],
             "description": "source: manual|brand|category|offers|algorithm. algorithm: new_arrivals|best_selling|most_ordered_by_retailer|suggested|similar|same_brand.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/channel/loyalty/rewards/{id}/stop",
+            "catalog_path": "/channel/loyalty/rewards/{id}/stop",
+            "code": "EP-SC-111D",
+            "name": "Stop reward",
+            "name_ar": "إيقاف مكافأة",
+            "permission": "sc.loyalty.manage",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "16. Loyalty",
+            "query": [],
+            "body": {
+                "reason": "نفاد المخزون"
+            },
+            "response": {
+                "status": "stopped"
+            },
+            "errors": {
+                "404": "not_found",
+                "409": "illegal_transition"
+            },
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "PUT",
+            "path": "/api/v1/channel/loyalty/rewards/{id}",
+            "catalog_path": "/channel/loyalty/rewards/{id}",
+            "code": "EP-SC-111C",
+            "name": "Update reward",
+            "name_ar": "تعديل مكافأة",
+            "permission": "sc.loyalty.manage",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "16. Loyalty",
+            "query": [],
+            "body": {
+                "name": "كرتون زيت",
+                "points_cost": 1800,
+                "stock": 35,
+                "expires_at": "2026-12-31"
+            },
+            "response": {
+                "id": 3
+            },
+            "errors": {
+                "404": "not_found",
+                "409": "illegal_transition"
+            },
+            "description": "Stopped rewards → 409.",
             "note": null
         },
         {
@@ -4165,6 +4823,80 @@
             },
             "errors": [],
             "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/delivery-calendar",
+            "catalog_path": "/channel/delivery-calendar",
+            "code": "EP-SC-161",
+            "name": "Weekly delivery calendar",
+            "name_ar": "تقويم التوصيل الأسبوعي",
+            "permission": "sc.zones.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "week",
+                    "example": "2026-09-21"
+                }
+            ],
+            "body": null,
+            "response": {
+                "week_start": "2026-09-20",
+                "days": [
+                    {
+                        "date": "2026-09-20",
+                        "weekday": "sun",
+                        "zones": [
+                            {
+                                "zone_id": 12,
+                                "zone_name": "المزة"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "Derived from channel_zone.delivery_days. week= any date in the week (Asia/Damascus); week_start is Sunday. No new table.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/jobs/{id}",
+            "catalog_path": "/channel/jobs/{id}",
+            "code": "EP-SC-124",
+            "name": "Job status",
+            "name_ar": "حالة مهمة",
+            "permission": "sc.reports.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": {
+                "id": "job_rep_exp_1",
+                "type": "report_export",
+                "status": "done",
+                "progress": 100,
+                "result": {
+                    "download_url": "https://cdn.example/exports/rep.xlsx"
+                },
+                "error": null,
+                "created_at": "2026-03-01T09:00:00+03:00",
+                "finished_at": "2026-03-01T09:00:12+03:00"
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "type ∈ catalog_export|catalog_import|report_export|price_list_schedule. status ∈ queued|running|done|failed. progress 0–100. Channel-scoped; foreign job → 404.",
             "note": null
         },
         {
@@ -4325,6 +5057,64 @@
             },
             "errors": [],
             "description": "retailer_ids must be retailer_profile ids in this channel coverage. Empty membership allowed.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/users/invite",
+            "catalog_path": "/channel/users/invite",
+            "code": "EP-SC-150B",
+            "name": "Invite channel user",
+            "name_ar": "دعوة مستخدم قناة",
+            "permission": "sc.iam.users_manage",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "name": "سارة",
+                "phone": "+963933000001",
+                "invite_via": "sms"
+            },
+            "response": {
+                "invite_id": 12,
+                "expires_at": "2026-03-04T10:00:00+03:00"
+            },
+            "errors": [],
+            "description": "Creates/updates ChannelUser, membership, and a 72h ChannelManagerInvite. DOC-08 sc.iam.users_manage.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/users",
+            "catalog_path": "/channel/users",
+            "code": "EP-SC-150A",
+            "name": "List channel users",
+            "name_ar": "مستخدمو القناة",
+            "permission": "sc.iam.users_view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "name": "محمد",
+                    "phone": "+963911000001",
+                    "role": "channel_manager",
+                    "status": "active",
+                    "last_login_at": null
+                }
+            ],
+            "errors": [],
+            "description": "Memberships for the current tenant. DOC-08 sc.iam.users_view.",
             "note": null
         },
         {

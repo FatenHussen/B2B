@@ -28,7 +28,17 @@ class ReturnRequest extends Model
         'type',
         'status',
         'request_no',
+        'sla_due_at',
+        'escalated_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'sla_due_at' => 'datetime',
+            'escalated_at' => 'datetime',
+        ];
+    }
 
     public function lines(): HasMany
     {

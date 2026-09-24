@@ -26,4 +26,12 @@ interface RetailerGroupDirectory
      * True when any price-list / offer still names this group — callers map to 422 ref_in_use.
      */
     public function isInUse(int $groupId): bool;
+
+    /**
+     * App users whose shops sit in any of the given retailer groups — notification targeting.
+     *
+     * @param  list<int>  $groupIds
+     * @return list<int>
+     */
+    public function appUserIdsInGroups(array $groupIds): array;
 }

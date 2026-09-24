@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Product;
+use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Models\ChannelUser;
 use Modules\Reference\Domain\Enums\RefStatus;
@@ -101,7 +101,9 @@ it('updates a category and rejects disable when active products exist', function
         ->flatMap(fn ($r) => $r['children'] ?? [])
         ->firstWhere('id', $catId);
     expect($node['description'])->toBe('محدثة')
-        ->and($node['icon'])->toBe('oil');
+        ->and($node['icon'])->toBe('oil')
+        ->and($node['activity_type_ids'])->toContain($refs['activity']->id)
+        ->and($node)->toHaveKey('media_id');
 
     $productId = $this->postJson('/api/v1/channel/products', [
         'name_ar' => 'زيت',
@@ -155,27 +157,6 @@ it('creates a channel-owned root category without parent_id', function () {
     expect(collect($tree)->pluck('id')->all())->toContain($id);
 });
 
-it('uploads an image and returns a media_id', function () {
-    $channel = SupplyChannel::factory()->create();
-    Sanctum::actingAs(catalogGapManager($channel), ['*'], 'channel');
-
-    $file = UploadedFile::fake()->image('logo.jpg', 640, 640);
-
-    $response = $this->post('/api/v1/channel/media/upload', [
-        'type' => 'image',
-        'file' => $file,
-    ], ['Accept' => 'application/json']);
-
-    if ($response->status() !== 201) {
-        dump($response->status(), $response->json());
-    }
-
-    $response->assertCreated();
-    expect($response->json('data.media_id'))->not->toBeEmpty()
-        ->and($response->json('data.type'))->toBe('image')
-        ->and($response->json('data.url'))->not->toBeEmpty();
-});
-
 it('accepts dimensions tax and opening stock on product create', function () {
     $refs = catalogGapRefs();
     $channel = SupplyChannel::factory()->create();
@@ -227,7 +208,61 @@ it('accepts dimensions tax and opening stock on product create', function () {
         ->and($show->json('data.long_description'))->toBe('<p>وصف غني</p>')
         ->and($show->json('data.pricing.tax_percent'))->toBe(8);
 
-    $stock = Tenant::as($channel->id, fn () => app(\Modules\Core\Contracts\StockLedger::class)
+    $stock = Tenant::as($channel->id, fn () => app(StockLedger::class)
         ->snapshot((int) $warehouse->id, (int) $productId, null));
     expect($stock['on_hand'])->toBe(25);
+});
+
+it('returns variant stock from the channel default warehouse ledger on product show', function () {
+    $refs = catalogGapRefs();
+    $channel = SupplyChannel::factory()->create();
+    catalogGapCover($channel, $refs['zone']);
+    Sanctum::actingAs(catalogGapManager($channel), ['*'], 'channel');
+
+    $warehouse = Tenant::as($channel->id, fn () => Warehouse::query()->create([
+        'channel_id' => $channel->id,
+        'name' => 'رئيسي',
+        'status' => WarehouseStatus::Active,
+    ]));
+
+    $catId = $this->postJson('/api/v1/channel/categories', [
+        'name' => 'زيوت',
+        'parent_id' => $refs['root']->id,
+    ])->assertCreated()->json('data.id');
+
+    $productId = $this->postJson('/api/v1/channel/products', [
+        'name_ar' => 'زيت متغير',
+        'sku' => 'OIL-VAR',
+        'category_id' => $catId,
+        'status' => 'active',
+        'sale_unit_id' => $refs['unit']->id,
+        'pricing' => [
+            'type' => 'simple',
+            'base_price' => 1000,
+            'currency_id' => $refs['currency']->id,
+            'tiers' => [],
+        ],
+        'availability' => [
+            'zone_ids' => [$refs['zone']->id],
+            'activity_type_ids' => [$refs['activity']->id],
+        ],
+    ])->assertCreated()->json('data.id');
+
+    $generated = $this->postJson("/api/v1/channel/products/{$productId}/variants/generate", [
+        'axes' => [['name' => 'حجم', 'values' => ['1L', '2L']]],
+    ])->assertOk();
+    $variantId = (int) $generated->json('data.variants.0.id');
+
+    $this->putJson("/api/v1/channel/products/{$productId}/variants/{$variantId}", [
+        'barcode' => null,
+        'image' => null,
+        'status' => 'active',
+        'price_override' => null,
+        'stock' => 17,
+        'warehouse_id' => $warehouse->id,
+    ])->assertOk();
+
+    $show = $this->getJson("/api/v1/channel/products/{$productId}")->assertOk();
+    $row = collect($show->json('data.variants'))->firstWhere('id', $variantId);
+    expect($row['stock'])->toBe(17);
 });

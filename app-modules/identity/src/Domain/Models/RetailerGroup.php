@@ -22,6 +22,9 @@ class RetailerGroup extends Model
         'name',
     ];
 
+    /**
+     * @return HasMany<RetailerGroupMember, $this>
+     */
     public function members(): HasMany
     {
         return $this->hasMany(RetailerGroupMember::class);

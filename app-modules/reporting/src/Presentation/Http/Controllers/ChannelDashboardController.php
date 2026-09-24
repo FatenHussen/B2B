@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Modules\Core\Http\ApiController;
 use Modules\Core\Support\Tenant;
+use Modules\Reporting\Application\Jobs\ExportChannelReportJob;
+use Modules\Reporting\Application\Queries\ShowChannelJob;
 use Modules\Reporting\Domain\Models\DailySnapshot;
 use Modules\Reporting\Domain\Models\ReportExport;
 use Modules\Reporting\Presentation\Http\Requests\ExportReportRequest;
@@ -95,7 +97,14 @@ final class ChannelDashboardController extends ApiController
             'status' => 'queued',
         ]);
 
+        ExportChannelReportJob::dispatch($jobId)->onQueue('reports');
+
         return $this->ok(['job_id' => $jobId]);
+    }
+
+    public function job(ShowChannelJob $query, string $id): JsonResponse
+    {
+        return $this->ok($query($id));
     }
 
     public function margins(Request $request): JsonResponse

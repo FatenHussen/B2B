@@ -11,6 +11,7 @@ use Modules\Core\Domain\Enums\ErrorCode;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\Tenant;
 use Modules\Loyalty\Application\Support\LoyaltyWallet;
+use Modules\Loyalty\Domain\Enums\LoyaltyRewardStatus;
 use Modules\Loyalty\Domain\Models\LoyaltyRedemption;
 use Modules\Loyalty\Domain\Models\LoyaltyReward;
 
@@ -46,6 +47,10 @@ final class RedeemLoyaltyReward
             ->first();
         if ($reward === null) {
             throw DomainException::of(ErrorCode::NotFound);
+        }
+
+        if ($reward->status === LoyaltyRewardStatus::Stopped) {
+            throw DomainException::of(ErrorCode::ValidationFailed, __('loyalty.reward_unavailable'));
         }
 
         $channelId = (int) $reward->supply_channel_id;

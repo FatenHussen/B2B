@@ -20,6 +20,13 @@ interface ChannelDirectory
     public function name(int $channelId): ?string;
 
     /**
+     * Channel settings JSON blob (quiet hours, feature flags, …). Empty array when unset.
+     *
+     * @return array<string, mixed>
+     */
+    public function settings(int $channelId): array;
+
+    /**
      * Zone ids this channel covers (from channel_zone).
      *
      * @return list<int>

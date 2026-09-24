@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Modules\Promotion\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $offer_id
  * @property int $retailer_id
- * @property \Illuminate\Support\Carbon $viewed_at
+ * @property Carbon $viewed_at
  */
 class OfferView extends Model
 {

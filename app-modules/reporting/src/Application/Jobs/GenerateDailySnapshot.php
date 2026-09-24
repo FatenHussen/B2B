@@ -43,14 +43,14 @@ final class GenerateDailySnapshot implements ShouldQueue
                     'avg_delivery_time' => $order['avg_delivery_time'],
                     'fill_rate' => $order['fill_rate'],
                 ],
-                'alerts' => [],
+                'alerts' => $order['alerts'] ?? [],
                 'charts' => [
                     'daily_sales' => [['date' => $this->onDate, 'sales' => $order['sales']]],
-                    'by_zone' => [],
-                    'top_products' => [],
-                    'top_retailers' => [],
-                    'rep_performance' => [],
-                    'heatmap' => [],
+                    'by_zone' => $order['charts']['by_zone'] ?? [],
+                    'top_products' => $order['charts']['top_products'] ?? [],
+                    'top_retailers' => $order['charts']['top_retailers'] ?? [],
+                    'rep_performance' => $order['charts']['rep_performance'] ?? [],
+                    'heatmap' => $order['charts']['heatmap'] ?? [],
                 ],
                 'reports' => [
                     'sales' => [
@@ -73,7 +73,7 @@ final class GenerateDailySnapshot implements ShouldQueue
                         ],
                     ],
                 ],
-                'margins' => ['by_product' => [], 'by_zone' => []],
+                'margins' => $order['margins'] ?? ['by_product' => [], 'by_zone' => []],
             ];
 
             DailySnapshot::query()->updateOrCreate(

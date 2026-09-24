@@ -31,8 +31,10 @@ return [
     | payloads, same otp_id) but the code is never sent, checked or validated: any
     | `code` verifies — or none at all — and the cooldown and rate limits are skipped.
     |
-    | It is ignored when APP_ENV=production, whatever the env file says — an OTP that
-    | accepts every code is not a login. Flip OTP_BYPASS=false to turn OTP back on.
+    | It is honoured only when APP_ENV is local or testing. Staging and production
+    | ignore the flag — an OTP that accepts every code is not a login, and a staging
+    | env on a production domain must not keep the door open. Flip OTP_BYPASS=false
+    | (or leave APP_ENV unset of local/testing) to turn OTP back on.
     */
     'bypass' => (bool) env('OTP_BYPASS', false),
 

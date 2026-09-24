@@ -35,6 +35,65 @@ final class EloquentRetailerDirectory implements RetailerDirectory
         return RetailerProfile::query()->where('zone_id', $zoneId)->count();
     }
 
+    public function appUserIdsInZones(array $zoneIds): array
+    {
+        if ($zoneIds === []) {
+            return [];
+        }
+
+        return RetailerProfile::query()
+            ->whereIn('zone_id', $zoneIds)
+            ->whereNotNull('app_user_id')
+            ->pluck('app_user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function appUserIdsForProfiles(array $retailerProfileIds): array
+    {
+        if ($retailerProfileIds === []) {
+            return [];
+        }
+
+        return RetailerProfile::query()
+            ->whereKey($retailerProfileIds)
+            ->whereNotNull('app_user_id')
+            ->pluck('app_user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function appUserIdsByActivityTypes(array $activityTypeIds): array
+    {
+        if ($activityTypeIds === []) {
+            return [];
+        }
+
+        return RetailerProfile::query()
+            ->whereIn('activity_type_id', $activityTypeIds)
+            ->whereNotNull('app_user_id')
+            ->pluck('app_user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function allAppUserIds(): array
+    {
+        return RetailerProfile::query()
+            ->whereNotNull('app_user_id')
+            ->pluck('app_user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public function exists(int $retailerId): bool
     {
         return RetailerProfile::query()->whereKey($retailerId)->exists();

@@ -142,7 +142,9 @@ final class SubmitRetailerCart
                 ]);
                 $sub->forceFill(['sub_order_no' => 'SO-'.$sub->id])->save();
 
+                $appliedOfferIds = [];
                 foreach ($section->lines as $line) {
+                    $offerId = $line->getAttribute('offer_id');
                     SubOrderLine::query()->create([
                         'sub_order_id' => $sub->id,
                         'product_id' => $line->product_id,
@@ -152,14 +154,10 @@ final class SubmitRetailerCart
                         'discount' => $line->discount,
                         'line_total' => $line->line_total,
                         'applied_rule' => $line->applied_rule,
-                        'offer_id' => $line->offer_id,
+                        'offer_id' => $offerId,
                     ]);
-                }
-
-                $appliedOfferIds = [];
-                foreach ($section->lines as $line) {
-                    if ($line->offer_id) {
-                        $appliedOfferIds[(int) $line->offer_id] = true;
+                    if ($offerId) {
+                        $appliedOfferIds[(int) $offerId] = true;
                     }
                 }
                 foreach (array_keys($appliedOfferIds) as $offerId) {

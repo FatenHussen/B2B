@@ -93,6 +93,41 @@ final class ChannelContentController extends ApiController
         return $this->ok(['id' => (int) $row->id]);
     }
 
+    public function updateBanner(StoreBannerRequest $request, int $id): JsonResponse
+    {
+        $row = Banner::query()->find($id);
+        if ($row === null) {
+            throw DomainException::of(ErrorCode::NotFound, __('content.not_found'));
+        }
+
+        $data = $request->validated();
+        $row->fill([
+            'media_type' => $data['media_type'],
+            'media_id' => $data['media_id'],
+            'link' => $data['link'] ?? null,
+            'placements' => $data['placements'],
+            'targeting' => $data['targeting'] ?? null,
+            'starts_at' => $data['starts_at'] ?? null,
+            'ends_at' => $data['ends_at'] ?? null,
+            'order' => (int) ($data['order'] ?? 0),
+            'weight' => (int) ($data['weight'] ?? 1),
+        ])->save();
+
+        return $this->ok(['id' => (int) $row->id]);
+    }
+
+    public function destroyBanner(int $id): JsonResponse
+    {
+        $row = Banner::query()->find($id);
+        if ($row === null) {
+            throw DomainException::of(ErrorCode::NotFound, __('content.not_found'));
+        }
+
+        $row->delete();
+
+        return $this->ok(['deleted' => true]);
+    }
+
     public function bannerStats(int $id): JsonResponse
     {
         $row = Banner::query()->find($id);
@@ -141,5 +176,39 @@ final class ChannelContentController extends ApiController
         ]);
 
         return $this->ok(['id' => (int) $row->id]);
+    }
+
+    public function updateSlider(StoreSliderRequest $request, int $id): JsonResponse
+    {
+        $row = Slider::query()->find($id);
+        if ($row === null) {
+            throw DomainException::of(ErrorCode::NotFound, __('content.not_found'));
+        }
+
+        $data = $request->validated();
+        $row->fill([
+            'name' => $data['name'],
+            'source' => $data['source'],
+            'source_ref' => $data['source_ref'] ?? null,
+            'algorithm' => $data['algorithm'] ?? null,
+            'placements' => $data['placements'] ?? null,
+            'items_count' => (int) ($data['items_count'] ?? 12),
+            'show_all_button' => (bool) ($data['show_all_button'] ?? false),
+            'targeting' => $data['targeting'] ?? null,
+        ])->save();
+
+        return $this->ok(['id' => (int) $row->id]);
+    }
+
+    public function destroySlider(int $id): JsonResponse
+    {
+        $row = Slider::query()->find($id);
+        if ($row === null) {
+            throw DomainException::of(ErrorCode::NotFound, __('content.not_found'));
+        }
+
+        $row->delete();
+
+        return $this->ok(['deleted' => true]);
     }
 }

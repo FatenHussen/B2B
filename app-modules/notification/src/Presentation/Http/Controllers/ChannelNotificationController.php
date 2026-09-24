@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Core\Http\ApiController;
 use Modules\Core\Support\Tenant;
+use Modules\Notification\Application\Jobs\DeliverChannelNotificationJob;
 use Modules\Notification\Domain\Models\ChannelNotification;
 use Modules\Notification\Domain\Models\NotificationDeliveryLog;
 use Modules\Notification\Domain\Models\NotificationTemplate;
@@ -40,6 +41,11 @@ final class ChannelNotificationController extends ApiController
             'status' => 'queued',
             'at' => now(),
         ]);
+
+        $pending = DeliverChannelNotificationJob::dispatch((int) $row->id)->onQueue('notifications');
+        if ($row->scheduled_at !== null && $row->scheduled_at->isFuture()) {
+            $pending->delay($row->scheduled_at);
+        }
 
         return $this->ok(['id' => (int) $row->id, 'status' => 'queued']);
     }

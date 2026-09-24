@@ -183,12 +183,11 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // three `sc.reps.*` codes below.
     $catalog = doc08Codes();
 
-    // 135, up from 134: `sc.retailers.groups` (EP-SC-142A–D /channel/retailer-groups)
-    // arrived with retailer-group CRUD for price lists and offer targeting.
-    expect(Permission::query()->count())->toBe(135)
-        ->and(PermissionCatalog::codes())->toHaveCount(135)
-        // 36, down from 37: `sc.retailers.groups` was a DOC-08 name waiting for a route.
-        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(36)
+    // 140, up from 139: `sc.reps.track` (EP-SC-160).
+    expect(Permission::query()->count())->toBe(140)
+        ->and(PermissionCatalog::codes())->toHaveCount(140)
+        // 31, down from 32: sc.reps.track found its routes.
+        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(31)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
         ->toBe(DOC08_EXEMPT);
 })->group('security');

@@ -58,6 +58,13 @@ final class EloquentChannelDirectory implements ChannelDirectory
         return is_string($name) ? $name : null;
     }
 
+    public function settings(int $channelId): array
+    {
+        $settings = SupplyChannel::query()->whereKey($channelId)->value('settings');
+
+        return is_array($settings) ? $settings : [];
+    }
+
     public function zoneIds(int $channelId): array
     {
         return ChannelZoneLookup::query()

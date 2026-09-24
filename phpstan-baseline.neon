@@ -1120,12 +1120,6 @@ parameters:
 			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$offer_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -1766,18 +1760,6 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/promotion/src/Domain/Models/Offer.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$discount_amount\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/promotion/src/Infrastructure/EloquentOfferApplicator.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$discount_percent\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/promotion/src/Infrastructure/EloquentOfferApplicator.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$discount_amount\.$#'

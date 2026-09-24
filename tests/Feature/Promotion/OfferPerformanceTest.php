@@ -97,10 +97,12 @@ it('reads applied_count from redemptions and sales figures from order lines', fu
     expect($response->json('data.applied_count'))->toBe(7)
         ->and($response->json('data.linked_sales'))->toBe(48000)
         ->and($response->json('data.discount_given'))->toBe(2000)
-        ->and($response->json('data.net_margin'))->toBe(48000)
+        // No cost_price on the product → net_margin null (never sales-as-margin).
+        ->and($response->json('data.net_margin'))->toBeNull()
         ->and($response->json('data.retailers_count'))->toBe(1)
         ->and($response->json('data.by_zone.0.zone_id'))->toBe(12)
-        ->and($response->json('data.conversion_rate'))->toBe(0);
+        // No views recorded → conversion_rate null (never a fake 0).
+        ->and($response->json('data.conversion_rate'))->toBeNull();
 });
 
 it('404s another channel offer on performance', function () {

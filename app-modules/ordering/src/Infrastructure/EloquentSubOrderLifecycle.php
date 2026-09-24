@@ -224,4 +224,69 @@ final class EloquentSubOrderLifecycle implements SubOrderLifecycle
             ->map(fn ($id) => (int) $id)
             ->all());
     }
+
+    public function recentForRetailerInChannel(int $retailerId, int $channelId, int $limit = 5): array
+    {
+        $limit = max(1, min($limit, 25));
+
+        return Tenant::as($channelId, fn () => SubOrder::query()
+            ->where('retailer_id', $retailerId)
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->map(fn (SubOrder $row) => [
+                'id' => (int) $row->id,
+                'sub_order_no' => (string) $row->sub_order_no,
+                'status' => $row->status->value,
+                'total' => (int) $row->total,
+            ])
+            ->all());
+    }
+
+    public function lastOrderAtForRetailerInChannel(int $retailerId, int $channelId): ?string
+    {
+        return Tenant::as($channelId, function () use ($retailerId): ?string {
+            $at = SubOrder::query()
+                ->where('retailer_id', $retailerId)
+                ->orderByDesc('id')
+                ->value('created_at');
+
+            if ($at === null) {
+                return null;
+            }
+
+            return Carbon::parse($at)->timezone('Asia/Damascus')->toIso8601String();
+        });
+    }
+
+    public function topProductsForRetailerInChannel(int $retailerId, int $channelId, int $limit = 5): array
+    {
+        $limit = max(1, min($limit, 25));
+
+        return Tenant::as($channelId, function () use ($retailerId, $limit): array {
+            $rows = SubOrder::query()
+                ->where('retailer_id', $retailerId)
+                ->with('lines')
+                ->get();
+
+            $qtyByProduct = [];
+            foreach ($rows as $order) {
+                foreach ($order->lines as $line) {
+                    $pid = (int) $line->product_id;
+                    $qtyByProduct[$pid] = ($qtyByProduct[$pid] ?? 0) + (int) $line->qty;
+                }
+            }
+            arsort($qtyByProduct);
+            $out = [];
+            foreach (array_slice($qtyByProduct, 0, $limit, true) as $productId => $qty) {
+                $out[] = [
+                    'product_id' => (int) $productId,
+                    'name' => $this->products->name((int) $productId) ?? '',
+                    'qty' => (int) $qty,
+                ];
+            }
+
+            return $out;
+        });
+    }
 }

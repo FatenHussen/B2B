@@ -6,6 +6,7 @@ namespace Modules\Identity;
 
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Contracts\AssignsChannelManager;
 use Modules\Core\Contracts\ChannelUserCounter;
 use Modules\Core\Contracts\ChannelUserDirectory;
 use Modules\Core\Contracts\OtpChannel;
@@ -15,7 +16,10 @@ use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\RetailerGroupDirectory;
 use Modules\Core\Contracts\RetailerShoppingContext;
+use Modules\Core\Domain\Events\ChannelManagerInvited;
+use Modules\Identity\Application\Listeners\ProvisionChannelManagerOnInvite;
 use Modules\Identity\Console\RegisterWarehouseDeviceCommand;
+use Modules\Identity\Infrastructure\EloquentAssignsChannelManager;
 use Modules\Identity\Infrastructure\EloquentChannelUserCounter;
 use Modules\Identity\Infrastructure\EloquentChannelUserDirectory;
 use Modules\Identity\Infrastructure\EloquentRepDirectory;
@@ -45,12 +49,15 @@ class IdentityServiceProvider extends ServiceProvider
         $this->app->singleton(RepDutyLookup::class, EloquentRepDutyLookup::class);
         $this->app->singleton(ChannelUserCounter::class, EloquentChannelUserCounter::class);
         $this->app->singleton(ChannelUserDirectory::class, EloquentChannelUserDirectory::class);
+        $this->app->singleton(AssignsChannelManager::class, EloquentAssignsChannelManager::class);
     }
 
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+
+        $this->app['events']->listen(ChannelManagerInvited::class, ProvisionChannelManagerOnInvite::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

@@ -50,7 +50,7 @@ return [
             'subtotal' => 69000,
             'currency' => 'SYP',
         ],
-        'd' => 'Single source of truth (REQ-IN-07). Precedence: retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices.',
+        'd' => 'Single source of truth (REQ-IN-07). Precedence stop-at-first-match (most specific wins; lists do not stack): retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices.',
         'in' => 'REQ-IN-07',
     ]),
 
@@ -203,7 +203,15 @@ return [
                 'show_all' => true,
             ]],
         ],
-        'd' => 'Filtered by the user activity type and zone, including intro targeting (TB-RT-010).',
+        'd' => 'Filtered by the user activity type and zone, including intro targeting (TB-RT-010). Serving a Banner row increments impressions atomically.',
+    ]),
+    ep('EP-APP-101', 'SP-15', 'POST', '/app/content/banners/{id}/click', 'app', null, [
+        'name' => 'Record banner click',
+        'name_ar' => 'تسجيل نقرة بانر',
+        'b' => new stdClass(),
+        'r' => ['clicks' => 841],
+        'e' => [404 => 'not_found'],
+        'd' => 'Atomic clicks++ on a Banner the caller can see (covering channels). Foreign or unknown id → 404.',
     ]),
     ep('EP-APP-110', 'SP-15', 'GET', '/app/loyalty', 'app', null, [
         'name' => 'Loyalty wallet',

@@ -23,6 +23,7 @@ class PickingList extends Model
         'sub_order_id',
         'warehouse_id',
         'channel_id',
+        'wave_id',
         'status',
         'due_at',
         'pick_path_version',

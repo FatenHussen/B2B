@@ -48,3 +48,38 @@ it('updates loyalty rules and lists rewards', function () {
     CatalogAssert::ok($list);
     expect($list->json('data.0.points_cost'))->toBe(2000);
 });
+
+it('updates and stops a loyalty reward', function () {
+    $channel = SupplyChannel::factory()->create();
+    Sanctum::actingAs(loyManager($channel), ['*'], 'channel');
+
+    $id = $this->postJson('/api/v1/channel/loyalty/rewards', [
+        'name' => 'كرتون زيت',
+        'points_cost' => 2000,
+        'stock' => 40,
+        'expires_at' => '2026-12-31',
+    ])->json('data.id');
+
+    $put = $this->putJson("/api/v1/channel/loyalty/rewards/{$id}", [
+        'name' => 'كرتون زيت',
+        'points_cost' => 1800,
+        'stock' => 35,
+        'expires_at' => '2026-12-31',
+    ]);
+    CatalogAssert::ok($put);
+    expect($put->json('data.id'))->toBe($id);
+
+    $stop = $this->patchJson("/api/v1/channel/loyalty/rewards/{$id}/stop", ['reason' => 'نفاد المخزون']);
+    CatalogAssert::ok($stop);
+    expect($stop->json('data.status'))->toBe('stopped');
+
+    CatalogAssert::error(
+        $this->putJson("/api/v1/channel/loyalty/rewards/{$id}", [
+            'name' => 'كرتون زيت',
+            'points_cost' => 1800,
+            'stock' => 35,
+        ]),
+        409,
+        'illegal_transition',
+    );
+});

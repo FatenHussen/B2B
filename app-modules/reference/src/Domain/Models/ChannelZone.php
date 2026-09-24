@@ -14,6 +14,7 @@ use Modules\Reference\Database\Factories\ChannelZoneFactory;
  * @property int $supply_channel_id
  * @property int $zone_id
  * @property array<int, string>|null $delivery_days
+ * @property list<array{day: string, start: string, end: string}>|null $delivery_windows
  * @property string $delivery_fee
  * @property string|null $min_order_value
  * @property Zone|null $zone
@@ -30,6 +31,7 @@ class ChannelZone extends Model
     protected $fillable = [
         'zone_id',
         'delivery_days',
+        'delivery_windows',
         'delivery_fee',
         'min_order_value',
     ];
@@ -42,6 +44,7 @@ class ChannelZone extends Model
     {
         return [
             'delivery_days' => 'array',
+            'delivery_windows' => 'array',
             'delivery_fee' => MoneyCast::class,
             'min_order_value' => MoneyCast::class,
         ];

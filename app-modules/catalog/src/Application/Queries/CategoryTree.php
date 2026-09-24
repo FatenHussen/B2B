@@ -6,6 +6,7 @@ namespace Modules\Catalog\Application\Queries;
 
 use Illuminate\Support\Collection;
 use Modules\Catalog\Domain\Models\Category;
+use Modules\Catalog\Domain\Models\CategoryActivityType;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Support\MediaUrl;
@@ -20,6 +21,12 @@ final class CategoryTree
     public function __invoke(): array
     {
         $categories = Category::query()->orderBy('order')->orderBy('id')->get();
+        $activityByCategory = $categories->isEmpty()
+            ? collect()
+            : CategoryActivityType::query()
+                ->whereIn('category_id', $categories->modelKeys())
+                ->get()
+                ->groupBy('category_id');
         $byParent = $categories->groupBy(fn (Category $c) => $c->parent_id === null
             ? 'root-'.($c->root_category_id ?? 'channel-'.$c->id)
             : 'cat-'.$c->parent_id);
@@ -27,7 +34,7 @@ final class CategoryTree
         $nodes = [];
         foreach ($this->refs->activeRootCategories() as $root) {
             $children = $byParent->get('root-'.$root['id'], collect())
-                ->map(fn (Category $c) => $this->node($c, $byParent))
+                ->map(fn (Category $c) => $this->node($c, $byParent, $activityByCategory))
                 ->values()
                 ->all();
 
@@ -35,12 +42,14 @@ final class CategoryTree
                 'id' => $root['id'],
                 'name' => $root['name'],
                 'image' => $root['image'],
+                'media_id' => null,
                 'icon' => $root['icon'],
                 'parent_id' => null,
                 'level' => 1,
                 'order' => $root['order'],
                 'status' => 'active',
                 'description' => null,
+                'activity_type_ids' => [],
                 'direct_products' => 0,
                 'total_products' => $this->sumProducts($children),
                 'children' => $children,
@@ -48,7 +57,7 @@ final class CategoryTree
         }
 
         foreach ($categories->filter(fn (Category $c) => (int) $c->level === 1 && $c->parent_id === null && $c->root_category_id === null) as $channelRoot) {
-            $nodes[] = $this->node($channelRoot, $byParent);
+            $nodes[] = $this->node($channelRoot, $byParent, $activityByCategory);
         }
 
         return $nodes;
@@ -56,27 +65,36 @@ final class CategoryTree
 
     /**
      * @param  Collection<string, Collection<int, Category>>  $byParent
+     * @param  Collection<int|string, Collection<int, CategoryActivityType>>  $activityByCategory
      * @return array<string, mixed>
      */
-    private function node(Category $category, $byParent): array
+    private function node(Category $category, $byParent, $activityByCategory): array
     {
         $children = $byParent->get('cat-'.$category->id, collect())
-            ->map(fn (Category $c) => $this->node($c, $byParent))
+            ->map(fn (Category $c) => $this->node($c, $byParent, $activityByCategory))
             ->values()
             ->all();
 
         $direct = Product::query()->where('category_id', $category->id)->count();
+        $mediaId = $category->image_media_id !== null ? (int) $category->image_media_id : null;
+        $activityIds = $activityByCategory->get($category->id, collect())
+            ->pluck('activity_type_id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
 
         return [
             'id' => (int) $category->id,
             'name' => (string) $category->name,
             'description' => $category->description,
-            'image' => MediaUrl::of($category->image_media_id ? (int) $category->image_media_id : null),
+            'image' => MediaUrl::of($mediaId),
+            'media_id' => $mediaId !== null ? (string) $mediaId : null,
             'icon' => $category->icon,
             'parent_id' => $category->parent_id ? (int) $category->parent_id : $category->root_category_id,
             'level' => (int) $category->level,
             'order' => (int) $category->order,
             'status' => $category->status->value,
+            'activity_type_ids' => $activityIds,
             'direct_products' => $direct,
             'total_products' => $direct + $this->sumProducts($children),
             'children' => $children,

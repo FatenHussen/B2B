@@ -54,6 +54,16 @@ class ChannelPlan extends Model
     protected $guarded = ['status'];
 
     /**
+     * The initial status is a definition, not a write: a new plan is `active` and
+     * nothing outside PlanLifecycle assigns the column (ChannelStatusWriterTest).
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => 'active',
+    ];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

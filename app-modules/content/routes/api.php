@@ -60,13 +60,18 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::put('intro', [ChannelContentController::class, 'updateIntro'])->middleware('permission:sc.content.intro');
         Route::get('banners', [ChannelContentController::class, 'banners'])->middleware('permission:sc.content.banners');
         Route::post('banners', [ChannelContentController::class, 'storeBanner'])->middleware('permission:sc.content.banners');
+        Route::put('banners/{id}', [ChannelContentController::class, 'updateBanner'])->middleware('permission:sc.content.banners');
+        Route::delete('banners/{id}', [ChannelContentController::class, 'destroyBanner'])->middleware('permission:sc.content.banners');
         Route::get('banners/{id}/stats', [ChannelContentController::class, 'bannerStats'])->middleware('permission:sc.content.banners');
         Route::get('sliders', [ChannelContentController::class, 'sliders'])->middleware('permission:sc.content.sliders');
         Route::post('sliders', [ChannelContentController::class, 'storeSlider'])->middleware('permission:sc.content.sliders');
+        Route::put('sliders/{id}', [ChannelContentController::class, 'updateSlider'])->middleware('permission:sc.content.sliders');
+        Route::delete('sliders/{id}', [ChannelContentController::class, 'destroySlider'])->middleware('permission:sc.content.sliders');
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])
     ->prefix('api/v1/app/content')
     ->group(function (): void {
         Route::get('home-blocks', [AppContentController::class, 'homeBlocks']);
+        Route::post('banners/{id}/click', [AppContentController::class, 'bannerClick']);
     });

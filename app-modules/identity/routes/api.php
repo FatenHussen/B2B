@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Modules\Identity\Presentation\Http\Controllers\AppAuthController;
 use Modules\Identity\Presentation\Http\Controllers\ChannelAuthController;
+use Modules\Identity\Presentation\Http\Controllers\ChannelOpsExtrasController;
 use Modules\Identity\Presentation\Http\Controllers\ChannelRepOpsController;
 use Modules\Identity\Presentation\Http\Controllers\PlatformAuthController;
 use Modules\Identity\Presentation\Http\Controllers\PlatformOpsController;
@@ -92,6 +93,8 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
 
     Route::middleware(['auth:channel', 'guard.tokenable:channel', 'tenant'])->prefix('channel')->group(function (): void {
         Route::get('reps', [ChannelRepOpsController::class, 'index'])->middleware('permission:sc.reps.view');
+        Route::get('reps/live', [ChannelOpsExtrasController::class, 'repsLive'])->middleware('permission:sc.reps.track');
+        Route::get('reps/{id}/live', [ChannelOpsExtrasController::class, 'repLive'])->middleware('permission:sc.reps.view');
         Route::get('reps/{id}', [ChannelRepOpsController::class, 'show'])->middleware('permission:sc.reps.view');
         Route::post('reps/{id}/approve', [ChannelRepOpsController::class, 'approve'])->middleware('permission:sc.reps.update');
         Route::post('reps/{id}/reject', [ChannelRepOpsController::class, 'reject'])->middleware('permission:sc.reps.update');
@@ -101,6 +104,10 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::get('rep-sourced-shops', [ChannelRepOpsController::class, 'sourcedShops'])->middleware('permission:sc.reps.view');
         Route::post('rep-sourced-shops/{id}/decide', [ChannelRepOpsController::class, 'decideSourcedShop'])->middleware('permission:sc.reps.update');
         Route::get('retailers', [ChannelRepOpsController::class, 'retailers'])->middleware('permission:sc.retailers.view');
+        Route::get('retailers/{id}', [ChannelOpsExtrasController::class, 'showRetailer'])->middleware('permission:sc.retailers.view');
+        Route::get('zones/coverage', [ChannelOpsExtrasController::class, 'zoneCoverage'])->middleware('permission:sc.zones.view');
+        Route::get('users', [ChannelOpsExtrasController::class, 'users'])->middleware('permission:sc.iam.users_view');
+        Route::post('users/invite', [ChannelOpsExtrasController::class, 'invite'])->middleware('permission:sc.iam.users_manage');
         Route::get('retailer-groups', [RetailerGroupController::class, 'index'])->middleware('permission:sc.retailers.groups');
         Route::post('retailer-groups', [RetailerGroupController::class, 'store'])->middleware('permission:sc.retailers.groups');
         Route::put('retailer-groups/{id}', [RetailerGroupController::class, 'update'])->middleware('permission:sc.retailers.groups');

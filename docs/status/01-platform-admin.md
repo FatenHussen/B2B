@@ -1,10 +1,10 @@
 # لوحة إدارة المنصة (السنترال) — حالة الواجهات
 
-guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 2026-09-24 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 166 | 166 | 0 | 0 | 7 |
+| 173 | 173 | 0 | 0 | 0 |
 
 ## الدخول والملف الشخصي — 16/16
 
@@ -52,25 +52,32 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 | ✅ | EP-AD-028 | SP-02 | `GET` | `/platform/iam/reviews/{id}` | `ad.audit.review` | Access | حملة مراجعة الصلاحيات |
 | ✅ | EP-AD-029 | SP-02 | `POST` | `/platform/iam/reviews/{id}/items/{itemId}/decide` | `ad.audit.review` | Access | تأكيد أو سحب بند المراجعة |
 
-## المرجعيات — 31/31
+## المرجعيات — 38/38
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-AD-030 | SP-03 | `GET` | `/platform/refs/governorates` | `ad.refs.view` | Reference | المحافظات |
+| ✅ | EP-AD-030C | SP-03 | `GET` | `/platform/refs/governorates/{id}` | `ad.refs.view` | Reference | تفاصيل محافظة |
 | ✅ | EP-AD-031 | SP-03 | `POST` | `/platform/refs/governorates` | `ad.refs.create` | Reference | إنشاء محافظة |
 | ✅ | EP-AD-032 | SP-03 | `GET` | `/platform/refs/zones` | `ad.refs.view` | Reference | المناطق |
+| ✅ | EP-AD-032C | SP-03 | `GET` | `/platform/refs/zones/{id}` | `ad.refs.view` | Reference | تفاصيل منطقة |
 | ✅ | EP-AD-033 | SP-03 | `POST` | `/platform/refs/zones` | `ad.refs.create` | Reference | إنشاء منطقة |
 | ✅ | EP-AD-034 | SP-03 | `PATCH` | `/platform/refs/zones/{id}/status` | `ad.refs.disable` | Reference | تعطيل/تفعيل منطقة |
 | ✅ | EP-AD-035A | SP-03 | `GET` | `/platform/refs/activity-types` | `ad.refs.view` | Reference | أنواع النشاط |
 | ✅ | EP-AD-035B | SP-03 | `POST` | `/platform/refs/activity-types` | `ad.refs.create` | Reference | إنشاء نوع نشاط |
+| ✅ | EP-AD-035C | SP-03 | `GET` | `/platform/refs/activity-types/{id}` | `ad.refs.view` | Reference | تفاصيل نوع نشاط |
 | ✅ | EP-AD-036A | SP-03 | `GET` | `/platform/refs/root-categories` | `ad.refs.view` | Reference | الفئات الجذر |
 | ✅ | EP-AD-036B | SP-03 | `POST` | `/platform/refs/root-categories` | `ad.refs.create` | Reference | إنشاء فئة جذر |
+| ✅ | EP-AD-036C | SP-03 | `GET` | `/platform/refs/root-categories/{id}` | `ad.refs.view` | Reference | تفاصيل فئة جذر |
 | ✅ | EP-AD-037A | SP-03 | `GET` | `/platform/refs/sale-units` | `ad.refs.view` | Reference | وحدات البيع |
 | ✅ | EP-AD-037B | SP-03 | `POST` | `/platform/refs/sale-units` | `ad.refs.create` | Reference | إنشاء وحدة بيع |
+| ✅ | EP-AD-037C | SP-03 | `GET` | `/platform/refs/sale-units/{id}` | `ad.refs.view` | Reference | تفاصيل وحدة بيع |
 | ✅ | EP-AD-038A | SP-03 | `GET` | `/platform/refs/equipments` | `ad.refs.view` | Reference | التجهيزات |
 | ✅ | EP-AD-038B | SP-03 | `POST` | `/platform/refs/equipments` | `ad.refs.create` | Reference | إنشاء تجهيز |
+| ✅ | EP-AD-038C | SP-03 | `GET` | `/platform/refs/equipments/{id}` | `ad.refs.view` | Reference | تفاصيل تجهيز |
 | ✅ | EP-AD-039A | SP-03 | `GET` | `/platform/refs/currencies` | `ad.refs.currency` | Reference | العملات |
 | ✅ | EP-AD-039B | SP-03 | `POST` | `/platform/refs/currencies` | `ad.refs.currency` | Reference | إنشاء عملة |
+| ✅ | EP-AD-039C | SP-03 | `GET` | `/platform/refs/currencies/{id}` | `ad.refs.currency` | Reference | تفاصيل عملة |
 | ✅ | EP-AD-040 | SP-03 | `POST` | `/platform/refs/fx-rates` | `ad.refs.currency` | Reference | سعر صرف |
 | ✅ | EP-AD-041 | SP-03 | `POST` | `/platform/refs/import` | `ad.refs.import` | Reference | استيراد مرجعيات |
 | ✅ | EP-AD-042A | SP-03 | `PUT` | `/platform/refs/governorates/{id}` | `ad.refs.update` | Reference | تعديل محافظة |
@@ -231,18 +238,4 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 | ✅ | EP-AD-158B | SP-17 | `PUT` | `/platform/settings/security` | `ad.settings.security` | Core | تحديث سياسة الأمان |
 | ✅ | EP-AD-160A | SP-17 | `PUT` | `/platform/team/{id}` | `ad.team.update` | Identity | تعديل عضو المنصة |
 | ✅ | EP-AD-160B | SP-17 | `DELETE` | `/platform/team/{id}` | `ad.team.delete` | Identity | حذف عضو المنصة |
-
-## حيّ خارج الكتالوج
-
-مسارات تخدمها الشيفرة ولا يذكرها الكتالوج. إما تُضاف إلى `docs/api/catalog/` أو تُزال — لا ثالث.
-
-| الطريقة | المسار | الصلاحية | الوحدة |
-|---|---|---|---|
-| `GET` | `/platform/refs/activity-types/{activityType}` | `ad.refs.view` | Reference |
-| `GET` | `/platform/refs/currencies/{currency}` | `ad.refs.currency` | Reference |
-| `GET` | `/platform/refs/equipments/{equipment}` | `ad.refs.view` | Reference |
-| `GET` | `/platform/refs/governorates/{governorate}` | `ad.refs.view` | Reference |
-| `GET` | `/platform/refs/root-categories/{rootCategory}` | `ad.refs.view` | Reference |
-| `GET` | `/platform/refs/sale-units/{saleUnit}` | `ad.refs.view` | Reference |
-| `GET` | `/platform/refs/zones/{zone}` | `ad.refs.view` | Reference |
 

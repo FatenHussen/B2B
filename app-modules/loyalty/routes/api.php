@@ -14,6 +14,8 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::put('rules', [ChannelLoyaltyController::class, 'updateRules'])->middleware('permission:sc.loyalty.manage');
         Route::get('rewards', [ChannelLoyaltyController::class, 'rewards'])->middleware('permission:sc.loyalty.manage');
         Route::post('rewards', [ChannelLoyaltyController::class, 'storeReward'])->middleware('permission:sc.loyalty.manage');
+        Route::put('rewards/{id}', [ChannelLoyaltyController::class, 'updateReward'])->middleware('permission:sc.loyalty.manage');
+        Route::patch('rewards/{id}/stop', [ChannelLoyaltyController::class, 'stopReward'])->middleware('permission:sc.loyalty.manage');
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])

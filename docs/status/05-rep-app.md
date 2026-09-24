@@ -1,6 +1,6 @@
 # تطبيق المندوب — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-09-24 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|

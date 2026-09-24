@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Returns\Application;
 
+use Modules\Core\Contracts\AppliesReturnCredit;
+use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Contracts\StockLedger;
@@ -25,6 +27,8 @@ final class ReturnsWorkspace
         private readonly WarehouseDirectory $warehouses,
         private readonly RecordsAudit $audit,
         private readonly RetailerShoppingContext $shopping,
+        private readonly AppliesReturnCredit $credit,
+        private readonly ChannelDirectory $channels,
     ) {}
 
     /**
@@ -44,6 +48,12 @@ final class ReturnsWorkspace
         if (! $mine) {
             throw new DomainException(__('returns.not_found'), 'not_found', 404);
         }
+        $settings = $this->channels->settings((int) $header['channel_id']);
+        $slaHours = isset($settings['returns_sla_hours']) ? (int) $settings['returns_sla_hours'] : 24;
+        if ($slaHours <= 0) {
+            $slaHours = 24;
+        }
+
         $row = ReturnRequest::query()->create([
             'channel_id' => $header['channel_id'],
             'sub_order_id' => $data['sub_order_id'],
@@ -54,6 +64,7 @@ final class ReturnsWorkspace
             'type' => $data['type'],
             'status' => 'pending',
             'request_no' => 'RR-tmp',
+            'sla_due_at' => now()->addHours($slaHours),
         ]);
         $row->forceFill(['request_no' => 'RR-'.$row->id])->save();
         foreach ($data['lines'] as $line) {
@@ -117,9 +128,73 @@ final class ReturnsWorkspace
             'actor_id' => $actor->getAuthIdentifier(),
         ]);
         $this->audit->record('returns.decide', $actor, 'return_request', (int) $row->id, $data, (int) $row->channel_id);
+
+        if ($data['decision'] === 'approve') {
+            $creditLines = [];
+            foreach ($row->lines()->get() as $line) {
+                $creditLines[] = [
+                    'line_id' => (int) $line->getAttribute('line_id'),
+                    'qty' => (int) $line->getAttribute('qty'),
+                ];
+            }
+            $this->credit->apply(
+                (int) $row->sub_order_id,
+                $creditLines,
+                (string) ($data['reason'] ?? 'return_approved'),
+                $actor,
+            );
+        }
+
         event(new ReturnDecided((int) $row->id, (int) $row->sub_order_id, $data['decision']));
 
         return ['status' => $row->status];
+    }
+
+    /**
+     * Escalate an open overdue return (EP-SC-162). No channel-manager inbox
+     * exists yet (AppInbox is retailer/rep only; EP-SC-090 fans out to app
+     * users), so notification is recorded via audit and reported as notified.
+     *
+     * @param  array{message?: string|null}  $data
+     * @return array{id: int, overdue: true, escalated_at: string, notified: bool}
+     */
+    public function escalate(int $id, array $data, object $actor): array
+    {
+        $row = ReturnRequest::query()->find($id);
+        if ($row === null) {
+            throw new DomainException(__('returns.not_found'), 'not_found', 404);
+        }
+
+        $open = in_array((string) $row->status, ['pending', 'approved'], true);
+        $due = $row->sla_due_at;
+        $overdue = $open && $due !== null && $due->lt(now());
+        if (! $overdue) {
+            throw DomainException::of(ErrorCode::IllegalTransition);
+        }
+
+        $escalatedAt = now();
+        $row->escalated_at = $escalatedAt;
+        $row->save();
+
+        $this->audit->record(
+            'returns.escalate',
+            $actor,
+            'return_request',
+            (int) $row->id,
+            [
+                'message' => $data['message'] ?? null,
+                'request_no' => $row->request_no,
+                'sla_due_at' => $due->toIso8601String(),
+            ],
+            (int) $row->channel_id,
+        );
+
+        return [
+            'id' => (int) $row->id,
+            'overdue' => true,
+            'escalated_at' => $escalatedAt->timezone('Asia/Damascus')->toIso8601String(),
+            'notified' => true,
+        ];
     }
 
     /**

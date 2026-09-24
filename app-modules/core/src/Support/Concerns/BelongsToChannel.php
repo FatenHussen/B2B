@@ -34,12 +34,17 @@ trait BelongsToChannel
      * different value as an incompatible composition and fails at compile time — so a
      * model could not have overridden it. The property lives only on the models that need
      * the second spelling, and this reads it reflectively when it is there.
+     *
+     * `get_object_vars`, not `property_exists`: the analyser evaluates a trait in the
+     * context of every class using it, and on a class that declares the property
+     * `property_exists($this, …)` is "always true" — one finding per relaxed model,
+     * which was six the day the three platform-written records joined.
      */
     public function channelColumn(): string
     {
-        return property_exists($this, 'channelColumn')
-            ? $this->channelColumn
-            : 'supply_channel_id';
+        $declared = get_object_vars($this)['channelColumn'] ?? null;
+
+        return is_string($declared) && $declared !== '' ? $declared : 'supply_channel_id';
     }
 
     /**
@@ -49,21 +54,32 @@ trait BelongsToChannel
      * error, and the exception says so at the point it happens instead of returning a
      * silently empty result.
      *
-     * A model declares `protected bool $channelScopeOptional = true;` when it is read in
-     * order to *decide* which channel a caller belongs to — before any tenant exists.
-     * `ChannelUserChannel` is the clearest: `ResolveTenant` calls
-     * `ChannelUser::defaultChannelId()`, which reads that table to find the tenant, so a
-     * scope demanding the tenant to read the table that supplies it cannot terminate.
+     * A model declares `protected bool $channelScopeOptional = true;` in two cases.
+     *
+     * 1. It is read in order to *decide* which channel a caller belongs to, before any
+     *    tenant exists. `ChannelUserChannel` is the clearest: `ResolveTenant` calls
+     *    `ChannelUser::defaultChannelId()`, which reads that table to find the tenant, so
+     *    a scope demanding the tenant to read the table that supplies it cannot terminate.
+     *
+     * 2. It is a record the platform writes *about* a channel and the channel may read
+     *    later — a subscription, a platform invoice, a manager invite. Its writer runs on
+     *    `/platform/*`, where no tenant is set, so strict mode would throw on every
+     *    back-office screen; a channel route added tomorrow to read the same table is
+     *    isolated the day it lands, with no `where` to remember. The writer sets
+     *    `channel_id` explicitly; the `creating` hook fills it from the tenant only when
+     *    it is missing, and on these tables the column is NOT NULL, so a row written with
+     *    neither fails at the constraint rather than silently.
      *
      * Relaxed is not unscoped. With a tenant set the filter applies exactly as it does in
-     * strict mode; only the absence of one is tolerated. That makes it strictly better
-     * than leaving such a model untraited, which is what these three were before.
+     * strict mode; only the absence of one is tolerated. It is the wrong choice for one
+     * shape: a table read *across* channels on a route where a `platform_admin` may switch
+     * tenant with `X-Channel-Id` (ResolveTenant, first branch). There the filter would
+     * silently hide rows from the back office, and the model is exempted instead, with the
+     * reason written beside its name in `tests/Architecture/ChannelScopeTest.php`.
      */
     public function channelScopeOptional(): bool
     {
-        return property_exists($this, 'channelScopeOptional')
-            ? $this->channelScopeOptional
-            : false;
+        return (get_object_vars($this)['channelScopeOptional'] ?? false) === true;
     }
 
     protected static function bootBelongsToChannel(): void

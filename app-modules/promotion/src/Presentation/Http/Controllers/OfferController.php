@@ -11,14 +11,19 @@ use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Http\ApiController;
 use Modules\Core\Support\MediaUrl;
+use Modules\Promotion\Application\Actions\ActivateOffer;
 use Modules\Promotion\Application\Actions\CreateOffer;
+use Modules\Promotion\Application\Actions\ShowOffer;
 use Modules\Promotion\Application\Actions\StopOffer;
+use Modules\Promotion\Application\Actions\UpdateOffer;
 use Modules\Promotion\Application\Queries\ShowOfferPerformance;
 use Modules\Promotion\Application\Services\OfferStatusRefresh;
 use Modules\Promotion\Domain\Models\Offer;
 use Modules\Promotion\Infrastructure\EloquentOfferFeed;
+use Modules\Promotion\Presentation\Http\Requests\ActivateOfferRequest;
 use Modules\Promotion\Presentation\Http\Requests\StopOfferRequest;
 use Modules\Promotion\Presentation\Http\Requests\StoreOfferRequest;
+use Modules\Promotion\Presentation\Http\Requests\UpdateOfferRequest;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -52,7 +57,22 @@ final class OfferController extends ApiController
         return $this->created($action($request->user(), $request->validated()));
     }
 
+    public function show(ShowOffer $action, int $id): JsonResponse
+    {
+        return $this->ok($action($id));
+    }
+
+    public function update(UpdateOfferRequest $request, UpdateOffer $action, int $id): JsonResponse
+    {
+        return $this->ok($action($request->user(), $id, $request->validated()));
+    }
+
     public function stop(StopOfferRequest $request, StopOffer $action, int $id): JsonResponse
+    {
+        return $this->ok($action($request->user(), $id, $request->validated()));
+    }
+
+    public function activate(ActivateOfferRequest $request, ActivateOffer $action, int $id): JsonResponse
     {
         return $this->ok($action($request->user(), $id, $request->validated()));
     }
@@ -93,7 +113,7 @@ final class OfferController extends ApiController
 
         return $this->paginated($page, function (Offer $offer) use ($feed, $zoneId, $retailerId, $consumption) {
             if ($retailerId !== null) {
-                $consumption->recordView((int) $offer->id, $retailerId);
+                $consumption->recordView((int) $offer->getKey(), $retailerId);
             }
 
             return $feed->card($offer, $zoneId);
@@ -132,7 +152,7 @@ final class OfferController extends ApiController
         }
 
         if ($retailerId !== null) {
-            $consumption->recordView((int) $offer->id, $retailerId);
+            $consumption->recordView((int) $offer->getKey(), $retailerId);
         }
 
         $card = $feed->card($offer, $zoneId);

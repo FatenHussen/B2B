@@ -6,7 +6,6 @@ namespace Modules\Tenancy\Application\Actions;
 
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Tenancy\Domain\Enums\PlanOnExceed;
-use Modules\Tenancy\Domain\Enums\PlanStatus;
 use Modules\Tenancy\Domain\Models\ChannelPlan;
 
 final class CreatePlan
@@ -33,7 +32,7 @@ final class CreatePlan
             'is_public' => (bool) ($data['is_public'] ?? true),
             'is_active' => true,
         ]);
-        $plan->status = PlanStatus::Active;
+        // `status` starts as `active` from the model's `$attributes`; no writer here.
         $plan->save();
 
         $this->audit->record(

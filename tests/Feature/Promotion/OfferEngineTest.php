@@ -273,6 +273,13 @@ it('persists offer group targeting on create', function () {
     offerEngineCover($channel, $refs['zone']);
     Sanctum::actingAs(offerEngineManager($channel), ['*'], 'channel');
 
+    $g1 = $this->postJson('/api/v1/channel/retailer-groups', ['name' => 'G1', 'retailer_ids' => []])
+        ->assertCreated()
+        ->json('data.id');
+    $g2 = $this->postJson('/api/v1/channel/retailer-groups', ['name' => 'G2', 'retailer_ids' => []])
+        ->assertCreated()
+        ->json('data.id');
+
     $cat = $this->postJson('/api/v1/channel/categories', [
         'name' => 'زيوت',
         'parent_id' => $refs['root']->id,
@@ -288,7 +295,7 @@ it('persists offer group targeting on create', function () {
         'type' => 'product_discount',
         'components' => [['product_id' => $productId, 'qty' => 1]],
         'rewards' => ['discount_percent' => 5],
-        'targeting' => ['scope' => 'groups', 'group_ids' => [9, 11]],
+        'targeting' => ['scope' => 'groups', 'group_ids' => [$g1, $g2]],
         'status' => 'active',
     ])->assertCreated()->json('data.id');
 

@@ -24,6 +24,7 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
     ->group(function (): void {
         Route::get('/', [ReturnsController::class, 'channelIndex'])->middleware('permission:sc.returns.view');
         Route::post('{id}/decide', [ReturnsController::class, 'decide'])->middleware('permission:sc.returns.decide');
+        Route::post('{id}/escalate', [ReturnsController::class, 'escalate'])->middleware('permission:sc.returns.decide');
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:warehouse', 'guard.tokenable:warehouse', 'tenant'])

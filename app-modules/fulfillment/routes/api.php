@@ -10,6 +10,9 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:warehouse', 'guard.to
     ->prefix('api/v1/warehouse')
     ->group(function (): void {
         Route::get('queues', [WarehouseController::class, 'queues'])->middleware('permission:wh.queue.view');
+        Route::post('picking-lists/batch', [WarehouseController::class, 'batchPicking'])->middleware('permission:wh.picking.execute');
+        Route::post('picking-waves', [WarehouseController::class, 'createPickingWave'])->middleware('permission:wh.picking.execute');
+        Route::get('picking-waves/{id}', [WarehouseController::class, 'showPickingWave'])->middleware('permission:wh.picking.execute');
         Route::get('picking-lists/{id}', [WarehouseController::class, 'picking'])->middleware('permission:wh.picking.execute');
         Route::post('picking-lists/{id}/scan', [WarehouseController::class, 'scan'])->middleware('permission:wh.picking.execute');
         Route::post('picking-lists/{id}/lines/{lineId}/manual', [WarehouseController::class, 'manual'])->middleware('permission:wh.picking.execute');
@@ -22,6 +25,8 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:warehouse', 'guard.to
         Route::post('handovers/{id}/return-trip', [WarehouseController::class, 'returnTrip'])->middleware('permission:wh.handover.return_trip');
         Route::post('receiving', [WarehouseController::class, 'receiving'])->middleware('permission:wh.receiving.execute');
         Route::post('receiving/{id}/qc', [WarehouseController::class, 'qc'])->middleware('permission:wh.receiving.qc');
+        Route::get('stock-lots', [WarehouseController::class, 'stockLots'])->middleware('permission:wh.receiving.lots');
+        Route::post('stock-lots/{id}/adjust', [WarehouseController::class, 'adjustStockLot'])->middleware('permission:wh.receiving.lots');
         Route::post('stocktakes', [WarehouseController::class, 'startStocktake'])->middleware('permission:wh.stocktake.execute');
         Route::post('stocktakes/{id}/lines', [WarehouseController::class, 'recordCount'])->middleware('permission:wh.stocktake.execute');
         Route::post('stocktakes/{id}/submit', [WarehouseController::class, 'submitStocktake'])->middleware('permission:wh.stocktake.execute');

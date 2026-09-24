@@ -6,6 +6,10 @@ namespace Modules\Promotion\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $offer_id
+ * @property int $group_id
+ */
 class OfferGroup extends Model
 {
     public $timestamps = false;

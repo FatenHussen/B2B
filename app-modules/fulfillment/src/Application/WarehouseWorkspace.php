@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Modules\Fulfillment\Application;
 
 use Modules\Core\Contracts\CatalogProductLookup;
+use Modules\Core\Contracts\CreatesPickingList;
 use Modules\Core\Contracts\RecordsAudit;
+use Modules\Core\Contracts\RepDirectory;
 use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Contracts\SubOrderLifecycle;
+use Modules\Core\Contracts\WarehouseDirectory;
 use Modules\Core\Contracts\WarehouseLocationDirectory;
 use Modules\Core\Domain\Events\HandoverConfirmedByRep;
 use Modules\Core\Domain\Events\HandoverOpened;
@@ -24,6 +27,7 @@ use Modules\Fulfillment\Domain\Models\Package;
 use Modules\Fulfillment\Domain\Models\PackingJob;
 use Modules\Fulfillment\Domain\Models\PickingLine;
 use Modules\Fulfillment\Domain\Models\PickingList;
+use Modules\Fulfillment\Domain\Models\PickingWave;
 use Modules\Fulfillment\Domain\Models\Stocktake;
 use Modules\Fulfillment\Domain\Models\StocktakeLine;
 
@@ -35,6 +39,9 @@ final class WarehouseWorkspace
         private readonly StockLedger $ledger,
         private readonly RecordsAudit $audit,
         private readonly WarehouseLocationDirectory $locations,
+        private readonly RepDirectory $reps,
+        private readonly WarehouseDirectory $warehouses,
+        private readonly CreatesPickingList $pickingLists,
     ) {}
 
     public function warehouseId(): int
@@ -53,6 +60,17 @@ final class WarehouseWorkspace
     public function queues(): array
     {
         $wid = $this->warehouseId();
+        $overduePicks = PickingList::query()
+            ->where('warehouse_id', $wid)
+            ->whereIn('status', [PickingStatus::ToPick, PickingStatus::Picking])
+            ->whereNotNull('due_at')
+            ->where('due_at', '<', now())
+            ->count();
+
+        $alerts = [];
+        if ($overduePicks > 0) {
+            $alerts[] = ['type' => 'overdue_picks', 'count' => $overduePicks];
+        }
 
         return [
             'queues' => [
@@ -61,10 +79,18 @@ final class WarehouseWorkspace
                 'to_pack' => PickingList::query()->where('warehouse_id', $wid)->where('status', PickingStatus::ToPack)->count(),
                 'ready' => PickingList::query()->where('warehouse_id', $wid)->where('status', PickingStatus::Packed)->count(),
                 'awaiting_rep' => Handover::query()->where('warehouse_id', $wid)->where('status', HandoverStatus::AwaitingRepConfirm)->count(),
-                'inbound_returns' => 0,
-                'inbound_transfers' => GoodsReceipt::query()->where('warehouse_id', $wid)->where('status', 'pending_qc')->count(),
+                'inbound_returns' => GoodsReceipt::query()
+                    ->where('warehouse_id', $wid)
+                    ->where('source', 'field_return')
+                    ->where('status', 'pending_qc')
+                    ->count(),
+                'inbound_transfers' => GoodsReceipt::query()
+                    ->where('warehouse_id', $wid)
+                    ->where('status', 'pending_qc')
+                    ->where('source', '!=', 'field_return')
+                    ->count(),
             ],
-            'alerts' => [],
+            'alerts' => $alerts,
         ];
     }
 
@@ -75,32 +101,60 @@ final class WarehouseWorkspace
     {
         $list = $this->list($id);
         $header = $this->orders->header((int) $list->sub_order_id);
-        $lines = $list->lines()->orderBy('id')->get();
+        $lines = $list->lines()->get();
+        $locationOrder = [];
+        foreach ($this->locations->orderedForWarehouse((int) $list->warehouse_id) as $index => $loc) {
+            $locationOrder[(int) $loc['id']] = $index;
+        }
+        $lines = $lines
+            ->sortBy(fn (PickingLine $line) => [
+                $line->location_id !== null
+                    ? ($locationOrder[(int) $line->location_id] ?? PHP_INT_MAX)
+                    : PHP_INT_MAX,
+                (int) $line->id,
+            ])
+            ->values();
+
+        $repId = isset($header['rep_id']) ? (int) $header['rep_id'] : 0;
+        $expectedRep = null;
+        if ($repId > 0) {
+            $expectedRep = [
+                'id' => $repId,
+                'name' => $this->reps->displayName($repId),
+                'phone' => $this->reps->phone($repId),
+            ];
+        }
 
         return [
             'header' => [
                 'order_no' => $header['sub_order_no'] ?? null,
                 'shop' => $header['shop_name'] ?? null,
                 'zone' => $header['zone_name'] ?? null,
-                'expected_rep' => null,
+                'expected_rep' => $expectedRep,
                 'items' => $lines->count(),
                 'units' => $lines->sum('qty_required'),
                 'due_at' => $list->due_at?->timezone('Asia/Damascus')->toIso8601String(),
             ],
-            'lines' => $lines->map(function (PickingLine $line) {
+            'lines' => $lines->map(function (PickingLine $line) use ($list) {
                 $snap = $this->products->snapshot((int) $line->product_id, $line->variant_id ? (int) $line->variant_id : null);
                 $loc = $line->location_id ? $this->locations->find((int) $line->location_id) : null;
+                $expiry = $this->ledger->earliestExpiry(
+                    (int) $list->warehouse_id,
+                    (int) $line->product_id,
+                    $line->variant_id ? (int) $line->variant_id : null,
+                );
 
                 return [
                     'id' => (int) $line->id,
                     'image' => $snap['image'] ?? null,
                     'name' => $snap['name'] ?? '',
-                    'variant' => null,
+                    'variant' => $snap['variant'] ?? null,
                     'qty_required' => (int) $line->qty_required,
                     'qty_picked' => (int) $line->qty_picked,
                     'sale_unit' => $snap['sale_unit'] ?? null,
                     'location' => $loc ? ['aisle' => $loc['aisle'], 'shelf' => $loc['shelf']] : null,
                     'barcode' => $line->barcode,
+                    'earliest_expiry' => $expiry,
                 ];
             })->all(),
         ];
@@ -161,7 +215,7 @@ final class WarehouseWorkspace
     }
 
     /**
-     * @return array{status: string}
+     * @return array{status: string, alternatives: list<int>}
      */
     public function shortage(int $id, int $lineId, int $qtyAvailable, string $reason): array
     {
@@ -175,7 +229,10 @@ final class WarehouseWorkspace
         $line->save();
         event(new PickingShortageReported((int) $list->id, (int) $list->sub_order_id, (int) $line->id, $reason));
 
-        return ['status' => 'shortage_reported'];
+        return [
+            'status' => 'shortage_reported',
+            'alternatives' => $this->products->alternativesInCategory((int) $line->product_id),
+        ];
     }
 
     /**
@@ -352,7 +409,12 @@ final class WarehouseWorkspace
             $restocked[] = (int) $row['sub_order_id'];
         }
 
-        return ['restocked' => $restocked, 'wallet_matched' => true];
+        // Honest match: every undelivered line we were asked to restock was restocked.
+        // Cash-bag amounts are not on this request body — do not invent a wallet compare.
+        return [
+            'restocked' => $restocked,
+            'wallet_matched' => count($restocked) === count($undelivered),
+        ];
     }
 
     /**
@@ -396,7 +458,7 @@ final class WarehouseWorkspace
             if ($line === null || ($row['decision'] ?? '') !== 'accept') {
                 continue;
             }
-            $this->ledger->receive(
+            $this->ledger->receiveLot(
                 (int) $receipt->warehouse_id,
                 (int) $line->product_id,
                 $line->variant_id ? (int) $line->variant_id : null,
@@ -404,10 +466,16 @@ final class WarehouseWorkspace
                 $actor,
                 'goods_receipt',
                 (int) $receipt->id,
+                is_string($line->lot_no) ? $line->lot_no : null,
+                $line->expiry_date !== null ? (string) $line->expiry_date : null,
             );
         }
         $receipt->status = 'posted';
         $receipt->save();
+
+        if ($receipt->source === 'transfer' && is_numeric($receipt->reference_no)) {
+            $this->ledger->transferReceived((int) $receipt->reference_no);
+        }
 
         return ['status' => 'posted'];
     }
@@ -538,6 +606,193 @@ final class WarehouseWorkspace
             'count' => count($orders),
             'orders' => $orders,
         ];
+    }
+
+    /**
+     * @param  list<int>  $subOrderIds
+     * @return array{picking_list_ids: list<int>}
+     */
+    public function batchPickingLists(array $subOrderIds): array
+    {
+        $wid = $this->warehouseId();
+        $channelId = $this->warehouses->channelId($wid);
+        if ($channelId === null) {
+            throw new DomainException(__('fulfillment.not_found'), 'not_found', 404);
+        }
+
+        $ids = [];
+        foreach ($subOrderIds as $subOrderId) {
+            $header = $this->orders->header((int) $subOrderId);
+            if ($header === null || (int) $header['channel_id'] !== $channelId) {
+                throw new DomainException(__('fulfillment.not_found'), 'not_found', 404);
+            }
+            $lines = array_map(fn (array $line): array => [
+                'product_id' => (int) $line['product_id'],
+                'variant_id' => $line['variant_id'] !== null ? (int) $line['variant_id'] : null,
+                'qty' => (int) $line['qty'],
+            ], $this->orders->lines((int) $subOrderId));
+
+            $ids[] = $this->pickingLists->create([
+                'sub_order_id' => (int) $subOrderId,
+                'channel_id' => $channelId,
+                'warehouse_id' => $wid,
+                'lines' => $lines,
+            ]);
+        }
+
+        return ['picking_list_ids' => $ids];
+    }
+
+    /**
+     * @param  list<int>  $subOrderIds
+     * @return array{id: int, picking_list_ids: list<int>, status: string}
+     */
+    public function createPickingWave(array $subOrderIds, ?int $assignedTo = null): array
+    {
+        $wid = $this->warehouseId();
+        $channelId = $this->warehouses->channelId($wid);
+        if ($channelId === null) {
+            throw new DomainException(__('fulfillment.not_found'), 'not_found', 404);
+        }
+
+        $batch = $this->batchPickingLists($subOrderIds);
+        $pickingListIds = $batch['picking_list_ids'];
+
+        $wave = PickingWave::query()->create([
+            'channel_id' => $channelId,
+            'warehouse_id' => $wid,
+            'status' => 'open',
+            'assigned_to' => $assignedTo,
+        ]);
+
+        PickingList::query()
+            ->whereIn('id', $pickingListIds)
+            ->update(['wave_id' => $wave->id]);
+
+        return [
+            'id' => (int) $wave->id,
+            'picking_list_ids' => $pickingListIds,
+            'status' => (string) $wave->status,
+        ];
+    }
+
+    /**
+     * @return array{id: int, status: string, assigned_to: int|null, picking_list_ids: list<int>, lines: list<array{product_id: int, variant_id: int|null, barcode: string|null, qty_required: int, qty_picked: int, location_id: int|null, sub_order_ids: list<int>}>}
+     */
+    public function showPickingWave(int $id): array
+    {
+        $wid = $this->warehouseId();
+        $wave = PickingWave::query()
+            ->with(['pickingLists.lines'])
+            ->find($id);
+
+        if ($wave === null || (int) $wave->warehouse_id !== $wid) {
+            throw new DomainException(__('fulfillment.not_found'), 'not_found', 404);
+        }
+
+        /** @var list<PickingList> $lists */
+        $lists = $wave->pickingLists->all();
+        $pickingListIds = array_map(fn (PickingList $list): int => (int) $list->id, $lists);
+
+        /** @var array<string, array{product_id: int, variant_id: int|null, barcode: string|null, qty_required: int, qty_picked: int, location_id: int|null, sub_order_ids: list<int>}> $merged */
+        $merged = [];
+        foreach ($lists as $list) {
+            $subOrderId = (int) $list->sub_order_id;
+            foreach ($list->lines as $line) {
+                $variantId = $line->variant_id !== null ? (int) $line->variant_id : null;
+                $locationId = $line->location_id !== null ? (int) $line->location_id : null;
+                $barcode = $line->barcode !== null ? (string) $line->barcode : null;
+                $key = implode('|', [
+                    (string) (int) $line->product_id,
+                    $variantId === null ? '' : (string) $variantId,
+                    $barcode ?? '',
+                    $locationId === null ? '' : (string) $locationId,
+                ]);
+
+                if (! isset($merged[$key])) {
+                    $merged[$key] = [
+                        'product_id' => (int) $line->product_id,
+                        'variant_id' => $variantId,
+                        'barcode' => $barcode,
+                        'qty_required' => 0,
+                        'qty_picked' => 0,
+                        'location_id' => $locationId,
+                        'sub_order_ids' => [],
+                    ];
+                }
+
+                $merged[$key]['qty_required'] += (int) $line->qty_required;
+                $merged[$key]['qty_picked'] += (int) $line->qty_picked;
+                if (! in_array($subOrderId, $merged[$key]['sub_order_ids'], true)) {
+                    $merged[$key]['sub_order_ids'][] = $subOrderId;
+                }
+            }
+        }
+
+        $locationOrder = [];
+        foreach ($this->locations->orderedForWarehouse($wid) as $index => $loc) {
+            $locationOrder[(int) $loc['id']] = $index;
+        }
+
+        $lines = array_values($merged);
+        usort($lines, function (array $a, array $b) use ($locationOrder): int {
+            $aOrder = $a['location_id'] !== null
+                ? ($locationOrder[$a['location_id']] ?? PHP_INT_MAX)
+                : PHP_INT_MAX;
+            $bOrder = $b['location_id'] !== null
+                ? ($locationOrder[$b['location_id']] ?? PHP_INT_MAX)
+                : PHP_INT_MAX;
+
+            return $aOrder <=> $bOrder
+                ?: $a['product_id'] <=> $b['product_id'];
+        });
+
+        return [
+            'id' => (int) $wave->id,
+            'status' => (string) $wave->status,
+            'assigned_to' => $wave->assigned_to !== null ? (int) $wave->assigned_to : null,
+            'picking_list_ids' => $pickingListIds,
+            'lines' => $lines,
+        ];
+    }
+
+    /**
+     * @param  array{warehouse_id?: int|string|null, product_id?: int|string|null, expiry_before?: string|null, page?: int|string|null, per_page?: int|string|null}  $filters
+     * @return array{data: list<array{id:int,warehouse_id:int,product_id:int,variant_id:int|null,lot_no:string|null,expiry_date:string|null,qty:int}>, meta: array{page:int,per_page:int,total:int,last_page:int}}
+     */
+    public function listStockLots(array $filters): array
+    {
+        $warehouseId = isset($filters['warehouse_id']) && $filters['warehouse_id'] !== '' && $filters['warehouse_id'] !== null
+            ? (int) $filters['warehouse_id']
+            : $this->warehouseId();
+
+        $productId = isset($filters['product_id']) && $filters['product_id'] !== '' && $filters['product_id'] !== null
+            ? (int) $filters['product_id']
+            : null;
+
+        $expiryBefore = isset($filters['expiry_before']) && is_string($filters['expiry_before']) && $filters['expiry_before'] !== ''
+            ? $filters['expiry_before']
+            : null;
+
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $perPage = min(max(1, (int) ($filters['per_page'] ?? 25)), 100);
+
+        return $this->ledger->listLots($warehouseId, $productId, $expiryBefore, $page, $perPage);
+    }
+
+    /**
+     * @param  array{qty_delta: int, reason: string}  $data
+     * @return array{id:int, qty:int, movement_id:int, available:int}
+     */
+    public function adjustStockLot(int $id, array $data, object $actor): array
+    {
+        return $this->ledger->adjustLot(
+            $id,
+            $this->warehouseId(),
+            (int) $data['qty_delta'],
+            (string) $data['reason'],
+            $actor,
+        );
     }
 
     private function list(int $id): PickingList

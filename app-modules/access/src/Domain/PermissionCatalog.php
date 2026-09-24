@@ -108,6 +108,9 @@ final class PermissionCatalog
         'sc.finance.payment' => ['name_ar' => 'تسجيل دفعة مكتبية', 'system' => 'channel', 'module' => 'finance', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.finance.view' => ['name_ar' => 'الفواتير', 'system' => 'channel', 'module' => 'finance', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.finance.void_invoice' => ['name_ar' => 'إلغاء فاتورة', 'system' => 'channel', 'module' => 'finance', 'severity' => 'critical', 'dual_approval' => true, 'delegatable' => false],
+        // EP-SC-150A/B — DOC-08 sc.iam.users_view|users_manage.
+        'sc.iam.users_manage' => ['name_ar' => 'دعوة وإدارة مستخدمي القناة', 'system' => 'channel', 'module' => 'iam', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        'sc.iam.users_view' => ['name_ar' => 'عرض مستخدمي القناة', 'system' => 'channel', 'module' => 'iam', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.inventory.adjust' => ['name_ar' => 'تسوية مخزون', 'system' => 'channel', 'module' => 'inventory', 'severity' => 'critical', 'dual_approval' => true, 'delegatable' => false],
         'sc.inventory.reorder' => ['name_ar' => 'نقاط إعادة الطلب', 'system' => 'channel', 'module' => 'inventory', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'sc.inventory.transfer' => ['name_ar' => 'تحويل مخزون', 'system' => 'channel', 'module' => 'inventory', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
@@ -141,6 +144,8 @@ final class PermissionCatalog
         'sc.reps.update' => ['name_ar' => 'تعديل مناطقه وسقوفه', 'system' => 'channel', 'module' => 'reps', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         // EP-SC-075/076 list|show, EP-SC-088/093A queues
         'sc.reps.view' => ['name_ar' => 'عرض المندوبين وأدائهم', 'system' => 'channel', 'module' => 'reps', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // EP-SC-160 GET /channel/reps/live — DOC-08 sc.reps.track.
+        'sc.reps.track' => ['name_ar' => 'التتبع الحي على الخريطة', 'system' => 'channel', 'module' => 'reps', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         // EP-SC-087 GET /channel/reps/{id}/wallet
         'sc.reps.wallet' => ['name_ar' => 'الاطلاع على المحفظة', 'system' => 'channel', 'module' => 'reps', 'severity' => 'critical', 'dual_approval' => false, 'delegatable' => false],
         'sc.retailers.credit' => ['name_ar' => 'سقف ائتمان التاجر', 'system' => 'channel', 'module' => 'retailers', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
@@ -167,6 +172,7 @@ final class PermissionCatalog
         'wh.picking.shortage' => ['name_ar' => 'نقص أثناء الالتقاط', 'system' => 'warehouse', 'module' => 'picking', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.queue.view' => ['name_ar' => 'طوابير المستودع', 'system' => 'warehouse', 'module' => 'queue', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.receiving.execute' => ['name_ar' => 'استلام وارد', 'system' => 'warehouse', 'module' => 'receiving', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        'wh.receiving.lots' => ['name_ar' => 'تسجيل الدفعات وتواريخ الصلاحية', 'system' => 'warehouse', 'module' => 'receiving', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.receiving.qc' => ['name_ar' => 'فحص الوارد', 'system' => 'warehouse', 'module' => 'receiving', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.returns.sort' => ['name_ar' => 'فرز المرتجع', 'system' => 'warehouse', 'module' => 'returns', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.stocktake.approve' => ['name_ar' => 'اعتماد الجرد', 'system' => 'warehouse', 'module' => 'stocktake', 'severity' => 'critical', 'dual_approval' => true, 'delegatable' => false],

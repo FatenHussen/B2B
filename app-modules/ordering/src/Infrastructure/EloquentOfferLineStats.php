@@ -25,6 +25,7 @@ final class EloquentOfferLineStats implements OfferLineStats
             $linkedSales = 0;
             $discountGiven = 0;
             $cogs = 0;
+            $costUnknown = false;
             $retailers = [];
             $zones = [];
 
@@ -32,7 +33,10 @@ final class EloquentOfferLineStats implements OfferLineStats
                 $linkedSales += (int) $line->line_total;
                 $discountGiven += (int) $line->discount;
                 $cost = $this->pricing->costPrice((int) $line->product_id);
-                if ($cost !== null) {
+                if ($cost === null) {
+                    // EP-SC-042: never invent margin when cost_price is missing.
+                    $costUnknown = true;
+                } else {
                     $cogs += $cost * (int) $line->qty;
                 }
                 $sub = $line->subOrder;
@@ -55,8 +59,7 @@ final class EloquentOfferLineStats implements OfferLineStats
             return [
                 'linked_sales' => $linkedSales,
                 'discount_given' => $discountGiven,
-                // DOC §4.4.4: revenue after discount minus unit cost when cost_price is set.
-                'net_margin' => $linkedSales - $cogs,
+                'net_margin' => $costUnknown ? null : ($linkedSales - $cogs),
                 'retailers_count' => count($retailers),
                 'by_zone' => $byZone,
                 'line_count' => $lines->count(),

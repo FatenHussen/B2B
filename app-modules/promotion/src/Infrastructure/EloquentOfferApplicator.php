@@ -134,6 +134,11 @@ final class EloquentOfferApplicator implements OfferApplicator
             }
         }
 
+        // per_order_max of 0 means the offer cannot apply on any order.
+        if ($offer->per_order_max !== null && (int) $offer->per_order_max <= 0) {
+            return false;
+        }
+
         return true;
     }
 
@@ -200,6 +205,12 @@ final class EloquentOfferApplicator implements OfferApplicator
             }
 
             $sets = intdiv((int) $line['qty'], $buyQty);
+            if ($offer->per_order_max !== null) {
+                $sets = min($sets, (int) $offer->per_order_max);
+            }
+            if ($sets < 1) {
+                continue;
+            }
             $free = $sets * max(1, $getQty);
             $discount = $free * (int) $line['unit_price'];
             $quote['lines'][$i] = $this->withDiscount($line, $discount, (int) $offer->id);
@@ -270,6 +281,13 @@ final class EloquentOfferApplicator implements OfferApplicator
             $sets = min($sets, intdiv($have, $need));
         }
         if ($sets < 1 || $sets === PHP_INT_MAX) {
+            return $quote;
+        }
+
+        if ($offer->per_order_max !== null) {
+            $sets = min($sets, (int) $offer->per_order_max);
+        }
+        if ($sets < 1) {
             return $quote;
         }
 
@@ -368,9 +386,9 @@ final class EloquentOfferApplicator implements OfferApplicator
     private function applyGift(array $quote, Offer $offer): array
     {
         $buyQty = (int) ($offer->rules['buy_qty'] ?? 0);
-        $getQty = max(1, (int) ($offer->rules['get_qty'] ?? ($offer->rewards->first()?->qty ?? 1)));
         $reward = $offer->rewards->first();
-        $giftProductId = $reward?->product_id !== null ? (int) $reward->product_id : null;
+        $getQty = max(1, (int) ($offer->rules['get_qty'] ?? ($reward !== null ? (int) $reward->qty : 1)));
+        $giftProductId = $reward !== null && $reward->product_id !== null ? (int) $reward->product_id : null;
         if ($giftProductId === null) {
             return $quote;
         }

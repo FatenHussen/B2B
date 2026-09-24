@@ -8,12 +8,12 @@ interface OfferLineStats
 {
     /**
      * Sales figures taken from order lines that carry this offer.
-     * conversion_rate is a dimensionless integer at scale 10^4 (1.00 = 10000).
+     * net_margin is null when any linked line lacks cost_price — never a fabricated 0.
      *
      * @return array{
      *     linked_sales: int,
      *     discount_given: int,
-     *     net_margin: int,
+     *     net_margin: int|null,
      *     retailers_count: int,
      *     by_zone: list<array{zone_id: int, applied_count: int}>,
      *     line_count: int

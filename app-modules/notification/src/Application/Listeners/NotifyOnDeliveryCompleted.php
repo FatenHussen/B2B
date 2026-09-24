@@ -7,6 +7,7 @@ namespace Modules\Notification\Application\Listeners;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Domain\Events\DeliveryCompleted;
+use Modules\Notification\Application\Support\EventTemplateResolver;
 use Modules\Notification\Application\Support\InboxWriter;
 
 final class NotifyOnDeliveryCompleted
@@ -15,6 +16,7 @@ final class NotifyOnDeliveryCompleted
         private readonly InboxWriter $inbox,
         private readonly SubOrderLifecycle $orders,
         private readonly RetailerDirectory $retailers,
+        private readonly EventTemplateResolver $templates,
     ) {}
 
     public function handle(DeliveryCompleted $event): void
@@ -29,13 +31,27 @@ final class NotifyOnDeliveryCompleted
             return;
         }
 
+        $no = (string) $header['sub_order_no'];
+        $invoice = (string) $event->invoiceNo;
+        $tpl = $this->templates->resolve(
+            (int) $header['channel_id'],
+            'order.delivered',
+            'تم تسليم طلبك',
+            "الطلب {$no} — فاتورة {$invoice}",
+            ['sub_order_no' => $no, 'invoice_no' => $invoice],
+        );
+
+        if (! $tpl['enabled'] || ! in_array('in_app', $tpl['channels'], true)) {
+            return;
+        }
+
         $this->inbox->write(
             'retailer',
             $userId,
             (int) $header['channel_id'],
             'delivery',
-            'تم تسليم طلبك',
-            "الطلب {$header['sub_order_no']} — فاتورة {$event->invoiceNo}",
+            $tpl['title'],
+            $tpl['body'],
             ['type' => 'order', 'target' => $event->subOrderId],
         );
     }

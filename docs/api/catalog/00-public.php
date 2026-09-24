@@ -126,4 +126,41 @@ return [
         'e' => [429 => 'rate_limited', 404 => 'not_found'],
         'd' => 'prefer_channel: whatsapp|sms. Falls back to SMS if WhatsApp fails.',
     ]),
+
+    // Shared signed-in reference reads (all four guards). Path has no surface prefix —
+    // status surface is `other`. Channel dashboard pickers consume these today.
+    ep('EP-SH-REF-001', 'SP-03', 'GET', '/governorates', 'other', null, [
+        'name' => 'Shared list governorates',
+        'name_ar' => 'محافظات (مشترك)',
+        'r' => [['id' => 1, 'name' => 'دمشق', 'order' => 1, 'status' => 'active', 'zones_count' => 18]],
+        'd' => 'auth:platform,channel,warehouse,app. Prefer /platform/refs or /public/refs for new clients.',
+    ]),
+    ep('EP-SH-REF-002', 'SP-03', 'GET', '/governorates/{id}', 'other', null, [
+        'name' => 'Shared show governorate',
+        'name_ar' => 'محافظة (مشترك)',
+        'r' => ['id' => 1, 'name' => 'دمشق', 'status' => 'active'],
+        'e' => [404 => 'not_found'],
+    ]),
+    ep('EP-SH-REF-003', 'SP-03', 'GET', '/zones', 'other', null, [
+        'name' => 'Shared list zones',
+        'name_ar' => 'مناطق (مشترك)',
+        'r' => [['id' => 12, 'name' => 'المزة', 'governorate' => ['id' => 1, 'name' => 'دمشق']]],
+    ]),
+    ep('EP-SH-REF-004', 'SP-03', 'GET', '/zones/{id}', 'other', null, [
+        'name' => 'Shared show zone',
+        'name_ar' => 'منطقة (مشترك)',
+        'r' => ['id' => 12, 'name' => 'المزة'],
+        'e' => [404 => 'not_found'],
+    ]),
+    ep('EP-SH-REF-005', 'SP-03', 'GET', '/currencies', 'other', null, [
+        'name' => 'Shared list currencies',
+        'name_ar' => 'عملات (مشترك)',
+        'r' => [['id' => 1, 'iso' => 'SYP', 'name' => 'ليرة سورية', 'decimals' => 0]],
+    ]),
+    ep('EP-SH-REF-006', 'SP-03', 'GET', '/currencies/{id}', 'other', null, [
+        'name' => 'Shared show currency',
+        'name_ar' => 'عملة (مشترك)',
+        'r' => ['id' => 1, 'iso' => 'SYP', 'decimals' => 0],
+        'e' => [404 => 'not_found'],
+    ]),
 ];

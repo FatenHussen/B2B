@@ -8,10 +8,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Core\Http\ApiController;
 use Modules\Fulfillment\Application\WarehouseWorkspace;
+use Modules\Fulfillment\Presentation\Http\Requests\AdjustStockLotRequest;
 use Modules\Fulfillment\Presentation\Http\Requests\ApproveStocktakeRequest;
+use Modules\Fulfillment\Presentation\Http\Requests\BatchPickingListsRequest;
 use Modules\Fulfillment\Presentation\Http\Requests\CompletePackingRequest;
 use Modules\Fulfillment\Presentation\Http\Requests\ConfirmHandoverRequest;
 use Modules\Fulfillment\Presentation\Http\Requests\CreateHandoverRequest;
+use Modules\Fulfillment\Presentation\Http\Requests\CreatePickingWaveRequest;
 use Modules\Fulfillment\Presentation\Http\Requests\CreateReceivingRequest;
 use Modules\Fulfillment\Presentation\Http\Requests\ManualPickRequest;
 use Modules\Fulfillment\Presentation\Http\Requests\QcReceivingRequest;
@@ -27,6 +30,26 @@ final class WarehouseController extends ApiController
     public function queues(WarehouseWorkspace $ops): JsonResponse
     {
         return $this->ok($ops->queues());
+    }
+
+    public function batchPicking(BatchPickingListsRequest $request, WarehouseWorkspace $ops): JsonResponse
+    {
+        return $this->ok($ops->batchPickingLists($request->validated()['sub_order_ids']));
+    }
+
+    public function createPickingWave(CreatePickingWaveRequest $request, WarehouseWorkspace $ops): JsonResponse
+    {
+        $v = $request->validated();
+        $assignedTo = array_key_exists('assigned_to', $v) && $v['assigned_to'] !== null
+            ? (int) $v['assigned_to']
+            : null;
+
+        return $this->ok($ops->createPickingWave($v['sub_order_ids'], $assignedTo));
+    }
+
+    public function showPickingWave(WarehouseWorkspace $ops, int $id): JsonResponse
+    {
+        return $this->ok($ops->showPickingWave($id));
     }
 
     public function picking(WarehouseWorkspace $ops, int $id): JsonResponse
@@ -121,5 +144,17 @@ final class WarehouseController extends ApiController
     public function confirm(ConfirmHandoverRequest $request, WarehouseWorkspace $ops, int $handoverId): JsonResponse
     {
         return $this->ok($ops->confirmHandover($handoverId, $request->user(), $request->validated()['temp_code']));
+    }
+
+    public function stockLots(Request $request, WarehouseWorkspace $ops): JsonResponse
+    {
+        $result = $ops->listStockLots($request->query());
+
+        return $this->ok($result['data'], $result['meta']);
+    }
+
+    public function adjustStockLot(AdjustStockLotRequest $request, WarehouseWorkspace $ops, int $id): JsonResponse
+    {
+        return $this->ok($ops->adjustStockLot($id, $request->validated(), $request->user()));
     }
 }

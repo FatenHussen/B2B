@@ -27,18 +27,77 @@ final class AssignSubOrders
     ) {}
 
     /**
-     * @param  array{sub_order_ids: list<int>, rep_id: int, mode?: string}  $data
-     * @return array{assigned: list<int>}
+     * @param  array{sub_order_ids?: list<int>, rep_id?: int|null, mode?: string, zone_id?: int}  $data
+     * @return array{assigned: list<int>}|array{status: string}
      */
     public function __invoke(object $actor, array $data, bool $reassign = false, ?int $singleId = null): array
     {
-        $repId = (int) $data['rep_id'];
+        $mode = (string) ($data['mode'] ?? 'manual');
         $channelId = (int) Tenant::currentId();
+        $ids = $singleId !== null ? [$singleId] : array_map('intval', $data['sub_order_ids'] ?? []);
+        $assigned = [];
+
+        if ($mode === 'bulk_zone') {
+            $zoneId = isset($data['zone_id']) ? (int) $data['zone_id'] : null;
+            if ($zoneId === null && $ids !== []) {
+                $first = SubOrder::query()->find($ids[0]);
+                $zoneId = $first?->zone_id ? (int) $first->zone_id : null;
+            }
+            if ($zoneId === null) {
+                throw new DomainException(__('ordering.rep_off_coverage'), 'validation_failed', 422);
+            }
+            $repId = isset($data['rep_id']) ? (int) $data['rep_id'] : ($this->duty->onDutyCoveringZone($channelId, $zoneId)[0] ?? 0);
+            if ($repId <= 0) {
+                throw new DomainException(__('ordering.rep_off_duty'), 'validation_failed', 422);
+            }
+            $ids = SubOrder::query()
+                ->where('zone_id', $zoneId)
+                ->whereIn('status', [SubOrderStatus::Confirmed, SubOrderStatus::Postponed])
+                ->when($ids !== [], fn ($q) => $q->whereIn('id', $ids))
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            return $this->assignMany($actor, $ids, $repId, $channelId, $reassign);
+        }
+
+        if ($mode === 'auto') {
+            foreach ($ids as $id) {
+                $sub = SubOrder::query()->find($id);
+                if ($sub === null || $sub->zone_id === null) {
+                    continue;
+                }
+                $candidates = $this->duty->onDutyCoveringZone($channelId, (int) $sub->zone_id);
+                $repId = $candidates[0] ?? 0;
+                if ($repId <= 0) {
+                    throw new DomainException(__('ordering.rep_off_duty'), 'validation_failed', 422);
+                }
+                $result = $this->assignMany($actor, [$id], $repId, $channelId, $reassign);
+                $assigned = array_merge($assigned, $result['assigned'] ?? []);
+            }
+
+            return $reassign
+                ? ['status' => SubOrderStatus::Assigned->value]
+                : ['assigned' => $assigned];
+        }
+
+        $repId = (int) ($data['rep_id'] ?? 0);
+        if ($repId <= 0) {
+            throw new DomainException(__('ordering.rep_off_coverage'), 'validation_failed', 422);
+        }
+
+        return $this->assignMany($actor, $ids, $repId, $channelId, $reassign);
+    }
+
+    /**
+     * @param  list<int>  $ids
+     * @return array{assigned: list<int>}|array{status: string}
+     */
+    private function assignMany(object $actor, array $ids, int $repId, int $channelId, bool $reassign): array
+    {
         if (! $this->reps->belongsToChannel($repId, $channelId)) {
             throw new DomainException(__('ordering.rep_off_coverage'), 'validation_failed', 422);
         }
-        // Membership is not enough: a disabled or still-pending rep is the channel's,
-        // and gets no work.
         if (! $this->reps->isActiveInChannel($repId, $channelId)) {
             throw new DomainException(__('ordering.rep_not_active'), 'validation_failed', 422);
         }
@@ -47,7 +106,6 @@ final class AssignSubOrders
         }
 
         $repZones = $this->duty->zoneIds($repId);
-        $ids = $singleId !== null ? [$singleId] : array_map('intval', $data['sub_order_ids'] ?? []);
         $assigned = [];
 
         foreach ($ids as $id) {

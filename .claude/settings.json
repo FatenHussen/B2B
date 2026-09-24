@@ -24,7 +24,10 @@
       "PowerShell(Get-Process php -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{n='cmd';e={\\(Get-CimInstance Win32_Process -Filter \"ProcessId=$\\($_.Id\\)\"\\).CommandLine}} | Format-List; Select-String -Path phpunit.xml -Pattern 'DB_')",
       "PowerShell(Get-CimInstance Win32_Process -Filter \"Name='php.exe'\" | Select-Object ProcessId,CreationDate,@{n='cmd';e={$_.CommandLine.Substring\\(0,[Math]::Min\\(160,$_.CommandLine.Length\\)\\)}} | Format-List)",
       "Bash(grep -n '$fake = $this->otp' tests/Feature/Identity/PublicOtpTest.php)",
-      "PowerShell(Get-ChildItem docs/plan, docs/DocsLast, docs/sprints, docs/backlog -Recurse -File | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\(\"C:\\\\Users\\\\FATEN\\\\Desktop\\\\B2BPROJECT\\\\\", \"\"\\) }; git show --stat HEAD | Select-Object -First 40)"
+      "PowerShell(Get-ChildItem docs/plan, docs/DocsLast, docs/sprints, docs/backlog -Recurse -File | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\(\"C:\\\\Users\\\\FATEN\\\\Desktop\\\\B2BPROJECT\\\\\", \"\"\\) }; git show --stat HEAD | Select-Object -First 40)",
+      "Bash(./vendor/bin/pest tests/Feature/Tenancy/PlatformPlansTest.php tests/Feature/Tenancy/ChannelPlanSeederTest.php tests/Feature/Tenancy/ChannelLimitsAndUsageTest.php)",
+      "Bash(php vendor/phpstan/phpstan/phpstan analyse --no-progress --memory-limit=2G app-modules/tenancy/src/Domain/Models/ChannelPlan.php app-modules/tenancy/src/Application/Actions/CreatePlan.php app-modules/tenancy/src/Application/Services/ChannelApplicationLifecycle.php app-modules/core/src/Contracts/PlatformSettings.php app-modules/core/src/Infrastructure/EloquentPlatformSettings.php)",
+      "Bash(./vendor/bin/pint --test app-modules/tenancy/src/Domain/Models/ChannelPlan.php app-modules/tenancy/src/Application/Actions/CreatePlan.php app-modules/tenancy/src/Application/Services/ChannelApplicationLifecycle.php app-modules/core/src/Contracts/PlatformSettings.php app-modules/core/src/Infrastructure/EloquentPlatformSettings.php)"
     ]
   }
 }

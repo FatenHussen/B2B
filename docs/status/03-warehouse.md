@@ -1,10 +1,10 @@
 # واجهة المستودع — حالة الواجهات
 
-guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً في 2026-09-24 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 19 | 19 | 0 | 0 | 0 |
+| 24 | 24 | 0 | 0 | 0 |
 
 ## الدخول — 1/1
 
@@ -12,7 +12,7 @@ guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً ف�
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-WH-001 | SP-01 | `POST` | `/warehouse/auth/device-login` | — | Identity | دخول جهاز المستودع |
 
-## صفوف العمل والتجهيز — 6/6
+## صفوف العمل والتجهيز — 7/7
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -21,6 +21,7 @@ guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً ف�
 | ✅ | EP-WH-012 | SP-11 | `POST` | `/warehouse/picking-lists/{id}/scan` | `wh.picking.execute` | Fulfillment | مسح صنف |
 | ✅ | EP-WH-013 | SP-11 | `POST` | `/warehouse/picking-lists/{id}/lines/{lineId}/manual` | `wh.picking.execute` | Fulfillment | إدخال يدوي |
 | ✅ | EP-WH-014 | SP-11 | `POST` | `/warehouse/picking-lists/{id}/shortage` | `wh.picking.shortage` | Fulfillment | نقص أثناء الالتقاط |
+| ✅ | EP-WH-014A | SP-11 | `POST` | `/warehouse/picking-lists/batch` | `wh.picking.execute` | Fulfillment | إنشاء قوائم التقاط دفعة |
 | ✅ | EP-WH-015 | SP-11 | `POST` | `/warehouse/picking-lists/{id}/complete` | `wh.picking.execute` | Fulfillment | إنهاء الالتقاط |
 
 ## التغليف — 2/2
@@ -59,4 +60,13 @@ guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً ف�
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-WH-030 | SP-12 | `POST` | `/warehouse/returns/{id}/sort` | `wh.returns.sort` | Returns | فرز المرتجع |
+
+## أخرى — 4/4
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-WH-040 | SP-11 | `GET` | `/warehouse/stock-lots` | `wh.receiving.lots` | Fulfillment | تسجيل الدفعات وتواريخ الصلاحية |
+| ✅ | EP-WH-040A | SP-11 | `POST` | `/warehouse/stock-lots/{id}/adjust` | `wh.receiving.lots` | Fulfillment | تسوية دفعة مخزون |
+| ✅ | EP-WH-042 | SP-11 | `POST` | `/warehouse/picking-waves` | `wh.picking.execute` | Fulfillment | إنشاء موجة التقاط |
+| ✅ | EP-WH-042A | SP-11 | `GET` | `/warehouse/picking-waves/{id}` | `wh.picking.execute` | Fulfillment | عرض موجة التقاط |
 

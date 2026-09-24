@@ -165,3 +165,24 @@ it('is ignored in production no matter what the env says', function () {
         'otp_invalid',
     );
 });
+
+it('is ignored on staging even when OTP_BYPASS is true', function () {
+    $this->app['env'] = 'staging';
+
+    $otpId = requestBypassedOtp();
+
+    /** @var FakeOtpChannel $fake */
+    $fake = $this->otp;
+    $sent = $fake->codeFor('+963912345678');
+    expect($sent)->not->toBeNull();
+
+    CatalogAssert::error(
+        $this->postJson('/api/v1/public/auth/verify-otp', [
+            'otp_id' => $otpId,
+            'code' => '1',
+            'device_id' => 'device-1',
+        ]),
+        422,
+        'validation_failed',
+    );
+});

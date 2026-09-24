@@ -128,11 +128,11 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
     31 files**; the platform reference impact counts (BE-R01–R07, 2026-09-17) added six more —
     **48 sites in 33 files**; the rep client GETs (`ShowRepProduct`, `ListRepOrders`, 2026-09-20)
     added two — **50 sites in 35 files**; retailer finance reads (AP-01, 2026-09-20)
-    added eight — **63 sites in 38 files** — every one with a comment saying why on the same line, within the six
+    added eight — **63 sites in 38 files**; the retailer-group / offer-consumption work
+    (2026-09-23) added three — **66 sites**; banner click recording (2026-09-24) added one — **67 sites** — every one with a comment saying why on the same line, within the six
     lines above, or in the method's docblock. `tests/Architecture/ChannelScopeEscapeTest.php` pins
     the count per file and fails on an escape with no reason within reach — a new site is a change
     to this inventory, said out loud, not a discovery.
-
     A third legitimate shape joined the two below with those six: **platform impact counts**, where
     the back office asks how many channels' rows a shared reference entity touches before disabling
     it (EP-AD-043A–D). The question spans every channel by definition, the answer is a number and

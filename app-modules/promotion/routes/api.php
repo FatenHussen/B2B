@@ -11,7 +11,10 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
     ->group(function (): void {
         Route::get('offers', [OfferController::class, 'index'])->middleware('permission:sc.offers.view');
         Route::post('offers', [OfferController::class, 'store'])->middleware('permission:sc.offers.create');
+        Route::get('offers/{id}', [OfferController::class, 'show'])->middleware('permission:sc.offers.view');
+        Route::put('offers/{id}', [OfferController::class, 'update'])->middleware('permission:sc.offers.create');
         Route::patch('offers/{id}/stop', [OfferController::class, 'stop'])->middleware('permission:sc.offers.stop');
+        Route::patch('offers/{id}/activate', [OfferController::class, 'activate'])->middleware('permission:sc.offers.create');
         Route::get('offers/{id}/performance', [OfferController::class, 'performance'])->middleware('permission:sc.offers.view');
     });
 

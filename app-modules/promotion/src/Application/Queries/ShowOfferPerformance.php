@@ -25,10 +25,10 @@ final class ShowOfferPerformance
      *     applied_count: int,
      *     linked_sales: int,
      *     discount_given: int,
-     *     net_margin: int,
+     *     net_margin: int|null,
      *     retailers_count: int,
      *     by_zone: list<array{zone_id: int, applied_count: int}>,
-     *     conversion_rate: int
+     *     conversion_rate: int|null
      * }
      */
     public function __invoke(int $id): array
@@ -43,11 +43,11 @@ final class ShowOfferPerformance
         $redemption = $offer->redemption;
         $applied = $redemption instanceof OfferRedemption ? (int) $redemption->applied_count : 0;
 
-        // conversion_rate: dimensionless integer at scale 10^4 (1.00 = 10000).
+        // conversion_rate: scale 10^4; null when no views (EP-SC-042 — never a fake 0).
         $viewers = $this->consumption->uniqueViewers((int) $offer->id);
         $conversion = $viewers > 0
             ? intdiv($stats['retailers_count'] * 10_000, $viewers)
-            : 0;
+            : null;
 
         return [
             'applied_count' => $applied,

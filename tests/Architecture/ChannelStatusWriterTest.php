@@ -3,20 +3,30 @@
 declare(strict_types=1);
 
 /**
- * Rule 8, for the channel: `status` changes only through the lifecycle service.
+ * Rule 8, for every status Tenancy owns: `status` changes only through a lifecycle
+ * service.
  *
  * `$guarded` closes mass assignment, and nothing else. A direct `$channel->status = …`
  * anywhere in the module walks straight past it, which is how SubOrder ended up with
  * nine writers around one state machine that only ever checked (BE-O15). This test is
  * the other half of the guard: it reads the Tenancy source and names every file that
- * assigns a status, and the list it accepts has one entry.
+ * assigns a status. The scan is textual and blind to which model the status belongs
+ * to, so the list it accepts is one lifecycle per state machine — channel, plan,
+ * application — and nothing else. A creation state is a definition on the model
+ * (`$attributes`), not a write (ChannelPlan).
  */
 
 use Illuminate\Support\Facades\File;
 
-/** Files permitted to assign a status inside Tenancy — the lifecycle, and nothing else. */
+/** Files permitted to assign a status inside Tenancy — one lifecycle per state machine. */
 const CHANNEL_STATUS_WRITERS = [
+    // Channel: provisioning → active → suspended → archived (BE-T01).
     'app-modules/tenancy/src/Application/Services/ChannelLifecycle.php',
+    // Channel application: under_review → provisioning | rejected, under a row lock
+    // and in one transaction with the channel it creates (PA-04, 2026-09-24).
+    'app-modules/tenancy/src/Application/Services/ChannelApplicationLifecycle.php',
+    // Plan: active ↔ inactive, syncing `is_active` (PA-02).
+    'app-modules/tenancy/src/Application/Services/PlanLifecycle.php',
 ];
 
 /**

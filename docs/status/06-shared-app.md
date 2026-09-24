@@ -1,10 +1,10 @@
 # المشترك بين التطبيقين — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آلياً في 2026-09-23 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آلياً في 2026-09-24 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 17 | 17 | 0 | 0 | 0 |
+| 18 | 18 | 0 | 0 | 0 |
 
 ## الجلسة — 2/2
 
@@ -45,11 +45,12 @@ guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آل
 | ✅ | EP-SY-003 | SP-14 | `GET` | `/app/sync/status` | — | Sync | حالة المزامنة |
 | ✅ | EP-SY-004 | SP-14 | `POST` | `/app/sync/resolve-conflict` | — | Sync | حل تعارض |
 
-## المحتوى والولاء — 3/3
+## المحتوى والولاء — 4/4
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-APP-100 | SP-15 | `GET` | `/app/content/home-blocks` | — | Content | بلوكات الرئيسية |
+| ✅ | EP-APP-101 | SP-15 | `POST` | `/app/content/banners/{id}/click` | — | Content | تسجيل نقرة بانر |
 | ✅ | EP-APP-110 | SP-15 | `GET` | `/app/loyalty` | — | Loyalty | النقاط |
 | ✅ | EP-APP-111 | SP-15 | `POST` | `/app/loyalty/redeem` | — | Loyalty | استبدال نقاط |
 

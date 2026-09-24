@@ -2,14 +2,13 @@
 
 | | |
 |---|---|
-| الغرض | الملف الوحيد الذي يحتاجه وكيل Cursor أو مطوّر Next.js لربط **لوحة القناة** بهذا الخادم. كل مسار وجسم واستجابة قُرئت من `route:list` والكنترولر وFormRequest في **2026-09-23**. |
+| الغرض | الملف الوحيد الذي يحتاجه وكيل Cursor أو مطوّر Next.js لربط **لوحة القناة** بهذا الخادم. كل مسار وجسم واستجابة من `route:list` والكتالوج في **2026-09-24** (116/116 ✅). |
 | التطبيق | Next.js 15 · App Router · TypeScript · TanStack Query v5 · RTL عربي · المنفذ **3001** |
 | الحارس | `auth:channel` · التوكن = Sanctum personal access token |
 | الملفات الشقيقة | `channel.json` (عقد آلي) · `docs/status/02-channel-dashboard.md` · الكتالوج `04-channel-catalog.php` + `05-channel-ops.php` |
 | عند التعارض | `route:list` → الكنترولر/FormRequest → **`channel.json`** → **هذا الملف** → الكتالوج |
 
-> **لـ Cursor.** اقرأ §0 أولاً. ابنِ ما يدرجه §5 فقط، بعميل §3. لا تختلق مساراً ولا حقلاً ولا مفتاح استجابة. إن احتاجت الشاشة شيئاً لا يعيده الخادم، اعرض حالة فارغة صادقة (§8) — لا تُحاكِ قائمة تجّار ولا مستودعات ولا تفاصيل منتج.
-
+> **لـ Cursor.** اقرأ §0 أولاً. ابنِ ما يدرجه §5 فقط، بعميل §3. لا تختلق مساراً ولا حقلاً ولا مفتاح استجابة. إن احتاجت الشاشة شيئاً لا يعيده الخادم، اعرض حالة فارغة صادقة (§8) — لا تُحاكِ بيانات.
 ---
 
 ## المحتويات
@@ -41,10 +40,9 @@
 7. **الشاشات تُغلق بـ `permissions[]` من `verify-otp`.** `can('sc.orders.confirm')` يخفي الزر. **لا تبنِ على اسم الدور** (`channel_manager` / `sales_manager` / …) — القناة الحقيقية ستعدّل الأدوار.
 8. **معرّف أجنبي أو مفقود → 404** لا 403. اعرض «غير موجود».
 9. **توكن من حارس آخر على مسار قناة → `403 wrong_guard`.** امسح التوكن وأعد إلى الدخول.
-10. **لا تختلق أرقام لوحة القيادة.** `GET /channel/dashboard` يعيد أصفاراً حتى يُكتب `DailySnapshot`. الكتالوج يعرض أرقاماً تزيينية — **تجاهلها**.
-11. **لا تختلق موافقة تجّار 360 ولا IAM.** قوائم التجّار والمستودعات وتفاصيل المنتج/الفاتورة حيّة — اربطها. رفع الوسائط عبر `POST /channel/media/upload` فقط.
+10. **لوحة القيادة من اللقطة.** `GET /channel/dashboard` يقرأ `DailySnapshot` (مجدول 00:05 Asia/Damascus أو `php artisan reports:daily-snapshots`). قبل أول لقطة تظهر أصفار صادقة — لا تختلق GMV. بعد اللقطة: KPI + `charts` + `alerts` حقيقية من الطلبات.
+11. **التجار 360 وIAM القناة حيّان.** `GET /channel/retailers/{id}` · `GET/POST /channel/users` · `GET /channel/reps/{id}/live` · `GET /channel/zones/coverage`. اربطها؛ لا تُحاكِ. رفع الوسائط عبر `POST /channel/media/upload` فقط.
 12. **لا `sort` على أي قائمة.** Spatie يرفض الترتيب غير المصرّح. `per_page` افتراضي 25، سقف 100.
-
 ---
 
 ## 1. البيئة
@@ -88,12 +86,14 @@ export const xClient = 'channel-web';
 
 ### 1.3 OTP
 
-| | محلي / staging (`OTP_BYPASS=true`) | إنتاج |
+| | محلي / testing (`OTP_BYPASS=true`) | staging / إنتاج |
 |---|---|---|
 | التحقق | **أي** `code` يمر، حتى الناقص | رمز عشوائي 6 أرقام (واتساب، SMS احتياطي) |
 | أصفار ثابتة | **لا** — الأصفار لعملاء `rep-*` فقط | لا |
 | شكل `code` | سلسلة `"000000"` لا عدداً | `size:6` |
 | المحاولات / العمر / إعادة الإرسال | 5 · 300 ث · 60 ث | نفسها |
+
+> **إطلاق:** `OTP_BYPASS` يُقبل فقط تحت `APP_ENV=local|testing`. على `staging`/`production` يُتجاهل. على المضيف الحقيقي اضبطوا `OTP_BYPASS=false` وفضّلوا `APP_ENV=production`.
 
 لا يوجد `resend-otp` على حارس القناة. اطلب رمزاً جديداً من شاشة الهاتف.
 
@@ -164,9 +164,11 @@ components/ui/                # DataTable, FilterBar, StatusBadge, MoneyText, Em
 | المحتوى | أي `sc.content.*` | `/content/intro` |
 | الولاء | `sc.loyalty.manage` | `/loyalty` |
 | التقارير | `sc.reports.view` | `/reports/sales` |
+| التجّار | `sc.retailers.view` | `/retailers` |
+| المستخدمون | `sc.iam.users_view` | `/users` |
 | الإعدادات | `sc.settings.view` | `/settings` |
 
-قسم بلا صلاحية **يختفي**، لا يُعطَّل. لا تبنِ «مستخدمين / أدوار / تجّار / مستودعات».
+قسم بلا صلاحية **يختفي**، لا يُعطَّل. لا تبنِ أدواراً مخصّصة خارج `GET/POST /channel/users`.
 
 ### 2.3 الأدوار المزروعة (للمعرفة فقط — الواجهة لا تفرع عليها)
 
@@ -177,7 +179,7 @@ components/ui/                # DataTable, FilterBar, StatusBadge, MoneyText, Em
 | `catalog_manager` | `sc.catalog.*` + `sc.content.*` + `sc.offers.*` + `sc.pricing.*` |
 | `accountant` | `sc.finance.*` + `sc.returns.view` + `sc.returns.decide` |
 
-البذرة الوحيدة ذات الحساب: `channel_manager`. IAM القناة ⛔.
+البذرة الوحيدة ذات الحساب: `channel_manager`. IAM القناة حيّ عبر `GET /channel/users` و`POST /channel/users/invite` (§5.17).
 
 ### 2.4 SOD-01
 
@@ -348,21 +350,21 @@ export const isSyrianMobile = (n: string) => /^\+9639\d{8}$/.test(n);
 |---|---:|---|
 | دخول | 2 | — |
 | إعدادات | 2 | `sc.settings.view` |
-| لوحة + تقارير | 4 | `sc.dashboard.view` / `sc.reports.*` |
+| لوحة + تقارير + jobs | 5 | `sc.dashboard.view` / `sc.reports.*` |
 | كتالوج | 14 | `sc.catalog.view` |
 | تسعير | 5 | `sc.pricing.view` |
-| عروض | 4 | `sc.offers.view` |
+| عروض | 6 | `sc.offers.view` |
 | مخزون | 5 | `sc.inventory.view` |
 | مستودعات | 1 | `sc.inventory.view` |
 | طلبات | 10 | `sc.orders.view` |
 | مرتجعات | 2 | `sc.returns.view` |
-| مندوبون (+ محفظة/تسوية/سقف) | 12 | `sc.reps.view` |
-| مالية (+ تجّار التغطية) | 8 | `sc.finance.view` / `sc.retailers.view` |
-| تغطية مناطق | 3 | `sc.zones.view` |
+| مندوبون (+ محفظة/تسوية/سقف/حيّ) | 13 | `sc.reps.view` |
+| مالية (+ تجّار 360 / مجموعات) | 9 | `sc.finance.view` / `sc.retailers.view` |
+| تغطية مناطق + فجوات | 4 | `sc.zones.view` |
 | إشعارات | 4 | `sc.notify.*` |
 | محتوى | 7 | `sc.content.*` |
-| ولاء | 4 | `sc.loyalty.manage` |
-
+| ولاء | 5 | `sc.loyalty.manage` |
+| مستخدمو القناة | 2 | `sc.iam.users_*` |
 ---
 
 ### 5.1 صحة ومراجع 🔓
@@ -435,14 +437,12 @@ export const verifyOtp = (otp_id: string, code: string) =>
               "rep_performance": [], "heatmap": [] } }
 ```
 
-`meta.snapshot_date` قد يكون `null`. عيّنة الكتالوج ذات الـ 62 مليوناً **خطأ**. بطاقة KPI تعرض 0 حتى توجد لقطة — لا رقم مخترع.
-
+`meta.snapshot_date` قد يكون `null` قبل أول لقطة. عيّنة الكتالوج ذات الـ 62 مليوناً **خطأ**. بعد `reports:daily-snapshots` (أو الجدول 00:05 Asia/Damascus): `kpis` و`charts` و`alerts` من الطلبات الحقيقية — لا تُصفّر يدوياً.
 `GET /channel/reports/{type}` 🔒 `sc.reports.view` — `type` ∈ `sales|products|retailers|reps|zones|inventory|finance|offers|operations`. نوع مجهول → 200 وصفوف فارغة. `date_from`/`date_to` تختار `DailySnapshot` داخل المدى؛ إن لم توجد لقطة في المدى → آخر لقطة.
 
-`POST /channel/reports/{type}/export` 🔁 🔒 `sc.reports.export` — `{ "format": "xlsx", "filters": {} }` → `{ "job_id": "job_rep_exp_…" }`. `format` ∈ `xlsx|pdf|csv`. **لا مسار لحالة المهمة** — اعرض «في قائمة الانتظار» وتوقّف.
+`POST /channel/reports/{type}/export` 🔁 🔒 `sc.reports.export` — `{ "format": "xlsx", "filters": {} }` → `{ "job_id": "job_rep_exp_…" }`. `format` ∈ `xlsx|pdf|csv`. راقب الحالة بـ `GET /channel/jobs/{id}` (§5.17) حتى `done` ثم افتح `result.download_url`.
 
-`GET /channel/reports/margins?date_from=&date_to=` 🔒 `sc.reports.margins` → `{ "by_product": [], "by_zone": [] }` — نفس اختيار اللقطة.
-
+`GET /channel/reports/margins?date_from=&date_to=` 🔒 `sc.reports.margins` → `{ "by_product": [], "by_zone": [] }` — نفس اختيار اللقطة. بعد اللقطة تُملأ من هوامش الطلبات.
 ---
 
 ### 5.5 الكتالوج
@@ -543,7 +543,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 `PATCH /channel/offers/{id}/stop` 🔁 — `{ "reason": "…" }` إلزامي ≤255.
 
-`GET /channel/offers/{id}/performance` — `net_margin` و`conversion_rate` **دائماً 0**. لا تعرضهما كمعدّل حقيقي. `conversion_rate` سلم 10^4 بلا مشاهدات مخزّنة.
+`GET /channel/offers/{id}/performance` — `net_margin` = `linked_sales − cost` (عندما `product_base_prices.cost_price` مضبوط؛ وإلا التكلفة 0). `conversion_rate` سلم 10^4 من مشاهدات التجار الفريدة ÷ المستفيدين.
 
 **لا `GET /channel/offers/{id}` ولا PUT.**
 
@@ -771,7 +771,64 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 `GET /channel/loyalty/rewards` 📄 → `{ id, name, points_cost, stock }`.
 
-`POST /channel/loyalty/rewards` 🔁 → `{ id }`. `points_cost` ≥1 int، `stock` ≥0 int، `expires_at` تاريخ اختياري. لا تعديل ولا حذف.
+`POST /channel/loyalty/rewards` 🔁 → `{ id }`. `points_cost` ≥1 int، `stock` ≥0 int، `expires_at` تاريخ اختياري.
+
+`PUT /channel/loyalty/rewards/{id}` 🔁 · `PATCH /channel/loyalty/rewards/{id}/stop` 🔁 — إيقاف مع سبب.
+
+---
+
+### 5.17 تاجر 360 · مجموعات · تغطية · IAM · مهمة
+
+`GET /channel/retailers` 📄 🔒 `sc.retailers.view` — قائمة تغطية.
+
+`GET /channel/retailers/{id}` 🔒 `sc.retailers.view` — **بطاقة 360**:
+
+```json
+{ "id": 481, "shop_name": "بقالية النور", "phone": "+963931000002",
+  "zone_id": 12, "activity_type_id": 3, "status": "active",
+  "credit": { "credit_limit": 500000, "grace_days": 7, "on_exceed": "block" },
+  "recent_orders": [{ "id": 9001, "sub_order_no": "SO-9001", "status": "delivered", "total": 120000 }],
+  "top_products": [{ "product_id": 880, "name": "زيت", "qty": 40 }] }
+```
+
+أجنبي / خارج التغطية → 404.
+
+`GET /channel/reps/{id}/live` 🔒 `sc.reps.view` → `{ lat, lng, at, on_duty }`. بلا ping: `lat`/`lng`/`at` = null و`on_duty` يبقى.
+
+`GET /channel/zones/coverage` 🔒 `sc.zones.view` → `{ without_reps: number[], without_warehouse: number[] }`.
+
+`GET /channel/users` 🔒 `sc.iam.users_view` — مصفوفة `{ id, name, phone, role, status, last_login_at }`.
+
+`POST /channel/users/invite` 🔁 🔒 `sc.iam.users_manage`
+
+```json
+{ "name": "سارة", "phone": "+963933000001", "invite_via": "sms" }
+```
+
+→ `{ invite_id, expires_at }` (دعوة 72 ساعة).
+
+`GET /channel/jobs/{id}` 🔒 `sc.reports.view` — حالة تصدير كتالوج/تقرير:
+
+```json
+{ "id": "job_…", "type": "report_export", "status": "done", "progress": 100,
+  "result": { "download_url": "…" }, "error": null, "created_at": "…", "finished_at": "…" }
+```
+
+`status` ∈ `queued|running|done|failed`. أجنبي → 404.
+
+### إعدادات القناة — ساعات هدوء وSLA
+
+`PUT /channel` يقبل `settings`:
+
+```json
+{ "quiet_hours": { "from": "22:00", "to": "08:00" }, "returns_sla_hours": 24 }
+```
+
+(أو `start`/`end` بدل `from`/`to`). يؤجّل إرسال الإشعار؛ يضبط `sla_due_at` على طلبات الإرجاع.
+
+`GET /channel/return-requests` يعيد أيضاً `sla_due_at` و`overdue`.
+
+`POST /channel/sub-orders/assign` — `mode`: `manual` (يتطلب `rep_id`) | `auto` | `bulk_zone` (+ `zone_id` اختياري). بلا مندوب on-duty يغطي المنطقة → 422.
 
 ---
 
@@ -779,7 +836,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 ### 6.1 أول تشغيل
 
-`GET /health` → `GET /public/refs` (كاش pickers) → `request-otp` → `verify-otp` (احفظ التوكن + `permissions`) → `GET /channel/dashboard` (أصفار صادقة) بالتوازي مع `GET /channel/sub-orders?filter[status]=pending&per_page=1` لعدّاد الشريط (`meta.total`).
+`GET /health` → `GET /public/refs` (كاش pickers) → `request-otp` → `verify-otp` (احفظ التوكن + `permissions`) → `GET /channel/dashboard` (أصفار حتى اللقطة؛ بعدها KPI حقيقية) بالتوازي مع `GET /channel/sub-orders?filter[status]=pending&per_page=1` لعدّاد الشريط (`meta.total`).
 
 ### 6.2 تأكيد طلب صباح
 
@@ -795,8 +852,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 ### 6.5 نهاية اليوم المالية
 
-فواتير `filter[status]=open` → دفعة مكتبية (SOD-01) → أعمار الذمم (`buckets` + `groups[]`) → لا تصدّر تقريراً وتتوقع ملفاً فورياً: `job_id` فقط.
-
+فواتير `filter[status]=open` → دفعة مكتبية (SOD-01) → أعمار الذمم (`buckets` + `groups[]`) → تصدير تقرير → احتفظ بـ `job_id` وراقب `GET /channel/jobs/{id}` حتى `done` ثم نزّل الملف.
 ---
 
 ## 7. الأخطاء → العربية
@@ -845,16 +901,29 @@ const byCode: Record<string, string> = {
 
 | المسار / الميزة | البديل |
 |---|---|
-| `GET /channel/offers/{id}` و PUT | قائمة + إنشاء + إيقاف + أداء |
 | `POST /channel/auth/logout` · `GET /channel/me` | امسح التوكن محلياً؛ الجلسة = verify-otp |
-| `/channel/iam/*` مستخدمون وأدوار | منصة الإدارة فقط |
 | `POST /channel/media` | `POST /channel/media/upload` |
-| حالة مهمة التصدير | `job_id` بلا استطلاع |
-| تعديل/حذف بنر أو مكافأة أو سلايدر | إنشاء + قائمة فقط |
-| `/platform/*` و `/app/*` | حارس خطأ |
+| `/platform/*` و `/app/*` (من لوحة القناة) | حارس خطأ — ما عدا معرفة أن CTR البنر يُملأ من تطبيق التاجر |
 | `GET /channel/activity-types` | `GET /public/refs` |
+| `on_exceed: manual_approval` للائتمان | يُحفظ؛ السلوك = **block** (423) بلا طابور موافقة |
+| مستودع offline كامل · مضلعات مناطق · تقويم قناة · طابور موافقة ائتمان | مؤجّل (`docs/plan/channel-warehouse-v1.1.md`) |
+| خريطة مندوبين مجمّعة | نقطة واحدة: `GET /channel/reps/{id}/live` |
+| Push/WhatsApp فعلي | القنوات مقبولة؛ السجل يصرّح `push_whatsapp_provider_not_configured` — لا تعرض «مُسلَّم» لهما |
 
-حيّ الآن (كان ممنوعاً): `GET /channel/retailers` · `GET /channel/warehouses` · `GET /channel/products/{id}` · `GET /channel/invoices/{id}` · `GET/PUT /channel` · تغطية `/channel/zones`.
+### صدقية العمق (حيّ — اعرف الحدود)
+
+| الموضوع | الحقيقة |
+|---|---|
+| لوحة / تقارير / هوامش | من `DailySnapshot`؛ شغّل اللقطة أو انتظر الجدول |
+| `mode: auto` / `bulk_zone` | حيّ — أول مندوب on-duty يغطي المنطقة |
+| أولوية التسعير | stop-at-first-match: تاجر ← مجموعة ← منطقة ← شرائح ← أساسي |
+| FEFO | lots عند الاستلام؛ الصرف يفضّل أقرب صلاحية |
+| CTR البنرات | impressions من `/app/content/home-blocks`؛ clicks من `/app/content/banners/{id}/click` |
+| قوالب الإشعار | أحداث النظام تقرأ EP-SC-091؛ `in_app` فقط مضمون التسليم |
+| قرار مرتجع | approve يصدر مذكرة دائنة (BR-13)؛ المخزون عند فرز المستودع |
+| مسار الالتقاط | ترتيب aisle ثم shelf |
+
+حيّ بالكامل للكتالوج: عروض show/update/activate · jobs · retailers 360 · users IAM · zones coverage · warehouses · invoices/{id} · content CRUD · loyalty stop.
 
 ---
 
@@ -863,21 +932,23 @@ const byCode: Record<string, string> = {
 | # | الشاشة | يستدعي | الحالة الفارغة |
 |---|---|---|---|
 | 1 | دخول | OTP | — |
-| 2 | لوحة | dashboard + عدّاد pending | أصفار صادقة، لا GMV مخترع |
-| 3 | طلبات + تفاصيل | sub-orders CRUD | «لا طلبات تطابق المرشّح.» |
-| 4 | علامات / فئات / منتجات | catalog | «لا منتجات بعد. أنشئ منتجاً.» |
+| 2 | لوحة | dashboard + عدّاد pending | أصفار حتى اللقطة؛ بعدها KPI/تنبيهات حقيقية |
+| 3 | طلبات + تفاصيل | sub-orders · assign modes | «لا طلبات تطابق المرشّح.» |
+| 4 | علامات / فئات / منتجات | catalog | «لا منتجات بعد.» |
 | 5 | تسعير + سجل | price-lists, change-log | «لا قوائم أسعار.» |
-| 6 | عروض + أداء | offers | «لا عروض.» أخفِ الهامش والتحويل (صفر) |
-| 7 | مخزون | inventory + warehouses | «لا أرصدة.» اختر مستودعاً من القائمة. |
-| 8 | مندوبون + طوابير + محفظة | reps* | «لا مندوبين.» |
-| 9 | مرتجعات | return-requests | «لا طلبات إرجاع.» |
-| 10 | فواتير / دفعات / أعمار / ائتمان | finance + retailers | «لا فواتير مفتوحة.» منتقي تاجر من القائمة. |
-| 11 | تغطية مناطق | /channel/zones + /zones | «لا تغطية. أضف منطقة من المراجع.» |
-| 12 | إشعارات | notifications | «لا سجل بعد.» |
-| 13 | انترو / بنرات / سلايدر | content | انترو `enabled: false` |
-| 14 | ولاء | loyalty | قواعد فارغة صحيحة |
-| 15 | تقارير | reports | صفوف فارغة صحيحة |
-| 16 | إعدادات | GET/PUT /channel | — |
+| 6 | عروض + أداء | offers CRUD + performance | «لا عروض.» |
+| 7 | مخزون + تحويلات | inventory + warehouses | «لا أرصدة.» |
+| 8 | مندوبون + حيّ + محفظة | reps* + `/live` | «لا مندوبين.» خريطة نقطة واحدة |
+| 9 | مرتجعات | return-requests (+ SLA) | «لا طلبات إرجاع.» لوّن overdue |
+| 10 | فواتير / دفعات / أعمار | finance | «لا فواتير مفتوحة.» |
+| 11 | تجّار 360 + مجموعات + ائتمان | retailers/{id} · groups · credit | «لا تجّار في التغطية.» |
+| 12 | تغطية مناطق + فجوات | zones + coverage | «لا تغطية.» اعرض without_reps |
+| 13 | إشعارات + قوالب | notifications* | «لا سجل بعد.» |
+| 14 | انترو / بنرات / سلايدر | content | انترو `enabled: false` |
+| 15 | ولاء | loyalty rules/rewards/stop | قواعد فارغة صحيحة |
+| 16 | تقارير + تصدير + jobs | reports + jobs/{id} | صفوف فارغة؛ job_id ثم polling |
+| 17 | مستخدمو القناة | users + invite | «لا مستخدمين.» |
+| 18 | إعدادات | GET/PUT /channel (+ quiet_hours) | — |
 
 لكل شاشة: `can()` على الأزرار · مفتاح تكرار في النموذج · هيكل تحميل · خطأ عبر `ApiError.userMessage` · مال عبر `moneySyp` · 422 تحت الحقل · لا مسار من §8 · ترقيم على 📄 · سحب للتحديث · RTL مع LTR للأرقام.
 
@@ -888,12 +959,11 @@ const byCode: Record<string, string> = {
 1. المسار والطريقة يطابقان `channel.json` حرفياً. لا `/app/*` ولا `/platform/*`.
 2. الترويسات: `X-Client: channel-web` · `X-Device-Id` ثابت · مفتاح التكرار على كل كتابة إلا OTP · لا `X-Channel-Id`.
 3. الحقول تطابق FormRequest (الأنواع: `code` سلسلة، المال int، رسوم المناطق عشرية).
-4. التحليل عبر الغلاف فقط. لا مفتاح لا يرسله الخادم. قائمة المنتجات 4 مفاتيح. `ctr` البنر int. اللوحة أصفار حتى اللقطة.
+4. التحليل عبر الغلاف فقط. لا مفتاح لا يرسله الخادم. قائمة المنتجات 4 مفاتيح. `ctr` البنر int. اللوحة أصفار حتى اللقطة؛ بعدها KPI/charts/alerts حقيقية. تصدير → polling `GET /channel/jobs/{id}`.
 5. الأخطاء: `ApiError` فقط · §7 · 401 على OTP لا يخرج · `wrong_guard` يخرج.
 6. التكرار: يُعاد استخدامه في إعادة المحاولة، يُستبدل بعد نجاح أو تعديل النموذج.
 7. المال int؛ لا ÷100؛ لا اختراع GMV.
-8. الممنوعات غائبة (§8) بما فيها قائمة تجّار محلية وهمية.
-9. `can(permission)` من حمولة الدخول، لا اسم الدور.
+8. الممنوعات غائبة (§8). لا قائمة تجّار وهمية ولا خريطة مندوبين مجمّعة.9. `can(permission)` من حمولة الدخول، لا اسم الدور.
 10. `per_page ≤ 100` · لا `sort`.
 11. التوكن في `sessionStorage` مفتاح `channel` فقط. يُمسح عند 401/خروج.
 12. الاستيراد `FormData` لا JSON. حذف المنطقة يتعامل مع 204.

@@ -9,6 +9,12 @@ return [
         'q' => listQuery(),
         'r' => [['id' => 1, 'name' => 'دمشق', 'order' => 1, 'status' => 'active', 'zones_count' => 18]],
     ]),
+    ep('EP-AD-030C', 'SP-03', 'GET', '/platform/refs/governorates/{id}', 'platform', 'ad.refs.view', [
+        'name' => 'Show governorate',
+        'name_ar' => 'تفاصيل محافظة',
+        'r' => ['id' => 1, 'name' => 'دمشق', 'order' => 1, 'status' => 'active', 'zones_count' => 18],
+        'e' => [404 => 'not_found'],
+    ]),
     ep('EP-AD-031', 'SP-03', 'POST', '/platform/refs/governorates', 'platform', 'ad.refs.create', [
         'name' => 'Create governorate',
         'name_ar' => 'إنشاء محافظة',
@@ -31,6 +37,18 @@ return [
             'reps_count' => 8,
             'channels_count' => 4,
         ]],
+    ]),
+    ep('EP-AD-032C', 'SP-03', 'GET', '/platform/refs/zones/{id}', 'platform', 'ad.refs.view', [
+        'name' => 'Show zone',
+        'name_ar' => 'تفاصيل منطقة',
+        'r' => [
+            'id' => 12,
+            'name' => 'المزة',
+            'governorate' => ['id' => 1, 'name' => 'دمشق'],
+            'district' => 'المزة',
+            'status' => 'active',
+        ],
+        'e' => [404 => 'not_found'],
     ]),
     ep('EP-AD-033', 'SP-03', 'POST', '/platform/refs/zones', 'platform', 'ad.refs.create', [
         'name' => 'Create zone',
@@ -58,6 +76,12 @@ return [
         'q' => listQuery(),
         'r' => [['id' => 3, 'name' => 'بقالة', 'icon' => 'grocery', 'order' => 1]],
     ]),
+    ep('EP-AD-035C', 'SP-03', 'GET', '/platform/refs/activity-types/{id}', 'platform', 'ad.refs.view', [
+        'name' => 'Show activity type',
+        'name_ar' => 'تفاصيل نوع نشاط',
+        'r' => ['id' => 3, 'name' => 'بقالة', 'icon' => 'grocery', 'order' => 1],
+        'e' => [404 => 'not_found'],
+    ]),
     ep('EP-AD-035B', 'SP-03', 'POST', '/platform/refs/activity-types', 'platform', 'ad.refs.create', [
         'name' => 'Create activity type',
         'name_ar' => 'إنشاء نوع نشاط',
@@ -75,6 +99,12 @@ return [
         'name_ar' => 'الفئات الجذر',
         'q' => listQuery(),
         'r' => [['id' => 10, 'name' => 'مواد غذائية', 'icon' => 'food', 'order' => 1]],
+    ]),
+    ep('EP-AD-036C', 'SP-03', 'GET', '/platform/refs/root-categories/{id}', 'platform', 'ad.refs.view', [
+        'name' => 'Show root category',
+        'name_ar' => 'تفاصيل فئة جذر',
+        'r' => ['id' => 10, 'name' => 'مواد غذائية', 'icon' => 'food', 'order' => 1],
+        'e' => [404 => 'not_found'],
     ]),
     ep('EP-AD-036B', 'SP-03', 'POST', '/platform/refs/root-categories', 'platform', 'ad.refs.create', [
         'name' => 'Create root category',
@@ -94,6 +124,12 @@ return [
         'q' => listQuery(),
         'r' => [['id' => 3, 'name' => 'قطعة', 'abbr' => 'pcs', 'default_factor' => 1]],
     ]),
+    ep('EP-AD-037C', 'SP-03', 'GET', '/platform/refs/sale-units/{id}', 'platform', 'ad.refs.view', [
+        'name' => 'Show sale unit',
+        'name_ar' => 'تفاصيل وحدة بيع',
+        'r' => ['id' => 3, 'name' => 'قطعة', 'abbr' => 'pcs', 'default_factor' => 1],
+        'e' => [404 => 'not_found'],
+    ]),
     ep('EP-AD-037B', 'SP-03', 'POST', '/platform/refs/sale-units', 'platform', 'ad.refs.create', [
         'name' => 'Create sale unit',
         'name_ar' => 'إنشاء وحدة بيع',
@@ -106,6 +142,12 @@ return [
         'q' => listQuery(),
         'r' => [['id' => 1, 'name' => 'ثلاجة عرض', 'icon' => 'fridge']],
     ]),
+    ep('EP-AD-038C', 'SP-03', 'GET', '/platform/refs/equipments/{id}', 'platform', 'ad.refs.view', [
+        'name' => 'Show equipment',
+        'name_ar' => 'تفاصيل تجهيز',
+        'r' => ['id' => 1, 'name' => 'ثلاجة عرض', 'icon' => 'fridge'],
+        'e' => [404 => 'not_found'],
+    ]),
     ep('EP-AD-038B', 'SP-03', 'POST', '/platform/refs/equipments', 'platform', 'ad.refs.create', [
         'name' => 'Create equipment',
         'name_ar' => 'إنشاء تجهيز',
@@ -117,6 +159,12 @@ return [
         'name_ar' => 'العملات',
         'q' => listQuery(),
         'r' => [['id' => 1, 'iso' => 'SYP', 'name' => 'ليرة سورية', 'decimals' => 0, 'is_display_currency' => true]],
+    ]),
+    ep('EP-AD-039C', 'SP-03', 'GET', '/platform/refs/currencies/{id}', 'platform', 'ad.refs.currency', [
+        'name' => 'Show currency',
+        'name_ar' => 'تفاصيل عملة',
+        'r' => ['id' => 1, 'iso' => 'SYP', 'name' => 'ليرة سورية', 'decimals' => 0, 'is_display_currency' => true],
+        'e' => [404 => 'not_found'],
     ]),
     ep('EP-AD-039B', 'SP-03', 'POST', '/platform/refs/currencies', 'platform', 'ad.refs.currency', [
         'name' => 'Create currency',
