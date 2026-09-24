@@ -33375,7 +33375,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-SC-092** · SP-14 · سجل الإشعارات\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.notify.view`\n\nالحارس: `channel`"
+                                        "description": "**EP-SC-092** · SP-14 · سجل الإشعارات\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.notify.view`\n\nالحارس: `channel`\n\nBF-12: when channels include push/whatsapp without a provider, status is `partial` (with in_app) or `failed` (external only) and failure_reason is `push_whatsapp_provider_not_configured` — never treat those as delivered."
                                     },
                                     "response": [
                                         {
@@ -33437,7 +33437,7 @@
                                                     ],
                                                     "variable": []
                                                 },
-                                                "description": "**EP-SC-092** · SP-14 · سجل الإشعارات\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.notify.view`\n\nالحارس: `channel`"
+                                                "description": "**EP-SC-092** · SP-14 · سجل الإشعارات\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.notify.view`\n\nالحارس: `channel`\n\nBF-12: when channels include push/whatsapp without a provider, status is `partial` (with in_app) or `failed` (external only) and failure_reason is `push_whatsapp_provider_not_configured` — never treat those as delivered."
                                             },
                                             "status": "OK",
                                             "code": 200,

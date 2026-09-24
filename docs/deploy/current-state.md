@@ -92,6 +92,21 @@ own VirtualHost and certificate before the name is used anywhere.
 | `APP_KEY` | set | Distinct from the key committed in `.env.testing`. |
 | `SENTRY_*` | absent | Sentry is not installed (§8). |
 
+### Notifications — Push / WhatsApp (BF-12, 2026-09-25)
+
+Channel campaigns may list `push` / `whatsapp` / `in_app`. **Only `in_app` is
+delivered** until a provider is wired in Integration. Delivery log rows:
+
+| Channels requested | Log `status` | `failure_reason` |
+|---|---|---|
+| `in_app` only | `sent` | null |
+| `in_app` + push/whatsapp | `partial` | `push_whatsapp_provider_not_configured` |
+| push/whatsapp only | `failed` | `push_whatsapp_provider_not_configured` |
+
+Clients must not treat push/whatsapp as delivered while that reason is present.
+No server env flag turns external delivery on yet — wiring a provider is a later
+change; until then the honest failure string stays.
+
 ## 4. Database
 
 | | |

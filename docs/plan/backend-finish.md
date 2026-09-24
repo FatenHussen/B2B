@@ -46,7 +46,7 @@
 | BF-09 | بوابة 17 مسار `/app/*` ذات صلاحية معروفة | 2 | Access + Ordering/… | — | ✅ 2026-09-25 |
 | BF-10 | جلسة عقد: تعيين permission لكل مسار بلا صلاحية في الكتالوج | 2 | Catalog + Access | — | ✅ 2026-09-25 |
 | BF-11 | بذر صلاحيات DOC-08 الناقصة **عند ظهور مسار** (~30) | 2 | Access | BF-10 جزئي | ⬜ مستمر |
-| BF-12 | تكامل Push/WhatsApp إنتاجي (أو إعلان صريح «غير مضبوط») | 2 | Integration | BF-02 | ⬜ |
+| BF-12 | تكامل Push/WhatsApp إنتاجي (أو إعلان صريح «غير مضبوط») | 2 | Integration | BF-02 | ✅ 2026-09-25 |
 | BF-13…BF-21 | صفوف v1.1 المتبقية | 3 | انظر الجدول أدناه | كتالوج أولاً | ⬜ |
 | BF-22 | بوابة `openapi:check` (السادسة) | 4 | Tooling | — | ⬜ |
 | BF-23 | دفع Larastan baseline وحدة بوحدة | 4 | الكل | — | ⬜ مستمر |
@@ -135,10 +135,10 @@
 - **أمثلة ناقصة اليوم:** `ad.channels.archive` · `ad.system.integrations` · عائلات `sc.retailers.*` / `sc.reps.*` / `sc.iam.*` / `wh.picking.batch` · …  
 - **قبول لكل دفعة:** مسار (أو تذكرة BF-13+) يذكر الكود · بذر · gate · اختبار.
 
-### BF-12 — إشعارات خارج in_app
+### BF-12 — إشعارات خارج in_app ✅ 2026-09-25
 
-- **عمل:** ضبط مقدّم Push و/أو WhatsApp في Integration على السيرفر، أو الإبقاء على الرسالة الحالية `push_whatsapp_provider_not_configured` مع جملة صريحة في DocsLast أن التسليم المضمون = `in_app` فقط حتى يُضبط.
-- **قبول:** لا يدّعي السجل «مُسلَّم» لقناة غير مضبوطة؛ اختبار أو دليل تشغيل في `deploy/current-state.md`.
+- لا مقدّم Push/WhatsApp بعد؛ السجل: `partial`/`failed` + `push_whatsapp_provider_not_configured`.
+- موثّق في `docs/deploy/current-state.md` و DocsLast/channel.md؛ اختبار في `ChannelNotificationTest`.
 
 ---
 

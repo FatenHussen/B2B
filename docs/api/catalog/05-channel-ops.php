@@ -461,6 +461,7 @@ return [
         'name_ar' => 'سجل الإشعارات',
         'q' => listQuery(),
         'r' => [['at' => '2026-03-01T09:12:00+03:00', 'recipient' => 481, 'template' => 'order.confirmed', 'status' => 'sent', 'failure_reason' => null]],
+        'd' => 'BF-12: when channels include push/whatsapp without a provider, status is `partial` (with in_app) or `failed` (external only) and failure_reason is `push_whatsapp_provider_not_configured` — never treat those as delivered.',
     ]),
 
     ep('EP-SC-100A', 'SP-15', 'GET', '/channel/content/intro', 'channel', 'sc.content.intro', [

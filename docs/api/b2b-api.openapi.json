@@ -25720,7 +25720,7 @@
             "get": {
                 "operationId": "EP-SC-092",
                 "summary": "Notification log",
-                "description": "سجل الإشعارات",
+                "description": "سجل الإشعارات\n\nBF-12: when channels include push/whatsapp without a provider, status is `partial` (with in_app) or `failed` (external only) and failure_reason is `push_whatsapp_provider_not_configured` — never treat those as delivered.",
                 "tags": [
                     "channel_dashboard",
                     "مدير القناة"

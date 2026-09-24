@@ -31,7 +31,7 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-09-24T23:46:11+00:00",
+        "generated_at": "2026-09-24T23:50:34+00:00",
         "endpoint_count": 426,
         "surfaces": {
             "retailer_app": {
@@ -11532,7 +11532,7 @@
             "auth": true,
             "name": "Notification log",
             "name_ar": "سجل الإشعارات",
-            "description": "",
+            "description": "BF-12: when channels include push/whatsapp without a provider, status is `partial` (with in_app) or `failed` (external only) and failure_reason is `push_whatsapp_provider_not_configured` — never treat those as delivered.",
             "query": {
                 "page": "1",
                 "per_page": "25",

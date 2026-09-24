@@ -908,7 +908,7 @@ const byCode: Record<string, string> = {
 | `on_exceed: manual_approval` للائتمان | يُحفظ؛ السلوك = **block** (423) بلا طابور موافقة |
 | مستودع offline كامل · مضلعات مناطق · تقويم قناة · طابور موافقة ائتمان | مؤجّل (`docs/plan/channel-warehouse-v1.1.md`) |
 | خريطة مندوبين مجمّعة | نقطة واحدة: `GET /channel/reps/{id}/live` |
-| Push/WhatsApp فعلي | القنوات مقبولة؛ السجل يصرّح `push_whatsapp_provider_not_configured` — لا تعرض «مُسلَّم» لهما |
+| Push/WhatsApp فعلي | القنوات مقبولة؛ السجل: `partial`/`failed` + `push_whatsapp_provider_not_configured` — **لا تعرض «مُسلَّم»** لـ push/whatsapp (BF-12) |
 
 ### صدقية العمق (حيّ — اعرف الحدود)
 

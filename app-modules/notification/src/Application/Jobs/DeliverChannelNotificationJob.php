@@ -91,14 +91,17 @@ final class DeliverChannelNotificationJob implements ShouldQueue
                     );
                 }
 
-                // Honest delivery: in_app is sent; push/whatsapp have no provider wired yet.
-                $status = $wantsInApp ? 'sent' : 'failed';
+                // BF-12: only `in_app` is actually delivered today. Push/WhatsApp are
+                // accepted on the write but never claim a pure `sent` while no provider
+                // is wired — `partial` (in_app ok) or `failed` (external only).
+                $status = 'sent';
                 $failure = null;
                 if ($wantsExternal) {
                     $failure = 'push_whatsapp_provider_not_configured';
-                    if (! $wantsInApp) {
-                        $status = 'failed';
-                    }
+                    $status = $wantsInApp ? 'partial' : 'failed';
+                } elseif (! $wantsInApp) {
+                    $status = 'failed';
+                    $failure = 'no_delivery_channel';
                 }
 
                 NotificationDeliveryLog::query()->create([
@@ -112,7 +115,12 @@ final class DeliverChannelNotificationJob implements ShouldQueue
                 ]);
             }
 
-            $row->forceFill(['status' => $wantsInApp || ! $wantsExternal ? 'sent' : 'failed'])->save();
+            $campaignStatus = match (true) {
+                $wantsInApp && $wantsExternal => 'partial',
+                $wantsInApp || ! $wantsExternal => 'sent',
+                default => 'failed',
+            };
+            $row->forceFill(['status' => $campaignStatus])->save();
         });
     }
 

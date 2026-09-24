@@ -64,7 +64,7 @@ final class NotifyOnSubOrderConfirmed
             'template' => 'order.confirmed',
             'status' => in_array('in_app', $tpl['channels'], true) ? 'sent' : 'skipped',
             'failure_reason' => in_array('push', $tpl['channels'], true) || in_array('whatsapp', $tpl['channels'], true)
-                ? 'push_whatsapp_not_wired'
+                ? 'push_whatsapp_provider_not_configured'
                 : null,
             'at' => now(),
         ]);
