@@ -66,10 +66,21 @@ $want = static function (string $path): bool {
     if ($path === '/health') {
         return true;
     }
-    if (str_starts_with($path, '/public/auth/') || $path === '/public/refs' || $path === '/public/content/intro') {
+    if (str_starts_with($path, '/public/auth/') || $path === '/public/refs' || $path === '/public/content/intro' || $path === '/public/app-config') {
         return true;
     }
     if ($path === '/app/session' || $path === '/app/auth/logout') {
+        return true;
+    }
+    // The shared /app/* surfaces the rep app calls too (AP-02…AP-06, live since
+    // 2026-09-20 per docs/status/06-shared-app.md). They were in forbidden() while
+    // they were unbuilt, then dropped from it — which left them in neither list, so
+    // the contract said nothing about routes the app is expected to call.
+    if (str_starts_with($path, '/app/notifications')
+        || $path === '/app/devices/push-token'
+        || str_starts_with($path, '/app/sync/')
+        || $path === '/app/content/home-blocks'
+        || str_starts_with($path, '/app/loyalty')) {
         return true;
     }
     if ($path === '/app/pricing/quote' || str_starts_with($path, '/app/offers')) {
@@ -280,10 +291,10 @@ function folder(string $path): string
     if ($path === '/health') {
         return '00. Health';
     }
-    if (str_starts_with($path, '/public/auth') || $path === '/public/refs' || $path === '/public/content/intro' || $path === '/app/rep/register') {
+    if (str_starts_with($path, '/public/auth') || $path === '/public/refs' || $path === '/public/content/intro' || $path === '/public/app-config' || $path === '/app/rep/register') {
         return '01. Auth & registration';
     }
-    if ($path === '/app/session' || $path === '/app/auth/logout' || $path === '/app/rep/status' || $path === '/app/rep/home') {
+    if ($path === '/app/session' || $path === '/app/auth/logout' || $path === '/app/rep/status' || $path === '/app/rep/home' || $path === '/app/rep/profile') {
         return '02. Session & duty';
     }
     if (str_starts_with($path, '/app/rep/customers') || str_starts_with($path, '/app/rep/zones')) {
@@ -309,6 +320,15 @@ function folder(string $path): string
     }
     if (str_starts_with($path, '/app/rep/payments') || str_starts_with($path, '/app/rep/wallet') || str_starts_with($path, '/app/rep/receivables') || str_starts_with($path, '/app/receipts')) {
         return '09. Wallet & cash';
+    }
+    if (str_starts_with($path, '/app/notifications') || $path === '/app/devices/push-token') {
+        return '10. Notifications & push';
+    }
+    if (str_starts_with($path, '/app/sync/')) {
+        return '11. Sync';
+    }
+    if ($path === '/app/content/home-blocks' || str_starts_with($path, '/app/loyalty')) {
+        return '12. Home content & loyalty';
     }
 
     return '99. Other';

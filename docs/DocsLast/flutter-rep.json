@@ -1,7 +1,7 @@
 {
     "info": {
         "title": "Field rep app — live API only",
-        "generated_at": "2026-09-20",
+        "generated_at": "2026-09-24",
         "base_path": "/api/v1",
         "guard": "app",
         "kind": "rep",
@@ -9,8 +9,8 @@
         "seed": "demo reps +963932000001 (عمر الشامي) · +963932000002 · +963932000003 — local OTP_BYPASS=true: any code verifies, rep-* clients get all zeros; production is 6 digits",
         "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.",
         "counts": {
-            "live_endpoints": 49,
-            "matched_catalog": 49,
+            "live_endpoints": 61,
+            "matched_catalog": 61,
             "live_without_catalog": 0,
             "forbidden": 6
         }
@@ -172,6 +172,58 @@
             "errors": [],
             "description": "Channel must be active; zones must be inside its coverage (TB-RP-010). No email field — reps authenticate by Syrian mobile only.",
             "note": "Requires the registration-ability token from verify-otp. Response token replaces it (ability *). zones[].name is null — resolve from GET /public/refs. supply_channel_id has no directory; it comes from the channel team or an invite."
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/public/app-config",
+            "catalog_path": "/public/app-config",
+            "code": "EP-PB-010",
+            "name": "App config / force-update",
+            "name_ar": "إعداد التطبيق وفحص النسخة",
+            "permission": null,
+            "guard": "none",
+            "auth": false,
+            "write": false,
+            "idempotency": false,
+            "folder": "01. Auth & registration",
+            "query": [
+                {
+                    "name": "app",
+                    "example": "retailer"
+                },
+                {
+                    "name": "platform",
+                    "example": "android"
+                },
+                {
+                    "name": "version",
+                    "example": "1.4.2"
+                }
+            ],
+            "body": null,
+            "response": {
+                "min_supported_version": "1.3.0",
+                "latest_version": "1.4.2",
+                "store_url": "https://play.google.com/store/apps/details?id=sy.b2b.retailer",
+                "force_update": false,
+                "release_notes": "إصلاح المزامنة دون اتصال",
+                "feature_flags": {
+                    "offline_orders": true,
+                    "loyalty": true
+                },
+                "maintenance": {
+                    "enabled": false,
+                    "message_ar": null,
+                    "until": null
+                }
+            },
+            "errors": {
+                "426": "upgrade_required",
+                "503": "maintenance_mode"
+            },
+            "description": "Called on every app launch (REQ-AD-073, 074). Stale X-App-Version → 426.",
+            "note": null
         },
         {
             "live": true,
@@ -504,6 +556,34 @@
             "errors": [],
             "description": "Morning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is the EP-APP-110 snapshot (points 0 / bronze when the wallet is empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token.",
             "note": "Morning snapshot. Bind the six task badges here — do not call GET /deliveries from Home (that list materialises rows). loyalty is the EP-APP-110 snapshot (points/tier; bronze/0 when empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer; guest browse is local."
+        },
+        {
+            "live": true,
+            "method": "PATCH",
+            "path": "/api/v1/app/rep/profile",
+            "catalog_path": "/app/rep/profile",
+            "code": "EP-RP-073",
+            "name": "Update rep profile",
+            "name_ar": "تعديل ملف المندوب",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "02. Session & duty",
+            "query": [],
+            "body": {
+                "name": "أحمد العلي",
+                "phone": "+963933000001"
+            },
+            "response": {
+                "name": "أحمد العلي",
+                "phone": "+963933000001",
+                "avatar": null
+            },
+            "errors": [],
+            "description": "Name and phone only. avatar stays null until media upload. Phone must be unique among app users.",
+            "note": null
         },
         {
             "live": true,
@@ -1979,30 +2059,379 @@
         },
         {
             "live": true,
-            "method": "PATCH",
-            "path": "/api/v1/app/rep/profile",
-            "catalog_path": "/app/rep/profile",
-            "code": "EP-RP-073",
-            "name": "Update rep profile",
-            "name_ar": "تعديل ملف المندوب",
+            "method": "POST",
+            "path": "/api/v1/app/devices/push-token",
+            "catalog_path": "/app/devices/push-token",
+            "code": "EP-CM-063",
+            "name": "Register push token",
+            "name_ar": "رمز الإشعارات",
             "permission": null,
             "guard": "app",
             "auth": true,
             "write": true,
             "idempotency": true,
-            "folder": "99. Other",
+            "folder": "10. Notifications & push",
             "query": [],
             "body": {
-                "name": "أحمد العلي",
-                "phone": "+963933000001"
+                "token": "fcm:xxxxx",
+                "platform": "android"
             },
             "response": {
-                "name": "أحمد العلي",
-                "phone": "+963933000001",
-                "avatar": null
+                "success": true
             },
             "errors": [],
-            "description": "Name and phone only. avatar stays null until media upload. Phone must be unique among app users.",
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/notifications/read-all",
+            "catalog_path": "/app/notifications/read-all",
+            "code": "EP-CM-061",
+            "name": "Mark all read",
+            "name_ar": "تعليم الكل كمقروء",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "10. Notifications & push",
+            "query": [],
+            "body": [],
+            "response": {
+                "success": true
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "DELETE",
+            "path": "/api/v1/app/notifications",
+            "catalog_path": "/app/notifications",
+            "code": "EP-CM-062",
+            "name": "Clear inbox view",
+            "name_ar": "مسح عرض الإشعارات",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "10. Notifications & push",
+            "query": [],
+            "body": null,
+            "response": {
+                "success": true
+            },
+            "errors": [],
+            "description": "Clears the inbox view, not the server log.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/notifications",
+            "catalog_path": "/app/notifications",
+            "code": "EP-CM-060",
+            "name": "Notifications inbox",
+            "name_ar": "الإشعارات",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "10. Notifications & push",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[read]",
+                    "example": "0"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 91,
+                    "icon": "order",
+                    "title": "تم تأكيد طلبك",
+                    "body": "الطلب SO-9001 قيد التجهيز",
+                    "at": "2026-03-01T09:20:00+03:00",
+                    "read_at": null,
+                    "action": {
+                        "type": "order",
+                        "target": 9001
+                    }
+                }
+            ],
+            "errors": [],
+            "description": "meta.unread_count is included in the envelope.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/sync/pull",
+            "catalog_path": "/app/sync/pull",
+            "code": "EP-SY-001",
+            "name": "Sync pull",
+            "name_ar": "سحب المزامنة",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "11. Sync",
+            "query": [
+                {
+                    "name": "cursor",
+                    "example": "c_9f2a71"
+                },
+                {
+                    "name": "scopes[]",
+                    "example": "catalog"
+                },
+                {
+                    "name": "limit",
+                    "example": "200"
+                }
+            ],
+            "body": null,
+            "response": {
+                "changes": {
+                    "catalog": {
+                        "upserts": [],
+                        "deletes": []
+                    }
+                },
+                "next_cursor": "c_9f3b80",
+                "has_more": false,
+                "full_resync_required": false
+            },
+            "errors": [],
+            "description": "Retailer scopes: catalog,pricing,offers,zones,orders,refs. Rep extra: rep_catalog,customers,zones,assignments,deliveries,wallet. If cursor is too old, full_resync_required=true.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/sync/push",
+            "catalog_path": "/app/sync/push",
+            "code": "EP-SY-002",
+            "name": "Sync push",
+            "name_ar": "دفع المزامنة",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "11. Sync",
+            "query": [],
+            "body": {
+                "operations": [
+                    {
+                        "client_op_id": "op_order_local_88",
+                        "type": "cart.submit",
+                        "payload": {
+                            "sections": [
+                                {
+                                    "ref": "ch_a1"
+                                }
+                            ],
+                            "offline_created": true
+                        },
+                        "created_at": "2026-03-01T09:05:00+03:00"
+                    }
+                ]
+            },
+            "response": {
+                "results": [
+                    {
+                        "client_op_id": "op_order_local_88",
+                        "status": "applied",
+                        "server_id": 700,
+                        "error": null
+                    }
+                ]
+            },
+            "errors": {
+                "429": "rate_limited"
+            },
+            "description": "Max 500 ops per batch, 20/min per device. status: applied|duplicate|conflict|failed. Device never pushes catalog/prices/offers/stock (REQ-CM-017). Allowed: order, payment, delivery, receipt, shortage, favorite, rating, add-shop.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/sync/resolve-conflict",
+            "catalog_path": "/app/sync/resolve-conflict",
+            "code": "EP-SY-004",
+            "name": "Resolve sync conflict",
+            "name_ar": "حل تعارض",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "11. Sync",
+            "query": [],
+            "body": {
+                "conflict_id": "cf_12",
+                "resolution": "server_wins"
+            },
+            "response": {
+                "success": true
+            },
+            "errors": [],
+            "description": "Client must not drop an op from the outbox until applied or duplicate (REQ-CM-019).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/sync/status",
+            "catalog_path": "/app/sync/status",
+            "code": "EP-SY-003",
+            "name": "Sync status",
+            "name_ar": "حالة المزامنة",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "11. Sync",
+            "query": [],
+            "body": null,
+            "response": {
+                "pending_server_side": 0,
+                "last_pull_at": "2026-03-01T09:12:00+03:00",
+                "last_push_at": "2026-03-01T09:11:40+03:00",
+                "conflicts": []
+            },
+            "errors": [],
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/content/home-blocks",
+            "catalog_path": "/app/content/home-blocks",
+            "code": "EP-APP-100",
+            "name": "Home content blocks",
+            "name_ar": "بلوكات الرئيسية",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "12. Home content & loyalty",
+            "query": [],
+            "body": null,
+            "response": {
+                "banners": [
+                    {
+                        "id": 9,
+                        "image": "https://cdn.example/b/9.jpg",
+                        "link": {
+                            "type": "offer",
+                            "target": 44
+                        }
+                    }
+                ],
+                "sliders": [
+                    {
+                        "key": "best_selling",
+                        "title": "الأكثر مبيعاً",
+                        "items": [],
+                        "show_all": true
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "Filtered by the user activity type and zone, including intro targeting (TB-RT-010).",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/loyalty/redeem",
+            "catalog_path": "/app/loyalty/redeem",
+            "code": "EP-APP-111",
+            "name": "Redeem reward",
+            "name_ar": "استبدال نقاط",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "12. Home content & loyalty",
+            "query": [],
+            "body": {
+                "reward_id": 3
+            },
+            "response": {
+                "redemption_no": "LY-88"
+            },
+            "errors": {
+                "422": "validation_failed",
+                "423": "plan_limit_exceeded"
+            },
+            "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/app/loyalty",
+            "catalog_path": "/app/loyalty",
+            "code": "EP-APP-110",
+            "name": "Loyalty wallet",
+            "name_ar": "النقاط",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "12. Home content & loyalty",
+            "query": [],
+            "body": null,
+            "response": {
+                "points": 1240,
+                "tier": "silver",
+                "next_tier": {
+                    "name": "gold",
+                    "remaining": 3760
+                },
+                "history": [
+                    {
+                        "at": "2026-02-20",
+                        "delta": 40,
+                        "reason": "invoice_paid"
+                    }
+                ],
+                "rewards": [
+                    {
+                        "id": 3,
+                        "name": "كرتون زيت",
+                        "points_cost": 2000
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "",
             "note": null
         }
     ]

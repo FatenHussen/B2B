@@ -102,7 +102,7 @@
 التطبيق يجب أن يكون:
 
 1. **سريعاً جداً** — الطلب يُسجَّل في أقل من 30 ثانية. الجولة تُدار بـ 3 نقرات.
-2. **يعمل بدون إنترنت** — السوق السوري يعاني انقطاعاً مستمراً. أونلاين-أول اليوم (المزامنة ⛔)، مع طابور محلي وإعادة عند عودة الشبكة. لا تَعِد بمزامنة خادم حتى يُبنى `AP-03`.
+2. **يعمل بدون إنترنت** — السوق السوري يعاني انقطاعاً مستمراً. الطابور المحلي (outbox §13) يبقى خط الدفاع الأول، و`/app/sync/*` صار حيّاً (AP-03) لسحب التغييرات ودفع العمليات المؤجَّلة. `feature_flags.offline_orders` من الجلسة هو ما يقرر إن كان الطلب يُنشأ دون اتصال.
 3. **بسيطاً جداً** — لا شاشة «تعلّم». المندوب يستخدمه أول مرة وينجح.
 4. **يحاكي الواقع** — يحسّن الـ workflow ولا يغيّره.
 5. **لا يقلّل من قيمة المندوب** — يظهر كأداة تمكين لا كأداة استبدال. المندوب يخشى أن يصبح التطبيق بديلاً عنه.
@@ -237,8 +237,8 @@ lib/
     payments/
     wallet/
     account/
-    notifications/                  # UI جاهز، remote ⛔
-    loyalty/                        # ويدجت شريط فقط، remote ⛔
+    notifications/                  # ✅ EP-CM-060…063
+    loyalty/                        # ✅ EP-APP-110…111
   routes/
     app_pages.dart
     app_routes.dart
@@ -427,7 +427,7 @@ X-Idempotency-Key: <uuid>               # كل كتابة ما عدا OTP الث
 | 409 | `operation_in_progress` | العملية ما زالت تجري | انتظر وأعد بنفس المفتاح |
 | 422 | `validation_failed` | تفاصيل الحقول | أبرز `error.details` |
 | 429 | `rate_limited` | انتظر | OTP أو نبضة &lt; 30ث |
-| 426 | `upgrade_required` | حدّث التطبيق | ⛔ المسار غير حي — لا تعتمد عليه |
+| 426 | `upgrade_required` | حدّث التطبيق | لا يرميه مسار اليوم — التحديث الإجباري يأتي من `force_update` في `GET /public/app-config` |
 | 503 | `maintenance_mode` | صيانة | شاشة ثابتة |
 
 ### 4.5 حالة الاتصال (شريط الرئيسية)
@@ -438,7 +438,7 @@ X-Idempotency-Key: <uuid>               # كل كتابة ما عدا OTP الث
 | رمادي | غير متصل | لا شبكة |
 | أصفر | مزامنة معلّقة | outbox غير فارغ |
 
-زر «مزامنة يدوية» يظهر فقط إن outbox غير فارغ. اليوم يفرّغ الطابور بإعادة POST للمسارات الحيّة (تحصيل، محل، سلة). لا تستدعِ `/app/sync/*` (⛔).
+زر «مزامنة يدوية» يظهر فقط إن outbox غير فارغ. يفرّغ الطابور بإعادة POST للمسارات الحيّة (تحصيل، محل، سلة) بنفس مفتاح التكرار — هذا هو المسار الافتراضي. `POST /app/sync/push` (§10.9) بديل لدفعة واحدة تحمل عدة عمليات؛ لا تستعمل الاثنين لنفس العملية.
 
 ### 4.6 `RemoteNotReady`
 
@@ -1059,7 +1059,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 **البند 4 — شريط الفئات:** شرائح أفقية من `root_categories` في كاش `GET /public/refs`، الشريحة الأولى «الكل» (بدون فلتر). النقر يضع `filter[category_id]`. إن القائمة فارغة **أخفِ الشريط بالكامل**.
 
-**البند 5 — سلايدر الأحدث (بدل الأكثر طلباً):** ⛔ لا `home-blocks` ولا ترتيب مبيعات. **أخفِ عنوان «الأكثر طلباً».** سلايدر أفقي من أول عناصر نفس `GET /products` (`defaultSort -created_at` = الأحدث). لا تستدعِ مساراً ثانياً.
+**البند 5 — السلايدرات:** `GET /app/content/home-blocks` ✅ (EP-APP-100) يعيد `banners[]` و`sliders[]`، وكل شريحة `{ key, title, items, show_all }`. اعرض ما يعيده الخادم بعنوانه — إن كانت `items` فارغة **أخفِ الشريحة** ولا تستبدلها بترتيب مختلق. إن كان الرد بلا شرائح أصلاً فارجع للسلوك السابق: سلايدر أفقي من أول عناصر نفس `GET /products` (`defaultSort -created_at` = الأحدث) بعنوان «الأحدث» لا «الأكثر طلباً».
 
 **البند 7 — كل منتجات المندوب:** قائمة رأسية تحت السلايدرات، صفحات، بطاقة كاملة مع المتغيرات (§7.3).
 
@@ -2004,38 +2004,65 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 | نسبة تنفيذ | لا مسار. أخفِ أو اترك «—» |
 | نقاط | `loyalty` من الـ home — اربط الشريط |
 | لغة / مظهر / عملة | محلي GetStorage. العملة `SYP` ثابتة |
-| إشعارات تفعيل | محلي حتى FCM ⛔ |
+| إشعارات تفعيل | مفتاح محلي + `POST /app/devices/push-token` ✅ عند التفعيل |
 | مساعدة وخصوصية | `legal.*` نسخ ثابتة في الأصول. ⛔ لا API قبول |
-| تعديل هاتف/صورة | ⛔ لا مسار. «تواصل مع القناة» |
+| تعديل الاسم والهاتف | ✅ `PATCH /app/rep/profile` (EP-RP-073) — الاسم والهاتف فقط، `avatar` يبقى null |
 | تعديل مناطق العمل | `POST /zones` فقط (طلب إضافي) |
 | خروج | §5.10 |
 
 لا تختلق إحصاءً شهرياً. أرقام المحفظة إجماليات مدى الحياة.
 
-### 10.7 الإشعارات ⛔ `AP-02` — ابنِ الشاشة فارغة
+### 10.7 الإشعارات ✅ `AP-02`
 
-ابنِ الشاشة للنسخة: قائمة، مقروء/غير، تحديد الكل، مسح، تعليم كمقروء.
+الشاشة: قائمة، مقروء/غير مقروء، تعليم الكل كمقروء، مسح. جرس الرئيسية من `unread_notifications` في `GET /app/rep/home`، ويُحدَّث من `meta.unread_count`.
 
-`NotificationsRemote` يرمي `RemoteNotReady`. لا تستدعِ المسارات. جرس الرئيسية من `unread_notifications` (0). فارغ: «لا إشعارات بعد.»
+`GET /api/v1/app/notifications?page=1&per_page=25&filter[read]=0` — **صفحات**.
 
-أمثلة المنتج (جاهز للمستودع، تأكيد طلب) في `kDebugMode && USE_FIXTURES` فقط — **لا في نسخة العميل.**
-
-العقد المستقبلي (لا تستدعِه):
-
-```
-GET    /app/notifications?filter[read]=0
-POST   /app/notifications/read-all
-DELETE /app/notifications
-POST   /app/devices/push-token   { token, platform }
+```json
+[ { "id": 91, "icon": "order", "title": "تم تأكيد طلبك", "body": "الطلب SO-9001 قيد التجهيز",
+    "at": "2026-03-01T09:20:00+03:00", "read_at": null,
+    "action": { "type": "order", "target": 9001 } } ]
 ```
 
-### 10.8 الولاء ⛔ `AP-05`
+`read_at` null = غير مقروء. `action` يقرّر وجهة النقر (`order` → تفاصيل الطلب)؛ نوع غير معروف → لا تنقر.
 
-أخفِ الشريط. عقد مستقبلي: `GET /app/loyalty` · `POST /app/loyalty/redeem { reward_id }`.
+| المسار | 🔁 | الرد |
+|---|---|---|
+| `POST /app/notifications/read-all` | ✔ | `{ "success": true }` |
+| `DELETE /app/notifications` | ✔ | `{ "success": true }` — يمسح **العرض** لا السجل |
+| `POST /app/devices/push-token` | ✔ | `{ "success": true }` · الجسم `{ "token": "fcm:…", "platform": "android" }` |
 
-### 10.9 المزامنة ⛔ `AP-03`
+سجّل رمز FCM بعد الدخول وعند كل تجديد للرمز. فارغ: «لا إشعارات بعد.»
 
-لا `GET/POST /app/sync/*`. §13 للطابور المحلي.
+### 10.8 الولاء ✅ `AP-05`
+
+`GET /api/v1/app/loyalty`
+
+```json
+{ "points": 1240, "tier": "silver",
+  "next_tier": { "name": "gold", "remaining": 3760 },
+  "history": [ { "at": "2026-02-20", "delta": 40, "reason": "invoice_paid" } ],
+  "rewards": [ { "id": 3, "name": "كرتون زيت", "points_cost": 2000 } ] }
+```
+
+`POST /api/v1/app/loyalty/redeem` 🔁 — `{ "reward_id": 3 }` → `{ "redemption_no": "LY-88" }`.
+
+شريط النقاط في الحساب والرئيسية من `points`/`tier` (لقطة الـ home تكفي؛ لا تستدعِ المسارين معاً). `points_cost` أكبر من `points` → الزر معطّل محلياً، والخادم يبقى المرجع.
+
+### 10.9 المزامنة ✅ `AP-03`
+
+| المسار | 🔁 | ماذا يعيد |
+|---|---|---|
+| `GET /app/sync/pull?cursor=&scopes[]=catalog&limit=200` | | `{ changes: { <scope>: { upserts[], deletes[] } }, next_cursor, has_more, full_resync_required }` |
+| `POST /app/sync/push` | ✔ | `{ results: [ { client_op_id, status, server_id, error } ] }` |
+| `GET /app/sync/status` | | `{ pending_server_side, last_pull_at, last_push_at, conflicts[] }` |
+| `POST /app/sync/resolve-conflict` | ✔ | `{ "success": true }` · الجسم `{ conflict_id, resolution: "server_wins" }` |
+
+`pull`: كرّر ما دام `has_more` true، واحفظ `next_cursor`. `full_resync_required: true` → امسح الكاش واسحب بلا `cursor`.
+
+`push`: `operations[]` كل واحدة `{ client_op_id, type, payload, created_at }`؛ `client_op_id` هو `op_id` من outbox §13.2، فإعادة الدفع لا تكرّر العملية. `status` لكل عملية: `applied` / مرفوضة مع `error` — اعرض المرفوضة للمندوب ولا تحذفها بصمت.
+
+الطابور المحلي في §13 يبقى كما هو؛ `push` طريقة ثانية لتفريغه دفعة واحدة، لا بديل عن مفاتيح التكرار.
 
 ---
 
@@ -2065,10 +2092,17 @@ POST   /app/devices/push-token   { token, platform }
 | EP-APP-040 | GET | `/app/offers` | | ✅ |
 | EP-APP-041 | GET | `/app/offers/{id}` | | ✅ |
 | EP-CM-050 | POST | `/app/receipts/reserve` | ✔ | ✅ |
-| EP-SY-001…004 | * | `/app/sync/*` | | ⛔ |
-| EP-CM-060…063 | * | إشعارات + FCM | | ⛔ |
-| EP-APP-100 | GET | `/app/content/home-blocks` | | ⛔ |
-| EP-APP-110…111 | * | ولاء | | ⛔ |
+| EP-SY-001 | GET | `/app/sync/pull` | | ✅ |
+| EP-SY-002 | POST | `/app/sync/push` | ✔ | ✅ |
+| EP-SY-003 | GET | `/app/sync/status` | | ✅ |
+| EP-SY-004 | POST | `/app/sync/resolve-conflict` | ✔ | ✅ |
+| EP-CM-060 | GET | `/app/notifications` | | ✅ |
+| EP-CM-061 | POST | `/app/notifications/read-all` | ✔ | ✅ |
+| EP-CM-062 | DELETE | `/app/notifications` | ✔ | ✅ |
+| EP-CM-063 | POST | `/app/devices/push-token` | ✔ | ✅ |
+| EP-APP-100 | GET | `/app/content/home-blocks` | | ✅ |
+| EP-APP-110 | GET | `/app/loyalty` | | ✅ |
+| EP-APP-111 | POST | `/app/loyalty/redeem` | ✔ | ✅ |
 
 ### 11.3 مندوب — حسب `status/05-rep-app.md`
 
@@ -2077,6 +2111,7 @@ POST   /app/devices/push-token   { token, platform }
 | EP-RP-001 | POST | `/app/rep/register` | ✔ |
 | EP-RP-002 | GET | `/app/rep/home` | |
 | EP-RP-034 | PATCH | `/app/rep/status` | ✔ |
+| EP-RP-073 | PATCH | `/app/rep/profile` | ✔ |
 | EP-RP-010 | GET | `/app/rep/products` | |
 | EP-RP-011 | GET | `/app/rep/products/{id}` | |
 | EP-RP-070A | GET | `/app/rep/customers` | |
@@ -2086,6 +2121,8 @@ POST   /app/devices/push-token   { token, platform }
 | EP-RP-071 | POST | `/app/rep/zones` | ✔ |
 | EP-RP-020 | GET | `/app/rep/zones/{id}/shops` | |
 | EP-RP-021 | POST | `/app/rep/cart/lines` | ✔ |
+| EP-RP-025 | PATCH | `/app/rep/cart/lines/{id}` | ✔ |
+| EP-RP-026 | DELETE | `/app/rep/cart/lines/{id}` | ✔ |
 | EP-RP-022 | GET | `/app/rep/cart` | |
 | EP-RP-023 | POST | `/app/rep/cart/sections/{retailer_id}/submit` | ✔ |
 | EP-RP-024 | GET | `/app/rep/orders` | |
@@ -2219,9 +2256,9 @@ class Money {
 
 ---
 
-## 13. دون اتصال — حتى يُبنى AP-03
+## 13. دون اتصال — الطابور المحلي
 
-`feature_flags.offline_orders === false` و`/app/sync/*` 404. ومع ذلك السوق ينقطع.
+`/app/sync/*` صار حيّاً (AP-03، §10.9)، لكن الطابور المحلي يبقى خط الدفاع الأول: هو ما يلتقط الكتابة لحظة انقطاع الشبكة. `feature_flags.offline_orders` من الجلسة هو ما يقرر إن كان إنشاء الطلب دون اتصال مسموحاً؛ اقرأه ولا تفترض قيمته.
 
 ### 13.1 ما يُكاش فوراً بعد الدخول
 
@@ -2268,20 +2305,20 @@ class Money {
 | أيقونة حالة المجدولة | الخادم `color=amber` دائماً | ارسم أخضر مسلَّم / رمادي غير مسلَّم / أزرق مؤجَّل / أحمر ملغى كما في §8.9 |
 | تأكيد مستودع لكل طلب | التأكيد حوالة + رمز 4 خانات | زر استلام على الصف يفتح الرمز؛ نفس `handover_id` يُؤكَّد معاً |
 | تفاصيل منتج + متغيرات علي بابا | ✅ قائمة + `GET /products/{id}` + `variants[]` | شبكة عدّادات؛ شريحة كمية واحدة إن المصفوفة فارغة |
-| فئات / الأكثر مبيعاً / سلايدرات | ⛔ home-blocks | شريط فئات من `root_categories`؛ أخفِ «الأكثر طلباً»؛ سلايدر الأحدث من نفس قائمة المنتجات؛ سلايدر العروض من `GET /app/offers` |
-| تعديل/حذف بند سلة | الكمية تصعد فقط | المسودّة المحلية في §7.6 هي مكان الإنقاص؛ بعد الإضافة رسالة صريحة |
+| فئات / الأكثر مبيعاً / سلايدرات | ✅ `GET /app/content/home-blocks` | شريط فئات من `root_categories`؛ البنرات والشرائح من الخادم بعناوينها؛ شريحة بلا `items` تُخفى؛ سلايدر العروض من `GET /app/offers` |
+| تعديل/حذف بند سلة | ✅ `PATCH`/`DELETE /app/rep/cart/lines/{id}` (EP-RP-025/026) | المسودّة المحلية §7.6 للإنقاص قبل الإضافة؛ بعدها `PATCH` كمية مطلقة أو `DELETE` للبند |
 | قائمة طلبات المندوب | ✅ `GET /app/rep/orders` | بطاقات أفقية من الخادم |
 | تفاصيل عميل / هاتف / عنوان | ✅ بطاقة القائمة + `GET /customers/{id}` | اربط الحقول الحيّة؛ `logo`/`last_order_at` null |
 | إضافة محل: فئات وتجهيزات وعنوان | ✅ اختيارية على POST | أرسلها من refs |
 | `GET /app/rep/zones` | ✅ تغطية المندوب | بطاقة اسم + محافظة + `shops_count` |
 | دفعة بلا رقم فاتورة | `invoice_no` إلزامي | الحقل اختياري في الشكل؛ التأكيد معطّل حتى فاتورة أو الذمم |
 | قرار القناة على مرتجع/استبدال | لا GET لاحق؛ `status=pending` | شارة «بانتظار القناة»؛ لا أصفر/رمادي مختلق |
-| إشعارات FCM | ⛔ AP-02 | شاشة فارغة — ابنِ الواجهة بلا استدعاء |
-| ولاء / شريط نقاط | ⛔ AP-05 | أخفِ |
-| مزامنة pull/push | ⛔ AP-03 | outbox محلي |
+| إشعارات FCM | ✅ AP-02 — `/app/notifications` + `/app/devices/push-token` | اربط الصندوق والجرس وسجّل الرمز (§10.7) |
+| ولاء / شريط نقاط | ✅ AP-05 — `/app/loyalty` + `/redeem` | اربط الشريط والاستبدال (§10.8) |
+| مزامنة pull/push | ✅ AP-03 — `/app/sync/*` | outbox محلي أولاً، ثم `push` دفعةً (§10.9) |
 | فرض تحديث / صيانة | ✅ `GET /public/app-config` | اربط force_update / maintenance |
 | إحصاءات شهر الحساب | لا مسار شهري | `wallet.stats` + `customers.meta.total` بعنوان إجمالي |
-| تعديل ملف المندوب (هاتف/صورة) | لا مسار | «تواصل مع القناة» |
+| تعديل ملف المندوب | ✅ `PATCH /app/rep/profile` للاسم والهاتف | نموذج تعديل؛ الصورة لا تزال بلا رفع (`avatar` null) |
 | رفع صور مرتجع | `photos: []` فقط | لا picker |
 | تصدير PDF ذمم/سحوبات | لا مسار مندوب | PDF على الجهاز |
 | خريطة ETA للتسليم | لا مسار | إحداثيات المحل من بطاقة العميل؛ لا وقت وصول مختلق |
@@ -2308,7 +2345,7 @@ class Money {
 11. **Customers + detail + add shop** (فئات/تجهيزات/عنوان) + **Zones list** + shops + request zone.
 12. **Orders tab** من `GET /app/rep/orders`.
 13. **Account** من session + wallet.stats + customers meta.
-14. **Notifications screen** فارغة (`RemoteNotReady`) — بلا استدعاء 404.
+14. **Notifications screen** مربوطة بـ `GET /app/notifications` + تعليم الكل + مسح + تسجيل رمز FCM (§10.7)، وشريط النقاط من `GET /app/loyalty` (§10.8).
 15. **Offers** · **Location ping** عند on_duty · **Outbox**.
 16. **زائر:** قفل الكتابة.
 17. **خطأ 401** → الهاتف. `otp_*` يبقى. 404 «غير موجود». مال بلا كسور. RTL.
@@ -2364,6 +2401,7 @@ class Money {
 - ✅ الإشعارات والمزامنة والولاء و`home-blocks` و`app-config` حيّة (`plan/apps.md` AP-02…06 ✅). `app-config` للتحديث الإجباري فقط، ليس للانترو.
 - 2026-09-20: الشاشات الست في بلوك المهام مطابقة لموجّه المنتج حرفياً (§7 تسجيل طلب، §8.3 تسليم، §9.2 استلام دفعة، §8.1 قبول، §8.9 مجدولة ببطاقات أفقية وحالة وأيقونة، §8.2 مستودع بجدول تأكيد العهدة).
 - 2026-09-20 (نسخة العميل): `GET /products/{id}` + `variants[]` على القائمة، بطاقة محل كاملة، `GET /customers/{id}`، `GET /zones`، `GET /orders` (`rep_id` عند الإرسال)، السلة بالاسم والقناة، إضافة محل بالعنوان والفئات. OTP مؤجّل كما هو. الإشعارات/الولاء/المزامنة مربوطة بالـ API الحي.
+- 2026-09-24: `flutter-rep.json` صار يشمل المسارات المشتركة الاثني عشر التي كانت غائبة عن **القائمتين** (لا في `endpoints` ولا في `forbidden`) لأن فلتر المولّد لم يكن يشملها: `/app/notifications` (+ read-all · clear · push-token)، `/app/sync/*`، `/app/content/home-blocks`، `/app/loyalty` (+ redeem)، و`GET /public/app-config`. العدّ **61 حيّاً / 6 ممنوعاً**. وصفوف ⛔ الباقية في §10 و§11 و§13 و§14 قُلبت إلى ✅ لتطابق `route:list` و`docs/status/06-shared-app.md`. كذلك `PATCH /app/rep/profile` (EP-RP-073) كان حيّاً والملف يقول «لا مسار».
 - هذا الملف يضيف: GetX، موجّه المنتج، زائر، انترو، outbox، علي بابا، PDF محلي، وخريطة صريحة لما بقي (OTP، ميديا، قائمة مرتجعات).
 
 عندما يصل مستودع Flutter: راجع كل شاشة مقابل §15 وهذا الملف، وأكمل الناقص دون اختراع API.
