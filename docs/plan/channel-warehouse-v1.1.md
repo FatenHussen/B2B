@@ -22,6 +22,7 @@ implement behind it, then regenerate status.
 | Rep live location | EP-SC-075A |
 | Warehouse overdue_picks / inbound_returns alerts | EP-WH-010 queues |
 | Richer retailer 360 | EP-SC-164 fields on `GET /channel/retailers/{id}` (same handler as EP-SC-140A) |
+| Zone map polygons + delivery_windows | EP-SC-163 |
 
 ## Still deferred (no full EP / client surface)
 
@@ -35,9 +36,8 @@ Priority is product order for remaining post-launch work.
 | 4 | EP-SC-160 | channel | Live **map** of all on-duty reps | Single-rep `/reps/{id}/live` exists; aggregate map does not. |
 | 5 | EP-SC-161 | channel | Weekly channel delivery calendar | Coverage today is `delivery_days` on zones only. |
 | 6 | EP-SC-162 | channel | Returns SLA escalation actions | List shows overdue; no escalate/notify EP. |
-| 7 | EP-SC-163 | channel | Zone map polygons + delivery time windows | Zones are reference entities; polygons absent. |
-| 8 | EP-WH-050 | warehouse | Productivity / accuracy reports | Snapshots cover channel ops; WH-specific missing. |
-| 9 | EP-SC-165 | channel | Credit `manual_approval` queue | Until then `manual_approval` ≡ block (423). |
+| 7 | EP-WH-050 | warehouse | Productivity / accuracy reports | Snapshots cover channel ops; WH-specific missing. |
+| 8 | EP-SC-165 | channel | Credit `manual_approval` queue | Until then `manual_approval` ≡ block (423). |
 
 When picking one row: add `ep(...)` to `docs/api/catalog/05-channel-ops.php` or
 `06-warehouse.php`, land the route + tests, then
