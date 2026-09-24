@@ -61,6 +61,21 @@ return [
         'e' => [401 => 'unauthenticated', 403 => 'requires_password_confirm'],
     ]),
 
+    ep('EP-AD-005A', 'SP-01', 'POST', '/platform/auth/request-otp', 'platform', null, [
+        'name' => 'Request platform step-up OTP',
+        'name_ar' => 'طلب رمز تحقق لإجراء حساس',
+        'b' => ['purpose' => 'platform_channel_delete'],
+        'r' => [
+            'mode' => 'whatsapp',
+            'otp_id' => 'otp_ab12cd',
+            'expires_in' => 300,
+            'resend_after' => 60,
+            'channel_used' => 'whatsapp',
+        ],
+        'd' => 'BF-05. Before EP-AD-058: if the actor has 2FA, mode=totp and no SMS is sent; otherwise a phone OTP is issued. Local/testing may return mode=bypass.',
+        'e' => [401 => 'unauthenticated', 422 => 'validation_failed'],
+    ]),
+
     ep('EP-AD-006', 'SP-01', 'GET', '/platform/auth/sessions', 'platform', null, [
         'name' => 'List sessions',
         'name_ar' => 'جلسات الدخول',

@@ -32,6 +32,7 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
             Route::post('logout', [PlatformAuthController::class, 'logout']);
             Route::get('me', [PlatformAuthController::class, 'me']);
             Route::post('confirm-password', [PlatformAuthController::class, 'confirmPassword']);
+            Route::post('request-otp', [PlatformAuthController::class, 'requestStepUpOtp']);
             Route::get('sessions', [PlatformAuthController::class, 'sessions']);
             Route::delete('sessions/{id}', [PlatformAuthController::class, 'revokeSession']);
         });

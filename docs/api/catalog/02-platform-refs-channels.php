@@ -323,7 +323,7 @@ return [
             'second_approver_id' => 2,
         ],
         'r' => ['deletion_request_id' => 77],
-        'd' => 'Archived ≥ 30 days. Dual approval.',
+        'd' => 'Archived ≥ 30 days. Dual approval. otp_code is Identity step-up: TOTP if 2FA enabled, else phone OTP from EP-AD-005A.',
         'dual' => true,
         'crit' => true,
     ]),

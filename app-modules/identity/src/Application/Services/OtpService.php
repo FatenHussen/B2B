@@ -118,6 +118,26 @@ final class OtpService
             throw OtpException::invalid();
         }
 
+        return $this->consumeVerified($otp, $code);
+    }
+
+    /**
+     * Verify the newest live row for phone + purpose (EP-AD-058 body carries
+     * only `otp_code`, not `otp_id`).
+     */
+    public function verifyLatest(string $phone, OtpPurpose $purpose, string $code): OtpRequest
+    {
+        $otp = $this->latestLive(PhoneNumber::make($phone)->value, $purpose);
+
+        if ($otp === null) {
+            throw OtpException::invalid();
+        }
+
+        return $this->consumeVerified($otp, $code);
+    }
+
+    private function consumeVerified(OtpRequest $otp, string $code): OtpRequest
+    {
         if ($otp->isConsumed() || $otp->isExpired()) {
             throw OtpException::expired();
         }

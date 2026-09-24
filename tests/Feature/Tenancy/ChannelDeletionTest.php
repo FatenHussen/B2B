@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Identity\Domain\Models\PlatformUser;
+use Modules\Identity\Domain\Support\Totp;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\ChannelEvent;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
@@ -98,4 +99,38 @@ it('completes deletion after a second approver', function () {
 
     expect(SupplyChannel::withTrashed()->find($channel->id)?->trashed())->toBeTrue();
     expect($requester->id)->not->toBe($approver->id);
+});
+
+it('rejects a wrong TOTP when bypass is off (BF-05)', function () {
+    config(['otp.bypass' => false]);
+
+    $secret = Totp::secret();
+    $admin = PlatformUser::factory()->create([
+        'password' => 'password',
+        'two_factor_secret' => $secret,
+    ]);
+    $admin->assignRole('platform_admin');
+    Sanctum::actingAs($admin, ['*'], 'platform');
+
+    $channel = archivedChannel();
+
+    $this->postJson('/api/v1/platform/auth/request-otp', [
+        'purpose' => 'platform_channel_delete',
+    ])->assertOk()
+        ->assertJsonPath('data.mode', 'totp');
+
+    $this->deleteJson("/api/v1/platform/channels/{$channel->id}", [
+        'password_confirmation' => 'password',
+        'otp_code' => '000000',
+        'typed_name' => 'شركة النور',
+    ])->assertStatus(422);
+
+    $code = Totp::at($secret, (int) floor(time() / 30));
+
+    $this->deleteJson("/api/v1/platform/channels/{$channel->id}", [
+        'password_confirmation' => 'password',
+        'otp_code' => $code,
+        'typed_name' => 'شركة النور',
+    ])->assertOk()
+        ->assertJsonStructure(['data' => ['deletion_request_id']]);
 });

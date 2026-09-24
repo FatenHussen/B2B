@@ -39,8 +39,8 @@ Route::middleware(['api', 'auth:platform', 'guard.tokenable:platform', 'tenant',
         Route::put('{supplyChannel}', [SupplyChannelController::class, 'update'])
             ->middleware('permission:ad.channels.update');
 
-        // EP-AD-058. A direct delete today; the catalog's archived-30-days + password +
-        // OTP + typed-name + second-approver flow is PA-18 (docs/debt-ledger.md).
+        // EP-AD-058 / BF-05. Dual-gated soft delete: archived ≥ 30 days + password +
+        // Identity step-up OTP (TOTP or phone) + typed name + second approver.
         Route::delete('{supplyChannel}', [SupplyChannelController::class, 'destroy'])
             ->middleware('permission:ad.channels.delete');
 

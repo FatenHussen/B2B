@@ -7,6 +7,7 @@ namespace Modules\Identity\Presentation\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
+use Modules\Core\Contracts\VerifiesPlatformStepUpOtp;
 use Modules\Core\Http\ApiController;
 use Modules\Identity\Application\Actions\ChangePlatformPassword;
 use Modules\Identity\Application\Actions\ConfirmPassword;
@@ -26,6 +27,7 @@ use Modules\Identity\Presentation\Http\Requests\ConfirmPasswordRequest;
 use Modules\Identity\Presentation\Http\Requests\ConfirmTwoFactorRequest;
 use Modules\Identity\Presentation\Http\Requests\CreateApiTokenRequest;
 use Modules\Identity\Presentation\Http\Requests\PlatformLoginRequest;
+use Modules\Identity\Presentation\Http\Requests\RequestPlatformStepUpOtpRequest;
 use Modules\Identity\Presentation\Http\Requests\UpdatePlatformProfileRequest;
 use Modules\Identity\Presentation\Http\Requests\VerifyTwoFactorRequest;
 
@@ -74,6 +76,22 @@ final class PlatformAuthController extends ApiController
         return $this->ok([
             'confirmed_until' => $action($user, $request->string('password')->toString()),
         ]);
+    }
+
+    /**
+     * EP-AD-005A / BF-05 — challenge before sensitive platform writes (channel delete).
+     */
+    public function requestStepUpOtp(
+        RequestPlatformStepUpOtpRequest $request,
+        VerifiesPlatformStepUpOtp $stepUp,
+    ): JsonResponse {
+        /** @var PlatformUser $user */
+        $user = $request->user();
+
+        return $this->ok($stepUp->challenge(
+            $user,
+            $request->string('purpose')->toString(),
+        ));
     }
 
     public function sessions(Request $request, ListPlatformSessions $query): JsonResponse

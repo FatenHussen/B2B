@@ -18,6 +18,8 @@ return [
     'invalid_device' => 'بيانات الجهاز غير صحيحة.',
     'invalid_password' => 'كلمة المرور غير صحيحة.',
     'invalid_2fa' => 'رمز التحقق غير صالح.',
+    'platform_otp_phone_required' => 'أضف رقم هاتف في ملف المنصة قبل طلب رمز التحقق الحساس.',
+    'platform_otp_purpose_unknown' => 'غرض رمز التحقق غير معروف.',
     'requires_password_confirm' => 'يلزم تأكيد كلمة المرور.',
     'challenge_invalid' => 'التحدي غير صالح أو منتهٍ.',
     'too_many_2fa' => 'محاولات تحقق ثنائي كثيرة.',

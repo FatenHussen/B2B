@@ -18,6 +18,8 @@ return [
     'invalid_device' => 'Invalid device credentials.',
     'invalid_password' => 'The password is incorrect.',
     'invalid_2fa' => 'Invalid verification code.',
+    'platform_otp_phone_required' => 'Add a phone number on your platform profile before requesting a step-up OTP.',
+    'platform_otp_purpose_unknown' => 'Unknown step-up OTP purpose.',
     'requires_password_confirm' => 'Password confirmation is required.',
     'challenge_invalid' => 'Invalid or expired challenge.',
     'too_many_2fa' => 'Too many 2FA attempts.',

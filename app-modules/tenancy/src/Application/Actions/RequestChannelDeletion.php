@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Contracts\RequestsDualApproval;
+use Modules\Core\Contracts\VerifiesPlatformStepUpOtp;
 use Modules\Core\Domain\Enums\ErrorCode;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Support\Tenant;
@@ -16,15 +17,16 @@ use Modules\Tenancy\Domain\Models\ChannelEvent;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 
 /**
- * PA-18 / EP-AD-058 — channel deletion is no longer immediate. The channel must be
- * archived ≥ 30 days; the caller confirms password + OTP + typed name; a second
- * approver completes the dual gate; then the row is soft-deleted.
+ * PA-18 / EP-AD-058 / BF-05 — channel deletion is no longer immediate. The channel must be
+ * archived ≥ 30 days; the caller confirms password + Identity step-up OTP + typed name;
+ * a second approver completes the dual gate; then the row is soft-deleted.
  */
 final class RequestChannelDeletion
 {
     public function __construct(
         private readonly RequestsDualApproval $dual,
         private readonly RecordsAudit $audit,
+        private readonly VerifiesPlatformStepUpOtp $stepUpOtp,
     ) {}
 
     /**
@@ -36,7 +38,11 @@ final class RequestChannelDeletion
         $this->assertArchivedLongEnough($channel);
         $this->assertTypedName($channel, (string) ($data['typed_name'] ?? ''));
         $this->assertPassword($actor, (string) ($data['password_confirmation'] ?? ''));
-        $this->assertOtp((string) ($data['otp_code'] ?? ''));
+        $this->stepUpOtp->verify(
+            $actor,
+            VerifiesPlatformStepUpOtp::PURPOSE_CHANNEL_DELETE,
+            (string) ($data['otp_code'] ?? ''),
+        );
 
         $payload = [
             'channel_id' => (int) $channel->id,
@@ -112,26 +118,5 @@ final class RequestChannelDeletion
         if ($password === '' || $hash === '' || ! Hash::check($password, $hash)) {
             throw DomainException::of(ErrorCode::RequiresPasswordConfirm, __('identity.requires_password_confirm'));
         }
-    }
-
-    private function assertOtp(string $code): void
-    {
-        if ($code === '' || ! preg_match('/^\d{4,8}$/', $code)) {
-            throw DomainException::of(ErrorCode::ValidationFailed, __('tenancy.delete_otp_invalid'));
-        }
-
-        // Production OTP challenge for platform delete is PA-14/Identity follow-up;
-        // local/testing may bypass via otp.bypass (same rule as OtpService).
-        if ((bool) config('otp.bypass', false) && in_array(app()->environment(), ['local', 'testing'], true)) {
-            return;
-        }
-
-        // Fixed catalog demo code accepted only when explicitly configured.
-        $expected = (string) config('otp.platform_delete_code', '');
-        if ($expected !== '' && hash_equals($expected, $code)) {
-            return;
-        }
-
-        throw DomainException::of(ErrorCode::ValidationFailed, __('tenancy.delete_otp_invalid'));
     }
 }

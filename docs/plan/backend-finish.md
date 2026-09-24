@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | الغرض | ترتيب العمل المتبقي حتى يصير الباك **جاهزاً للإطلاق** ثم **منتهياً للنهاية** (عمق DOC + ديون + صلاحيات + v1.1) |
-| الحالة الحيّة | [`../status/00-overview.md`](../status/00-overview.md) — **410/410 ✅** (2026-09-24) |
+| الحالة الحيّة | [`../status/00-overview.md`](../status/00-overview.md) — أعد التوليد بعد دمج العقود الجديدة (`php docs/api/generate.php && php docs/status/generate.php`) |
 | الديون المعلنة | [`../debt-ledger.md`](../debt-ledger.md) |
 | v1.1 قناة/مستودع | [`channel-warehouse-v1.1.md`](channel-warehouse-v1.1.md) |
 | DOC المرجع | DOC-07 (السنترال) · DOC-08 (170 صلاحية) · DOC-01 عمق قناة/مستودع عبر v1.1 |
@@ -39,7 +39,7 @@
 | BF-02 | إغلاق OTP على الدومين (`OTP_BYPASS=false`) | 1 | Ops | BF-01 | ⬜ |
 | BF-03 | Horizon + طوابير + جدولة اللقطة اليومية على السيرفر | 1 | Ops | BF-01 | ⬜ |
 | BF-04 | VirtualHosts لوحات Sentrax (platform/channel/warehouse) | 1 | Ops | BF-01 | ⬜ |
-| BF-05 | حذف قناة: OTP منصة حقيقي (إكمال PA-18) | 1 | Tenancy + Identity | — | ⬜ |
+| BF-05 | حذف قناة: OTP منصة حقيقي (إكمال PA-18) | 1 | Tenancy + Identity | — | ✅ 2026-09-24 |
 | BF-06 | جلسة المندوب: `status` + `channel` | 2 | Identity | — | ⬜ |
 | BF-07 | قرار `X-Channel-Id` على `/platform/*` | 2 | Tenancy / Core | — | ⬜ |
 | BF-08 | `ad.iam.role_update` في DOC-08 + بذر + gate | 2 | Access | — | ⬜ |
@@ -91,17 +91,13 @@
 - **عمل:** VirtualHost + شهادة لكل من `platform.` / `channel.` / `warehouse.` (اليوم تُخدم TickMart بالخطأ).
 - **قبول:** كل اسم يعرض منتج Sentrax الصحيح بلا خطأ شهادة؛ يُحدَّث `deploy/current-state.md`.
 
-### BF-05 — حذف قناة: OTP منصة حقيقي
+### BF-05 — حذف قناة: OTP منصة حقيقي ✅ 2026-09-24
 
-- **وحدة:** Tenancy (`RequestChannelDeletion`) + Identity.
-- **الوضع:** الأرشفة ≥30 يوم + كلمة مرور + اسم مكتوب + موافقة مزدوجة **موجودة**؛ OTP ما زال `platform_delete_code` / bypass محلي (تعليق في الكود + تعليق قديم في `routes/api.php` + صف دين PA-18 متقادم جزئياً).
-- **عمل:**
-  1. ربط تحدّي OTP منصة عبر Identity (نفس مسار OTP المنصة أو عقد صريح).
-  2. حذف الاعتماد على الرمز الثابت في الإنتاج.
-  3. تحديث تعليق المسار + إزالة/تعديل صف الدين في `debt-ledger.md`.
+- **وحدة:** Tenancy (`RequestChannelDeletion`) + Identity (`VerifiesPlatformStepUpOtp`).
+- **ما حصل:** عقد Core + تنفيذ Identity (bypass محلي · TOTP إن وُجد 2FA · وإلا OTP هاتف) · `POST /platform/auth/request-otp` (EP-AD-005A) · إزالة `platform_delete_code` · اختبار TOTP بلا bypass.
 - **قبول:** على `local` مع bypass يعمل كما اليوم؛ على بيئة بلا bypass يرفض رمزاً خاطئاً ويقبل بعد OTP حقيقي؛ اختبار ميزة واحد على الأقل؛ `deletion_request_id` كما العقد.
 
-**بعد BF-01…05:** الباك **جاهز لإطلاق مستخدم** من جهة الخادم (الواجهات منفصلة).
+**بعد BF-01…05:** الباك **جاهز لإطلاق مستخدم** من جهة الخادم (الواجهات منفصلة). BF-05 شيفرة ✅؛ BF-01…04 تشغيل على السيرفر.
 
 ---
 
@@ -161,7 +157,7 @@
 | # | تذكرة | EP | سطح | قدرة |
 |---|---|---|---|---|
 | BF-13 | BF-WH-040 | EP-WH-040 | warehouse | قائمة/تعديل stock lots |
-| BF-14 | BF-WH-041 | EP-WH-041A–B | warehouse | offline pick/pack + تعارضات |
+| BF-14 | BF-WH-041 | EP-WH-041A–C | warehouse | ✅ offline pick/pack + تعارضات (2026-09-24) |
 | BF-15 | BF-WH-042 | EP-WH-042 / 042A | warehouse | إكمال batch/waves إن بقي نقص بعد 2026-09-24 |
 | BF-16 | BF-SC-160 | EP-SC-160 | channel | خريطة كل المندوبين on-duty |
 | BF-17 | BF-SC-161 | EP-SC-161 | channel | تقويم توصيل أسبوعي |

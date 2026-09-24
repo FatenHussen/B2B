@@ -16,6 +16,7 @@ use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\RetailerGroupDirectory;
 use Modules\Core\Contracts\RetailerShoppingContext;
+use Modules\Core\Contracts\VerifiesPlatformStepUpOtp;
 use Modules\Core\Domain\Events\ChannelManagerInvited;
 use Modules\Identity\Application\Listeners\ProvisionChannelManagerOnInvite;
 use Modules\Identity\Console\RegisterWarehouseDeviceCommand;
@@ -26,6 +27,7 @@ use Modules\Identity\Infrastructure\EloquentRepDirectory;
 use Modules\Identity\Infrastructure\EloquentRepDutyLookup;
 use Modules\Identity\Infrastructure\EloquentRetailerDirectory;
 use Modules\Identity\Infrastructure\EloquentRetailerGroupDirectory;
+use Modules\Identity\Infrastructure\EloquentVerifiesPlatformStepUpOtp;
 use Modules\Identity\Infrastructure\IdentityRepSellingContext;
 use Modules\Identity\Infrastructure\IdentityRetailerShoppingContext;
 use Modules\Identity\Infrastructure\Otp\FakeOtpChannel;
@@ -50,6 +52,7 @@ class IdentityServiceProvider extends ServiceProvider
         $this->app->singleton(ChannelUserCounter::class, EloquentChannelUserCounter::class);
         $this->app->singleton(ChannelUserDirectory::class, EloquentChannelUserDirectory::class);
         $this->app->singleton(AssignsChannelManager::class, EloquentAssignsChannelManager::class);
+        $this->app->singleton(VerifiesPlatformStepUpOtp::class, EloquentVerifiesPlatformStepUpOtp::class);
     }
 
     public function boot(): void
