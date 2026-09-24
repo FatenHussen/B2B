@@ -9,8 +9,8 @@
         "seed": "demo reps +963932000001 (عمر الشامي) · +963932000002 · +963932000003 — local OTP_BYPASS=true: any code verifies, rep-* clients get all zeros; production is 6 digits",
         "rule": "If this file and the catalog disagree, this file wins. Do not call forbidden paths. Do not mock them. App routes do not enforce rp.* permissions.",
         "counts": {
-            "live_endpoints": 61,
-            "matched_catalog": 61,
+            "live_endpoints": 62,
+            "matched_catalog": 62,
             "live_without_catalog": 0,
             "forbidden": 6
         }
@@ -1039,7 +1039,7 @@
                 "currency": "SYP"
             },
             "errors": [],
-            "description": "Single source of truth (REQ-IN-07). Precedence: retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices.",
+            "description": "Single source of truth (REQ-IN-07). Precedence stop-at-first-match (most specific wins; lists do not stack): retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices.",
             "note": "Reps skip retailer visibility; still send the shop zone_id. Never send unit_price."
         },
         {
@@ -2326,6 +2326,31 @@
         },
         {
             "live": true,
+            "method": "POST",
+            "path": "/api/v1/app/content/banners/{id}/click",
+            "catalog_path": "/app/content/banners/{id}/click",
+            "code": "EP-APP-101",
+            "name": "Record banner click",
+            "name_ar": "تسجيل نقرة بانر",
+            "permission": null,
+            "guard": "app",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "12. Home content & loyalty",
+            "query": [],
+            "body": [],
+            "response": {
+                "clicks": 841
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "description": "Atomic clicks++ on a Banner the caller can see (covering channels). Foreign or unknown id → 404.",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "GET",
             "path": "/api/v1/app/content/home-blocks",
             "catalog_path": "/app/content/home-blocks",
@@ -2361,7 +2386,7 @@
                 ]
             },
             "errors": [],
-            "description": "Filtered by the user activity type and zone, including intro targeting (TB-RT-010).",
+            "description": "Filtered by the user activity type and zone, including intro targeting (TB-RT-010). Serving a Banner row increments impressions atomically.",
             "note": null
         },
         {

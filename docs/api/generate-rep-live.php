@@ -79,7 +79,7 @@ $want = static function (string $path): bool {
     if (str_starts_with($path, '/app/notifications')
         || $path === '/app/devices/push-token'
         || str_starts_with($path, '/app/sync/')
-        || $path === '/app/content/home-blocks'
+        || str_starts_with($path, '/app/content/')
         || str_starts_with($path, '/app/loyalty')) {
         return true;
     }
@@ -192,6 +192,8 @@ usort($live, static function (array $a, array $b): int {
 $forbidden = forbidden();
 $matched = count(array_filter($live, fn (array $e): bool => $e['code'] !== null));
 
+assertEveryAppPathIsAnswered($catalog, $live, $forbidden);
+
 $pack = [
     'info' => [
         'title' => 'Field rep app — live API only',
@@ -257,6 +259,75 @@ if (in_array('--postman', $argv ?? [], true)) {
 }
 
 echo 'live='.count($live).' matched='.$matched.' forbidden='.count($forbidden).PHP_EOL;
+
+/**
+ * Every catalog path the rep app could reach must be answered by exactly one list.
+ *
+ * The twelve shared routes of 2026-09-24 were lost between two hand-kept lists:
+ * dropped from forbidden() when AP-02…AP-06 landed, never added to $want(), so they
+ * appeared in neither — and a path in neither list reads to a client as "no such
+ * route". Correcting the output did not stop it happening again; this does. The two
+ * lists are now checked against the catalog before anything is written, and a path
+ * that falls out of both, or is claimed by both, fails the build by name.
+ *
+ * /app/retailer/* is out of scope on purpose: it is the other app's surface, forbidden
+ * by whole prefix (md §11.4), and enumerating thirty-three rows would say nothing the
+ * prefix does not. Everything else under /app/ and /public/ must be named.
+ *
+ * @param  array<string, array<string, mixed>>  $catalog  keyed by norm(method, path)
+ * @param  list<array<string, mixed>>  $live
+ * @param  list<array<string, mixed>>  $forbidden
+ */
+function assertEveryAppPathIsAnswered(array $catalog, array $live, array $forbidden): void
+{
+    $key = static fn (string $method, string $path): string => norm($method, preg_replace('#^/api/v1#', '', $path) ?? $path);
+
+    $inLive = $inForbidden = [];
+    foreach ($live as $e) {
+        $inLive[$key((string) $e['method'], (string) $e['path'])] = true;
+    }
+    foreach ($forbidden as $e) {
+        $inForbidden[$key((string) $e['method'], (string) $e['path'])] = true;
+    }
+
+    $neither = $both = [];
+    foreach ($catalog as $ep) {
+        $path = (string) ($ep['path'] ?? '');
+        if (str_starts_with($path, '/app/retailer/')) {
+            continue;
+        }
+        if (! str_starts_with($path, '/app/') && ! str_starts_with($path, '/public/')) {
+            continue;
+        }
+
+        $k = $key((string) $ep['method'], $path);
+        $live_ = isset($inLive[$k]);
+        $forb = isset($inForbidden[$k]);
+
+        if (! $live_ && ! $forb) {
+            $neither[] = $k.'   ('.($ep['code'] ?? 'no code').')';
+        }
+        if ($live_ && $forb) {
+            $both[] = $k.'   ('.($ep['code'] ?? 'no code').')';
+        }
+    }
+
+    if ($neither === [] && $both === []) {
+        return;
+    }
+
+    fwrite(STDERR, "generate-rep-live: the two lists do not cover the catalog.\n");
+    if ($neither !== []) {
+        sort($neither);
+        fwrite(STDERR, "\nIn NEITHER endpoints nor forbidden — the contract is silent about these,\nwhich a client reads as 'does not exist'. Add each to \$want() or to forbidden():\n  ".implode("\n  ", $neither)."\n");
+    }
+    if ($both !== []) {
+        sort($both);
+        fwrite(STDERR, "\nIn BOTH lists — live and forbidden at once. Remove from one:\n  ".implode("\n  ", $both)."\n");
+    }
+    fwrite(STDERR, "\nNothing was written.\n");
+    exit(1);
+}
 
 function norm(string $method, string $path): string
 {
@@ -327,7 +398,7 @@ function folder(string $path): string
     if (str_starts_with($path, '/app/sync/')) {
         return '11. Sync';
     }
-    if ($path === '/app/content/home-blocks' || str_starts_with($path, '/app/loyalty')) {
+    if (str_starts_with($path, '/app/content/') || str_starts_with($path, '/app/loyalty')) {
         return '12. Home content & loyalty';
     }
 
