@@ -15,7 +15,8 @@ declare(strict_types=1);
  * **The defect: this repository registers gates in two forms.**
  *
  *     ->middleware('can:ad.refs.create')          Illuminate\Auth\Middleware\Authorize
- *     ->middleware('permission:ad.iam.role_create') Spatie\...\PermissionMiddleware
+ *     ->middleware('permission:…')                Modules\Access\Http\Middleware\PermissionMiddleware
+ *                                                 (wraps Spatie; app kind grants + HasRoles)
  *
  * The throwaway scan matched only the first and missed 78 routes using the second, which
  * is the form most of the codebase uses. `route:list --json` resolves middleware to
@@ -32,7 +33,8 @@ declare(strict_types=1);
  */
 const GATE_MIDDLEWARE = [
     'Illuminate\Auth\Middleware\Authorize',                 // ->middleware('can:...')
-    'Spatie\Permission\Middleware\PermissionMiddleware',    // ->middleware('permission:...')
+    'Modules\Access\Http\Middleware\PermissionMiddleware',  // ->middleware('permission:...')
+    'Spatie\Permission\Middleware\PermissionMiddleware',    // legacy alias if rebound
 ];
 
 $routesFile = $argv[1] ?? null;

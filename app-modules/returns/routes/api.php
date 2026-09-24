@@ -6,17 +6,20 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 use Modules\Returns\Presentation\Http\Controllers\ReturnsController;
 
-Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:retailer'])
+Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])
     ->prefix('api/v1/app/retailer')
     ->group(function (): void {
-        Route::get('return-requests', [ReturnsController::class, 'retailerIndex']);
-        Route::post('return-requests', [ReturnsController::class, 'createForRetailer']);
+        Route::get('return-requests', [ReturnsController::class, 'retailerIndex'])
+            ->middleware('app.kind:retailer');
+        Route::post('return-requests', [ReturnsController::class, 'createForRetailer'])
+            ->middleware(['permission:rt.receive.return_request', 'app.kind:retailer']);
     });
 
-Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:rep'])
+Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])
     ->prefix('api/v1/app/rep')
     ->group(function (): void {
-        Route::post('return-requests', [ReturnsController::class, 'createForRep']);
+        Route::post('return-requests', [ReturnsController::class, 'createForRep'])
+            ->middleware(['permission:rp.delivery.return_request', 'app.kind:rep']);
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.tokenable:channel', 'tenant'])

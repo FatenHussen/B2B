@@ -33,6 +33,18 @@ class AccessServiceProvider extends ServiceProvider
             ]);
         }
 
+        Gate::before(function (object $user, string $ability): ?bool {
+            // App users have no Spatie roles. Their grant is their kind (`rp.*` / `rt.*`),
+            // exposed through AccessCatalog. Returning a boolean here lets
+            // `permission:…` middleware name the missing code for a cross-kind caller
+            // (BF-09). Other guards fall through to Spatie HasRoles.
+            if (! isset($user->kind)) {
+                return null;
+            }
+
+            return in_array($ability, app(AccessCatalog::class)->permissionsFor($user), true);
+        });
+
         Gate::after(function (object $user, string $ability, mixed $result): ?bool {
             if ($result === true) {
                 return null;

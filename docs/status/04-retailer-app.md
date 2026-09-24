@@ -57,10 +57,10 @@ guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ✅ | EP-RT-040 | SP-12 | `GET` | `/app/retailer/receipts/{subOrderId}` | `rt.receive.confirm` | Delivery | gated by `app.kind:retailer` — the kind implies `rt.receive.confirm` |
-| ✅ | EP-RT-041 | SP-12 | `PATCH` | `/app/retailer/receipts/{id}/lines/{lineId}` | `rt.receive.confirm` | Delivery | gated by `app.kind:retailer` — the kind implies `rt.receive.confirm` |
-| ✅ | EP-RT-042 | SP-12 | `POST` | `/app/retailer/receipts/{id}/confirm` | `rt.receive.confirm` | Delivery | gated by `app.kind:retailer` — the kind implies `rt.receive.confirm` |
-| ✅ | EP-RT-043 | SP-12 | `POST` | `/app/retailer/return-requests` | `rt.receive.return_request` | Returns | gated by `app.kind:retailer` — the kind implies `rt.receive.return_request` |
+| ✅ | EP-RT-040 | SP-12 | `GET` | `/app/retailer/receipts/{subOrderId}` | `rt.receive.confirm` | Delivery | قائمة الاستلام |
+| ✅ | EP-RT-041 | SP-12 | `PATCH` | `/app/retailer/receipts/{id}/lines/{lineId}` | `rt.receive.confirm` | Delivery | تعديل بند الاستلام |
+| ✅ | EP-RT-042 | SP-12 | `POST` | `/app/retailer/receipts/{id}/confirm` | `rt.receive.confirm` | Delivery | تأكيد الاستلام |
+| ✅ | EP-RT-043 | SP-12 | `POST` | `/app/retailer/return-requests` | `rt.receive.return_request` | Returns | طلب إرجاع/استبدال |
 | ✅ | EP-RT-044 | SP-12 | `GET` | `/app/retailer/return-requests` | — | Returns | مرتجعاتي |
 | ✅ | EP-RT-045 | SP-12 | `POST` | `/app/retailer/reps/{id}/rate` | — | Delivery | تقييم المندوب |
 

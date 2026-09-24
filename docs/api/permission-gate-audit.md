@@ -44,10 +44,10 @@ bound until proven complete.
 | | Routes | |
 |---|---:|---|
 | **Total** (non-public, per verb) | **175** | |
-| **Gated by a permission** | **89** | 51% |
-| **Ungated** | **86** | 49% |
-| — of which the catalog names a permission | 17 | actionable today |
-| — of which the catalog names none | 69 | needs a contract decision |
+| **Gated by a permission** | **106** | 61% |
+| **Ungated** | **69** | 39% |
+| — of which the catalog names a permission | 0 | closed BF-09 |
+| — of which the catalog names none | 69 | needs a contract decision (BF-10) |
 
 **Ungated and catalogue-critical: zero.** Every endpoint the API catalog marks `critical`
 carries its permission today. That includes all of `sc.inventory.adjust`,
@@ -56,12 +56,12 @@ carries its permission today. That includes all of `sc.inventory.adjust`,
 
 ---
 
-## The three remaining gaps
+## The remaining gaps
 
 None is an open security hole. Each is deferred by an explicit decision, recorded here so
 the deferral is visible rather than forgotten.
 
-### 1. Seventeen `app` routes with a known permission — deferred
+### 1. Seventeen `app` routes with a known permission — closed BF-09
 
 Every one is under `auth:app`, and the catalog names its code. They are the rep delivery
 family (`rp.delivery.accept`, `rp.delivery.deliver`, `rp.delivery.postpone`,
@@ -69,15 +69,11 @@ family (`rp.delivery.accept`, `rp.delivery.deliver`, `rp.delivery.postpone`,
 retailer receipt confirmation and returns (`rt.receive.confirm`,
 `rt.receive.return_request`).
 
-**Why this is defence in depth rather than a hole:** the rep/retailer split is structural,
-not permission-based. `AppUserKind` distinguishes them and each side's endpoints require a
-rep profile or a retailer profile. A retailer cannot complete a delivery today because
-they have no rep profile, not because a gate says so. Adding the gates makes the intent
-explicit and gives a correct `403 insufficient_permission` with the permission key instead
-of a downstream failure — worth doing, not urgent.
-
-**Decision: gate them when BE3-DLV touches this family**, so the gate and its acceptance
-test are written together.
+**Resolved 2026-09-25 (BF-09):** each route carries `permission:…`; app grants resolve
+through `Gate::before` + `AccessCatalog` (kind = grant — AppUser has no Spatie roles);
+middleware priority runs the permission check before `app.kind` so a cross-kind caller
+gets `403 insufficient_permission` with the permission key. Pinned by
+`AppPermissionGateTest`.
 
 ### 2. Sixty-nine routes the catalog gives no permission — contract decision
 

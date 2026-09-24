@@ -12,6 +12,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use Illuminate\Validation\ValidationException;
+use Modules\Access\Http\Middleware\PermissionMiddleware;
 use Modules\Core\Domain\Enums\ErrorCode;
 use Modules\Core\Domain\Exceptions\DomainException;
 use Modules\Core\Http\ApiResponse;
@@ -25,7 +26,6 @@ use Modules\Identity\Presentation\Http\Middleware\EnsureRetailerProfileActive;
 use Modules\Identity\Presentation\Http\Middleware\RequireAppKind;
 use Modules\Identity\Presentation\Http\Middleware\RequirePasswordConfirmation;
 use Spatie\Permission\Exceptions\UnauthorizedException;
-use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
@@ -72,6 +72,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToPriorityList(
             [AuthenticatesRequests::class, ThrottleRequests::class, ThrottleRequestsWithRedis::class],
             EnsureIdempotency::class,
+        );
+
+        // BF-09: permission must run before app.kind on `/app/*` so a cross-kind caller
+        // gets `error.permission`. Routes also list them in that order; this pins it.
+        $middleware->prependToPriorityList(
+            RequireAppKind::class,
+            PermissionMiddleware::class,
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {

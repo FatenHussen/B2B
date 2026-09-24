@@ -38,9 +38,11 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:warehouse', 'guard.to
         Route::post('stocktakes/{id}/approve', [WarehouseController::class, 'approveStocktake'])->middleware('permission:wh.stocktake.approve');
     });
 
-Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:rep'])
+Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])
     ->prefix('api/v1/app/rep/warehouse-receipts')
     ->group(function (): void {
-        Route::get('/', [WarehouseController::class, 'receipts']);
-        Route::post('{handoverId}/confirm', [WarehouseController::class, 'confirm']);
+        Route::get('/', [WarehouseController::class, 'receipts'])
+            ->middleware(['permission:rp.warehouse.receive', 'app.kind:rep']);
+        Route::post('{handoverId}/confirm', [WarehouseController::class, 'confirm'])
+            ->middleware(['permission:rp.warehouse.receive', 'app.kind:rep']);
     });

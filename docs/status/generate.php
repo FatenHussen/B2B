@@ -48,12 +48,11 @@ foreach ($routes as $r) {
         if ($m === 'HEAD') {
             continue;
         }
-        // `permission:x` resolves to Spatie's PermissionMiddleware, `can:x` to Laravel's
-        // Authorize — route:list prints the class, so both spellings are read here
-        // (permission-gates-two-middlewares).
+        // `permission:x` resolves to Access\PermissionMiddleware (wraps Spatie) or Spatie's
+        // class directly; `can:x` to Laravel's Authorize — route:list prints the class.
         $perm = null;
         foreach ($r['middleware'] as $mw) {
-            if (preg_match('#^(?:Spatie\\\\Permission\\\\Middleware\\\\PermissionMiddleware|Illuminate\\\\Auth\\\\Middleware\\\\Authorize|can|permission):([^,]+)#', $mw, $mm)) {
+            if (preg_match('#^(?:Modules\\\\Access\\\\Http\\\\Middleware\\\\PermissionMiddleware|Spatie\\\\Permission\\\\Middleware\\\\PermissionMiddleware|Illuminate\\\\Auth\\\\Middleware\\\\Authorize|can|permission):([^,]+)#', $mw, $mm)) {
                 $perm = $mm[1];
             }
         }

@@ -52,30 +52,30 @@ guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-0
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ✅ | EP-RP-030 | SP-10 | `GET` | `/app/rep/assignments` | `rp.delivery.accept` | Ordering | gated by `app.kind:rep` — the kind implies `rp.delivery.accept` |
-| ✅ | EP-RP-031 | SP-10 | `POST` | `/app/rep/assignments/{id}/accept` | `rp.delivery.accept` | Ordering | gated by `app.kind:rep` — the kind implies `rp.delivery.accept` |
-| ✅ | EP-RP-032 | SP-10 | `POST` | `/app/rep/assignments/{id}/reject` | `rp.delivery.accept` | Ordering | gated by `app.kind:rep` — the kind implies `rp.delivery.accept` |
-| ✅ | EP-RP-033 | SP-10 | `GET` | `/app/rep/scheduled-orders` | `rp.delivery.accept` | Ordering | gated by `app.kind:rep` — the kind implies `rp.delivery.accept` |
+| ✅ | EP-RP-030 | SP-10 | `GET` | `/app/rep/assignments` | `rp.delivery.accept` | Ordering | إسنادات بانتظار القبول |
+| ✅ | EP-RP-031 | SP-10 | `POST` | `/app/rep/assignments/{id}/accept` | `rp.delivery.accept` | Ordering | قبول الإسناد |
+| ✅ | EP-RP-032 | SP-10 | `POST` | `/app/rep/assignments/{id}/reject` | `rp.delivery.accept` | Ordering | رفض الإسناد |
+| ✅ | EP-RP-033 | SP-10 | `GET` | `/app/rep/scheduled-orders` | `rp.delivery.accept` | Ordering | الطلبات المجدولة |
 
 ## استلام العهدة من المستودع — 2/2
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ✅ | EP-RP-040 | SP-11 | `GET` | `/app/rep/warehouse-receipts` | `rp.warehouse.receive` | Fulfillment | gated by `app.kind:rep` — the kind implies `rp.warehouse.receive` |
-| ✅ | EP-RP-041 | SP-11 | `POST` | `/app/rep/warehouse-receipts/{handoverId}/confirm` | `rp.warehouse.receive` | Fulfillment | gated by `app.kind:rep` — the kind implies `rp.warehouse.receive` |
+| ✅ | EP-RP-040 | SP-11 | `GET` | `/app/rep/warehouse-receipts` | `rp.warehouse.receive` | Fulfillment | استلام العهدة |
+| ✅ | EP-RP-041 | SP-11 | `POST` | `/app/rep/warehouse-receipts/{handoverId}/confirm` | `rp.warehouse.receive` | Fulfillment | تأكيد استلام العهدة |
 
 ## التسليم والتتبع والمرتجعات — 8/8
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
-| ✅ | EP-RP-050 | SP-12 | `GET` | `/app/rep/deliveries` | `rp.delivery.deliver` | Delivery | gated by `app.kind:rep` — the kind implies `rp.delivery.deliver` |
-| ✅ | EP-RP-051 | SP-12 | `GET` | `/app/rep/deliveries/{id}` | `rp.delivery.deliver` | Delivery | gated by `app.kind:rep` — the kind implies `rp.delivery.deliver` |
-| ✅ | EP-RP-052 | SP-12 | `PATCH` | `/app/rep/deliveries/{id}/lines/{lineId}` | `rp.delivery.deliver` | Delivery | gated by `app.kind:rep` — the kind implies `rp.delivery.deliver` |
-| ✅ | EP-RP-053 | SP-12 | `POST` | `/app/rep/deliveries/{id}/complete` | `rp.delivery.deliver` | Delivery | gated by `app.kind:rep` — the kind implies `rp.delivery.deliver` |
-| ✅ | EP-RP-054 | SP-12 | `POST` | `/app/rep/deliveries/{id}/postpone` | `rp.delivery.postpone` | Delivery | gated by `app.kind:rep` — the kind implies `rp.delivery.postpone` |
-| ✅ | EP-RP-055 | SP-12 | `POST` | `/app/rep/deliveries/{id}/fail` | `rp.delivery.deliver` | Delivery | gated by `app.kind:rep` — the kind implies `rp.delivery.deliver` |
+| ✅ | EP-RP-050 | SP-12 | `GET` | `/app/rep/deliveries` | `rp.delivery.deliver` | Delivery | قائمة التسليم |
+| ✅ | EP-RP-051 | SP-12 | `GET` | `/app/rep/deliveries/{id}` | `rp.delivery.deliver` | Delivery | تفاصيل التسليم |
+| ✅ | EP-RP-052 | SP-12 | `PATCH` | `/app/rep/deliveries/{id}/lines/{lineId}` | `rp.delivery.deliver` | Delivery | تعديل بند التسليم |
+| ✅ | EP-RP-053 | SP-12 | `POST` | `/app/rep/deliveries/{id}/complete` | `rp.delivery.deliver` | Delivery | إنهاء التسليم |
+| ✅ | EP-RP-054 | SP-12 | `POST` | `/app/rep/deliveries/{id}/postpone` | `rp.delivery.postpone` | Delivery | تأجيل التسليم |
+| ✅ | EP-RP-055 | SP-12 | `POST` | `/app/rep/deliveries/{id}/fail` | `rp.delivery.deliver` | Delivery | تعذر التسليم |
 | ✅ | EP-RP-056 | SP-12 | `POST` | `/app/rep/locations/ping` | — | Delivery | نبضات الموقع |
-| ✅ | EP-RP-057 | SP-12 | `POST` | `/app/rep/return-requests` | `rp.delivery.return_request` | Returns | gated by `app.kind:rep` — the kind implies `rp.delivery.return_request` |
+| ✅ | EP-RP-057 | SP-12 | `POST` | `/app/rep/return-requests` | `rp.delivery.return_request` | Returns | طلب إرجاع ميداني |
 
 ## الدفعات والمحفظة — 5/5
 

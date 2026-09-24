@@ -43,7 +43,7 @@
 | BF-06 | جلسة المندوب: `status` + `channel` | 2 | Identity | — | ✅ 2026-09-24 |
 | BF-07 | قرار `X-Channel-Id` على `/platform/*` | 2 | Tenancy / Core | — | ✅ 2026-09-24 |
 | BF-08 | `ad.iam.role_update` في DOC-08 + بذر + gate | 2 | Access | — | ✅ 2026-09-24 |
-| BF-09 | بوابة 17 مسار `/app/*` ذات صلاحية معروفة | 2 | Access + Ordering/… | — | ⬜ |
+| BF-09 | بوابة 17 مسار `/app/*` ذات صلاحية معروفة | 2 | Access + Ordering/… | — | ✅ 2026-09-25 |
 | BF-10 | جلسة عقد: تعيين permission لكل مسار بلا صلاحية في الكتالوج | 2 | Catalog + Access | — | ⬜ |
 | BF-11 | بذر صلاحيات DOC-08 الناقصة **عند ظهور مسار** (~30) | 2 | Access | BF-10 جزئي | ⬜ مستمر |
 | BF-12 | تكامل Push/WhatsApp إنتاجي (أو إعلان صريح «غير مضبوط») | 2 | Integration | BF-02 | ⬜ |
@@ -119,11 +119,9 @@
 
 - DOC-08 + `PermissionCatalog` + gate EP-AD-015 + اختبار 403 بالمفتاح الصحيح.
 
-### BF-09 — بوابة مسارات التطبيق ذات الصلاحية المعروفة
+### BF-09 — بوابة مسارات التطبيق ذات الصلاحية المعروفة ✅ 2026-09-25
 
-- **المرجع:** permission-gate-audit §1 (17 مساراً: `rp.delivery.*` · `rp.warehouse.receive` · `rt.receive.*`).
-- **عمل:** middleware `permission:…` + اختبار 403 بالمفتاح الصحيح؛ لا يعتمد على فشل لاحق للملف الشخصي وحده.
-- **قبول:** تاجر على مسار مندوب → 403 `insufficient_permission` مع `permission`؛ العكس كذلك حيث ينطبق.
+- 17 مساراً: `rp.delivery.*` · `rp.warehouse.receive` · `rt.receive.*` + `AppPermissionGateTest`.
 
 ### BF-10 — جلسة عقد للمسارات بلا permission في الكتالوج
 

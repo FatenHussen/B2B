@@ -39,17 +39,27 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
         Route::get('orders/{id}/tracking', [RetailerOrderingController::class, 'tracking']);
     });
 
-Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:rep'])
+Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])
     ->prefix('api/v1/app/rep')
     ->group(function (): void {
-        Route::post('cart/lines', [RepOrderingController::class, 'addLine']);
-        Route::patch('cart/lines/{id}', [RepOrderingController::class, 'updateLine']);
-        Route::delete('cart/lines/{id}', [RepOrderingController::class, 'deleteLine']);
-        Route::get('cart', [RepOrderingController::class, 'cart']);
-        Route::post('cart/sections/{retailer_id}/submit', [RepOrderingController::class, 'submit']);
-        Route::get('assignments', [RepOrderingController::class, 'assignments']);
-        Route::post('assignments/{id}/accept', [RepOrderingController::class, 'accept']);
-        Route::post('assignments/{id}/reject', [RepOrderingController::class, 'reject']);
-        Route::get('scheduled-orders', [RepOrderingController::class, 'scheduled']);
-        Route::get('orders', [RepOrderingController::class, 'orders']);
+        Route::post('cart/lines', [RepOrderingController::class, 'addLine'])
+            ->middleware('app.kind:rep');
+        Route::patch('cart/lines/{id}', [RepOrderingController::class, 'updateLine'])
+            ->middleware('app.kind:rep');
+        Route::delete('cart/lines/{id}', [RepOrderingController::class, 'deleteLine'])
+            ->middleware('app.kind:rep');
+        Route::get('cart', [RepOrderingController::class, 'cart'])
+            ->middleware('app.kind:rep');
+        Route::post('cart/sections/{retailer_id}/submit', [RepOrderingController::class, 'submit'])
+            ->middleware('app.kind:rep');
+        Route::get('assignments', [RepOrderingController::class, 'assignments'])
+            ->middleware(['permission:rp.delivery.accept', 'app.kind:rep']);
+        Route::post('assignments/{id}/accept', [RepOrderingController::class, 'accept'])
+            ->middleware(['permission:rp.delivery.accept', 'app.kind:rep']);
+        Route::post('assignments/{id}/reject', [RepOrderingController::class, 'reject'])
+            ->middleware(['permission:rp.delivery.accept', 'app.kind:rep']);
+        Route::get('scheduled-orders', [RepOrderingController::class, 'scheduled'])
+            ->middleware(['permission:rp.delivery.accept', 'app.kind:rep']);
+        Route::get('orders', [RepOrderingController::class, 'orders'])
+            ->middleware('app.kind:rep');
     });
