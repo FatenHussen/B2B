@@ -5,11 +5,13 @@ declare(strict_types=1);
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 use Modules\Fulfillment\Presentation\Http\Controllers\WarehouseController;
+use Modules\Fulfillment\Presentation\Http\Controllers\WarehouseSyncController;
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:warehouse', 'guard.tokenable:warehouse', 'tenant'])
     ->prefix('api/v1/warehouse')
     ->group(function (): void {
         Route::get('queues', [WarehouseController::class, 'queues'])->middleware('permission:wh.queue.view');
+        Route::get('reports/productivity', [WarehouseController::class, 'productivityReport'])->middleware('permission:wh.reports.view');
         Route::post('picking-lists/batch', [WarehouseController::class, 'batchPicking'])->middleware('permission:wh.picking.execute');
         Route::post('picking-waves', [WarehouseController::class, 'createPickingWave'])->middleware('permission:wh.picking.execute');
         Route::get('picking-waves/{id}', [WarehouseController::class, 'showPickingWave'])->middleware('permission:wh.picking.execute');
@@ -20,6 +22,9 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:warehouse', 'guard.to
         Route::post('picking-lists/{id}/complete', [WarehouseController::class, 'completePick'])->middleware('permission:wh.picking.execute');
         Route::post('packing/{id}/verify', [WarehouseController::class, 'verifyPack'])->middleware('permission:wh.packing.execute');
         Route::post('packing/{id}/complete', [WarehouseController::class, 'completePack'])->middleware('permission:wh.packing.execute');
+        Route::post('sync/push', [WarehouseSyncController::class, 'push'])->middleware('permission:wh.picking.execute');
+        Route::get('sync/status', [WarehouseSyncController::class, 'status'])->middleware('permission:wh.picking.execute');
+        Route::post('sync/resolve-conflict', [WarehouseSyncController::class, 'resolve'])->middleware('permission:wh.picking.execute');
         Route::get('handovers/pending', [WarehouseController::class, 'pendingHandovers'])->middleware('permission:wh.handover.execute');
         Route::post('handovers', [WarehouseController::class, 'createHandover'])->middleware('permission:wh.handover.execute');
         Route::post('handovers/{id}/return-trip', [WarehouseController::class, 'returnTrip'])->middleware('permission:wh.handover.return_trip');

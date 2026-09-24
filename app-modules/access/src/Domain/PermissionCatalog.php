@@ -174,6 +174,7 @@ final class PermissionCatalog
         'wh.receiving.execute' => ['name_ar' => 'استلام وارد', 'system' => 'warehouse', 'module' => 'receiving', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.receiving.lots' => ['name_ar' => 'تسجيل الدفعات وتواريخ الصلاحية', 'system' => 'warehouse', 'module' => 'receiving', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.receiving.qc' => ['name_ar' => 'فحص الوارد', 'system' => 'warehouse', 'module' => 'receiving', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        'wh.reports.view' => ['name_ar' => 'عرض الإنتاجية والدقة والدوران', 'system' => 'warehouse', 'module' => 'reports', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.returns.sort' => ['name_ar' => 'فرز المرتجع', 'system' => 'warehouse', 'module' => 'returns', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.stocktake.approve' => ['name_ar' => 'اعتماد الجرد', 'system' => 'warehouse', 'module' => 'stocktake', 'severity' => 'critical', 'dual_approval' => true, 'delegatable' => false],
         'wh.stocktake.execute' => ['name_ar' => 'بدء جرد', 'system' => 'warehouse', 'module' => 'stocktake', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],

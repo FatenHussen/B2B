@@ -20,6 +20,8 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::get('reps/{id}/wallet', [ChannelFinanceController::class, 'wallet'])->middleware('permission:sc.reps.wallet');
         Route::get('finance/aging', [ChannelFinanceController::class, 'aging'])->middleware('permission:sc.finance.aging');
         Route::put('retailers/{id}/credit', [ChannelFinanceController::class, 'credit'])->middleware('permission:sc.retailers.credit');
+        Route::get('credit-approvals', [ChannelFinanceController::class, 'creditApprovals'])->middleware('permission:sc.retailers.credit');
+        Route::post('credit-approvals/{id}/decide', [ChannelFinanceController::class, 'decideCreditApproval'])->middleware('permission:sc.retailers.credit');
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:rep'])

@@ -4,7 +4,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 121 | 121 | 0 | 0 | 0 |
+| 123 | 123 | 0 | 0 | 0 |
 
 ## الدخول — 2/2
 
@@ -182,7 +182,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-130A | SP-15 | `GET` | `/channel` | `sc.settings.view` | Tenancy | إعدادات القناة |
 | ✅ | EP-SC-130B | SP-15 | `PUT` | `/channel` | `sc.settings.update` | Tenancy | تحديث إعدادات القناة |
 
-## أخرى — 10/10
+## أخرى — 12/12
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -193,6 +193,8 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-142B | SP-13 | `POST` | `/channel/retailer-groups` | `sc.retailers.groups` | Identity | إنشاء مجموعة تجار |
 | ✅ | EP-SC-142C | SP-13 | `PUT` | `/channel/retailer-groups/{id}` | `sc.retailers.groups` | Identity | تعديل مجموعة تجار |
 | ✅ | EP-SC-142D | SP-13 | `DELETE` | `/channel/retailer-groups/{id}` | `sc.retailers.groups` | Identity | حذف مجموعة تجار |
+| ✅ | EP-SC-165 | SP-13 | `GET` | `/channel/credit-approvals` | `sc.retailers.credit` | Finance | طابور موافقة الائتمان |
+| ✅ | EP-SC-165A | SP-13 | `POST` | `/channel/credit-approvals/{id}/decide` | `sc.retailers.credit` | Finance | قرار موافقة ائتمان |
 | ✅ | EP-SC-150A | SP-15 | `GET` | `/channel/users` | `sc.iam.users_view` | Identity | مستخدمو القناة |
 | ✅ | EP-SC-150B | SP-15 | `POST` | `/channel/users/invite` | `sc.iam.users_manage` | Identity | دعوة مستخدم قناة |
 | ✅ | EP-SC-124 | SP-16 | `GET` | `/channel/jobs/{id}` | `sc.reports.view` | Reporting | حالة مهمة |

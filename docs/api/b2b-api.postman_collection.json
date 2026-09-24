@@ -648,7 +648,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}."
+                                "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits, duty {on_duty, tracking_enabled}, status (profile: pending_review|active|rejected|disabled), and channel {id, name|null} (BF-06)."
                             },
                             "response": [
                                 {
@@ -701,7 +701,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}."
+                                        "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits, duty {on_duty, tracking_enabled}, status (profile: pending_review|active|rejected|disabled), and channel {id, name|null} (BF-06)."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -9325,7 +9325,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}."
+                                "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits, duty {on_duty, tracking_enabled}, status (profile: pending_review|active|rejected|disabled), and channel {id, name|null} (BF-06)."
                             },
                             "response": [
                                 {
@@ -9378,7 +9378,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}."
+                                        "description": "**EP-CM-004** · SP-01 · جلسة الإقلاع\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits, duty {on_duty, tracking_enabled}, status (profile: pending_review|active|rejected|disabled), and channel {id, name|null} (BF-06)."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -21084,6 +21084,139 @@
                     ]
                 },
                 {
+                    "name": "08. التقارير",
+                    "item": [
+                        {
+                            "name": "EP-WH-050 Warehouse productivity report",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "warehouse-desktop",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/warehouse/reports/productivity?date_from=2026-09-01&date_to=2026-09-24",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "warehouse",
+                                        "reports",
+                                        "productivity"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "date_from",
+                                            "value": "2026-09-01"
+                                        },
+                                        {
+                                            "key": "date_to",
+                                            "value": "2026-09-24"
+                                        }
+                                    ],
+                                    "variable": []
+                                },
+                                "description": "**EP-WH-050** · SP-17 · تقرير إنتاجية المستودع\n\nالدور: **أمين المستودع** (`warehouse_keeper`)\n\nالصلاحية: `wh.reports.view`\n\nالحارس: `warehouse`\n\nScoped to the device warehouse. pick_accuracy_bps is integer basis points at 10^4 (1188/1200 = 9900). Empty range → zeros and empty daily[]. date_from/date_to inclusive Asia/Damascus calendar days; default last 7 days."
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-WH-050",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "warehouse-desktop",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/reports/productivity?date_from=2026-09-01&date_to=2026-09-24",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "reports",
+                                                "productivity"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "date_from",
+                                                    "value": "2026-09-01"
+                                                },
+                                                {
+                                                    "key": "date_to",
+                                                    "value": "2026-09-24"
+                                                }
+                                            ],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-WH-050** · SP-17 · تقرير إنتاجية المستودع\n\nالدور: **أمين المستودع** (`warehouse_keeper`)\n\nالصلاحية: `wh.reports.view`\n\nالحارس: `warehouse`\n\nScoped to the device warehouse. pick_accuracy_bps is integer basis points at 10^4 (1188/1200 = 9900). Empty range → zeros and empty daily[]. date_from/date_to inclusive Asia/Damascus calendar days; default last 7 days."
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"date_from\": \"2026-09-01\",\n        \"date_to\": \"2026-09-24\",\n        \"kpis\": {\n            \"lists_completed\": 42,\n            \"packs_completed\": 40,\n            \"qty_required\": 1200,\n            \"qty_picked\": 1188,\n            \"pick_accuracy_bps\": 9900,\n            \"shortage_lines\": 3,\n            \"manual_lines\": 5,\n            \"handovers_opened\": 18,\n            \"receipts\": 6,\n            \"stocktakes_posted\": 1\n        },\n        \"daily\": [\n            {\n                \"date\": \"2026-09-24\",\n                \"lists_completed\": 4,\n                \"packs_completed\": 4,\n                \"qty_picked\": 110,\n                \"shortage_lines\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
                     "name": "09. المرتجعات والتقييم",
                     "item": [
                         {
@@ -21243,6 +21376,417 @@
                                         }
                                     ],
                                     "body": "{\n    \"data\": {\n        \"status\": \"sorted\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "11. المزامنة",
+                    "item": [
+                        {
+                            "name": "EP-WH-041A Warehouse offline sync push",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "warehouse-desktop",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/warehouse/sync/push",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "warehouse",
+                                        "sync",
+                                        "push"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-WH-041A** · SP-11 · دفع مزامنة المستودع دون اتصال\n\nالدور: **أمين المستودع** (`warehouse_keeper`)\n\nالصلاحية: `wh.picking.execute`\n\nالحارس: `warehouse`\n\nMax 500 ops per batch, 20/min per device (X-Device-Id). Types: pick.scan, pick.manual, pick.shortage, pick.complete, pack.verify, pack.complete. status: applied|duplicate|conflict|failed. DomainException 409 → conflict. Permission covers pick+pack offline.\n\nErrors:\n- HTTP 429: `rate_limited`",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"operations\": [\n        {\n            \"client_op_id\": \"op_pick_scan_1\",\n            \"type\": \"pick.scan\",\n            \"payload\": {\n                \"picking_list_id\": 11,\n                \"barcode\": \"6291000000000\",\n                \"qty\": 2\n            },\n            \"created_at\": \"2026-03-01T09:05:00+03:00\"\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-WH-041A",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "warehouse-desktop",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sync/push",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sync",
+                                                "push"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-WH-041A** · SP-11 · دفع مزامنة المستودع دون اتصال\n\nالدور: **أمين المستودع** (`warehouse_keeper`)\n\nالصلاحية: `wh.picking.execute`\n\nالحارس: `warehouse`\n\nMax 500 ops per batch, 20/min per device (X-Device-Id). Types: pick.scan, pick.manual, pick.shortage, pick.complete, pack.verify, pack.complete. status: applied|duplicate|conflict|failed. DomainException 409 → conflict. Permission covers pick+pack offline.\n\nErrors:\n- HTTP 429: `rate_limited`",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"operations\": [\n        {\n            \"client_op_id\": \"op_pick_scan_1\",\n            \"type\": \"pick.scan\",\n            \"payload\": {\n                \"picking_list_id\": 11,\n                \"barcode\": \"6291000000000\",\n                \"qty\": 2\n            },\n            \"created_at\": \"2026-03-01T09:05:00+03:00\"\n        }\n    ]\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"results\": [\n            {\n                \"client_op_id\": \"op_pick_scan_1\",\n                \"status\": \"applied\",\n                \"server_id\": 11,\n                \"error\": null\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-WH-041B Warehouse offline sync status",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "warehouse-desktop",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/warehouse/sync/status",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "warehouse",
+                                        "sync",
+                                        "status"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-WH-041B** · SP-11 · حالة مزامنة المستودع\n\nالدور: **أمين المستودع** (`warehouse_keeper`)\n\nالصلاحية: `wh.picking.execute`\n\nالحارس: `warehouse`"
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-WH-041B",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "warehouse-desktop",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sync/status",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sync",
+                                                "status"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-WH-041B** · SP-11 · حالة مزامنة المستودع\n\nالدور: **أمين المستودع** (`warehouse_keeper`)\n\nالصلاحية: `wh.picking.execute`\n\nالحارس: `warehouse`"
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"pending_server_side\": 0,\n        \"last_push_at\": \"2026-03-01T09:11:40+03:00\",\n        \"conflicts\": [\n            {\n                \"conflict_id\": \"12\",\n                \"client_op_id\": \"op_pick_complete_2\",\n                \"type\": \"pick.complete\",\n                \"error\": \"illegal_transition\"\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "EP-WH-041C Resolve warehouse sync conflict",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "warehouse-desktop",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/warehouse/sync/resolve-conflict",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "warehouse",
+                                        "sync",
+                                        "resolve-conflict"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-WH-041C** · SP-11 · حل تعارض مزامنة المستودع\n\nالدور: **أمين المستودع** (`warehouse_keeper`)\n\nالصلاحية: `wh.picking.execute`\n\nالحارس: `warehouse`\n\nresolution: server_wins (mark discarded) | client_wins (re-apply stored payload).\n\nErrors:\n- HTTP 404: `not_found`",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"conflict_id\": \"12\",\n    \"resolution\": \"server_wins\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-WH-041C",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "warehouse-desktop",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sync/resolve-conflict",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sync",
+                                                "resolve-conflict"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-WH-041C** · SP-11 · حل تعارض مزامنة المستودع\n\nالدور: **أمين المستودع** (`warehouse_keeper`)\n\nالصلاحية: `wh.picking.execute`\n\nالحارس: `warehouse`\n\nresolution: server_wins (mark discarded) | client_wins (re-apply stored payload).\n\nErrors:\n- HTTP 404: `not_found`",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"conflict_id\": \"12\",\n    \"resolution\": \"server_wins\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"success\": true\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }
@@ -31841,7 +32385,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+                                        "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. block → 423 credit_limit_exceeded. manual_approval → queues EP-SC-165 then 423 with approval_id until approved+consumed. warn never blocks.",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"credit_limit\": 500000,\n    \"grace_days\": 7,\n    \"on_exceed\": \"block\"\n}",
@@ -31915,7 +32459,7 @@
                                                         }
                                                     ]
                                                 },
-                                                "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+                                                "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. block → 423 credit_limit_exceeded. manual_approval → queues EP-SC-165 then 423 with approval_id until approved+consumed. warn never blocks.",
                                                 "body": {
                                                     "mode": "raw",
                                                     "raw": "{\n    \"credit_limit\": 500000,\n    \"grace_days\": 7,\n    \"on_exceed\": \"block\"\n}",
@@ -32058,6 +32602,308 @@
                                                 }
                                             ],
                                             "body": "{\n    \"data\": {\n        \"net_balance\": 250000,\n        \"stats\": {\n            \"invoices_delivered\": 12,\n            \"collected_total\": 1750000,\n            \"receivables\": 48000\n        },\n        \"today\": {\n            \"invoices\": 2,\n            \"collected\": 90000,\n            \"receivables\": 12000\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-165 List credit approval queue",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/credit-approvals?page=1&per_page=25&sort=-created_at&filter%5Bstatus%5D=pending",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "credit-approvals"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "page",
+                                                    "value": "1"
+                                                },
+                                                {
+                                                    "key": "per_page",
+                                                    "value": "25"
+                                                },
+                                                {
+                                                    "key": "sort",
+                                                    "value": "-created_at"
+                                                },
+                                                {
+                                                    "key": "filter[status]",
+                                                    "value": "pending"
+                                                }
+                                            ],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-165** · SP-13 · طابور موافقة الائتمان\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\nPending rows created when on_exceed=manual_approval and confirm would exceed. status: pending|approved|rejected|consumed."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-165",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/credit-approvals?page=1&per_page=25&sort=-created_at&filter%5Bstatus%5D=pending",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "credit-approvals"
+                                                    ],
+                                                    "query": [
+                                                        {
+                                                            "key": "page",
+                                                            "value": "1"
+                                                        },
+                                                        {
+                                                            "key": "per_page",
+                                                            "value": "25"
+                                                        },
+                                                        {
+                                                            "key": "sort",
+                                                            "value": "-created_at"
+                                                        },
+                                                        {
+                                                            "key": "filter[status]",
+                                                            "value": "pending"
+                                                        }
+                                                    ],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-165** · SP-13 · طابور موافقة الائتمان\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\nPending rows created when on_exceed=manual_approval and confirm would exceed. status: pending|approved|rejected|consumed."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"retailer_id\": 481,\n            \"amount_minor\": 200000,\n            \"outstanding\": 400000,\n            \"credit_limit\": 500000,\n            \"status\": \"pending\",\n            \"created_at\": \"2026-09-24T12:00:00+03:00\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-165A Decide credit approval",
+                                    "request": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/credit-approvals/{{id}}/decide",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "credit-approvals",
+                                                ":id",
+                                                "decide"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-165A** · SP-13 · قرار موافقة ائتمان\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\ndecision: approve|reject. Only pending. Approve allows the next assertWithinLimit that fits the approved amount to consume the row.\n\nErrors:\n- HTTP 409: `illegal_transition`",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"عميل موثوق\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-165A",
+                                            "originalRequest": {
+                                                "method": "POST",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Idempotency-Key",
+                                                        "value": "{{$guid}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Content-Type",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/credit-approvals/{{id}}/decide",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "credit-approvals",
+                                                        ":id",
+                                                        "decide"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-165A** · SP-13 · قرار موافقة ائتمان\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\ndecision: approve|reject. Only pending. Approve allows the next assertWithinLimit that fits the approved amount to consume the row.\n\nErrors:\n- HTTP 409: `illegal_transition`",
+                                                "body": {
+                                                    "mode": "raw",
+                                                    "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"عميل موثوق\"\n}",
+                                                    "options": {
+                                                        "raw": {
+                                                            "language": "json"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 1,\n        \"status\": \"approved\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 }
@@ -45139,7 +45985,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+                                        "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. block → 423 credit_limit_exceeded. manual_approval → queues EP-SC-165 then 423 with approval_id until approved+consumed. warn never blocks.",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"credit_limit\": 500000,\n    \"grace_days\": 7,\n    \"on_exceed\": \"block\"\n}",
@@ -45213,7 +46059,7 @@
                                                         }
                                                     ]
                                                 },
-                                                "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+                                                "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. block → 423 credit_limit_exceeded. manual_approval → queues EP-SC-165 then 423 with approval_id until approved+consumed. warn never blocks.",
                                                 "body": {
                                                     "mode": "raw",
                                                     "raw": "{\n    \"credit_limit\": 500000,\n    \"grace_days\": 7,\n    \"on_exceed\": \"block\"\n}",
@@ -45234,6 +46080,308 @@
                                                 }
                                             ],
                                             "body": "{\n    \"data\": {\n        \"retailer_id\": 481,\n        \"credit_limit\": 500000,\n        \"on_exceed\": \"block\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-165 List credit approval queue",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/credit-approvals?page=1&per_page=25&sort=-created_at&filter%5Bstatus%5D=pending",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "credit-approvals"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "page",
+                                                    "value": "1"
+                                                },
+                                                {
+                                                    "key": "per_page",
+                                                    "value": "25"
+                                                },
+                                                {
+                                                    "key": "sort",
+                                                    "value": "-created_at"
+                                                },
+                                                {
+                                                    "key": "filter[status]",
+                                                    "value": "pending"
+                                                }
+                                            ],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-165** · SP-13 · طابور موافقة الائتمان\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\nPending rows created when on_exceed=manual_approval and confirm would exceed. status: pending|approved|rejected|consumed."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-165",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/credit-approvals?page=1&per_page=25&sort=-created_at&filter%5Bstatus%5D=pending",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "credit-approvals"
+                                                    ],
+                                                    "query": [
+                                                        {
+                                                            "key": "page",
+                                                            "value": "1"
+                                                        },
+                                                        {
+                                                            "key": "per_page",
+                                                            "value": "25"
+                                                        },
+                                                        {
+                                                            "key": "sort",
+                                                            "value": "-created_at"
+                                                        },
+                                                        {
+                                                            "key": "filter[status]",
+                                                            "value": "pending"
+                                                        }
+                                                    ],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-165** · SP-13 · طابور موافقة الائتمان\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\nPending rows created when on_exceed=manual_approval and confirm would exceed. status: pending|approved|rejected|consumed."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"retailer_id\": 481,\n            \"amount_minor\": 200000,\n            \"outstanding\": 400000,\n            \"credit_limit\": 500000,\n            \"status\": \"pending\",\n            \"created_at\": \"2026-09-24T12:00:00+03:00\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-165A Decide credit approval",
+                                    "request": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/credit-approvals/{{id}}/decide",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "credit-approvals",
+                                                ":id",
+                                                "decide"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-165A** · SP-13 · قرار موافقة ائتمان\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\ndecision: approve|reject. Only pending. Approve allows the next assertWithinLimit that fits the approved amount to consume the row.\n\nErrors:\n- HTTP 409: `illegal_transition`",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"عميل موثوق\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-165A",
+                                            "originalRequest": {
+                                                "method": "POST",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Idempotency-Key",
+                                                        "value": "{{$guid}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Content-Type",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/credit-approvals/{{id}}/decide",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "credit-approvals",
+                                                        ":id",
+                                                        "decide"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-165A** · SP-13 · قرار موافقة ائتمان\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\ndecision: approve|reject. Only pending. Approve allows the next assertWithinLimit that fits the approved amount to consume the row.\n\nErrors:\n- HTTP 409: `illegal_transition`",
+                                                "body": {
+                                                    "mode": "raw",
+                                                    "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"عميل موثوق\"\n}",
+                                                    "options": {
+                                                        "raw": {
+                                                            "language": "json"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 1,\n        \"status\": \"approved\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 }
@@ -57400,7 +58548,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+                                        "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. block → 423 credit_limit_exceeded. manual_approval → queues EP-SC-165 then 423 with approval_id until approved+consumed. warn never blocks.",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"credit_limit\": 500000,\n    \"grace_days\": 7,\n    \"on_exceed\": \"block\"\n}",
@@ -57474,7 +58622,7 @@
                                                         }
                                                     ]
                                                 },
-                                                "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+                                                "description": "**EP-SC-086** · SP-13 · سقف ائتمان التاجر\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\non_exceed: warn|block|manual_approval. block → 423 credit_limit_exceeded. manual_approval → queues EP-SC-165 then 423 with approval_id until approved+consumed. warn never blocks.",
                                                 "body": {
                                                     "mode": "raw",
                                                     "raw": "{\n    \"credit_limit\": 500000,\n    \"grace_days\": 7,\n    \"on_exceed\": \"block\"\n}",
@@ -57495,6 +58643,308 @@
                                                 }
                                             ],
                                             "body": "{\n    \"data\": {\n        \"retailer_id\": 481,\n        \"credit_limit\": 500000,\n        \"on_exceed\": \"block\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-165 List credit approval queue",
+                                    "request": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/credit-approvals?page=1&per_page=25&sort=-created_at&filter%5Bstatus%5D=pending",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "credit-approvals"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "page",
+                                                    "value": "1"
+                                                },
+                                                {
+                                                    "key": "per_page",
+                                                    "value": "25"
+                                                },
+                                                {
+                                                    "key": "sort",
+                                                    "value": "-created_at"
+                                                },
+                                                {
+                                                    "key": "filter[status]",
+                                                    "value": "pending"
+                                                }
+                                            ],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-SC-165** · SP-13 · طابور موافقة الائتمان\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\nPending rows created when on_exceed=manual_approval and confirm would exceed. status: pending|approved|rejected|consumed."
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-165",
+                                            "originalRequest": {
+                                                "method": "GET",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/credit-approvals?page=1&per_page=25&sort=-created_at&filter%5Bstatus%5D=pending",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "credit-approvals"
+                                                    ],
+                                                    "query": [
+                                                        {
+                                                            "key": "page",
+                                                            "value": "1"
+                                                        },
+                                                        {
+                                                            "key": "per_page",
+                                                            "value": "25"
+                                                        },
+                                                        {
+                                                            "key": "sort",
+                                                            "value": "-created_at"
+                                                        },
+                                                        {
+                                                            "key": "filter[status]",
+                                                            "value": "pending"
+                                                        }
+                                                    ],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-SC-165** · SP-13 · طابور موافقة الائتمان\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\nPending rows created when on_exceed=manual_approval and confirm would exceed. status: pending|approved|rejected|consumed."
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"retailer_id\": 481,\n            \"amount_minor\": 200000,\n            \"outstanding\": 400000,\n            \"credit_limit\": 500000,\n            \"status\": \"pending\",\n            \"created_at\": \"2026-09-24T12:00:00+03:00\"\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-SC-165A Decide credit approval",
+                                    "request": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "channel-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Channel-Id",
+                                                "value": "{{channelId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/channel/credit-approvals/{{id}}/decide",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "channel",
+                                                "credit-approvals",
+                                                ":id",
+                                                "decide"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-SC-165A** · SP-13 · قرار موافقة ائتمان\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\ndecision: approve|reject. Only pending. Approve allows the next assertWithinLimit that fits the approved amount to consume the row.\n\nErrors:\n- HTTP 409: `illegal_transition`",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"عميل موثوق\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-SC-165A",
+                                            "originalRequest": {
+                                                "method": "POST",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "channel-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Channel-Id",
+                                                        "value": "{{channelId}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Idempotency-Key",
+                                                        "value": "{{$guid}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Content-Type",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/channel/credit-approvals/{{id}}/decide",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "channel",
+                                                        "credit-approvals",
+                                                        ":id",
+                                                        "decide"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": [
+                                                        {
+                                                            "key": "id",
+                                                            "value": "{{id}}"
+                                                        }
+                                                    ]
+                                                },
+                                                "description": "**EP-SC-165A** · SP-13 · قرار موافقة ائتمان\n\nالدور: **المحاسب** (`accountant`)\n\nالصلاحية: `sc.retailers.credit`\n\nالحارس: `channel`\n\ndecision: approve|reject. Only pending. Approve allows the next assertWithinLimit that fits the approved amount to consume the row.\n\nErrors:\n- HTTP 409: `illegal_transition`",
+                                                "body": {
+                                                    "mode": "raw",
+                                                    "raw": "{\n    \"decision\": \"approve\",\n    \"reason\": \"عميل موثوق\"\n}",
+                                                    "options": {
+                                                        "raw": {
+                                                            "language": "json"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"id\": 1,\n        \"status\": \"approved\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 }
@@ -58174,6 +59624,144 @@
                                                 }
                                             ],
                                             "body": "{\n    \"data\": {\n        \"confirmed_until\": \"2026-03-01T09:27:44+03:00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "EP-AD-005A Request platform step-up OTP",
+                                    "request": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "platform-web",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/platform/auth/request-otp",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "platform",
+                                                "auth",
+                                                "request-otp"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-AD-005A** · SP-01 · طلب رمز تحقق لإجراء حساس\n\nالأدوار: مدير المنصة, مسؤول التشغيل, موظف الدعم, محاسب المنصة, مسؤول المحتوى, مسؤول التقنية, المدقّق\n\nالحارس: `platform`\n\nBF-05. Before EP-AD-058: if the actor has 2FA, mode=totp and no SMS is sent; otherwise a phone OTP is issued. Local/testing may return mode=bypass.\n\nErrors:\n- HTTP 401: `unauthenticated`\n- HTTP 422: `validation_failed`",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"purpose\": \"platform_channel_delete\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "response": [
+                                        {
+                                            "name": "200 EP-AD-005A",
+                                            "originalRequest": {
+                                                "method": "POST",
+                                                "header": [
+                                                    {
+                                                        "key": "Accept",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Accept-Language",
+                                                        "value": "{{acceptLanguage}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Client",
+                                                        "value": "platform-web",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Authorization",
+                                                        "value": "Bearer {{token}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "X-Idempotency-Key",
+                                                        "value": "{{$guid}}",
+                                                        "type": "text"
+                                                    },
+                                                    {
+                                                        "key": "Content-Type",
+                                                        "value": "application/json",
+                                                        "type": "text"
+                                                    }
+                                                ],
+                                                "url": {
+                                                    "raw": "{{baseUrl}}/api/v1/platform/auth/request-otp",
+                                                    "host": [
+                                                        "{{baseUrl}}"
+                                                    ],
+                                                    "path": [
+                                                        "api",
+                                                        "v1",
+                                                        "platform",
+                                                        "auth",
+                                                        "request-otp"
+                                                    ],
+                                                    "query": [],
+                                                    "variable": []
+                                                },
+                                                "description": "**EP-AD-005A** · SP-01 · طلب رمز تحقق لإجراء حساس\n\nالأدوار: مدير المنصة, مسؤول التشغيل, موظف الدعم, محاسب المنصة, مسؤول المحتوى, مسؤول التقنية, المدقّق\n\nالحارس: `platform`\n\nBF-05. Before EP-AD-058: if the actor has 2FA, mode=totp and no SMS is sent; otherwise a phone OTP is issued. Local/testing may return mode=bypass.\n\nErrors:\n- HTTP 401: `unauthenticated`\n- HTTP 422: `validation_failed`",
+                                                "body": {
+                                                    "mode": "raw",
+                                                    "raw": "{\n    \"purpose\": \"platform_channel_delete\"\n}",
+                                                    "options": {
+                                                        "raw": {
+                                                            "language": "json"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "status": "OK",
+                                            "code": 200,
+                                            "_postman_previewlanguage": "json",
+                                            "header": [
+                                                {
+                                                    "key": "Content-Type",
+                                                    "value": "application/json"
+                                                }
+                                            ],
+                                            "body": "{\n    \"data\": {\n        \"mode\": \"whatsapp\",\n        \"otp_id\": \"otp_ab12cd\",\n        \"expires_in\": 300,\n        \"resend_after\": 60,\n        \"channel_used\": \"whatsapp\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -68208,7 +69796,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-AD-058** · SP-04 · حذف قناة\n\nالدور: **مدير المنصة** (`platform_admin`)\n\nالصلاحية: `ad.channels.delete`\n\nالحارس: `platform`\n\nCritical operation — dual confirmation required in UI.\n\nMay return `meta.requires_dual_approval` and create an approval request instead of executing.\n\nArchived ≥ 30 days. Dual approval.",
+                                        "description": "**EP-AD-058** · SP-04 · حذف قناة\n\nالدور: **مدير المنصة** (`platform_admin`)\n\nالصلاحية: `ad.channels.delete`\n\nالحارس: `platform`\n\nCritical operation — dual confirmation required in UI.\n\nMay return `meta.requires_dual_approval` and create an approval request instead of executing.\n\nArchived ≥ 30 days. Dual approval. otp_code is Identity step-up: TOTP if 2FA enabled, else phone OTP from EP-AD-005A.",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"password_confirmation\": \"********\",\n    \"otp_code\": \"123456\",\n    \"typed_name\": \"شركة النور\",\n    \"second_approver_id\": 2\n}",
@@ -68282,7 +69870,7 @@
                                                         }
                                                     ]
                                                 },
-                                                "description": "**EP-AD-058** · SP-04 · حذف قناة\n\nالدور: **مدير المنصة** (`platform_admin`)\n\nالصلاحية: `ad.channels.delete`\n\nالحارس: `platform`\n\nCritical operation — dual confirmation required in UI.\n\nMay return `meta.requires_dual_approval` and create an approval request instead of executing.\n\nArchived ≥ 30 days. Dual approval.",
+                                                "description": "**EP-AD-058** · SP-04 · حذف قناة\n\nالدور: **مدير المنصة** (`platform_admin`)\n\nالصلاحية: `ad.channels.delete`\n\nالحارس: `platform`\n\nCritical operation — dual confirmation required in UI.\n\nMay return `meta.requires_dual_approval` and create an approval request instead of executing.\n\nArchived ≥ 30 days. Dual approval. otp_code is Identity step-up: TOTP if 2FA enabled, else phone OTP from EP-AD-005A.",
                                                 "body": {
                                                     "mode": "raw",
                                                     "raw": "{\n    \"password_confirmation\": \"********\",\n    \"otp_code\": \"123456\",\n    \"typed_name\": \"شركة النور\",\n    \"second_approver_id\": 2\n}",

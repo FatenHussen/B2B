@@ -4,9 +4,9 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 173 | 173 | 0 | 0 | 0 |
+| 174 | 174 | 0 | 0 | 0 |
 
-## الدخول والملف الشخصي — 16/16
+## الدخول والملف الشخصي — 17/17
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -15,6 +15,7 @@ guard `platform` · prefix `/api/v1/platform/*` · مولَّد آلياً في 
 | ✅ | EP-AD-003 | SP-01 | `POST` | `/platform/auth/logout` | — | Identity | تسجيل الخروج |
 | ✅ | EP-AD-004 | SP-01 | `GET` | `/platform/auth/me` | — | Identity | المستخدم الحالي |
 | ✅ | EP-AD-005 | SP-01 | `POST` | `/platform/auth/confirm-password` | — | Identity | تأكيد كلمة المرور |
+| ✅ | EP-AD-005A | SP-01 | `POST` | `/platform/auth/request-otp` | — | Identity | طلب رمز تحقق لإجراء حساس |
 | ✅ | EP-AD-006 | SP-01 | `GET` | `/platform/auth/sessions` | — | Identity | جلسات الدخول |
 | ✅ | EP-AD-007 | SP-01 | `DELETE` | `/platform/auth/sessions/{id}` | — | Identity | إنهاء جلسة |
 | ✅ | EP-AD-159A | SP-01 | `GET` | `/platform/me` | — | Identity | ملفي الشخصي |

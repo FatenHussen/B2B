@@ -146,6 +146,17 @@ final class WarehouseController extends ApiController
         return $this->ok($ops->confirmHandover($handoverId, $request->user(), $request->validated()['temp_code']));
     }
 
+    public function productivityReport(Request $request, WarehouseWorkspace $ops): JsonResponse
+    {
+        $from = $request->query('date_from');
+        $to = $request->query('date_to');
+
+        return $this->ok($ops->productivityReport(
+            is_string($from) ? $from : null,
+            is_string($to) ? $to : null,
+        ));
+    }
+
     public function stockLots(Request $request, WarehouseWorkspace $ops): JsonResponse
     {
         $result = $ops->listStockLots($request->query());

@@ -248,6 +248,50 @@ return [
         'e' => [404 => 'not_found', 409 => 'insufficient_stock'],
         'd' => 'qty_delta may be negative. Syncs on_hand via StockLedger::adjust with the same delta.',
     ]),
+    ep('EP-WH-041A', 'SP-11', 'POST', '/warehouse/sync/push', 'warehouse', 'wh.picking.execute', [
+        'name' => 'Warehouse offline sync push',
+        'name_ar' => 'دفع مزامنة المستودع دون اتصال',
+        'b' => [
+            'operations' => [[
+                'client_op_id' => 'op_pick_scan_1',
+                'type' => 'pick.scan',
+                'payload' => ['picking_list_id' => 11, 'barcode' => '6291000000000', 'qty' => 2],
+                'created_at' => '2026-03-01T09:05:00+03:00',
+            ]],
+        ],
+        'r' => [
+            'results' => [[
+                'client_op_id' => 'op_pick_scan_1',
+                'status' => 'applied',
+                'server_id' => 11,
+                'error' => null,
+            ]],
+        ],
+        'e' => [429 => 'rate_limited'],
+        'd' => 'Max 500 ops per batch, 20/min per device (X-Device-Id). Types: pick.scan, pick.manual, pick.shortage, pick.complete, pack.verify, pack.complete. status: applied|duplicate|conflict|failed. DomainException 409 → conflict. Permission covers pick+pack offline.',
+    ]),
+    ep('EP-WH-041B', 'SP-11', 'GET', '/warehouse/sync/status', 'warehouse', 'wh.picking.execute', [
+        'name' => 'Warehouse offline sync status',
+        'name_ar' => 'حالة مزامنة المستودع',
+        'r' => [
+            'pending_server_side' => 0,
+            'last_push_at' => '2026-03-01T09:11:40+03:00',
+            'conflicts' => [[
+                'conflict_id' => '12',
+                'client_op_id' => 'op_pick_complete_2',
+                'type' => 'pick.complete',
+                'error' => 'illegal_transition',
+            ]],
+        ],
+    ]),
+    ep('EP-WH-041C', 'SP-11', 'POST', '/warehouse/sync/resolve-conflict', 'warehouse', 'wh.picking.execute', [
+        'name' => 'Resolve warehouse sync conflict',
+        'name_ar' => 'حل تعارض مزامنة المستودع',
+        'b' => ['conflict_id' => '12', 'resolution' => 'server_wins'],
+        'r' => ['success' => true],
+        'd' => 'resolution: server_wins (mark discarded) | client_wins (re-apply stored payload).',
+        'e' => [404 => 'not_found'],
+    ]),
     ep('EP-WH-042', 'SP-11', 'POST', '/warehouse/picking-waves', 'warehouse', 'wh.picking.execute', [
         'name' => 'Create picking wave',
         'name_ar' => 'إنشاء موجة التقاط',
@@ -276,5 +320,34 @@ return [
         ],
         'e' => [404 => 'not_found'],
         'd' => 'Merged multi-order pick sheet ordered by aisle/shelf like single pickingList. assign wave + print.',
+    ]),
+    ep('EP-WH-050', 'SP-17', 'GET', '/warehouse/reports/productivity', 'warehouse', 'wh.reports.view', [
+        'name' => 'Warehouse productivity report',
+        'name_ar' => 'تقرير إنتاجية المستودع',
+        'q' => ['date_from' => '2026-09-01', 'date_to' => '2026-09-24'],
+        'r' => [
+            'date_from' => '2026-09-01',
+            'date_to' => '2026-09-24',
+            'kpis' => [
+                'lists_completed' => 42,
+                'packs_completed' => 40,
+                'qty_required' => 1200,
+                'qty_picked' => 1188,
+                'pick_accuracy_bps' => 9900,
+                'shortage_lines' => 3,
+                'manual_lines' => 5,
+                'handovers_opened' => 18,
+                'receipts' => 6,
+                'stocktakes_posted' => 1,
+            ],
+            'daily' => [[
+                'date' => '2026-09-24',
+                'lists_completed' => 4,
+                'packs_completed' => 4,
+                'qty_picked' => 110,
+                'shortage_lines' => 0,
+            ]],
+        ],
+        'd' => 'Scoped to the device warehouse. pick_accuracy_bps is integer basis points at 10^4 (1188/1200 = 9900). Empty range → zeros and empty daily[]. date_from/date_to inclusive Asia/Damascus calendar days; default last 7 days.',
     ]),
 ];

@@ -183,11 +183,11 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // three `sc.reps.*` codes below.
     $catalog = doc08Codes();
 
-    // 140, up from 139: `sc.reps.track` (EP-SC-160).
-    expect(Permission::query()->count())->toBe(140)
-        ->and(PermissionCatalog::codes())->toHaveCount(140)
-        // 31, down from 32: sc.reps.track found its routes.
-        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(31)
+    // 141, up from 140: `wh.reports.view` (EP-WH-050).
+    expect(Permission::query()->count())->toBe(141)
+        ->and(PermissionCatalog::codes())->toHaveCount(141)
+        // 30, down from 31: wh.reports.view found its route.
+        ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(30)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))
         ->toBe(DOC08_EXEMPT);
 })->group('security');

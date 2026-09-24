@@ -193,7 +193,7 @@ $pack = [
         'GET /channel/categories/tree nodes include media_id (editable) and activity_type_ids; image remains a resolved URL.',
         'POST /channel/sub-orders/assign mode auto|bulk_zone is real: first on-duty rep covering the zone (or rep_id on bulk_zone). No candidate → 422.',
         'Pricing lists stop-at-first-match (retailer ← group ← zone); they do not stack adjustments.',
-        'Retailer credit on_exceed=manual_approval is stored but behaves as block (423) until a credit-approval queue EP exists.',
+        'Retailer credit on_exceed=manual_approval queues GET/POST /channel/credit-approvals (EP-SC-165/165A); confirm returns 423 with approval_id until approved then consumed.',
         'Banner impressions increment when GET /app/content/home-blocks serves a Banner row. Clicks via POST /app/content/banners/{id}/click. stats.ctr is integer basis points at scale 10^4.',
         'GET /channel/offers list rows are only id, name, type, status. GET/PUT /channel/offers/{id} and activate exist. conversion_rate is scale 10^4 from unique retailer views; net_margin is linked_sales minus product cost_price.',
         'GET /channel/invoices list rows are only id, no, total, status. GET /channel/invoices/{id} returns lines[] for credit-note line_id.',

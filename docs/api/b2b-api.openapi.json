@@ -528,7 +528,7 @@
             "get": {
                 "operationId": "EP-CM-004",
                 "summary": "App session bootstrap",
-                "description": "جلسة الإقلاع\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits and duty {on_duty, tracking_enabled}.",
+                "description": "جلسة الإقلاع\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits, duty {on_duty, tracking_enabled}, status (profile: pending_review|active|rejected|disabled), and channel {id, name|null} (BF-06).",
                 "tags": [
                     "retailer_app",
                     "rep_app",
@@ -14744,6 +14744,131 @@
                 ]
             }
         },
+        "/api/v1/warehouse/reports/productivity": {
+            "get": {
+                "operationId": "EP-WH-050",
+                "summary": "Warehouse productivity report",
+                "description": "تقرير إنتاجية المستودع\n\nScoped to the device warehouse. pick_accuracy_bps is integer basis points at 10^4 (1188/1200 = 9900). Empty range → zeros and empty daily[]. date_from/date_to inclusive Asia/Damascus calendar days; default last 7 days.",
+                "tags": [
+                    "warehouse",
+                    "أمين المستودع"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "warehouse-desktop"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-09-01"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-09-24"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "date_from": "2026-09-01",
+                                        "date_to": "2026-09-24",
+                                        "kpis": {
+                                            "lists_completed": 42,
+                                            "packs_completed": 40,
+                                            "qty_required": 1200,
+                                            "qty_picked": 1188,
+                                            "pick_accuracy_bps": 9900,
+                                            "shortage_lines": 3,
+                                            "manual_lines": 5,
+                                            "handovers_opened": 18,
+                                            "receipts": 6,
+                                            "stocktakes_posted": 1
+                                        },
+                                        "daily": [
+                                            {
+                                                "date": "2026-09-24",
+                                                "lists_completed": 4,
+                                                "packs_completed": 4,
+                                                "qty_picked": 110,
+                                                "shortage_lines": 0
+                                            }
+                                        ]
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "wh.reports.view",
+                "x-sprint": "SP-17",
+                "x-code": "EP-WH-050",
+                "x-guard": "warehouse",
+                "x-audience": "warehouse",
+                "x-roles": [
+                    "warehouse_keeper"
+                ],
+                "x-apps": [
+                    "warehouse"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/warehouse/returns/{id}/sort": {
             "post": {
                 "operationId": "EP-WH-030",
@@ -14858,6 +14983,359 @@
                                         "condition": "resalable"
                                     }
                                 ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/warehouse/sync/push": {
+            "post": {
+                "operationId": "EP-WH-041A",
+                "summary": "Warehouse offline sync push",
+                "description": "دفع مزامنة المستودع دون اتصال\n\nMax 500 ops per batch, 20/min per device (X-Device-Id). Types: pick.scan, pick.manual, pick.shortage, pick.complete, pack.verify, pack.complete. status: applied|duplicate|conflict|failed. DomainException 409 → conflict. Permission covers pick+pack offline.",
+                "tags": [
+                    "warehouse",
+                    "أمين المستودع"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "warehouse-desktop"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "results": [
+                                            {
+                                                "client_op_id": "op_pick_scan_1",
+                                                "status": "applied",
+                                                "server_id": 11,
+                                                "error": null
+                                            }
+                                        ]
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "rate_limited",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "rate_limited",
+                                        "message": "rate_limited"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "wh.picking.execute",
+                "x-sprint": "SP-11",
+                "x-code": "EP-WH-041A",
+                "x-guard": "warehouse",
+                "x-audience": "warehouse",
+                "x-roles": [
+                    "warehouse_keeper"
+                ],
+                "x-apps": [
+                    "warehouse"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "operations": [
+                                    {
+                                        "client_op_id": "op_pick_scan_1",
+                                        "type": "pick.scan",
+                                        "payload": {
+                                            "picking_list_id": 11,
+                                            "barcode": "6291000000000",
+                                            "qty": 2
+                                        },
+                                        "created_at": "2026-03-01T09:05:00+03:00"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/warehouse/sync/status": {
+            "get": {
+                "operationId": "EP-WH-041B",
+                "summary": "Warehouse offline sync status",
+                "description": "حالة مزامنة المستودع",
+                "tags": [
+                    "warehouse",
+                    "أمين المستودع"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "warehouse-desktop"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "pending_server_side": 0,
+                                        "last_push_at": "2026-03-01T09:11:40+03:00",
+                                        "conflicts": [
+                                            {
+                                                "conflict_id": "12",
+                                                "client_op_id": "op_pick_complete_2",
+                                                "type": "pick.complete",
+                                                "error": "illegal_transition"
+                                            }
+                                        ]
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "wh.picking.execute",
+                "x-sprint": "SP-11",
+                "x-code": "EP-WH-041B",
+                "x-guard": "warehouse",
+                "x-audience": "warehouse",
+                "x-roles": [
+                    "warehouse_keeper"
+                ],
+                "x-apps": [
+                    "warehouse"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/warehouse/sync/resolve-conflict": {
+            "post": {
+                "operationId": "EP-WH-041C",
+                "summary": "Resolve warehouse sync conflict",
+                "description": "حل تعارض مزامنة المستودع\n\nresolution: server_wins (mark discarded) | client_wins (re-apply stored payload).",
+                "tags": [
+                    "warehouse",
+                    "أمين المستودع"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "warehouse-desktop"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "success": true
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "not_found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "not_found",
+                                        "message": "not_found"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "wh.picking.execute",
+                "x-sprint": "SP-11",
+                "x-code": "EP-WH-041C",
+                "x-guard": "warehouse",
+                "x-audience": "warehouse",
+                "x-roles": [
+                    "warehouse_keeper"
+                ],
+                "x-apps": [
+                    "warehouse"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "conflict_id": "12",
+                                "resolution": "server_wins"
                             }
                         }
                     }
@@ -24410,7 +24888,7 @@
             "put": {
                 "operationId": "EP-SC-086",
                 "summary": "Retailer credit limit",
-                "description": "سقف ائتمان التاجر\n\non_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+                "description": "سقف ائتمان التاجر\n\non_exceed: warn|block|manual_approval. block → 423 credit_limit_exceeded. manual_approval → queues EP-SC-165 then 423 with approval_id until approved+consumed. warn never blocks.",
                 "tags": [
                     "channel_dashboard",
                     "مدير القناة",
@@ -24630,6 +25108,282 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/api/v1/channel/credit-approvals": {
+            "get": {
+                "operationId": "EP-SC-165",
+                "summary": "List credit approval queue",
+                "description": "طابور موافقة الائتمان\n\nPending rows created when on_exceed=manual_approval and confirm would exceed. status: pending|approved|rejected|consumed.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة",
+                    "المحاسب",
+                    "مدير المبيعات"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "1"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "25"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "-created_at"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": ""
+                        }
+                    },
+                    {
+                        "name": "filter[status]",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "pending"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "retailer_id": 481,
+                                            "amount_minor": 200000,
+                                            "outstanding": 400000,
+                                            "credit_limit": 500000,
+                                            "status": "pending",
+                                            "created_at": "2026-09-24T12:00:00+03:00"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.retailers.credit",
+                "x-sprint": "SP-13",
+                "x-code": "EP-SC-165",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager",
+                    "accountant",
+                    "sales_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/channel/credit-approvals/{id}/decide": {
+            "post": {
+                "operationId": "EP-SC-165A",
+                "summary": "Decide credit approval",
+                "description": "قرار موافقة ائتمان\n\ndecision: approve|reject. Only pending. Approve allows the next assertWithinLimit that fits the approved amount to consume the row.",
+                "tags": [
+                    "channel_dashboard",
+                    "مدير القناة",
+                    "المحاسب",
+                    "مدير المبيعات"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "channel-web"
+                        }
+                    },
+                    {
+                        "name": "X-Channel-Id",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "id": 1,
+                                        "status": "approved"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "illegal_transition",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "illegal_transition",
+                                        "message": "illegal_transition"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "sc.retailers.credit",
+                "x-sprint": "SP-13",
+                "x-code": "EP-SC-165A",
+                "x-guard": "channel",
+                "x-audience": "channel",
+                "x-roles": [
+                    "channel_manager",
+                    "accountant",
+                    "sales_manager"
+                ],
+                "x-apps": [
+                    "channel_dashboard"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "decision": "approve",
+                                "reason": "عميل موثوق"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/api/v1/channel/notifications": {
@@ -31087,6 +31841,145 @@
                             },
                             "example": {
                                 "password": "********"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/platform/auth/request-otp": {
+            "post": {
+                "operationId": "EP-AD-005A",
+                "summary": "Request platform step-up OTP",
+                "description": "طلب رمز تحقق لإجراء حساس\n\nBF-05. Before EP-AD-058: if the actor has 2FA, mode=totp and no SMS is sent; otherwise a phone OTP is issued. Local/testing may return mode=bypass.",
+                "tags": [
+                    "platform_admin",
+                    "مدير المنصة",
+                    "مسؤول التشغيل",
+                    "موظف الدعم",
+                    "محاسب المنصة",
+                    "مسؤول المحتوى",
+                    "مسؤول التقنية",
+                    "المدقّق"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "platform-web"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "mode": "whatsapp",
+                                        "otp_id": "otp_ab12cd",
+                                        "expires_in": 300,
+                                        "resend_after": 60,
+                                        "channel_used": "whatsapp"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "unauthenticated",
+                                        "message": "unauthenticated"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "validation_failed",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "validation_failed",
+                                        "message": "validation_failed"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-sprint": "SP-01",
+                "x-code": "EP-AD-005A",
+                "x-guard": "platform",
+                "x-audience": "platform",
+                "x-roles": [
+                    "platform_admin",
+                    "platform_ops",
+                    "platform_support",
+                    "platform_finance",
+                    "platform_content",
+                    "platform_tech",
+                    "platform_auditor"
+                ],
+                "x-apps": [
+                    "platform_admin"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "purpose": "platform_channel_delete"
                             }
                         }
                     }
@@ -38856,7 +39749,7 @@
             "delete": {
                 "operationId": "EP-AD-058",
                 "summary": "Delete channel",
-                "description": "حذف قناة\n\nArchived ≥ 30 days. Dual approval.",
+                "description": "حذف قناة\n\nArchived ≥ 30 days. Dual approval. otp_code is Identity step-up: TOTP if 2FA enabled, else phone OTP from EP-AD-005A.",
                 "tags": [
                     "platform_admin",
                     "مدير المنصة"

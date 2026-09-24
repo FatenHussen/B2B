@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fulfillment\Application;
 
+use Illuminate\Support\Carbon;
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\CreatesPickingList;
 use Modules\Core\Contracts\RecordsAudit;
@@ -793,6 +794,144 @@ final class WarehouseWorkspace
             (string) $data['reason'],
             $actor,
         );
+    }
+
+    /**
+     * Live productivity / accuracy for the device warehouse (EP-WH-050).
+     *
+     * @return array{
+     *   date_from: string,
+     *   date_to: string,
+     *   kpis: array{
+     *     lists_completed: int,
+     *     packs_completed: int,
+     *     qty_required: int,
+     *     qty_picked: int,
+     *     pick_accuracy_bps: int,
+     *     shortage_lines: int,
+     *     manual_lines: int,
+     *     handovers_opened: int,
+     *     receipts: int,
+     *     stocktakes_posted: int
+     *   },
+     *   daily: list<array{date: string, lists_completed: int, packs_completed: int, qty_picked: int, shortage_lines: int}>
+     * }
+     */
+    public function productivityReport(?string $dateFrom, ?string $dateTo): array
+    {
+        $tz = 'Asia/Damascus';
+        $to = $dateTo !== null && $dateTo !== ''
+            ? Carbon::parse($dateTo, $tz)->endOfDay()
+            : now($tz)->endOfDay();
+        $from = $dateFrom !== null && $dateFrom !== ''
+            ? Carbon::parse($dateFrom, $tz)->startOfDay()
+            : $to->copy()->subDays(6)->startOfDay();
+
+        if ($from->gt($to)) {
+            [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
+        }
+
+        $wid = $this->warehouseId();
+        $fromUtc = $from->copy()->utc();
+        $toUtc = $to->copy()->utc();
+
+        $completedStatuses = [PickingStatus::ToPack, PickingStatus::Packed];
+        $lists = PickingList::query()
+            ->where('warehouse_id', $wid)
+            ->whereIn('status', $completedStatuses)
+            ->whereBetween('updated_at', [$fromUtc, $toUtc])
+            ->with('lines')
+            ->get();
+
+        $listsCompleted = $lists->count();
+        $packsCompleted = $lists->where('status', PickingStatus::Packed)->count();
+        $qtyRequired = 0;
+        $qtyPicked = 0;
+        $shortageLines = 0;
+        $manualLines = 0;
+        /** @var array<string, array{lists_completed: int, packs_completed: int, qty_picked: int, shortage_lines: int}> $byDay */
+        $byDay = [];
+
+        foreach ($lists as $list) {
+            $day = $list->updated_at?->timezone($tz)->toDateString() ?? $from->toDateString();
+            if (! isset($byDay[$day])) {
+                $byDay[$day] = [
+                    'lists_completed' => 0,
+                    'packs_completed' => 0,
+                    'qty_picked' => 0,
+                    'shortage_lines' => 0,
+                ];
+            }
+            $byDay[$day]['lists_completed']++;
+            if ($list->status === PickingStatus::Packed) {
+                $byDay[$day]['packs_completed']++;
+            }
+
+            foreach ($list->lines as $line) {
+                $req = (int) $line->qty_required;
+                $picked = (int) $line->qty_picked;
+                $qtyRequired += $req;
+                $qtyPicked += $picked;
+                $byDay[$day]['qty_picked'] += $picked;
+                if ($line->shortage_reason !== null && $line->shortage_reason !== '') {
+                    $shortageLines++;
+                    $byDay[$day]['shortage_lines']++;
+                }
+                if ((bool) $line->manual) {
+                    $manualLines++;
+                }
+            }
+        }
+
+        $handoversOpened = Handover::query()
+            ->where('warehouse_id', $wid)
+            ->whereBetween('opened_at', [$fromUtc, $toUtc])
+            ->count();
+
+        $receipts = GoodsReceipt::query()
+            ->where('warehouse_id', $wid)
+            ->whereBetween('created_at', [$fromUtc, $toUtc])
+            ->count();
+
+        $stocktakesPosted = Stocktake::query()
+            ->where('warehouse_id', $wid)
+            ->where('status', 'posted')
+            ->whereBetween('updated_at', [$fromUtc, $toUtc])
+            ->count();
+
+        $accuracyBps = $qtyRequired > 0
+            ? (int) intdiv($qtyPicked * 10_000, $qtyRequired)
+            : 0;
+
+        ksort($byDay);
+        $daily = [];
+        foreach ($byDay as $date => $row) {
+            $daily[] = [
+                'date' => $date,
+                'lists_completed' => $row['lists_completed'],
+                'packs_completed' => $row['packs_completed'],
+                'qty_picked' => $row['qty_picked'],
+                'shortage_lines' => $row['shortage_lines'],
+            ];
+        }
+
+        return [
+            'date_from' => $from->toDateString(),
+            'date_to' => $to->toDateString(),
+            'kpis' => [
+                'lists_completed' => $listsCompleted,
+                'packs_completed' => $packsCompleted,
+                'qty_required' => $qtyRequired,
+                'qty_picked' => $qtyPicked,
+                'pick_accuracy_bps' => $accuracyBps,
+                'shortage_lines' => $shortageLines,
+                'manual_lines' => $manualLines,
+                'handovers_opened' => $handoversOpened,
+                'receipts' => $receipts,
+                'stocktakes_posted' => $stocktakesPosted,
+            ],
+            'daily' => $daily,
+        ];
     }
 
     private function list(int $id): PickingList

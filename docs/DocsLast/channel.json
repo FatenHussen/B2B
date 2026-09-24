@@ -10,8 +10,8 @@
         "not": "This is NOT the platform admin (guard platform, port 3000) and NOT the warehouse / Flutter apps.",
         "rule": "If this file and the catalog disagree, this file wins. Call only live:true. Never call forbidden. Never mock missing retailer/warehouse/product-show lists. Gate screens with permissions[] from verify-otp, not role names.",
         "counts": {
-            "live_endpoints": 128,
-            "matched_catalog": 128,
+            "live_endpoints": 130,
+            "matched_catalog": 130,
             "live_without_catalog": 0,
             "forbidden": 12
         }
@@ -127,7 +127,7 @@
         "GET /channel/categories/tree nodes include media_id (editable) and activity_type_ids; image remains a resolved URL.",
         "POST /channel/sub-orders/assign mode auto|bulk_zone is real: first on-duty rep covering the zone (or rep_id on bulk_zone). No candidate → 422.",
         "Pricing lists stop-at-first-match (retailer ← group ← zone); they do not stack adjustments.",
-        "Retailer credit on_exceed=manual_approval is stored but behaves as block (423) until a credit-approval queue EP exists.",
+        "Retailer credit on_exceed=manual_approval queues GET/POST /channel/credit-approvals (EP-SC-165/165A); confirm returns 423 with approval_id until approved then consumed.",
         "Banner impressions increment when GET /app/content/home-blocks serves a Banner row. Clicks via POST /app/content/banners/{id}/click. stats.ctr is integer basis points at scale 10^4.",
         "GET /channel/offers list rows are only id, name, type, status. GET/PUT /channel/offers/{id} and activate exist. conversion_rate is scale 10^4 from unique retailer views; net_margin is linked_sales minus product cost_price.",
         "GET /channel/invoices list rows are only id, no, total, status. GET /channel/invoices/{id} returns lines[] for credit-note line_id.",
@@ -3814,7 +3814,7 @@
                 "on_exceed": "block"
             },
             "errors": [],
-            "description": "on_exceed: warn|block|manual_approval. manual_approval is stored but behaves as block until a credit-approval queue EP exists — confirm returns 423 credit_limit_exceeded for both block and manual_approval. warn never blocks.",
+            "description": "on_exceed: warn|block|manual_approval. block → 423 credit_limit_exceeded. manual_approval → queues EP-SC-165 then 423 with approval_id until approved+consumed. warn never blocks.",
             "note": null
         },
         {
@@ -3875,7 +3875,7 @@
             "errors": {
                 "404": "not_found"
             },
-            "description": "Same handler as EP-SC-140A; richer fields (outstanding, groups, assigned_rep_ids, last_order_at). Status-tracking alias — OpenAPI keeps EP-SC-140A as operationId.",
+            "description": "Same handler as EP-SC-140A; richer fields (outstanding, groups, assigned_rep_ids, last_order_at). Duplicate path for status tracking — OpenAPI operationId is EP-SC-164 (later code wins).",
             "note": null
         },
         {
@@ -4823,6 +4823,83 @@
             },
             "errors": [],
             "description": "",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "POST",
+            "path": "/api/v1/channel/credit-approvals/{id}/decide",
+            "catalog_path": "/channel/credit-approvals/{id}/decide",
+            "code": "EP-SC-165A",
+            "name": "Decide credit approval",
+            "name_ar": "قرار موافقة ائتمان",
+            "permission": "sc.retailers.credit",
+            "guard": "channel",
+            "auth": true,
+            "write": true,
+            "idempotency": true,
+            "folder": "99. Other",
+            "query": [],
+            "body": {
+                "decision": "approve",
+                "reason": "عميل موثوق"
+            },
+            "response": {
+                "id": 1,
+                "status": "approved"
+            },
+            "errors": {
+                "409": "illegal_transition"
+            },
+            "description": "decision: approve|reject. Only pending. Approve allows the next assertWithinLimit that fits the approved amount to consume the row.",
+            "note": null
+        },
+        {
+            "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/credit-approvals",
+            "catalog_path": "/channel/credit-approvals",
+            "code": "EP-SC-165",
+            "name": "List credit approval queue",
+            "name_ar": "طابور موافقة الائتمان",
+            "permission": "sc.retailers.credit",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "99. Other",
+            "query": [
+                {
+                    "name": "page",
+                    "example": "1"
+                },
+                {
+                    "name": "per_page",
+                    "example": "25"
+                },
+                {
+                    "name": "search",
+                    "example": ""
+                },
+                {
+                    "name": "filter[status]",
+                    "example": "pending"
+                }
+            ],
+            "body": null,
+            "response": [
+                {
+                    "id": 1,
+                    "retailer_id": 481,
+                    "amount_minor": 200000,
+                    "outstanding": 400000,
+                    "credit_limit": 500000,
+                    "status": "pending",
+                    "created_at": "2026-09-24T12:00:00+03:00"
+                }
+            ],
+            "errors": [],
+            "description": "Pending rows created when on_exceed=manual_approval and confirm would exceed. status: pending|approved|rejected|consumed.",
             "note": null
         },
         {

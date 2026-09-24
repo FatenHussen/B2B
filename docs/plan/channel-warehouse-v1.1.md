@@ -15,29 +15,25 @@ implement behind it, then regenerate status.
 | `variants[].stock` on GET product | Default warehouse ledger |
 | Category tree `media_id` + `activity_type_ids` | EP-SC-011 response |
 | Pick path by aisle/shelf | WH picking list order |
-| Credit `manual_approval` | Documented ≡ block (423) |
 | Banner CTR | impressions on home-blocks + `POST /app/content/banners/{id}/click` |
 | Returns `sla_due_at` / overdue | EP-SC-070 + channel `settings.returns_sla_hours` |
 | Stock lots on receive + FEFO earliest expiry | Receiving body + ledger `receiveLot` / `earliestExpiry` |
 | Rep live location | EP-SC-075A |
 | Warehouse overdue_picks / inbound_returns alerts | EP-WH-010 queues |
-| Richer retailer 360 | EP-SC-164 fields on `GET /channel/retailers/{id}` (same handler as EP-SC-140A) |
+| List/adjust stock lots | EP-WH-040 / 040A |
+| Offline pick/pack + conflict sync | EP-WH-041A–C |
+| Picking waves (multi-order pick sheet) | EP-WH-042 / 042A |
+| Live map of on-duty reps | EP-SC-160 |
+| Weekly delivery calendar | EP-SC-161 |
+| Returns SLA escalate | EP-SC-162 |
 | Zone map polygons + delivery_windows | EP-SC-163 |
+| Richer retailer 360 | EP-SC-164 fields on `GET /channel/retailers/{id}` |
+| Credit `manual_approval` queue | EP-SC-165 / 165A |
+| Warehouse productivity / accuracy reports | EP-WH-050 |
 
 ## Still deferred (no full EP / client surface)
 
-Priority is product order for remaining post-launch work.
-
-| Priority | Reserved EP id(s) | Surface | Capability | Notes |
-|---|---|---|---|---|
-| 1 | EP-WH-040 | warehouse | List/adjust stock lots UI | Lots table exists; no dedicated list/adjust EP yet. |
-| 2 | EP-WH-041A–B | warehouse | Offline pick/pack + conflict sync | Needs device cursor + conflict codes. |
-| 3 | EP-WH-042 / 042A | warehouse | Batch picking / multi-order pick list | ✅ POST+GET picking-waves (2026-09-24) |
-| 4 | EP-SC-160 | channel | Live **map** of all on-duty reps | Single-rep `/reps/{id}/live` exists; aggregate map does not. |
-| 5 | EP-SC-161 | channel | Weekly channel delivery calendar | Coverage today is `delivery_days` on zones only. |
-| 6 | EP-SC-162 | channel | Returns SLA escalation actions | List shows overdue; no escalate/notify EP. |
-| 7 | EP-WH-050 | warehouse | Productivity / accuracy reports | Snapshots cover channel ops; WH-specific missing. |
-| 8 | EP-SC-165 | channel | Credit `manual_approval` queue | Until then `manual_approval` ≡ block (423). |
+_(none — v1.1 channel/warehouse backlog complete)_
 
 When picking one row: add `ep(...)` to `docs/api/catalog/05-channel-ops.php` or
 `06-warehouse.php`, land the route + tests, then
