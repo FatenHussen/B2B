@@ -19,6 +19,7 @@ final class ChannelAuthController extends ApiController
         $dispatch = $otp->request(
             phone: $request->string('phone')->toString(),
             purpose: OtpPurpose::ChannelLogin,
+            client: $request->header('X-Client'),
             ip: $request->ip(),
             deviceId: $request->header('X-Device-Id'),
         );

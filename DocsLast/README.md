@@ -1,5 +1,9 @@
 # Frontend documentation
 
+> **متخلف (2026-09-07).** العقود العربية الحالية لكل تطبيق ولوحة:  
+> **[`docs/DocsLast/README.md`](../docs/DocsLast/README.md)** — `platform` · `channel` · `warehouse` · `flutter-rep` · `flutter-retailer`.  
+> لا تستخدم ملفات `apps/*.md` هنا للبناء الجديد.
+
 The API is a pure JSON API at `/api/v1` serving five clients: two Flutter apps and three
 Next.js dashboards.
 

@@ -9,7 +9,7 @@ every endpoint — all of it is here. No other document is required to build thi
 | Port | **3001** |
 | Guard | `channel` (Sanctum) |
 | `X-Client` | `channel-web` *(sent for logs; the server ignores it)* |
-| Seed account | phone **`+963900000001`**, OTP from the log — channel `demo-channel` |
+| Seed account | phone **`+963900000001`**, OTP **`000000`** outside production — channel `demo-channel` |
 
 Verified against `php artisan route:list` and the controller/action source on
 **2026-09-07**. Where the API catalog disagrees with this page, the code wins.
@@ -87,12 +87,13 @@ The seeder creates a channel manager bound to the demo channel:
 | Channel | `demo-channel` (id `1`) |
 | Role | `channel_manager` |
 
-Login is passwordless — an OTP is sent to that phone. Locally no WhatsApp is sent: the code
-is written to the log.
+Login is passwordless — an OTP is sent to that phone. Locally / on staging the code is
+fixed **`000000`** (same development shortcut as rep clients). Production sends a random
+6-digit code (and may log it when the OTP channel is `log`).
 
 ```bash
 tail -f storage/logs/laravel.log | grep OTP
-# [OTP] channel_login via whatsapp for +963900000001: 481923
+# [OTP] channel_login via whatsapp for +963900000001: 000000
 ```
 
 | Setting | Default |

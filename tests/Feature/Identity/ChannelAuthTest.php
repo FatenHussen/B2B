@@ -52,3 +52,64 @@ it('issues a channel token for a member and 403 without membership', function ()
         'insufficient_permission',
     );
 });
+
+it('issues a fixed all-zero code for channel login outside production', function () {
+    config(['otp.bypass' => false]);
+
+    $channel = SupplyChannel::factory()->create();
+    $member = ChannelUser::factory()->forChannel($channel)->create(['phone' => '+963944000001']);
+    $member->assignRole('channel_manager');
+
+    $requested = $this->withHeaders(['X-Client' => 'channel-web'])->postJson(
+        '/api/v1/channel/auth/request-otp',
+        ['phone' => '+963944000001'],
+    );
+    CatalogAssert::ok($requested, ['otp_id']);
+
+    /** @var FakeOtpChannel $fake */
+    $fake = $this->otp;
+    expect($fake->codeFor(PhoneNumber::normalize('+963944000001')))->toBe('000000');
+
+    $verified = $this->postJson('/api/v1/channel/auth/verify-otp', [
+        'otp_id' => $requested->json('data.otp_id'),
+        'code' => '000000',
+    ]);
+    CatalogAssert::ok($verified, ['token', 'channels']);
+});
+
+it('gives channel login a real code in production', function () {
+    $this->app['env'] = 'production';
+    config(['otp.bypass' => true]);
+
+    $channel = SupplyChannel::factory()->create();
+    $member = ChannelUser::factory()->forChannel($channel)->create(['phone' => '+963944000002']);
+    $member->assignRole('channel_manager');
+
+    $requested = $this->withHeaders(['X-Client' => 'channel-web'])->postJson(
+        '/api/v1/channel/auth/request-otp',
+        ['phone' => '+963944000002'],
+    );
+    CatalogAssert::ok($requested, ['otp_id']);
+
+    /** @var FakeOtpChannel $fake */
+    $fake = $this->otp;
+    $sent = $fake->codeFor(PhoneNumber::normalize('+963944000002'));
+    expect($sent)->toBeString()->toHaveLength(6);
+
+    CatalogAssert::error(
+        $this->postJson('/api/v1/channel/auth/verify-otp', [
+            'otp_id' => $requested->json('data.otp_id'),
+            'code' => $sent === '000000' ? '111111' : '000000',
+        ]),
+        401,
+        'otp_invalid',
+    );
+
+    CatalogAssert::ok(
+        $this->postJson('/api/v1/channel/auth/verify-otp', [
+            'otp_id' => $requested->json('data.otp_id'),
+            'code' => $sent,
+        ]),
+        ['token', 'channels'],
+    );
+});

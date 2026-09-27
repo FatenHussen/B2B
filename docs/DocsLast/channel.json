@@ -6,7 +6,7 @@
         "guard": "channel",
         "x_client": "channel-web",
         "port": 3001,
-        "seed": "+963900000001 — role channel_manager on demo-channel (id 1). OTP_BYPASS=true only under local|testing. Staging/production ignore the flag. Without bypass, random 6 digits (not all zeros — zeros are rep-* only).",
+        "seed": "+963900000001 — role channel_manager on demo-channel (id 1). Outside production the channel OTP is fixed 000000 (same shortcut as rep-*). Production always sends a random 6-digit code. OTP_BYPASS=true (local|testing only) accepts any code.",
         "not": "This is NOT the platform admin (guard platform, port 3000) and NOT the warehouse / Flutter apps.",
         "rule": "If this file and the catalog disagree, this file wins. Call only live:true. Never call forbidden. Never mock missing retailer/warehouse/product-show lists. Gate screens with permissions[] from verify-otp, not role names.",
         "counts": {
@@ -122,7 +122,7 @@
     "gotchas": [
         "No POST /channel/auth/logout. Discard the token locally. There is no GET /channel/me — the session is the verify-otp payload (token, channels[], permissions[]).",
         "X-Channel-Id is ignored for channel users. channels[] from login is display-only — no tenant switch API on this guard.",
-        "OTP_BYPASS is honoured only when APP_ENV is local or testing. Staging and production ignore it. Without bypass, channel codes are random 6 digits, not 000000. X-Client channel-web does not get the rep all-zero shortcut.",
+        "OTP_BYPASS is honoured only when APP_ENV is local or testing. Staging and production ignore it. Outside production, channel login issues a fixed 000000 (purpose channel_login / X-Client channel-*). Production always uses a random 6-digit code.",
         "GET /channel/products list rows are only id, sku, name_ar, status. GET /channel/products/{id} returns the full editor body (pricing may be null — use PUT /products/{id}/pricing). variants[].stock is available qty on the channel default warehouse (0 when none).",
         "GET /channel/categories/tree nodes include media_id (editable) and activity_type_ids; image remains a resolved URL.",
         "POST /channel/sub-orders/assign mode auto|bulk_zone is real: first on-duty rep covering the zone (or rep_id on bulk_zone). No candidate → 422.",
