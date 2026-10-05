@@ -66,6 +66,7 @@ final class SubOrderStateMachine
     }
 
     /**
+     * @param  list<string>  $permissions
      * @return list<string>
      */
     public function allowed(SubOrderStatus $from, array $permissions = []): array
@@ -94,6 +95,6 @@ final class SubOrderStateMachine
             $out[] = $action;
         }
 
-        return array_values($out);
+        return $out;
     }
 }

@@ -9,6 +9,9 @@ use Modules\Core\Http\ApiFormRequest;
 
 final class AssignSubOrdersRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         $mode = (string) $this->input('mode', 'manual');

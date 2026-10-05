@@ -8,6 +8,9 @@ use Modules\Core\Http\ApiFormRequest;
 
 final class SubmitRepCartRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

@@ -25,6 +25,7 @@ class Cart extends Model
      * section is the split key of a multi-channel cart, not a boundary. `/app/*` sets no
      * tenant, and must not: a retailer's cart holds several channels at once.
      */
+    /** @return HasMany<CartSection, $this> */
     public function sections(): HasMany
     {
         return $this->hasMany(CartSection::class)->withoutGlobalScope('channel');

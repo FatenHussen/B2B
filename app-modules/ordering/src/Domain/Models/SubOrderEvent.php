@@ -25,6 +25,7 @@ class SubOrderEvent extends Model
         return ['at' => 'datetime'];
     }
 
+    /** @return BelongsTo<SubOrder, $this> */
     public function subOrder(): BelongsTo
     {
         return $this->belongsTo(SubOrder::class);

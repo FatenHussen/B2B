@@ -36,6 +36,7 @@ class CartLine extends Model
      * through its cart's owner, and `whereHas('section', cart_id = …)` is the owner
      * check itself. The section is the line's own section or nothing.
      */
+    /** @return BelongsTo<CartSection, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(CartSection::class, 'section_id')->withoutGlobalScope('channel');

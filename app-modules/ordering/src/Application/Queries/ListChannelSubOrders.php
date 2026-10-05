@@ -13,6 +13,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 final class ListChannelSubOrders
 {
+    /** @return LengthAwarePaginator<int, SubOrder> */
     public function __invoke(Request $request): LengthAwarePaginator
     {
         $perPage = min((int) $request->input('per_page', 25), 100);

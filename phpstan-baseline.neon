@@ -1,26 +1,3 @@
-# PHPStan baseline — BE-F11, generated 2026-09-16 at 585 findings (490 entries) with
-# the configuration in phpstan.neon and no code touched. Paid down to 479 findings
-# (384 entries) when BelongsToChannel::scopeAcrossChannels gained Builder<static>
-# generics, and to 475 (380 entries) when the rep tests were cleared (2026-09-18).
-# No identifier is ignored: the
-# 213 relation declarations without a related type (`missingType.generics`) are counted
-# here beside the 173 "undefined property on Model" symptoms they cause, so fixing a
-# declaration takes its symptoms with it and the number only ever falls.
-#
-# This file is the debt, counted. It is not a place to add to. The rules:
-#   - The total (the sum of every `count:` below) only falls. It is pinned exactly by
-#     tests/Architecture/PhpstanBaselineTest.php, which fails the build when the sum rises
-#     and asks for the pin to be lowered when it falls — so the number is always known,
-#     never discovered.
-#   - It is paid down one module at a time, each as its own small ticket under BE-F11
-#     (the per-module table there is the work list, ranked by symptoms per declaration):
-#     fix the module's declarations, regenerate this file, lower the pin, commit the three
-#     together.
-#   - A new finding in new code is not baselined; it is fixed. `--generate-baseline` is
-#     run only in a pay-down commit, where the sum goes down.
-#   - Nothing here is a runtime defect as of the date above: declarations without their
-#     generic type, the bare-Model symptoms of those, arrays without a value type,
-#     unresolved templates, and 31 Pest residues the analyser cannot express.
 parameters:
 	ignoreErrors:
 		-
@@ -42,6 +19,12 @@ parameters:
 			path: app-modules/access/src/Infrastructure/ChannelTeamResolver.php
 
 		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app-modules/catalog/src/Application/Actions/CreateCategory.php
+
+		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:each\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed, Closure\(Modules\\Catalog\\Domain\\Models\\ProductVariantAxis\)\: void given\.$#'
 			identifier: argument.type
 			count: 1
@@ -50,7 +33,7 @@ parameters:
 		-
 			message: '#^Parameter \#2 \$byParent of method Modules\\Catalog\\Application\\Queries\\CategoryTree\:\:node\(\) expects Illuminate\\Support\\Collection\<string, Illuminate\\Support\\Collection\<int, Modules\\Catalog\\Domain\\Models\\Category\>\>, Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), Illuminate\\Database\\Eloquent\\Collection\<int, Modules\\Catalog\\Domain\\Models\\Category\>\> given\.$#'
 			identifier: argument.type
-			count: 1
+			count: 2
 			path: app-modules/catalog/src/Application/Queries/CategoryTree.php
 
 		-
@@ -66,6 +49,30 @@ parameters:
 			path: app-modules/catalog/src/Application/Queries/ListChannelProducts.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app-modules/catalog/src/Application/Queries/ListRepProducts.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$media_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app-modules/catalog/src/Application/Queries/ListRepProducts.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name_ar\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app-modules/catalog/src/Application/Queries/ListRepProducts.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app-modules/catalog/src/Application/Queries/ListRepProducts.php
+
+		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Catalog\\Domain\\Models\\Product\>\:\:defaultSort\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -74,6 +81,12 @@ parameters:
 		-
 			message: '#^Method Modules\\Catalog\\Application\\Queries\\ListRepProducts\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
 			identifier: missingType.generics
+			count: 1
+			path: app-modules/catalog/src/Application/Queries/ListRepProducts.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, label\: string, barcode\: string\|null\}, Closure\(Modules\\Catalog\\Domain\\Models\\ProductVariant\)\: array\{id\: int, label\: string, barcode\: string\|null\} given\.$#'
+			identifier: argument.type
 			count: 1
 			path: app-modules/catalog/src/Application/Queries/ListRepProducts.php
 
@@ -203,8 +216,6 @@ parameters:
 			count: 1
 			path: app-modules/catalog/src/Domain/Models/Brand.php
 
-
-
 		-
 			message: '#^Method Modules\\Catalog\\Domain\\Models\\Brand\:\:sliders\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
@@ -235,8 +246,6 @@ parameters:
 			count: 1
 			path: app-modules/catalog/src/Domain/Models/Category.php
 
-
-
 		-
 			message: '#^Method Modules\\Catalog\\Domain\\Models\\Product\:\:activityTypes\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
@@ -260,8 +269,6 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/catalog/src/Domain/Models/Product.php
-
-
 
 		-
 			message: '#^Method Modules\\Catalog\\Domain\\Models\\Product\:\:sliderTags\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -336,6 +343,12 @@ parameters:
 			path: app-modules/catalog/src/Infrastructure/EmptyOfferFeed.php
 
 		-
+			message: '#^Method Modules\\Catalog\\Presentation\\Http\\Requests\\ChangeCategoryStatusRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app-modules/catalog/src/Presentation/Http/Requests/ChangeCategoryStatusRequest.php
+
+		-
 			message: '#^Method Modules\\Catalog\\Presentation\\Http\\Requests\\GenerateVariantsRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -377,11 +390,17 @@ parameters:
 			count: 1
 			path: app-modules/catalog/src/Presentation/Http/Requests/StoreShortageRequest.php
 
+		-
+			message: '#^Method Modules\\Catalog\\Presentation\\Http\\Requests\\UpdateCategoryRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app-modules/catalog/src/Presentation/Http/Requests/UpdateCategoryRequest.php
 
-
-
-
-
+		-
+			message: '#^Method Modules\\Catalog\\Presentation\\Http\\Requests\\UploadMediaRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app-modules/catalog/src/Presentation/Http/Requests/UploadMediaRequest.php
 
 		-
 			message: '#^Method Modules\\Core\\Contracts\\OfferFeed\:\:sliderFor\(\) has parameter \$channelIds with no value type specified in iterable type array\.$#'
@@ -394,8 +413,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: app-modules/core/src/Domain/Events/HandoverConfirmedByRep.php
-
-
 
 		-
 			message: '#^Method Modules\\Core\\Http\\ApiController\:\:paginated\(\) has parameter \$paginator with generic interface Illuminate\\Contracts\\Pagination\\CursorPaginator but does not specify its types\: TKey, TValue$#'
@@ -518,6 +535,12 @@ parameters:
 			path: app-modules/delivery/src/Domain/Models/DeliveryLine.php
 
 		-
+			message: '#^Method Modules\\Delivery\\Infrastructure\\EloquentRepLiveLocation\:\:latest\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app-modules/delivery/src/Infrastructure/EloquentRepLiveLocation.php
+
+		-
 			message: '#^Method Modules\\Delivery\\Presentation\\Http\\Requests\\CompleteDeliveryRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -554,33 +577,31 @@ parameters:
 			path: app-modules/delivery/src/Presentation/Http/Requests/RateRepRequest.php
 
 		-
+			message: '#^Method Modules\\Finance\\Application\\Queries\\ListCreditApprovals\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app-modules/finance/src/Application/Queries/ListCreditApprovals.php
+
+		-
 			message: '#^Method Modules\\Finance\\Application\\Queries\\ListInvoices\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/finance/src/Application/Queries/ListInvoices.php
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$barcode\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$counted_qty\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$counted_qty\.$#'
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$expiry_date\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
@@ -592,33 +613,45 @@ parameters:
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$manual\.$#'
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$location_id\.$#'
 			identifier: property.notFound
 			count: 1
+			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lot_no\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$manual\.$#'
+			identifier: property.notFound
+			count: 2
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
 			identifier: property.notFound
-			count: 3
+			count: 6
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty_picked\.$#'
 			identifier: property.notFound
-			count: 6
+			count: 8
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty_required\.$#'
 			identifier: property.notFound
-			count: 4
+			count: 6
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$shortage_reason\.$#'
 			identifier: property.notFound
-			count: 1
+			count: 2
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
@@ -630,7 +663,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant_id\.$#'
 			identifier: property.notFound
-			count: 2
+			count: 3
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
@@ -658,9 +691,21 @@ parameters:
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, image\: string\|null, name\: string, variant\: null, qty_required\: int\<0, max\>, qty_picked\: int\<0, max\>, sale_unit\: string\|null, location\: array\{aisle\: string\|null, shelf\: string\|null\}\|null, barcode\: string\|null\}, Closure\(Modules\\Fulfillment\\Domain\\Models\\PickingLine\)\: array\{id\: int, image\: string\|null, name\: string, variant\: null, qty_required\: int\<0, max\>, qty_picked\: int\<0, max\>, sale_unit\: string\|null, location\: array\{aisle\: string\|null, shelf\: string\|null\}\|null, barcode\: string\|null\} given\.$#'
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, image\: string\|null, name\: string, variant\: string\|null, qty_required\: int\<0, max\>, qty_picked\: int\<0, max\>, sale_unit\: string\|null, location\: array\{aisle\: string\|null, shelf\: string\|null\}\|null, barcode\: string\|null, earliest_expiry\: string\|null\}, Closure\(Modules\\Fulfillment\\Domain\\Models\\PickingLine\)\: array\{id\: int, image\: string\|null, name\: string, variant\: string\|null, qty_required\: int\<0, max\>, qty_picked\: int\<0, max\>, sale_unit\: string\|null, location\: array\{aisle\: string\|null, shelf\: string\|null\}\|null, barcode\: string\|null, earliest_expiry\: string\|null\} given\.$#'
 			identifier: argument.type
 			count: 1
+			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:sortBy\(\) expects array\<array\{string, ''asc''\|''desc''\|SortDirection\}\|\(callable\(Illuminate\\Database\\Eloquent\\Model, Illuminate\\Database\\Eloquent\\Model\)\: mixed\)\|\(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed\)\|string\>\|\(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: mixed\)\|int\|string, Closure\(Modules\\Fulfillment\\Domain\\Models\\PickingLine\)\: array\{int\<0, max\>, int\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
 			path: app-modules/fulfillment/src/Application/WarehouseWorkspace.php
 
 		-
@@ -699,13 +744,23 @@ parameters:
 			count: 1
 			path: app-modules/fulfillment/src/Domain/Models/PickingList.php
 
-
+		-
+			message: '#^Method Modules\\Fulfillment\\Domain\\Models\\PickingWave\:\:pickingLists\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app-modules/fulfillment/src/Domain/Models/PickingWave.php
 
 		-
 			message: '#^Method Modules\\Fulfillment\\Domain\\Models\\Stocktake\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/fulfillment/src/Domain/Models/Stocktake.php
+
+		-
+			message: '#^Method Modules\\Fulfillment\\Presentation\\Http\\Requests\\AdjustStockLotRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app-modules/fulfillment/src/Presentation/Http/Requests/AdjustStockLotRequest.php
 
 		-
 			message: '#^Method Modules\\Fulfillment\\Presentation\\Http\\Requests\\ApproveStocktakeRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
@@ -834,10 +889,22 @@ parameters:
 			path: app-modules/identity/src/Application/Queries/ListZoneShops.php
 
 		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app-modules/identity/src/Application/Queries/ShowRepCustomer.php
+
+		-
 			message: '#^PHPDoc tag @var for variable \$user contains unresolvable type\.$#'
 			identifier: varTag.unresolvableType
 			count: 1
 			path: app-modules/identity/src/Application/Services/TokenIssuer.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app-modules/identity/src/Application/Support/RepShopCard.php
 
 		-
 			message: '#^Method Modules\\Identity\\Domain\\Models\\AppUser\:\:repProfile\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -869,8 +936,6 @@ parameters:
 			count: 1
 			path: app-modules/identity/src/Domain/Models/ChannelUser.php
 
-
-
 		-
 			message: '#^Method Modules\\Identity\\Domain\\Models\\ChannelUserChannel\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
@@ -894,8 +959,6 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/identity/src/Domain/Models/PlatformSession.php
-
-
 
 		-
 			message: '#^Method Modules\\Identity\\Domain\\Models\\RepProfile\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -957,13 +1020,17 @@ parameters:
 			count: 1
 			path: app-modules/identity/src/Domain/Models/RetailerProfileEquipment.php
 
-
-
 		-
 			message: '#^Method Modules\\Identity\\Domain\\Models\\WarehouseDevice\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/identity/src/Domain/Models/WarehouseDevice.php
+
+		-
+			message: '#^Method Modules\\Identity\\Presentation\\Http\\Requests\\StoreRetailerGroupRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app-modules/identity/src/Presentation/Http/Requests/StoreRetailerGroupRequest.php
 
 		-
 			message: '#^Method Modules\\Identity\\Presentation\\Http\\Requests\\UpdateRepStatusRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
@@ -983,23 +1050,11 @@ parameters:
 			count: 1
 			path: app-modules/inventory/src/Application/Queries/ListStockMovements.php
 
-
-
-
-
-
-
-
-
 		-
 			message: '#^Method Modules\\Inventory\\Domain\\Models\\StockTransfer\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/inventory/src/Domain/Models/StockTransfer.php
-
-
-
-
 
 		-
 			message: '#^Method Modules\\Inventory\\Presentation\\Http\\Requests\\AdjustStockRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
@@ -1019,15 +1074,23 @@ parameters:
 			count: 1
 			path: app-modules/inventory/src/Presentation/Http/Requests/UpsertReorderPointsRequest.php
 
+		-
+			message: '#^Method Modules\\Loyalty\\Domain\\Models\\LoyaltyTransaction\:\:account\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app-modules/loyalty/src/Domain/Models/LoyaltyTransaction.php
 
+		-
+			message: '#^Using nullsafe property access "\?\-\>supply_channel_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app-modules/loyalty/src/Infrastructure/EloquentLoyaltyBalance.php
 
-
-
-
-
-
-
-
+		-
+			message: '#^Method Modules\\Notification\\Application\\Queries\\ListAppNotifications\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app-modules/notification/src/Application/Queries/ListAppNotifications.php
 
 		-
 			message: '#^Property Modules\\Ordering\\Application\\Actions\\AddRepCartLine\:\:\$pricing is never read, only written\.$#'
@@ -1036,160 +1099,10 @@ parameters:
 			path: app-modules/ordering/src/Application/Actions/AddRepCartLine.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/ConfirmSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/ConfirmSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/ConfirmSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Application/Actions/EditSubOrderLines.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app-modules/ordering/src/Application/Actions/EditSubOrderLines.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant_id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Application/Actions/EditSubOrderLines.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:lines\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/RemoveRetailerCartLine.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Application/Actions/ReorderSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/ReorderSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/ReorderSubOrder.php
-
-		-
 			message: '#^Property Modules\\Ordering\\Domain\\Models\\SubOrder\:\:\$scheduled_at \(Carbon\\Carbon\|null\) does not accept string\.$#'
 			identifier: assign.propertyType
 			count: 1
 			path: app-modules/ordering/src/Application/Actions/ScheduleSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$applied_rule\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$discount\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$line_total\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$unit_price\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRepCartSection.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$channel_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app-modules/ordering/src/Application/Actions/SubmitRetailerCart.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$line_total\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRetailerCart.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lines\.$#'
-			identifier: property.notFound
-			count: 5
-			path: app-modules/ordering/src/Application/Actions/SubmitRetailerCart.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$note\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRetailerCart.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$opaque_ref\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRetailerCart.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$scheduled_at\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Application/Actions/SubmitRetailerCart.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, sub_order_no\: string, status\: ''accepted''\|''assigned''\|''awaiting_handover''\|''cancelled''\|''confirmed''\|''delivered''\|''on_the_way''\|''pending''\|''postponed''\|''processing''\|''rejected''\|''undelivered'', total\: int\}, Closure\(Modules\\Ordering\\Domain\\Models\\SubOrder\)\: array\{id\: int, sub_order_no\: string, status\: ''accepted''\|''assigned''\|''awaiting_handover''\|''cancelled''\|''confirmed''\|''delivered''\|''on_the_way''\|''pending''\|''postponed''\|''processing''\|''rejected''\|''undelivered'', total\: int\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRetailerCart.php
-
-		-
-			message: '#^Parameter \#1 \$section of method Modules\\Ordering\\Application\\Actions\\SubmitRetailerCart\:\:sectionTotal\(\) expects Modules\\Ordering\\Domain\\Models\\CartSection, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app-modules/ordering/src/Application/Actions/SubmitRetailerCart.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Ordering\\Domain\\Models\\SubOrder\>\:\:defaultSort\(\)\.$#'
@@ -1198,184 +1111,10 @@ parameters:
 			path: app-modules/ordering/src/Application/Queries/ListChannelSubOrders.php
 
 		-
-			message: '#^Method Modules\\Ordering\\Application\\Queries\\ListChannelSubOrders\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ListChannelSubOrders.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Application\\Queries\\ListRetailerOrders\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ListRetailerOrders.php
-
-		-
 			message: '#^Property Modules\\Ordering\\Application\\Queries\\ListRetailerOrders\:\:\$invoices is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: app-modules/ordering/src/Application/Queries/ListRetailerOrders.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$stage\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$unit_price\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:sections\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: method.unresolvableReturnType
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowChannelSubOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$stage\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$unit_price\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: method.unresolvableReturnType
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/TrackRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$stage\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Application/Queries/TrackRetailerOrder.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/TrackRetailerOrder.php
-
-		-
-			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: method.unresolvableReturnType
-			count: 1
-			path: app-modules/ordering/src/Application/Queries/TrackRetailerOrder.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$channel_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Support/CartAssembler.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Support/CartAssembler.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lines\.$#'
-			identifier: property.notFound
-			count: 4
-			path: app-modules/ordering/src/Application/Support/CartAssembler.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$note\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Support/CartAssembler.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$opaque_ref\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Application/Support/CartAssembler.php
 
 		-
 			message: '#^Method Modules\\Ordering\\Application\\Support\\CartAssembler\:\:reprice\(\) should return list\<string\> but returns list\<int\>\.$#'
@@ -1384,246 +1123,16 @@ parameters:
 			path: app-modules/ordering/src/Application/Support/CartAssembler.php
 
 		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\Cart\:\:sections\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/Cart.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\CartLine\:\:section\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/CartLine.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\CartSection\:\:cart\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/CartSection.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\CartSection\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/CartSection.php
-
-
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\Order\:\:sections\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/Order.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\Order\:\:subOrders\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/Order.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\OrderSection\:\:order\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/OrderSection.php
-
-
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrder\:\:assignments\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrder.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrder\:\:events\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrder.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrder\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrder.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrder\:\:order\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrder.php
-
-
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrderAssignment\:\:subOrder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrderAssignment.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrderEvent\:\:subOrder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrderEvent.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\Models\\SubOrderLine\:\:subOrder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: app-modules/ordering/src/Domain/Models/SubOrderLine.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Domain\\SubOrderStateMachine\:\:allowed\(\) has parameter \$permissions with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Domain/SubOrderStateMachine.php
-
-		-
-			message: '#^Parameter \#1 \$array \(array\{\}\|list\{0\: ''assign''\|''cancel''\|''edit_lines''\|''reassign''\|''schedule'', 1\?\: ''assign''\|''edit_lines''\|''reassign''\|''schedule'', 2\?\: ''assign''\|''edit_lines''\|''reassign''\|''schedule'', 3\?\: ''assign''\|''reassign''\|''schedule'', 4\?\: ''reassign''\|''schedule'', 5\?\: ''schedule'', 6\?\: \*NEVER\*, 7\?\: \*NEVER\*, \.\.\.\}\|list\{0\: ''cancel'', 1\?\: \*NEVER\*, 2\?\: \*NEVER\*, 3\?\: \*NEVER\*, 4\?\: \*NEVER\*, 5\?\: \*NEVER\*, 6\?\: \*NEVER\*, 7\?\: \*NEVER\*, \.\.\.\}\|list\{0\: ''confirm'', 1\: ''assign''\|''cancel''\|''edit_lines''\|''reassign''\|''reject''\|''schedule'', 2\?\: ''assign''\|''cancel''\|''edit_lines''\|''reassign''\|''schedule'', 3\?\: ''assign''\|''edit_lines''\|''reassign''\|''schedule'', 4\?\: ''assign''\|''edit_lines''\|''reassign''\|''schedule'', 5\?\: ''assign''\|''reassign''\|''schedule'', 6\?\: ''reassign''\|''schedule'', 7\?\: ''schedule'', \.\.\.\}\|list\{0\: ''confirm'', 1\?\: ''cancel''\|''reject'', 2\?\: ''cancel'', 3\?\: \*NEVER\*, 4\?\: \*NEVER\*, 5\?\: \*NEVER\*, 6\?\: \*NEVER\*, 7\?\: \*NEVER\*, \.\.\.\}\|list\{0\: ''reject'', 1\: ''assign''\|''cancel''\|''edit_lines''\|''reassign''\|''schedule'', 2\?\: ''assign''\|''edit_lines''\|''reassign''\|''schedule'', 3\?\: ''assign''\|''edit_lines''\|''reassign''\|''schedule'', 4\?\: ''assign''\|''reassign''\|''schedule'', 5\?\: ''reassign''\|''schedule'', 6\?\: ''schedule'', 7\?\: \*NEVER\*, \.\.\.\}\|list\{0\: ''reject'', 1\?\: ''cancel'', 2\?\: \*NEVER\*, 3\?\: \*NEVER\*, 4\?\: \*NEVER\*, 5\?\: \*NEVER\*, 6\?\: \*NEVER\*, 7\?\: \*NEVER\*, \.\.\.\}\|list\{0\: \*NEVER\*, 1\?\: \*NEVER\*, 2\?\: \*NEVER\*, 3\?\: \*NEVER\*, 4\?\: \*NEVER\*, 5\?\: \*NEVER\*, 6\?\: \*NEVER\*, 7\?\: \*NEVER\*, \.\.\.\}\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
-			count: 1
-			path: app-modules/ordering/src/Domain/SubOrderStateMachine.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$discount\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Infrastructure/EloquentSubOrderLifecycle.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Infrastructure/EloquentSubOrderLifecycle.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$line_total\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Infrastructure/EloquentSubOrderLifecycle.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Infrastructure/EloquentSubOrderLifecycle.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Infrastructure/EloquentSubOrderLifecycle.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$unit_price\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app-modules/ordering/src/Infrastructure/EloquentSubOrderLifecycle.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/ordering/src/Infrastructure/EloquentSubOrderLifecycle.php
-
-		-
 			message: '#^Property Modules\\Ordering\\Infrastructure\\EloquentSubOrderLifecycle\:\:\$reps is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
 			path: app-modules/ordering/src/Infrastructure/EloquentSubOrderLifecycle.php
 
 		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\AddCartLineRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/AddCartLineRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\AddRepCartLineRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/AddRepCartLineRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\AssignSubOrdersRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/AssignSubOrdersRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\BulkConfirmRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/BulkConfirmRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\CancelOrderRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/CancelOrderRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\EditSubOrderLinesRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/EditSubOrderLinesRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\ReassignSubOrderRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/ReassignSubOrderRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\RejectAssignmentRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/RejectAssignmentRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\RejectSubOrderRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/RejectSubOrderRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\ScheduleSubOrderRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/ScheduleSubOrderRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\SubmitCartRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/SubmitCartRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\SubmitRepCartRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/SubmitRepCartRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\UpdateCartLineRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/UpdateCartLineRequest.php
-
-		-
-			message: '#^Method Modules\\Ordering\\Presentation\\Http\\Requests\\UpdateCartSectionRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app-modules/ordering/src/Presentation/Http/Requests/UpdateCartSectionRequest.php
-
-		-
 			message: '#^Cannot unset offset ''unit_price'' on array\{lines\: list\<array\{product_id\: int, variant_id\?\: int\|null, qty\: int\}\>, zone_id\: int\}\.$#'
 			identifier: unset.offset
 			count: 1
 			path: app-modules/pricing/src/Application/Actions/QuotePrices.php
-
-
 
 		-
 			message: '#^Method Modules\\Pricing\\Domain\\Models\\PriceList\:\:items\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1637,8 +1146,6 @@ parameters:
 			count: 1
 			path: app-modules/pricing/src/Domain/Models/PriceList.php
 
-
-
 		-
 			message: '#^Method Modules\\Pricing\\Domain\\Models\\PriceList\:\:zones\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
@@ -1651,17 +1158,11 @@ parameters:
 			count: 1
 			path: app-modules/pricing/src/Domain/Models/PriceListSchedule.php
 
-
-
 		-
 			message: '#^Method Modules\\Pricing\\Domain\\Models\\ProductBasePrice\:\:tiers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/pricing/src/Domain/Models/ProductBasePrice.php
-
-
-
-
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$override_price\.$#'
@@ -1753,49 +1254,11 @@ parameters:
 			count: 1
 			path: app-modules/promotion/src/Domain/Models/Offer.php
 
-
-
 		-
 			message: '#^Method Modules\\Promotion\\Domain\\Models\\Offer\:\:zones\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/promotion/src/Domain/Models/Offer.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$discount_amount\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/promotion/src/Infrastructure/EloquentOfferFeed.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$discount_percent\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/promotion/src/Infrastructure/EloquentOfferFeed.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$media_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/promotion/src/Infrastructure/EloquentOfferFeed.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app-modules/promotion/src/Infrastructure/EloquentOfferFeed.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
-			identifier: property.notFound
-			count: 5
-			path: app-modules/promotion/src/Infrastructure/EloquentOfferFeed.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty_consumed\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app-modules/promotion/src/Infrastructure/EloquentOfferFeed.php
 
 		-
 			message: '#^Method Modules\\Promotion\\Infrastructure\\EloquentOfferFeed\:\:matching\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
@@ -1846,6 +1309,12 @@ parameters:
 			path: app-modules/promotion/src/Presentation/Http/Controllers/OfferController.php
 
 		-
+			message: '#^Method Modules\\Promotion\\Presentation\\Http\\Requests\\ActivateOfferRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app-modules/promotion/src/Presentation/Http/Requests/ActivateOfferRequest.php
+
+		-
 			message: '#^Method Modules\\Promotion\\Presentation\\Http\\Requests\\StopOfferRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1857,7 +1326,11 @@ parameters:
 			count: 1
 			path: app-modules/promotion/src/Presentation/Http/Requests/StoreOfferRequest.php
 
-
+		-
+			message: '#^Method Modules\\Promotion\\Presentation\\Http\\Requests\\UpdateOfferRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app-modules/promotion/src/Presentation/Http/Requests/UpdateOfferRequest.php
 
 		-
 			message: '#^Method Modules\\Reference\\Domain\\Models\\ChannelZone\:\:zone\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
@@ -1870,6 +1343,24 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: app-modules/reference/src/Domain/Models/Governorate.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>alerts" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app-modules/reporting/src/Presentation/Http/Controllers/PlatformDashboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>cards" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app-modules/reporting/src/Presentation/Http/Controllers/PlatformDashboardController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>charts" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app-modules/reporting/src/Presentation/Http/Controllers/PlatformDashboardController.php
 
 		-
 			message: '#^Method Modules\\Returns\\Application\\Queries\\ListChannelReturnRequests\:\:__invoke\(\) return type with generic interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator does not specify its types\: TKey, TValue$#'
@@ -1913,8 +1404,6 @@ parameters:
 			count: 1
 			path: app-modules/returns/src/Domain/Models/ReturnRequest.php
 
-
-
 		-
 			message: '#^Method Modules\\Returns\\Presentation\\Http\\Requests\\CreateReturnRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -1928,10 +1417,70 @@ parameters:
 			path: app-modules/returns/src/Presentation/Http/Requests/DecideReturnRequest.php
 
 		-
+			message: '#^Method Modules\\Returns\\Presentation\\Http\\Requests\\EscalateReturnRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app-modules/returns/src/Presentation/Http/Requests/EscalateReturnRequest.php
+
+		-
 			message: '#^Method Modules\\Returns\\Presentation\\Http\\Requests\\SortReturnRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: app-modules/returns/src/Presentation/Http/Requests/SortReturnRequest.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Support\\Domain\\Models\\SupportTicket\:\:\$priority\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app-modules/support/src/Presentation/Http/Controllers/PlatformSupportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Support\\Domain\\Models\\SupportTicket\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app-modules/support/src/Presentation/Http/Controllers/PlatformSupportController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Support\\Domain\\Models\\SupportTicket\:\:\$subject\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app-modules/support/src/Presentation/Http/Controllers/PlatformSupportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Support\\Domain\\Models\\SupportTicket\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app-modules/support/src/Presentation/Http/Controllers/PlatformSupportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Support\\Domain\\Models\\SupportTicket\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app-modules/support/src/Presentation/Http/Controllers/PlatformSupportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app-modules/support/src/Presentation/Http/Controllers/PlatformSupportController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app-modules/support/src/Presentation/Http/Controllers/PlatformSupportController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app-modules/support/src/Presentation/Http/Controllers/PlatformSupportController.php
+
+		-
+			message: '#^Call to function is_object\(\) with object will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app-modules/tenancy/src/Application/Actions/RequestChannelDeletion.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>reps" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
@@ -1962,20 +1511,6 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app-modules/tenancy/src/Application/Queries/ShowChannel.php
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		-
 			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:expect\(\)\.$#'
@@ -2050,8 +1585,80 @@ parameters:
 			path: tests/Feature/Catalog/AppCatalogSurfaceTest.php
 
 		-
+			message: '#^Unable to resolve the template type TFlatMapKey in call to method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:flatMap\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Catalog/CatalogEditorGapsTest.php
+
+		-
+			message: '#^Unable to resolve the template type TFlatMapValue in call to method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:flatMap\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Catalog/CatalogEditorGapsTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: tests/Feature/Catalog/CatalogEditorGapsTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: tests/Feature/Catalog/CatalogEditorGapsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:post\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/Catalog/ChannelBrandsTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 5
+			path: tests/Feature/Catalog/ChannelBrandsTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 5
+			path: tests/Feature/Catalog/ChannelBrandsTest.php
+
+		-
+			message: '#^Function deepenProductPayload\(\) has parameter \$refs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Feature/Catalog/ChannelCatalogDeepenTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Catalog/ChannelCatalogDeepenTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Catalog/ChannelCatalogDeepenTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:post\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/Catalog/Layer2Test.php
+
+		-
 			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:postJson\(\)\.$#'
 			identifier: method.notFound
+			count: 2
+			path: tests/Feature/Catalog/Layer2Test.php
+
+		-
+			message: '#^Function layer2BrandId\(\) has parameter \$refs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: tests/Feature/Catalog/Layer2Test.php
 
@@ -2095,6 +1702,18 @@ parameters:
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
+			path: tests/Feature/Content/ChannelContentTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Content/ChannelContentTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
 			path: tests/Feature/Finance/ChannelFinanceTest.php
 
 		-
@@ -2102,6 +1721,18 @@ parameters:
 			identifier: argument.templateType
 			count: 1
 			path: tests/Feature/Finance/ChannelFinanceTest.php
+
+		-
+			message: '#^Function whSurface\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Feature/Fulfillment/WarehousePickingWaveTest.php
+
+		-
+			message: '#^Function whSurface\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Feature/Fulfillment/WarehouseStockLotsTest.php
 
 		-
 			message: '#^Function fxPair\(\) return type has no value type specified in iterable type array\.$#'
@@ -2112,13 +1743,25 @@ parameters:
 		-
 			message: '#^Access to an undefined property Tests\\TestCase\:\:\$otp\.$#'
 			identifier: property.notFound
-			count: 2
+			count: 4
 			path: tests/Feature/Identity/ChannelAuthTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: tests/Feature/Identity/ChannelRepsLiveMapTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: tests/Feature/Identity/ChannelRepsLiveMapTest.php
 
 		-
 			message: '#^Access to an undefined property Tests\\TestCase\:\:\$otp\.$#'
 			identifier: property.notFound
-			count: 3
+			count: 4
 			path: tests/Feature/Identity/OtpBypassTest.php
 
 		-
@@ -2144,6 +1787,18 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: tests/Feature/Identity/PublicOtpTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 4
+			path: tests/Feature/Identity/RepClientSurfaceTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 4
+			path: tests/Feature/Identity/RepClientSurfaceTest.php
 
 		-
 			message: '#^Access to an undefined property Tests\\TestCase\:\:\$otp\.$#'
@@ -2179,12 +1834,24 @@ parameters:
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
-			path: tests/Feature/Ordering/AppCartSurfaceTest.php
+			path: tests/Feature/Launch/LaunchFixesTest.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
+			path: tests/Feature/Launch/LaunchFixesTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: tests/Feature/Ordering/AppCartSurfaceTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
 			path: tests/Feature/Ordering/AppCartSurfaceTest.php
 
 		-
@@ -2236,6 +1903,42 @@ parameters:
 			path: tests/Feature/Ordering/ChannelSubOrderInboxTest.php
 
 		-
+			message: '#^Function offerEngineProductPayload\(\) has parameter \$refs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Feature/Promotion/OfferEngineTest.php
+
+		-
+			message: '#^Function offerEngineRetailer\(\) has parameter \$refs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Feature/Promotion/OfferEngineTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: tests/Feature/Promotion/OfferEngineTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: tests/Feature/Promotion/OfferEngineTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: tests/Feature/Reference/DeliveryCalendarTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: tests/Feature/Reference/DeliveryCalendarTest.php
+
+		-
 			message: '#^Function returnBody\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -2266,6 +1969,12 @@ parameters:
 			path: tests/Feature/Returns/ChannelReturnsTest.php
 
 		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:markTestSkipped\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/Security/CatalogPermissionContractTest.php
+
+		-
 			message: '#^Access to an undefined property Tests\\TestCase\:\:\$bearer\.$#'
 			identifier: property.notFound
 			count: 3
@@ -2294,6 +2003,30 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: tests/Feature/Tenancy/ChannelProvisionJobTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Tenancy/ChannelSurfaceCompletionTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Tenancy/ChannelSurfaceCompletionTest.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Tenancy/PlatformTenantHeaderTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/Feature/Tenancy/PlatformTenantHeaderTest.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -2360,12 +2093,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: tests/Unit/BelongsToChannelColumnTest.php
-
-
-
-
-
-
 
 		-
 			message: '#^Unable to resolve the template type TAndValue in call to method Pest\\Expectation\<mixed\>\:\:and\(\)$#'

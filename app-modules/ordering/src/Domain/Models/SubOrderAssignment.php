@@ -22,6 +22,7 @@ class SubOrderAssignment extends Model
         return ['status' => AssignmentStatus::class];
     }
 
+    /** @return BelongsTo<SubOrder, $this> */
     public function subOrder(): BelongsTo
     {
         return $this->belongsTo(SubOrder::class);

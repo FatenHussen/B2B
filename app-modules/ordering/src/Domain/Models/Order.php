@@ -39,12 +39,17 @@ class Order extends Model
      * sections it loads by `channel_id` explicitly, so lifting the scope here widens
      * nothing there.
      */
+    /** @return HasMany<OrderSection, $this> */
     public function sections(): HasMany
     {
         return $this->hasMany(OrderSection::class)->withoutGlobalScope('channel');
     }
 
-    /** See `sections()`. */
+    /**
+     * See `sections()`.
+     *
+     * @return HasMany<SubOrder, $this>
+     */
     public function subOrders(): HasMany
     {
         return $this->hasMany(SubOrder::class)->withoutGlobalScope('channel');

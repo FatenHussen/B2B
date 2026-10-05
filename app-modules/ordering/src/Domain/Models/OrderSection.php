@@ -31,6 +31,7 @@ class OrderSection extends Model
         return ['scheduled_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

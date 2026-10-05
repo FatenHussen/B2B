@@ -20,6 +20,7 @@ final class ListRetailerOrders
         private readonly IssuesInvoice $invoices,
     ) {}
 
+    /** @return LengthAwarePaginator<int, SubOrder> */
     public function __invoke(object $user, Request $request): LengthAwarePaginator
     {
         $ctx = $this->shopping->for($user);

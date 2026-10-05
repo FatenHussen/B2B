@@ -47,9 +47,9 @@
 | BF-10 | جلسة عقد: تعيين permission لكل مسار بلا صلاحية في الكتالوج | 2 | Catalog + Access | — | ✅ 2026-09-25 |
 | BF-11 | بذر صلاحيات DOC-08 الناقصة **عند ظهور مسار** (~30) | 2 | Access | BF-10 جزئي | ⬜ مستمر |
 | BF-12 | تكامل Push/WhatsApp إنتاجي (أو إعلان صريح «غير مضبوط») | 2 | Integration | BF-02 | ✅ 2026-09-25 |
-| BF-13…BF-21 | صفوف v1.1 المتبقية | 3 | انظر الجدول أدناه | كتالوج أولاً | ⬜ |
+| BF-13…BF-21 | صفوف v1.1 | 3 | انظر الجدول أدناه | كتالوج أولاً | ✅ 2026-09-24 (status حيّ؛ انظر `channel-warehouse-v1.1.md`) |
 | BF-22 | بوابة `openapi:check` (السادسة) | 4 | Tooling | — | ⬜ |
-| BF-23 | دفع Larastan baseline وحدة بوحدة | 4 | الكل | — | ⬜ مستمر |
+| BF-23 | دفع Larastan baseline وحدة بوحدة | 4 | الكل | — | ⬜ مستمر — `ordering` ✅ 2026-10-05 (pin 471→469 بعد إعادة مزامنة baseline) |
 
 ---
 
@@ -149,15 +149,15 @@
 
 | # | تذكرة | EP | سطح | قدرة |
 |---|---|---|---|---|
-| BF-13 | BF-WH-040 | EP-WH-040 | warehouse | قائمة/تعديل stock lots |
+| BF-13 | BF-WH-040 | EP-WH-040 | warehouse | ✅ قائمة/تعديل stock lots |
 | BF-14 | BF-WH-041 | EP-WH-041A–C | warehouse | ✅ offline pick/pack + تعارضات (2026-09-24) |
-| BF-15 | BF-WH-042 | EP-WH-042 / 042A | warehouse | إكمال batch/waves إن بقي نقص بعد 2026-09-24 |
-| BF-16 | BF-SC-160 | EP-SC-160 | channel | خريطة كل المندوبين on-duty |
-| BF-17 | BF-SC-161 | EP-SC-161 | channel | تقويم توصيل أسبوعي |
-| BF-18 | BF-SC-162 | EP-SC-162 | channel | تصعيد SLA مرتجعات |
-| BF-19 | BF-SC-163 | EP-SC-163 | channel | مضلعات مناطق + نوافذ وقت |
+| BF-15 | BF-WH-042 | EP-WH-042 / 042A | warehouse | ✅ picking waves |
+| BF-16 | BF-SC-160 | EP-SC-160 | channel | ✅ خريطة كل المندوبين on-duty |
+| BF-17 | BF-SC-161 | EP-SC-161 | channel | ✅ تقويم توصيل أسبوعي |
+| BF-18 | BF-SC-162 | EP-SC-162 | channel | ✅ تصعيد SLA مرتجعات |
+| BF-19 | BF-SC-163 | EP-SC-163 | channel | ✅ مضلعات مناطق + نوافذ وقت |
 | BF-20 | BF-WH-050 | EP-WH-050 | warehouse | ✅ تقارير إنتاجية/دقة (2026-09-24) |
-| BF-21 | BF-SC-165 | EP-SC-165 | channel | طابور موافقة ائتمان |
+| BF-21 | BF-SC-165 | EP-SC-165 | channel | ✅ طابور موافقة ائتمان |
 
 **قالب تذكرة v1.1 (انسخه لكل صف):**
 

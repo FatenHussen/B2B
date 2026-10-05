@@ -33,11 +33,13 @@ class CartSection extends Model
         return ['scheduled_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<Cart, $this> */
     public function cart(): BelongsTo
     {
         return $this->belongsTo(Cart::class);
     }
 
+    /** @return HasMany<CartLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(CartLine::class, 'section_id');

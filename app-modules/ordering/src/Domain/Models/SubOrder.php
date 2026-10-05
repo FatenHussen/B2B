@@ -61,21 +61,25 @@ class SubOrder extends Model
         ];
     }
 
+    /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
+    /** @return HasMany<SubOrderLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(SubOrderLine::class);
     }
 
+    /** @return HasMany<SubOrderEvent, $this> */
     public function events(): HasMany
     {
         return $this->hasMany(SubOrderEvent::class)->orderBy('id');
     }
 
+    /** @return HasMany<SubOrderAssignment, $this> */
     public function assignments(): HasMany
     {
         return $this->hasMany(SubOrderAssignment::class);

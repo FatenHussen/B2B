@@ -10,6 +10,9 @@ use Modules\Ordering\Domain\Enums\CartLineSource;
 
 final class AddCartLineRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

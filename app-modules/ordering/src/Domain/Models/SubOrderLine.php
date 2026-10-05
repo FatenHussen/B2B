@@ -37,6 +37,7 @@ class SubOrderLine extends Model
         return ['applied_rule' => 'array'];
     }
 
+    /** @return BelongsTo<SubOrder, $this> */
     public function subOrder(): BelongsTo
     {
         return $this->belongsTo(SubOrder::class);

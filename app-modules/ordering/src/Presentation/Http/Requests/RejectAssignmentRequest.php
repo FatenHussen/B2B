@@ -8,6 +8,9 @@ use Modules\Core\Http\ApiFormRequest;
 
 final class RejectAssignmentRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return ['reason' => ['required', 'string', 'max:255']];
