@@ -20,6 +20,7 @@ class DeliveryLine extends Model
         'reason',
     ];
 
+    /** @return BelongsTo<Delivery, $this> */
     public function delivery(): BelongsTo
     {
         return $this->belongsTo(Delivery::class);

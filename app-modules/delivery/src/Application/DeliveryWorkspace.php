@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Delivery\Application;
 
 use Illuminate\Support\Carbon;
-use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\HandoverGuard;
 use Modules\Core\Contracts\IssuesInvoice;
 use Modules\Core\Contracts\ReceiptNumberReserver;
@@ -24,7 +23,6 @@ final class DeliveryWorkspace
 {
     public function __construct(
         private readonly SubOrderLifecycle $orders,
-        private readonly CatalogProductLookup $products,
         private readonly IssuesInvoice $invoices,
         private readonly ReceiptNumberReserver $receipts,
         private readonly HandoverGuard $handover,
@@ -142,6 +140,7 @@ final class DeliveryWorkspace
     }
 
     /**
+     * @param  array<string, mixed>  $data
      * @return array{new_invoice_total: int}
      */
     public function patchLine(int $subOrderId, int $lineId, array $data, object $actor): array
@@ -171,6 +170,7 @@ final class DeliveryWorkspace
     }
 
     /**
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     public function complete(int $subOrderId, array $data, object $actor): array
@@ -229,6 +229,7 @@ final class DeliveryWorkspace
     }
 
     /**
+     * @param  array<string, mixed>  $data
      * @return array{status: string}
      */
     public function postpone(int $subOrderId, array $data, object $actor): array
@@ -248,6 +249,7 @@ final class DeliveryWorkspace
     }
 
     /**
+     * @param  array<string, mixed>  $data
      * @return array{status: string, border_color: string}
      */
     public function fail(int $subOrderId, array $data, object $actor): array
@@ -291,6 +293,7 @@ final class DeliveryWorkspace
     }
 
     /**
+     * @param  array<string, mixed>  $data
      * @return array{success: bool}
      */
     public function rate(object $retailer, int $repId, array $data): array

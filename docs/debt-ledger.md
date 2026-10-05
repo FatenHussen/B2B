@@ -29,7 +29,7 @@ configuration cannot express. Nothing in the baseline is a runtime defect.
 | Module | Baseline findings | Root declarations | Symptoms that fall with them | Symptoms per declaration |
 |---|---|---|---|---|
 | `ordering` | 0 (paid BF-23 2026-10-05; was 121) | 0 | 0 | — |
-| `delivery` | 29 | 3 | 14 | 4.7 |
+| `delivery` | 0 (paid BF-23 2026-10-05; was 29) | 0 | 0 | — |
 | `fulfillment` | 52 | 7 | 28 | 4 |
 | `promotion` | 32 | 9 | 19 | 2.1 |
 | `returns` | 10 | 2 | 3 | 1.5 |

@@ -10,8 +10,7 @@ namespace Modules\Core\Contracts;
 interface RepLiveLocation
 {
     /**
-     * @return array{lat: float|null, lng: float|null, at: string|null, on_duty: bool}|null
-     *                                                                                      null when the rep is unknown to duty lookup; otherwise always returns on_duty.
+     * @return array{lat: float|null, lng: float|null, at: string|null, on_duty: bool}
      */
-    public function latest(int $repUserId): ?array;
+    public function latest(int $repUserId): array;
 }

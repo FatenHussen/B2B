@@ -19,11 +19,13 @@ class Delivery extends Model
         ];
     }
 
+    /** @return HasMany<DeliveryLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(DeliveryLine::class);
     }
 
+    /** @return HasOne<DeliveryCompletion, $this> */
     public function completion(): HasOne
     {
         return $this->hasOne(DeliveryCompletion::class);

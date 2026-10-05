@@ -39,12 +39,7 @@ final class ChannelOpsExtrasController extends ApiController
             throw new DomainException(__('identity.not_found'), 'not_found', 404);
         }
 
-        return $this->ok($live->latest($id) ?? [
-            'lat' => null,
-            'lng' => null,
-            'at' => null,
-            'on_duty' => false,
-        ]);
+        return $this->ok($live->latest($id));
     }
 
     public function zoneCoverage(ShowChannelZoneCoverage $query): JsonResponse

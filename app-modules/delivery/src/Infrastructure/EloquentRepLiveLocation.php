@@ -12,7 +12,10 @@ final class EloquentRepLiveLocation implements RepLiveLocation
 {
     public function __construct(private readonly RepDutyLookup $duty) {}
 
-    public function latest(int $repUserId): ?array
+    /**
+     * @return array{lat: float|null, lng: float|null, at: string|null, on_duty: bool}
+     */
+    public function latest(int $repUserId): array
     {
         $onDuty = $this->duty->isOnDuty($repUserId);
         $ping = RepLocationPing::query()

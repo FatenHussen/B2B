@@ -49,7 +49,7 @@
 | BF-12 | تكامل Push/WhatsApp إنتاجي (أو إعلان صريح «غير مضبوط») | 2 | Integration | BF-02 | ✅ 2026-09-25 |
 | BF-13…BF-21 | صفوف v1.1 | 3 | انظر الجدول أدناه | كتالوج أولاً | ✅ 2026-09-24 (status حيّ؛ انظر `channel-warehouse-v1.1.md`) |
 | BF-22 | بوابة `openapi:check` (السادسة) | 4 | Tooling | — | ⬜ |
-| BF-23 | دفع Larastan baseline وحدة بوحدة | 4 | الكل | — | ⬜ مستمر — `ordering` ✅ 2026-10-05 (pin 471→469 بعد إعادة مزامنة baseline) |
+| BF-23 | دفع Larastan baseline وحدة بوحدة | 4 | الكل | — | ⬜ مستمر — `ordering` ✅ · `delivery` ✅ 2026-10-05 (pin 471→439) |
 
 ---
 

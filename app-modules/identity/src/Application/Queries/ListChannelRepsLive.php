@@ -27,7 +27,7 @@ final class ListChannelRepsLive
 
         foreach ($this->duty->onDutyForChannel($channelId) as $repId) {
             $latest = $this->live->latest($repId);
-            if ($latest === null || ! $latest['on_duty']) {
+            if (! $latest['on_duty']) {
                 continue;
             }
 
