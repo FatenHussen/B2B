@@ -6,6 +6,14 @@ namespace Modules\Returns\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $return_request_id
+ * @property int $line_id
+ * @property int $qty
+ * @property string $reason
+ * @property string|null $condition
+ */
 class ReturnLine extends Model
 {
     public $timestamps = false;

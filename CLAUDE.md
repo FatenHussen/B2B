@@ -130,7 +130,8 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
     **48 sites in 33 files**; the rep client GETs (`ShowRepProduct`, `ListRepOrders`, 2026-09-20)
     added two — **50 sites in 35 files**; retailer finance reads (AP-01, 2026-09-20)
     added eight — **63 sites in 38 files**; the retailer-group / offer-consumption work
-    (2026-09-23) added three — **66 sites**; banner click recording (2026-09-24) added one — **67 sites** — every one with a comment saying why on the same line, within the six
+    (2026-09-23) added three — **66 sites**; banner click recording (2026-09-24) added one — **67 sites**;
+    the rep account month count (`EloquentRepMonthOutcomes`, 2026-10-29) added one — **68 sites** — every one with a comment saying why on the same line, within the six
     lines above, or in the method's docblock. `tests/Architecture/ChannelScopeEscapeTest.php` pins
     the count per file and fails on an escape with no reason within reach — a new site is a change
     to this inventory, said out loud, not a discovery.
@@ -269,14 +270,15 @@ object, and read `casts()`'s declared return type instead of its body. What rema
 372, or **585 with no identifier ignored**, which is how it is counted: the 213 relation
 declarations without a related type are the cause of 173 of the rest, and hiding a cause
 while freezing its symptoms is not a baseline — is in `phpstan-baseline.neon`, pinned
-exactly at 475 by `tests/Architecture/PhpstanBaselineTest.php`: the number only falls,
+exactly at 267 by `tests/Architecture/PhpstanBaselineTest.php`: the number only falls,
 and a fall lowers the pin in the same commit. A new finding in new code is fixed, never added to the
 baseline — the gate is green for new code and red for regressions. The pay-down is one
 module per commit; its table is in `docs/debt-ledger.md`.
 
-A sixth gate is specified but does not exist yet: `php artisan openapi:generate --check`.
-The `openapi` package registers no artisan commands in this repository (`docs/debt-ledger.md`).
-Until it lands, state any response-shape change explicitly in the pull request.
+The sixth gate is `php artisan openapi:generate --check` (BF-22). It fails when a live
+`/api/v1` route and `docs/api/b2b-api.openapi.json` disagree on method, path, or guard.
+It does not read response bodies: a shape change is still stated in the pull request, and
+the document is still rebuilt with `php docs/api/generate.php`.
 
 ## How to work a ticket
 

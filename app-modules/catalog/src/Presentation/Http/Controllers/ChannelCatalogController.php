@@ -21,6 +21,7 @@ use Modules\Catalog\Application\Actions\UpdateBrand;
 use Modules\Catalog\Application\Actions\UpdateCategory;
 use Modules\Catalog\Application\Actions\UpdateVariant;
 use Modules\Catalog\Application\Actions\UploadMedia;
+use Modules\Catalog\Application\Queries\CatalogSummary;
 use Modules\Catalog\Application\Queries\CategoryTree;
 use Modules\Catalog\Application\Queries\ListBrands;
 use Modules\Catalog\Application\Queries\ListChannelProducts;
@@ -175,5 +176,10 @@ final class ChannelCatalogController extends ApiController
     public function export(Request $request, ExportCatalog $action): JsonResponse
     {
         return $this->ok($action($request->user(), $request->input('filter.status')));
+    }
+
+    public function summary(CatalogSummary $query): JsonResponse
+    {
+        return $this->ok($query());
     }
 }

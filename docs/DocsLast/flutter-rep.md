@@ -1032,13 +1032,15 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 |---|---|---|
 | `page` `per_page` | 1 / 25 | سقف 100 |
 | `filter[search]` | زيت | اسم عربي أو SKU — **ليس** `search` العلوي |
-| `filter[category_id]` | | شريط الفئات (البند 4) |
-| `filter[brand_id]` | | |
-| `filter[channel_id]` | | قناة المندوب — «حسب إدخال قناة التوريد التابعة لها» |
+| `filter[root_category_id]` | 10 | الفئة الرئيسية من `root_categories` |
+| `filter[category_id]` | 340 | الفئة الفرعية وكل ما تحتها |
+| `filter[brand_id]` | | من `GET /app/rep/brands` |
+| `filter[channel_id]` | | قناة الجلسة `GET /app/session` → `channel.id` |
+| `filter[available_only]` | 1 | «المتوفر فقط». يحذف المتتبَّع الذي رصيده صفر. غير المتتبَّع يبقى |
 | `barcode` | | **علوي** — بعد مسح QR |
 | `zone` | 12 | تسعير الكمية 1 **لمنطقة المحل**. لا `filter[zone_id]` |
 
-⛔ لا ترسل `sort` ولا `filter[offer_only]` ولا `filter[available_only]`.
+⛔ لا ترسل `sort` ولا `filter[offer_only]`.
 
 بطاقة كما يعيدها الخادم:
 
@@ -1051,17 +1053,26 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
   "channel": { "id": 1, "name": "شركة النور" },
   "price": { "type": "tiered", "value": 12000, "label": "السعر حسب الكمية" },
   "availability": "in_stock",
+  "sale_unit": "كرتونة",
+  "created_at": "2026-03-01T10:00:00+03:00",
+  "has_offer": false,
   "variants": [{ "id": 1, "label": "حبة", "barcode": null }]
 }
 ```
 
-`image` غالباً null → placeholder حرف الاسم. `brand` قد يكون null. `variants[]` فارغة إن لا تركيبات.
+`image` غالباً null → placeholder حرف الاسم. `brand` قد يكون null. `variants[]` فارغة إن لا تركيبات. `sale_unit` اسم الوحدة تحت العنوان (null = أخفِه). في التفاصيل يصبح `{id, name}`.
 
-اعرض `availability` نصاً. نقر البطاقة → `GET /app/rep/products/{id}` (§7.2b).
+`availability` كلمة فقط: `in_stock` / `low` / `out_of_stock`. لا عدد كراتين على البطاقة.
+
+الأقسام على الجهاز من نفس القائمة: «منتجات جديدة» = الترتيب الافتراضي `-created_at`. «العروض» = `has_offer: true` (عرض يطابق منطقة المندوب ونشاطه). «كل المنتجات» = القائمة كما هي. «الأكثر مبيعاً» بلا ترتيب مبيعات — لا شارة popular. `filter[offer_only]` لا يُطبَّق.
+
+نقر البطاقة → `GET /app/rep/products/{id}` (§7.2b).
 
 **البند 3 — البحث:** حقل واحد أعلى الكتالوج. صوت: `speech_to_text` → يملأ `filter[search]`. باركود: `mobile_scanner` → `barcode=`.
 
-**البند 4 — شريط الفئات:** شرائح أفقية من `root_categories` في كاش `GET /public/refs`، الشريحة الأولى «الكل» (بدون فلتر). النقر يضع `filter[category_id]`. إن القائمة فارغة **أخفِ الشريط بالكامل**.
+**البند 4 — شريط الفئات:** شرائح أفقية من `root_categories` في كاش `GET /public/refs`، الشريحة الأولى «الكل» (بدون فلتر). النقر يضع `filter[root_category_id]`. إن القائمة فارغة **أخفِ الشريط بالكامل**.
+
+**ورقة الفلتر:** «كل المنتجات» بلا `available_only`. «المتوفر فقط» يرسل `filter[available_only]=1`. قناة التوريد من `data.channel` في `GET /app/session` (قناة واحدة). الفئة الرئيسية من `root_categories`. الفئة الفرعية من `GET /app/rep/categories?root_category_id=` بعد اختيار الرئيسية، والقائمة فارغة قبل ذلك. العلامة من `GET /app/rep/brands`. «إعادة ضبط» تمسح الاستعلام على الجهاز. «طبق الفلترة» يعيد `GET /products` بهذه الفلاتر.
 
 **البند 5 — السلايدرات:** `GET /app/content/home-blocks` ✅ (EP-APP-100) يعيد `banners[]` و`sliders[]`، وكل شريحة `{ key, title, items, show_all }`. اعرض ما يعيده الخادم بعنوانه — إن كانت `items` فارغة **أخفِ الشريحة** ولا تستبدلها بترتيب مختلق. إن كان الرد بلا شرائح أصلاً فارجع للسلوك السابق: سلايدر أفقي من أول عناصر نفس `GET /products` (`defaultSort -created_at` = الأحدث) بعنوان «الأحدث» لا «الأكثر طلباً».
 
@@ -1082,19 +1093,45 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
   "channel": { "id": 1, "name": "شركة النور" },
   "price": { "type": "tiered", "value": 12000, "label": "السعر حسب الكمية" },
   "availability": "in_stock",
-  "variants": [{ "id": 1, "label": "حبة", "barcode": null }],
-  "images": [],
-  "long_description": null
+  "category": { "id": 10, "name": "زيوت الطعام" },
+  "short_description": null,
+  "long_description": null,
+  "specs": [{ "key": "بلد المنشأ", "value": "سوريا" }],
+  "sale_unit": { "id": 4, "name": "كرتونة" },
+  "min_order_qty": 1,
+  "order_multiple": 1,
+  "unit_factors": [{
+    "from_unit": { "id": 4, "name": "كرتونة" },
+    "to_unit": { "id": 3, "name": "قطعة" },
+    "factor": 12
+  }],
+  "attributes_map": [
+    { "attribute": "الحجم", "values": ["0.75 لتر", "1 لتر"] },
+    { "attribute": "نوع العبوة", "values": ["عبوة بلاستيك"] }
+  ],
+  "variants": [{
+    "id": 1,
+    "label": "الحجم: 1 لتر / نوع العبوة: عبوة بلاستيك",
+    "barcode": null,
+    "sku": "OIL-1L-PL",
+    "image": null,
+    "price": 41200,
+    "attributes": [
+      { "attribute": "الحجم", "value": "1 لتر" },
+      { "attribute": "نوع العبوة", "value": "عبوة بلاستيك" }
+    ]
+  }],
+  "images": []
 }
 ```
 
-شاشة التفاصيل: صور `images[]` (أو حرف الاسم)، الاسم، البراند، السعر، `long_description` إن وُجد، شبكة المتغيرات نفسها. أزرار الكمية تكتب المسودّة باسم المحل المختار في §7.1.
+شاشة «اختر الكميات»: صور `images[]` (أو حرف الاسم)، الاسم، `short_description`، شارات من `category.name` و`brand.name` و`specs` حيث `key` = `بلد المنشأ`. شبكة الشرائح من `attributes_map` بالترتيب. طابق الاختيار بـ `attribute` + `value` على `variants[].attributes` — لا تفترض أن كل قيمة × كل قيمة موجودة. قيمة بلا متغير نشط لا تأتي في الخريطة، والمتغير `disabled` لا يأتي أصلاً. `price` سعر الكمية 1 بأصغر وحدة (يتبدّل مع `price_override`). الشطب والنسبة عند تغيير العداد من `POST /app/pricing/quote` (`discount` مقابل `unit_price`) لا من هذه البطاقة. `unit_factors` تحوّل وحدة البيع: كرتونة × `factor` = قطع، لجملة «2 كرتون (24 قطعة)». `min_order_qty` و`order_multiple` حدّا العداد. أزرار الكمية تكتب المسودّة باسم المحل المختار في §7.1.
 
 ### 7.3 المتغيرات — علي بابا (البند 8) ✅
 
 موجّه المنتج حرفياً: ربط المتغيرات بالسلة مثل Alibaba. إن للمنتج أكثر من متغير يستطيع المندوب الطلب من **كل متغير** وتحديد العدد والإضافة **بشكل مستقل** عن المتغيرات الأخرى، ويظهر **فوق كل متغير** العدد المطلوب منه.
 
-القائمة والتفاصيل تُرجعان `variants[]`. `variant_id` على `POST /cart/lines` و`POST /pricing/quote`.
+القائمة تُرجع `variants[]` مختصرة (`id` / `label` / `barcode`) للشريحة السريعة. شاشة الكميات تقرأ `attributes_map` و`variants[].attributes` من التفاصيل (§7.2b). `variant_id` على `POST /cart/lines` و`POST /pricing/quote`.
 
 ```
 ┌ زيت دوار الشمس 1 لتر          12,000 ل.س ┐
@@ -1134,11 +1171,15 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
       "discount": 0,
       "line_total": 69000
     }],
+    "gross": 69000,
+    "discount": 0,
     "subtotal": 69000,
     "currency": "SYP"
   }
 }
 ```
+
+تذييل «مراجعة الاختيارات» يربط الثلاثة كما هم، بأصغر وحدة: `gross` = السعر، `discount` = الخصم، `subtotal` = الإجمالي. لا تجمع الأسطر أنت.
 
 ### 7.5 العروض ✅ — البند 6 سلايدر
 
@@ -1162,7 +1203,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 └──────────────────────────────────────┘
 ```
 
-هنا يُسمح بالإنقاص والحذف — المسودّة محلية. بعد التشبيك:
+هنا يُسمح بالإنقاص والحذف — المسودّة محلية. كل سطر يعرض ما حُفظ من تفاصيل المنتج: الصورة، الاسم، `brand.name`، و«وحدة البيع» من `sale_unit` مع `unit_factors` (كرتونة × المعامل = قطع). ملاحظة الطلب تبقى على الجهاز حتى إرسال قسم السلة (`note` في §7.8). بعد التشبيك:
 
 `POST /api/v1/app/rep/cart/lines` — نداء واحد لكل سطر مسودّة (مفتاح تكرار جديد لكل نداء):
 
@@ -1189,8 +1230,9 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 {
   "data": {
     "sections": [{
-      "retailer": { "id": 481, "shop_name": "بقالية النور", "zone_id": 12 },
+      "retailer": { "id": 481, "shop_name": "بقالية النور", "zone_id": 12, "zone": "المزة" },
       "channel": { "id": 1, "name": "شركة النور" },
+      "temp_order_no": "T-4-9",
       "created_at": "2026-03-01T10:00:00+03:00",
       "lines": [{
         "id": 11,
@@ -1207,7 +1249,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 }
 ```
 
-تبويب السلة يعرض **كل** المحلات: اسم المحل، اسم القناة، تاريخ الإنشاء، بنود بالاسم والكمية والسعر و`line_total`. الشريط العائم في تسجيل الطلب يعرض المسودّة لا السلة. لا صورة على البند — حرف الاسم من `name`.
+تبويب السلة بطاقة لكل محل، وكل قسم **مسودّة** حتى الإرسال. الاسم من `retailer.shop_name`، المنطقة من `retailer.zone`، القناة من `channel.name`، الرقم من `temp_order_no` (ليس فاتورة بعد)، التاريخ من `created_at`، والمبلغ من `total`. الشعار دائماً null → حرف الاسم. «تفاصيل الطلب» تفتح `lines`. «إرسال طلب» هو §7.8. الشريط «محفوظة على الجهاز» للطابور المحلي، لا لحقل في هذا الرد. الشريط العائم في تسجيل الطلب يعرض المسودّة لا السلة.
 
 ### 7.8 إرسال طلب محل ✅ 🔁
 
@@ -1227,14 +1269,21 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
     "sub_order": {
       "id": 9001,
       "sub_order_no": "SO-9001",
+      "invoice_no": null,
       "status": "pending",
-      "total": 47040
+      "shop": "بقالية النور",
+      "zone": "المزة",
+      "channel": "شركة النور",
+      "created_at": "2026-03-01T10:00:00+03:00",
+      "gross": 556000,
+      "discount": 56000,
+      "total": 500000
     }
   }
 }
 ```
 
-الخادم يحذف قسم هذا المحل. احفظ `sub_order` ثم حدّث تبويب الطلبات من `GET /app/rep/orders`. 422 قسم فارغ. 404 محل مجهول.
+شاشة «تم إرسال الطلب» تُرسم من هذا الرد: `pending` = بانتظار الموافقة، الرقم `sub_order_no` ما دام `invoice_no` فارغاً، السعر `total` والمشطوب `gross` إن زاد عن `total`. «تابع حالة الطلب» يفتح الصف نفسه من `GET /app/rep/orders`. الخادم يحذف قسم هذا المحل. 422 قسم فارغ. 404 محل مجهول.
 
 ---
 
@@ -1267,7 +1316,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 - **رفض:** حوار سبب (max 255) → `POST /assignments/{id}/reject` → احذف البطاقة.
 - **تفاصيل:** ورقة بنفس الحقول. لا `GET /assignments/{id}`. لا تختلق بنود فاتورة. إن نجح لاحقاً `GET /deliveries/{id}` اعرض البنود؛ وإلا اكتفِ بحقول البطاقة.
 
-`GET /api/v1/app/rep/assignments` — مصفوفة بلا صفحات. `invoice_no` دائماً null — اعرض الصف بنص «—» لا تخفه (موجّه المنتج يطلب الحقل).
+`GET /api/v1/app/rep/assignments` — مصفوفة بلا صفحات. كل بطاقة في هذه القائمة «بانتظار قبولك»، وشارة «طلبات إضافية» هي طول المصفوفة. المبلغ `total`. الرقم على البطاقة هو `sub_order_no` ما دام `invoice_no` فارغاً. «تفاصيل الفاتورة» تفتح `lines` من البطاقة نفسها، بلا مسار جديد. الشعار غير موجود → حرف من `shop`.
 
 ```json
 {
@@ -1278,7 +1327,20 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
     "zone": "المزة",
     "channel": "شركة النور",
     "invoice_no": null,
-    "created_at": "2026-03-01T10:00:00+03:00"
+    "created_at": "2026-03-01T10:00:00+03:00",
+    "total": 500000,
+    "lines": [{
+      "id": 1,
+      "name": "زيت دوار الشمس 1 لتر",
+      "brand": "نور",
+      "variant": "1 لتر",
+      "sale_unit": "قطعة",
+      "unit_factors": [],
+      "image": null,
+      "qty": 4,
+      "unit_price": 12000,
+      "line_total": 48000
+    }]
   }]
 }
 ```
@@ -1320,18 +1382,51 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 `GET /api/v1/app/rep/warehouse-receipts?date=2026-03-01`
 
+البلاطات الثلاث: `date` و `count` (عدد الطلبات) و `item_count` (عدد الأصناف). القائمة تحت البحث هي `items[]`: الكمية `qty`، الوحدة تحتها `sale_unit`، الاسم `name`، السطر الثاني `variant`، والصورة `image` (فارغة → حرف الاسم). البحث محلي. صف `orders[]` هو شاشة مطابقة العهدة: المحل والرقم (`invoice_no` وإلا `order_no`) و`lines` و`total`. سطر المطابقة: الصورة والاسم و`brand` و«وحدة البيع» من `sale_unit` مع `unit_factors` (كرتون × 12 قطعة) والسعر `line_total`. قبل التأكيد `parties.rep` = `pending` و`parties.warehouse` = `confirmed` لأن المستودع فتح الحوالة أصلاً.
+
 ```json
 {
   "data": {
     "date": "2026-03-01",
     "rep_name": "عمر الشامي",
     "count": 2,
+    "item_count": 1,
+    "items": [{
+      "product_id": 880,
+      "variant_id": null,
+      "name": "زيت دوار الشمس 1 لتر",
+      "variant": "1 لتر",
+      "sale_unit": "قطعة",
+      "image": null,
+      "qty": 24
+    }],
     "orders": [{
       "sub_order_id": 9001,
       "order_no": "SO-9001",
+      "invoice_no": null,
       "shop": "بقالية النور",
       "zone": "المزة",
-      "handover_id": 44
+      "channel": "شركة النور",
+      "created_at": "2026-03-01T10:00:00+03:00",
+      "handover_id": 44,
+      "total": 320000,
+      "parties": { "rep": "pending", "warehouse": "confirmed" },
+      "lines": [{
+        "id": 1,
+        "name": "زيت دوار الشمس 1 لتر",
+        "brand": "نور",
+        "variant": "1 لتر",
+        "sale_unit": "كرتون",
+        "unit_factors": [{
+          "from_unit": { "id": 2, "name": "كرتون" },
+          "to_unit": { "id": 1, "name": "قطعة" },
+          "factor": 12
+        }],
+        "image": null,
+        "qty": 4,
+        "unit_price": 60000,
+        "line_total": 240000
+      }]
     }]
   }
 }
@@ -1339,11 +1434,26 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 `POST /app/rep/warehouse-receipts/{handoverId}/confirm` 🔁
 
+زر «أكد استلام العهدة» يجمع الرمز الرباعي الذي يعرضه المستودع ثم يرسله. «تسجيل اختلاف في الكمية» بلا كتابة على هذا المسار.
+
 ```json
 { "temp_code": "7391" }
 ```
 
-`temp_code` size 4. نجاح: `{ "status": "on_the_way", "tracking_enabled": true }` — ابدأ النبضات إن المناوبة شغّالة. بعد التأكيد أعد جلب الجدول حتى ينقص `count`.
+`temp_code` size 4. نجاح:
+
+```json
+{
+  "data": {
+    "status": "on_the_way",
+    "tracking_enabled": true,
+    "rep_name": "عمر الشامي",
+    "parties": { "rep": "confirmed", "warehouse": "confirmed" }
+  }
+}
+```
+
+الطرفان `confirmed` والمخزون خُصم والحالة في الطريق. لا تُبقِ شارة «بانتظار مسؤول المستودع» بعد هذا الرد. ابدأ النبضات إن المناوبة شغّالة. «العودة إلى قائمة المستودع» تعيد الجلب فتسقط الحوالة من القائمة.
 
 | خطأ | |
 |---|---|
@@ -1395,21 +1505,26 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 🟡 **أثر كتابة.** اسحب-للتحديث فقط.
 
+رقائق المناطق هي `zones[]`: الاسم `name` والشارة `total`. سطر «تم تسليم N من M» هو `delivered` و `total` للمنطقة المختارة. مبلغ البطاقة `total`. الرقم `invoice_no` إن وُجد وإلا `sub_order_no`. `accepted` و `on_the_way` كلاهما «بانتظار التسليم». «تفاصيل التسليم» هو `GET /deliveries/{id}`.
+
 ```json
 {
   "data": {
     "zones": [{
+      "id": 12,
       "name": "المزة",
       "total": 4,
       "delivered": 1,
       "cards": [{
         "id": 9001,
+        "sub_order_no": "SO-9001",
         "shop": "بقالية النور",
         "zone": "المزة",
         "channel": "شركة النور",
-        "invoice_no": "INV-501",
+        "invoice_no": null,
         "ordered_at": "2026-03-01T09:10:00+03:00",
         "status": "accepted",
+        "total": 320000,
         "border_color": "blue"
       }]
     }]
@@ -1446,21 +1561,37 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 `GET /api/v1/app/rep/deliveries/{id}` — `{id}` = `sub_order_id`.
 
+رأس الشاشة: `shop` والرقم `invoice_no` وإلا `sub_order_no`. السعر الأخضر على السطر هو `line_total`. «وحدة البيع» من `sale_unit` و `unit_factors`. «تعديل كمية» = `PATCH` `action=adjust`. «طلب إرجاع / استبدال» = §8.10 والمنتجات من `lines`. «الموقع» يفتح الخريطة بـ `lat`/`lng` (كلاهما null = لا موقع). «الوقت المتوقع» هو `scheduled_at` بعد التأجيل فقط، ولا وقت وصول مخترع. «أكد استلام الطلب» = §8.5. «تأجيل أو تعذر» = §8.6 أو §8.7.
+
 ```json
 {
   "data": {
+    "shop": "بقالية النور",
+    "zone": "المزة",
+    "channel": "شركة النور",
+    "address": "المزة فيلات شرقية",
+    "phone": "+963933000000",
+    "lat": null,
+    "lng": null,
+    "sub_order_no": "SO-9001",
+    "invoice_no": null,
+    "created_at": "2026-03-01T09:10:00+03:00",
+    "scheduled_at": null,
     "lines": [{
       "id": 1,
       "image": null,
       "name": "زيت دوار الشمس 1 لتر",
       "brand": "نور",
-      "variant": null,
+      "variant": "1 لتر",
+      "sale_unit": "كرتون",
+      "unit_factors": [],
       "qty": 4,
       "qty_delivered": 0,
-      "price": 12000,
+      "price": 60000,
+      "line_total": 240000,
       "status": "pending"
     }],
-    "invoice_total": 48000
+    "invoice_total": 320000
   }
 }
 ```
@@ -1512,19 +1643,21 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 }
 ```
 
-كل الحقول اختيارية ما عدا أن الإنهاء بلا عهدة → 409.
+كل الحقول اختيارية. 409 `illegal_transition` إن الحالة ليست `on_the_way` بعد — أكّد استلام العهدة من المستودع أولاً. طلب هو أصلاً في الطريق يُنهى.
 
 ```json
 {
   "data": {
-    "invoice": { "no": "INV-501", "total": 48000 },
+    "shop": "بقالية النور",
+    "delivered_at": "2026-03-01T12:05:00+03:00",
+    "invoice": { "no": "INV-501", "total": 480000 },
     "receipt_no": "RCPT-10041",
     "ask_payment": true
   }
 }
 ```
 
-إن `ask_payment` املأ نافذة التحصيل بـ `invoice.no` + `receipt_no` + `total`. **لا تحجز وصلاً ثانياً** — الوصل موجود. إطار بطاقة القائمة يصبح رمادياً بعد التحديث.
+شاشة «تم تسليم الطلب»: العنوان ثابت، السطر تحته `shop` و `delivered_at`، والمبلغ `invoice.total`. جملة «التسليم لا يعني التحصيل» نص ثابت. «استلم دفعة الآن» يفتح التحصيل بهذا `receipt_no` و `invoice` — لا تحجز وصلاً ثانياً. «العودة للجولة» ترجع لقائمة التسليم.
 
 إعادة الإنهاء بعد التسليم تعيد نفس الفاتورة والوصل.
 
@@ -1535,14 +1668,26 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 `POST .../postpone`
 
 ```json
-{ "scheduled_at": "2026-03-02T10:00:00+03:00", "reason": "المحل مغلق" }
+{
+  "scheduled_at": "2026-12-12T10:30:00+03:00",
+  "reason": "المحل مغلق وقت الزيارة",
+  "note": "طلب صاحب المحل التواصل قبل الوصول"
+}
 ```
 
-→ `{ "status": "postponed" }`. البطاقة تغادر قائمة اليوم إلى المجدولة. الإطار أزرق.
+التاريخ والوقت حقل واحد `scheduled_at`. `note` اختياري ويُضم إلى `reason`. الرد `{ "status": "postponed", "scheduled_at": "..." }`. البطاقة تغادر قائمة اليوم إلى المجدولة. «إلغاء التسليم» على الشاشة نفسها هو `POST .../fail`.
 
 ### 8.7 تعذّر / إلغاء تسليم ✅ 🔁
 
-`POST .../fail` `{ "reason": "رفض الاستلام" }` → `{ "status": "undelivered", "border_color": "red" }`.
+`POST .../fail`
+
+```json
+{ "reason": "رفض العميل الاستلام", "note": "العميل طلب مراجعة الفاتورة" }
+```
+
+→ `{ "status": "undelivered", "border_color": "red" }`.
+
+قائمة الحالة «لم يتم التسليم» هي هذا الطلب. `reason` القيمة الإلزامية من القائمة. `note` تفاصيل السبب ويُضم إلى `reason` بحد 255. «أبقِ الطلب دون تغيير» يغلق الورقة ولا يرسل شيئاً. نص التحذير ثابت على الجهاز.
 
 - إلغاء من البطاقة: تأكيد «لا يمكن التراجع من التطبيق.» ثم `reason` = «ألغاه المندوب».
 - لم يتم التسليم: السبب من النافذة، لا إرسال فارغ.
@@ -1620,15 +1765,21 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 `GET /api/v1/app/rep/scheduled-orders?date=2026-03-02` — بلا `date` = كل المؤجَّل.
 
+الشارة «مواعيد قادمة» طول المصفوفة. الرقائق اليوم / غداً / هذا الأسبوع تصفّي `scheduled_at` على الجهاز؛ اطلب القائمة بلا `date`. الرقم `invoice_no` وإلا `sub_order_no`. «تاريخ الطلب» و«وقت الطلب» من `created_at`. السطر تحت الاسم `zone` ثم `address`. الحالة هنا `postponed` = مؤجل. بعد التسليم تغادر البطاقة هذه القائمة.
+
 ```json
 {
   "data": [{
     "id": 9001,
+    "sub_order_no": "SO-9001",
+    "invoice_no": null,
     "shop_logo": null,
     "shop": "بقالية النور",
-    "address": "المزة فيلات شرقية",
+    "zone": "الميدان",
+    "address": "بجانب المول",
     "phone": "+963933000000",
-    "scheduled_at": "2026-03-02T10:00:00+03:00",
+    "created_at": "2026-12-12T09:41:00+03:00",
+    "scheduled_at": "2026-12-12T10:30:00+03:00",
     "status": "postponed",
     "color": "amber"
   }]
@@ -1696,7 +1847,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 بعد النجاح: رسالة «تم استلام المبلغ» وإضافة المبلغ للمحفظة (`wallet_balance` من الرد). أعد `GET /app/rep/home` عند الرجوع للرئيسية حتى يتحرّك عدّاد `collected_today`.
 
-موجّه المنتج يجعل رقم الفاتورة اختيارياً (دفعة على الحساب). **الخادم يفرض `invoice_no`.** ابنِ الحقل اختيارياً في الواجهة بالنص أعلاه؛ زر التأكيد يبقى معطّلاً حتى اختيار فاتورة أو افتح الذمم (§9.6) لاختيار واحدة. لا ترسل جسماً بلا `invoice_no`.
+رقم الفاتورة اختياري. تركه فارغاً يوزّع المبلغ على أقدم فاتورة مفتوحة لهذا المحل، وشاشة الإيصال تعرض الرقم الذي خصمه الخادم. لا فاتورة مفتوحة → 404.
 
 `POST /api/v1/app/rep/payments`
 
@@ -1715,11 +1866,19 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 افتتاح الشاشة من الرئيسية: احجز وصلاً فوراً (`reserve`) ثم املأ المحل من منتقي `GET /customers`. من بعد `complete`: لا `reserve` — استخدم `receipt_no` و`invoice.no` و`invoice.total` كاقتراح للمبلغ.
 
+إيصال «تم استلام الدفعة» يُرسم من هذا الرد: `shop` و `amount` و `invoice_no` و `invoice_remaining` و `wallet_balance` و `paid_at`. المحل من `GET /customers`. الفواتير المفتوحة للمنتقى من `GET /receivables`. ترك الفاتورة فارغاً يوزّع المبلغ على أقدم فاتورة مفتوحة لهذا المحل، والرد يسمّيها. لا فاتورة مفتوحة → 404.
+
 ```json
 {
   "data": {
     "payment": { "id": 301 },
-    "wallet_balance": 210000,
+    "amount": 556000,
+    "receipt_no": "RCPT-10041",
+    "paid_at": "2026-03-01T12:08:00+03:00",
+    "shop": "بقالية النور",
+    "invoice_no": "INV-501",
+    "invoice_remaining": 0,
+    "wallet_balance": 1556000,
     "retailer_receivable": 0
   }
 }
@@ -1744,11 +1903,14 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
     "net_balance": 210000,
     "stats": {
       "invoices_delivered": 18,
+      "invoiced_total": 980000,
       "collected_total": 860000,
+      "handed_over": 650000,
       "receivables": 120000
     },
     "today": {
       "invoices": 4,
+      "invoiced_total": 210000,
       "collected": 180000,
       "receivables": 30000
     }
@@ -1758,10 +1920,12 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 
 `net_balance = SUM(collected) − SUM(settled)`. لا تختلق فرقاً محلياً.
 
+البلاطات الأربع مبالغ: `stats.invoiced_total` (إجمالي الفواتير) و`collected_total` و`handed_over` (المسلّم للمحاسب) و`receivables`. `invoices_delivered` و`today.invoices` يبقيان عدّاً. مستحقات اليوم: `today.receivables` و`today.collected` و`today.invoiced_total`. `today` يوم دمشق فقط.
+
 تخطيط المنتج:
 
 1. بلوك الصافي (ما لم يُسلَّم للمحاسب) = `net_balance`
-2. بلوك إحصائي: فواتير مسلَّمة + محصّلة + ذمة — النقر يفتح التفصيل (الذمم / السجل)
+2. البلوكات الأربع أعلاه — النقر يفتح التفصيل (الذمم / السجل)
 3. مستحقات اليوم مع منتقي تاريخ — 🟡 الخادم يعيد `today` ليوم دمشق فقط. منتقي تاريخ آخر: اعرض «اليوم فقط من الخادم» أو صفّر إن التاريخ ≠ اليوم
 4. سحب مبلغ
 5. كشف سحوبات بين تاريخين + PDF
@@ -1782,8 +1946,10 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 `operation_no` **من المحاسب** max 32، فريد على القناة. امنع محلياً إن `amount > net_balance`.
 
 ```json
-{ "data": { "remaining_balance": 250000 } }
+{ "data": { "amount": 1500000, "operated_at": "2026-03-01T16:00:00+03:00", "remaining_balance": 250000 } }
 ```
+
+شاشة «تم تسليم المبلغ» من هذا الرد: `amount` المبلغ المسلّم، `remaining_balance` الرصيد المتبقي، `operated_at` وقت دمشق. «افتح كشف التسليمات» = §9.5. «العودة للمحفظة» رجوع. لا PDF.
 
 ### 9.5 سجل السحوبات ✅
 
@@ -1807,15 +1973,20 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 ```json
 {
   "data": {
+    "total": 48000,
     "by_shop": [{
       "retailer_id": 481,
       "shop": "بقالية النور",
+      "zone": "المزة",
+      "channel": "شركة النور",
       "total": 48000,
-      "invoices": [{ "no": "INV-501", "total": 48000, "paid": 0, "remaining": 48000 }]
+      "invoices": [{ "no": "INV-501", "total": 48000, "paid": 0, "remaining": 48000, "created_at": "2026-03-01T10:00:00+03:00" }]
     }]
   }
 }
 ```
+
+«إجمالي الذمم» = `total`. شارة «محصّل جزئياً» عندما `paid > 0` و`remaining > 0`. تاريخ الفاتورة `created_at`. صدّر PDF محلياً. ⛔ لا مسار ملف للمندوب.
 
 ✅ `retailer_id` موجود (تصحيح لمواصفة 09-16). النقر على فاتورة → تحصيل بـ `remaining` مقترحاً.
 
@@ -1845,12 +2016,13 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
     "lng": 36.27,
     "is_open": true,
     "is_active": true,
-    "last_order_at": null
+    "last_order_at": null,
+    "created_at": "2026-03-01T10:00:00+03:00"
   }]
 }
 ```
 
-القائمة تضم: محلات سجّلها المندوب **أو** تجاراً نشطين في مناطقه. `id` = `retailer_id`. `is_active=false` قيد المراجعة — اعرض؛ السلة قد تفشل لاحقاً.
+القائمة تضم: محلات سجّلها المندوب **أو** تجاراً نشطين في مناطقه. `id` = `retailer_id`. `is_active=false` قيد المراجعة — اعرض؛ السلة قد تفشل لاحقاً. «جديد» يرتّب على `created_at`. «الأكثر زيارة» بلا عدّ زيارات. «مغلق» لا يُرسم (`is_open` دائماً true).
 
 بطاقة القائمة (موجّه المنتج):
 
@@ -1894,9 +2066,13 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
   "owner_name": "أبو سامر",
   "activity_type_id": 3,
   "categories": [1],
-  "equipments": []
+  "equipments": [],
+  "created_at": "2026-03-01T10:00:00+03:00",
+  "receivable": 240000
 }
 ```
+
+«الذمة الحالية» = `receivable` (متبقّي فواتير هذا المندوب عند المحل، وحدات صغرى، 0 إن لا ذمة). الخريطة من `lat`/`lng`. المسافة حساب الجهاز. لا وقت وصول.
 
 الشاشة: رأس البطاقة + المالك + نوع النشاط من كاش refs + شرائح الفئات/التجهيزات (اربط الأسماء من refs) + أزرار اتصال/خريطة + «تسجيل طلب» يفتح §7 بهذا `retailer_id` و`zone_id`.
 
@@ -1994,7 +2170,9 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 - المجموع int
 - زر تفاصيل: إن وُجد التسليم لنفس `id` افتح `DeliveryDetailView`، وإلا بطاقة هذه الحقول فقط
 
-`invoice_no` null حتى تُصدَر فاتورة — اعرض «—». اسحب-للتحديث. فارغ: «لا طلبات بعد. أرسل سلة محل.»
+`invoice_no` null حتى تُصدَر فاتورة — اعرض «—». اسحب-للتحديث.
+
+فارغ: «جولتك تبدأ بطلب» و«سجّل أول طلب» يفتح تسجيل الطلب. فشل التحميل شاشة جهاز: أعد `GET /orders`، والمسودات تبقى في السلة المحلية. رمز الدعم يُولَّد على الجهاز ولا يأتي من الخادم.
 
 ### 10.5 تبويب السلة ✅
 
@@ -2005,10 +2183,11 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 | عنصر المنتج | مصدر |
 |---|---|
 | اسم + أيقونة | جلسة — `avatar` دائماً null → حرف الاسم |
-| طلبات منفّذة | `GET /wallet` → `stats.invoices_delivered` (إجمالي لا شهري — عنون بوضوح) |
-| محلات | `GET /customers` → `meta.total` |
-| نسبة تنفيذ | لا مسار. أخفِ أو اترك «—» |
-| نقاط | `loyalty` من الـ home — اربط الشريط |
+| شهر أيلول 2026 | `GET /app/rep/account?month=2026-09` (EP-RP-074). بلا `month` = شهر دمشق الحالي |
+| طلبات منفّذة | `orders_completed` — طلبات هذا المندوب المنشأة في الشهر وحالتها `delivered` |
+| عملاء جدد | `customers_added` — محلات سجّلها في الشهر |
+| نسبة تنفيذ | `execution_rate` عدد صحيح = منفّذ ÷ (منفّذ + متعذّر). `null` عندما المقام 0 — اعرض «—» |
+| نقاط | `GET /app/loyalty` → `points`. رصيد مدى الحياة، ليس شهرياً. المكافأة التالية أرخص جائزة `points_cost` أكبر من الرصيد |
 | لغة / مظهر / عملة | محلي GetStorage. العملة `SYP` ثابتة |
 | إشعارات تفعيل | مفتاح محلي + `POST /app/devices/push-token` ✅ عند التفعيل |
 | مساعدة وخصوصية | `legal.*` نسخ ثابتة في الأصول. ⛔ لا API قبول |
@@ -2016,7 +2195,7 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 | تعديل مناطق العمل | `POST /zones` فقط (طلب إضافي) |
 | خروج | §5.10 |
 
-لا تختلق إحصاءً شهرياً. أرقام المحفظة إجماليات مدى الحياة.
+نقاط الولاء تبقى مدى الحياة على `GET /app/loyalty`. أرقام المحفظة إجماليات مدى الحياة على `GET /wallet`.
 
 ### 10.7 الإشعارات ✅ `AP-02`
 
@@ -2119,8 +2298,11 @@ Map<int, List<Map<String, dynamic>>> zonesByGovernorate(List zones) {
 | EP-RP-002 | GET | `/app/rep/home` | |
 | EP-RP-034 | PATCH | `/app/rep/status` | ✔ |
 | EP-RP-073 | PATCH | `/app/rep/profile` | ✔ |
+| EP-RP-074 | GET | `/app/rep/account` | |
 | EP-RP-010 | GET | `/app/rep/products` | |
 | EP-RP-011 | GET | `/app/rep/products/{id}` | |
+| EP-RP-012 | GET | `/app/rep/categories` | |
+| EP-RP-013 | GET | `/app/rep/brands` | |
 | EP-RP-070A | GET | `/app/rep/customers` | |
 | EP-RP-070C | GET | `/app/rep/customers/{id}` | |
 | EP-RP-070B | POST | `/app/rep/customers` | ✔ |
@@ -2247,11 +2429,11 @@ class Money {
 | `CartView` | `sections[].retailer.id/shop_name/zone_id`, `channel`, `created_at`, `lines[].id/product_id/name/qty/unit_price/line_total`, `total`, `discount` |
 | `RepOrderCard` | `id`, `sub_order_no`, `invoice_no?`, `created_at`, `status`, `shop`, `zone`, `channel`, `total` |
 | `SubOrderBrief` | `id`, `sub_order_no`, `status`, `total` |
-| `AssignmentCard` | `id`, `sub_order_no`, `shop`, `zone`, `channel`, `created_at` |
+| `AssignmentCard` | `id`, `sub_order_no`, `shop`, `zone`, `channel`, `created_at`, `total`, `lines[]` |
 | `ScheduledCard` | `id`, `shop`, `address`, `phone`, `scheduled_at`, `status`, `color` |
-| `WarehousePayload` | `date`, `rep_name`, `count`, `orders[].sub_order_id/order_no/shop/zone/handover_id` |
-| `DeliveryList` | `zones[].name/total/delivered/cards[]` |
-| `DeliveryCard` | `id`, `shop`, `zone`, `channel`, `invoice_no?`, `ordered_at`, `status`, `border_color` |
+| `WarehousePayload` | `date`, `rep_name`, `count`, `item_count`, `items[]`, `orders[].sub_order_id/order_no/shop/zone/channel/total/parties/lines/handover_id` |
+| `DeliveryList` | `zones[].id/name/total/delivered/cards[]` |
+| `DeliveryCard` | `id`, `sub_order_no`, `shop`, `zone`, `channel`, `invoice_no?`, `ordered_at`, `status`, `total`, `border_color` |
 | `DeliveryDetail` | `lines[]`, `invoice_total` |
 | `Wallet` | `net_balance`, `stats.*`, `today.*` |
 | `Receivables` | `by_shop[].retailer_id/shop/total/invoices[]` |

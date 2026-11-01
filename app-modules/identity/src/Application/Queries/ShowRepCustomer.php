@@ -6,6 +6,7 @@ namespace Modules\Identity\Application\Queries;
 
 use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Contracts\RepSellingContext;
+use Modules\Core\Contracts\RepShopReceivable;
 use Modules\Identity\Application\Support\RepShopCard;
 use Modules\Identity\Domain\Enums\ProfileStatus;
 use Modules\Identity\Domain\Models\AppUser;
@@ -18,6 +19,7 @@ final class ShowRepCustomer
     public function __construct(
         private readonly RepSellingContext $selling,
         private readonly ReferenceDirectory $refs,
+        private readonly RepShopReceivable $receivable,
     ) {}
 
     /**
@@ -51,6 +53,7 @@ final class ShowRepCustomer
         $card['activity_type_id'] = (int) $profile->activity_type_id;
         $card['categories'] = $profile->categories()->pluck('root_category_id')->map(fn ($cid) => (int) $cid)->all();
         $card['equipments'] = $profile->equipments()->pluck('equipment_id')->map(fn ($eid) => (int) $eid)->all();
+        $card['receivable'] = $this->receivable->openTotal((int) $user->getAuthIdentifier(), (int) $profile->id);
 
         return $card;
     }

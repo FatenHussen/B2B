@@ -13,6 +13,7 @@ final class VisibleCatalogQuery
 {
     /**
      * @param  array{zone_id: int, activity_type_id: int, channel_ids: list<int>, category_ids?: list<int>}  $shopping
+     * @return Builder<Product>
      */
     public static function products(array $shopping): Builder
     {

@@ -13,6 +13,9 @@ class ProductVariantAxis extends Model
 
     protected $fillable = ['product_id', 'name', 'order'];
 
+    /**
+     * @return HasMany<ProductVariantAxisValue, $this>
+     */
     public function values(): HasMany
     {
         return $this->hasMany(ProductVariantAxisValue::class, 'axis_id')->orderBy('order');

@@ -8,6 +8,9 @@ use Modules\Core\Http\ApiFormRequest;
 
 final class UploadMediaRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         $type = (string) $this->input('type', 'image');

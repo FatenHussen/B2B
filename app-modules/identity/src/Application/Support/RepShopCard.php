@@ -29,6 +29,7 @@ final class RepShopCard
             'is_open' => true,
             'is_active' => $profile->status->value === 'active',
             'last_order_at' => null,
+            'created_at' => $profile->created_at?->timezone('Asia/Damascus')->toIso8601String(),
         ];
     }
 }

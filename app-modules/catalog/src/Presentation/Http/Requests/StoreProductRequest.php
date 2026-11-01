@@ -10,6 +10,9 @@ use Modules\Core\Http\ApiFormRequest;
 
 final class StoreProductRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

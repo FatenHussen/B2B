@@ -18,6 +18,7 @@ class HandoverItem extends Model
         return ['package_ids' => 'array'];
     }
 
+    /** @return BelongsTo<Handover, $this> */
     public function handover(): BelongsTo
     {
         return $this->belongsTo(Handover::class);

@@ -28,6 +28,7 @@ class PickingLine extends Model
         return ['manual' => 'boolean'];
     }
 
+    /** @return BelongsTo<PickingList, $this> */
     public function list(): BelongsTo
     {
         return $this->belongsTo(PickingList::class, 'picking_list_id');

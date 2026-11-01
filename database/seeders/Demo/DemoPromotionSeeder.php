@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Demo;
 
+use Modules\Core\Support\Tenant;
 use Modules\Promotion\Domain\Enums\OfferStatus;
 use Modules\Promotion\Domain\Enums\OfferType;
 use Modules\Promotion\Domain\Enums\TargetingScope;
@@ -192,6 +193,19 @@ final class DemoPromotionSeeder extends DemoSeeder
     ];
 
     public function run(): void
+    {
+        if (Tenant::currentId() === null) {
+            foreach ($this->catalogChannelIds() as $channelId) {
+                Tenant::as($channelId, fn () => $this->seedCurrentChannel());
+            }
+
+            return;
+        }
+
+        $this->seedCurrentChannel();
+    }
+
+    private function seedCurrentChannel(): void
     {
         foreach (self::OFFERS as $row) {
             $offer = Offer::query()->firstOrCreate(

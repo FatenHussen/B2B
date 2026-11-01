@@ -227,7 +227,9 @@ it('applies product_discount, buy_x_get_y, invoice_discount and gift on quote', 
         ->and($gift['unit_price'])->toBe(0)
         ->and($gift['line_total'])->toBe(0);
 
-    expect($quote->json('data.subtotal'))->toBe(array_sum(array_column($lines, 'line_total')));
+    expect($quote->json('data.subtotal'))->toBe(array_sum(array_column($lines, 'line_total')))
+        ->and($quote->json('data.discount'))->toBeGreaterThan(0)
+        ->and($quote->json('data.gross'))->toBe($quote->json('data.subtotal') + $quote->json('data.discount'));
 });
 
 it('applies a group price list when group_ids are passed to the engine', function () {

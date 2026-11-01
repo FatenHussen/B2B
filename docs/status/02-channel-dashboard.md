@@ -1,10 +1,10 @@
 # لوحة قناة التوريد — حالة الواجهات
 
-guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 2026-09-24 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 2026-10-29 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 123 | 123 | 0 | 0 | 0 |
+| 124 | 124 | 0 | 0 | 0 |
 
 ## الدخول — 2/2
 
@@ -13,7 +13,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-CH-001 | SP-01 | `POST` | `/channel/auth/request-otp` | — | Identity | طلب رمز دخول القناة |
 | ✅ | EP-CH-002 | SP-01 | `POST` | `/channel/auth/verify-otp` | — | Identity | تحقق دخول القناة |
 
-## الكتالوج — 22/22
+## الكتالوج — 23/23
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -28,6 +28,7 @@ guard `channel` · prefix `/api/v1/channel/*` · مولَّد آلياً في 20
 | ✅ | EP-SC-013 | SP-06 | `POST` | `/channel/categories/reorder` | `sc.catalog.update` | Catalog | إعادة ترتيب الفئات |
 | ✅ | EP-SC-014 | SP-06 | `GET` | `/channel/products` | `sc.catalog.view` | Catalog | المنتجات |
 | ✅ | EP-SC-014A | SP-06 | `GET` | `/channel/products/{id}` | `sc.catalog.view` | Catalog | تفاصيل منتج |
+| ✅ | EP-SC-014B | SP-06 | `GET` | `/channel/catalog/summary` | `sc.catalog.view` | Catalog | نظرة عامة على الكتالوج |
 | ✅ | EP-SC-015 | SP-06 | `POST` | `/channel/products` | `sc.catalog.create` | Catalog | إنشاء منتج |
 | ✅ | EP-SC-016 | SP-06 | `PUT` | `/channel/products/{id}` | `sc.catalog.update` | Catalog | تحديث منتج |
 | ✅ | EP-SC-016A | SP-06 | `POST` | `/channel/products/{id}/duplicate` | `sc.catalog.create` | Catalog | نسخ منتج |

@@ -28,6 +28,7 @@ class Handover extends Model
         ];
     }
 
+    /** @return HasMany<HandoverItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(HandoverItem::class);

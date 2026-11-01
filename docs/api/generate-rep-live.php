@@ -755,7 +755,7 @@ function notes(): array
         'GET /app/rep/warehouse-receipts' => 'Use handover_id in the confirm path, not sub_order_id. Query `date` optional.',
         'POST /app/rep/warehouse-receipts/{}/confirm' => 'temp_code size 4. Wrong handover id → 409 illegal_transition (not 404). Replay of a confirmed handover returns the success payload.',
         'GET /app/rep/deliveries' => 'Unpaginated. Delivered cards from other days are omitted. delivered count is today\'s delivered cards in that zone.',
-        'POST /app/rep/deliveries/{}/complete' => '409 illegal_transition (no_handover) unless warehouse confirm ran. Mints receipt_no. ask_payment true — open collect.',
+        'POST /app/rep/deliveries/{}/complete' => '409 illegal_transition (no_handover) when the order is not yet on_the_way and the handover is unconfirmed. An order already on_the_way can be finished. Mints receipt_no. ask_payment true — open collect.',
         'POST /app/rep/deliveries/{}/postpone' => 'Persists scheduled_at + reason. Card moves to GET /scheduled-orders.',
         'POST /app/rep/locations/ping' => '422 off_duty if not on duty. 429 rate_limited if last ping < 30s. Batch in pings[].',
         'POST /app/receipts/reserve' => 'Empty body {}. Use when collecting without a completion receipt. 24h expiry.',

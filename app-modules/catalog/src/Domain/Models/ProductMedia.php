@@ -7,6 +7,10 @@ namespace Modules\Catalog\Domain\Models;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Catalog\Domain\Enums\ProductMediaRole;
 
+/**
+ * @property int $media_id
+ * @property ProductMediaRole $role
+ */
 class ProductMedia extends Model
 {
     public $timestamps = false;

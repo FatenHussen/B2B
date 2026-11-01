@@ -96,7 +96,16 @@ it('lists assigned zones with shops_count and persists address plus categories o
     $show = $this->getJson("/api/v1/app/rep/customers/{$id}")->assertOk();
     expect($show->json('data.address'))->toBe('المزة فيلات شرقية')
         ->and($show->json('data.owner_name'))->toBe('أبو سامر')
-        ->and($show->json('data.categories'))->toContain($refs['root']->id);
+        ->and($show->json('data.categories'))->toContain($refs['root']->id)
+        ->and($show->json('data.receivable'))->toBe(0)
+        ->and($show->json('data.created_at'))->toBeString();
+
+    $account = $this->getJson('/api/v1/app/rep/account')->assertOk();
+    expect($account->json('data.customers_added'))->toBeGreaterThan(0)
+        ->and($account->json('data.orders_completed'))->toBe(0)
+        ->and($account->json('data.orders_undelivered'))->toBe(0)
+        ->and($account->json('data.execution_rate'))->toBeNull()
+        ->and($account->json('data.month'))->toBeString();
 
     $after = $this->getJson('/api/v1/app/rep/zones')->assertOk();
     $counted = collect($after->json('data'))->firstWhere('id', $refs['zone']->id);

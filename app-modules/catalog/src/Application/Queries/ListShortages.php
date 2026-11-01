@@ -17,6 +17,9 @@ final class ListShortages
         private readonly CatalogProductLookup $products,
     ) {}
 
+    /**
+     * @return LengthAwarePaginator<int, RetailerShortage>
+     */
     public function __invoke(object $user, Request $request): LengthAwarePaginator
     {
         $ctx = $this->shopping->for($user);

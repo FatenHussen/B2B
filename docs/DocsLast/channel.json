@@ -1,7 +1,7 @@
 {
     "info": {
         "title": "Channel dashboard — live API only",
-        "generated_at": "2026-09-24",
+        "generated_at": "2026-10-29",
         "base_path": "/api/v1",
         "guard": "channel",
         "x_client": "channel-web",
@@ -10,8 +10,8 @@
         "not": "This is NOT the platform admin (guard platform, port 3000) and NOT the warehouse / Flutter apps.",
         "rule": "If this file and the catalog disagree, this file wins. Call only live:true. Never call forbidden. Never mock missing retailer/warehouse/product-show lists. Gate screens with permissions[] from verify-otp, not role names.",
         "counts": {
-            "live_endpoints": 130,
-            "matched_catalog": 130,
+            "live_endpoints": 131,
+            "matched_catalog": 131,
             "live_without_catalog": 0,
             "forbidden": 12
         }
@@ -1039,6 +1039,89 @@
         },
         {
             "live": true,
+            "method": "GET",
+            "path": "/api/v1/channel/catalog/summary",
+            "catalog_path": "/channel/catalog/summary",
+            "code": "EP-SC-014B",
+            "name": "Catalog summary",
+            "name_ar": "نظرة عامة على الكتالوج",
+            "permission": "sc.catalog.view",
+            "guard": "channel",
+            "auth": true,
+            "write": false,
+            "idempotency": false,
+            "folder": "05. Catalog",
+            "query": [],
+            "body": null,
+            "response": {
+                "counts": {
+                    "products": 2,
+                    "products_change_pct": null,
+                    "categories": 1,
+                    "categories_change_pct": null,
+                    "brands": 1,
+                    "brands_change_pct": null,
+                    "active": 1,
+                    "active_share_pct": 50,
+                    "stopped": 1,
+                    "stopped_share_pct": 50
+                },
+                "by_category": [
+                    {
+                        "bucket": "root",
+                        "id": 1,
+                        "name": "غذائية",
+                        "count": 2
+                    }
+                ],
+                "by_brand": [
+                    {
+                        "id": 12,
+                        "name": "الخير",
+                        "count": 2
+                    }
+                ],
+                "by_status": [
+                    {
+                        "status": "active",
+                        "count": 1
+                    },
+                    {
+                        "status": "disabled",
+                        "count": 1
+                    }
+                ],
+                "recent_products": [
+                    {
+                        "id": 880,
+                        "name_ar": "زيت دوار الشمس",
+                        "brand": "الخير",
+                        "category": "زيوت",
+                        "price": 12000,
+                        "currency_id": 1,
+                        "status": "active",
+                        "created_at": "2026-10-29T06:00:00+00:00",
+                        "image": null
+                    }
+                ],
+                "recent_changes": [
+                    {
+                        "at": "2026-10-29T06:00:00+00:00",
+                        "action": "catalog.product.create",
+                        "bulk_action": null,
+                        "subject_type": "product",
+                        "subject_id": 880,
+                        "subject_name": "زيت دوار الشمس",
+                        "actor_name": "أحمد"
+                    }
+                ]
+            },
+            "errors": [],
+            "description": "Counts of this channel only. products_change_pct / categories_change_pct / brands_change_pct are integer percent growth versus rows created before the current calendar month (app timezone); null when that earlier count is zero. active_share_pct and stopped_share_pct are shares of products (stopped = status disabled). by_category rolls each product up to its platform root, or to the channel top category when it has none; unassigned products use bucket unassigned. by_brand includes id null name «بدون علامة» when a product has no brand. by_status omits a status whose count is zero (active|disabled|draft). recent_products is the 8 newest; price is the base price in minor units or null. recent_changes is the 8 newest catalog/pricing audit rows for this channel_id; bulk_action is set only for catalog.product.bulk. The product list (EP-SC-014) stays four keys.",
+            "note": null
+        },
+        {
+            "live": true,
             "method": "POST",
             "path": "/api/v1/channel/categories/reorder",
             "catalog_path": "/channel/categories/reorder",
@@ -1686,7 +1769,7 @@
                 }
             ],
             "errors": [],
-            "description": "",
+            "description": "Thin list. Exactly four keys. The overview numbers live on EP-SC-014B.",
             "note": "List shape is thin: id, sku, name_ar, status. Filters: filter[brand_id|category_id|status|zone_id|search]. No GET show."
         },
         {
@@ -4123,7 +4206,7 @@
                 }
             ],
             "errors": [],
-            "description": "",
+            "description": "BF-12: when channels include push/whatsapp without a provider, status is `partial` (with in_app) or `failed` (external only) and failure_reason is `push_whatsapp_provider_not_configured` — never treat those as delivered.",
             "note": null
         },
         {

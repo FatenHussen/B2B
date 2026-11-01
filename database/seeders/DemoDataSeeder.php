@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use Database\Seeders\Demo\DemoCatalogSeeder;
 use Database\Seeders\Demo\DemoChannelSeeder;
+use Database\Seeders\Demo\DemoCurrentWindowSeeder;
 use Database\Seeders\Demo\DemoInventorySeeder;
 use Database\Seeders\Demo\DemoOrderHistorySeeder;
 use Database\Seeders\Demo\DemoOrderingSeeder;
@@ -14,6 +15,7 @@ use Database\Seeders\Demo\DemoPlatformSeeder;
 use Database\Seeders\Demo\DemoPricingSeeder;
 use Database\Seeders\Demo\DemoPromotionSeeder;
 use Database\Seeders\Demo\DemoReferenceSeeder;
+use Database\Seeders\Demo\DemoRepFieldSeeder;
 use Illuminate\Database\Seeder;
 use Laravel\Telescope\Telescope;
 use Modules\Core\Support\Tenant;
@@ -66,5 +68,13 @@ class DemoDataSeeder extends Seeder
         });
 
         $this->call(DemoPlatformSeeder::class);
+
+        // Offers and the rep's handover/wallet rows are per channel. The block above
+        // only fills the demo channel; the other catalogs are written by DemoPlatformSeeder.
+        $this->call([
+            DemoPromotionSeeder::class,
+            DemoRepFieldSeeder::class,
+            DemoCurrentWindowSeeder::class,
+        ]);
     }
 }

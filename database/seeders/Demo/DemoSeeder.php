@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\Demo;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Models\AppUser;
@@ -74,6 +75,22 @@ abstract class DemoSeeder extends Seeder
         '+963932000002',
         '+963932000003',
     ];
+
+    /**
+     * Channels that have a catalog. Offers and rep field data are per channel,
+     * and a channel with no products has nothing for an offer to point at.
+     *
+     * @return list<int>
+     */
+    protected function catalogChannelIds(): array
+    {
+        return Tenant::withoutScope(fn () => DB::table('products')
+            ->distinct()
+            ->orderBy('supply_channel_id')
+            ->pluck('supply_channel_id')
+            ->map(fn ($id) => (int) $id)
+            ->all());
+    }
 
     protected function channelId(): int
     {

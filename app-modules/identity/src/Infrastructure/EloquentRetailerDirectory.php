@@ -30,6 +30,16 @@ final class EloquentRetailerDirectory implements RetailerDirectory
         ];
     }
 
+    public function location(int $retailerId): ?array
+    {
+        $profile = RetailerProfile::query()->find($retailerId);
+        if ($profile === null || $profile->lat === null || $profile->lng === null) {
+            return null;
+        }
+
+        return ['lat' => (float) $profile->lat, 'lng' => (float) $profile->lng];
+    }
+
     public function countInZone(int $zoneId): int
     {
         return RetailerProfile::query()->where('zone_id', $zoneId)->count();

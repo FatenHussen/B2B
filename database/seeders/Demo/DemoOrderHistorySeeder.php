@@ -47,8 +47,9 @@ use Modules\Tenancy\Domain\Models\SupplyChannel;
  * `active`, which is what its usage series should show.
  *
  * Numbers carry `H` and the channel id (`SO-H3-00042`) so they never collide with the
- * app's `SO-{id}` or the demo seeder's `SO-D0001`. Runs once per channel: a channel that
- * already has a history row is left alone.
+ * app's `SO-{id}` or the demo seeder's `SO-D0001`. A channel that already has history
+ * is not written again. Its window is slid forward so the newest day is today: the
+ * dashboard, the reports and the rep's "today" counts read those dates.
  */
 final class DemoOrderHistorySeeder extends DemoSeeder
 {
@@ -77,6 +78,8 @@ final class DemoOrderHistorySeeder extends DemoSeeder
         $prefix = 'SO-H'.$channelId.'-';
 
         if (SubOrder::query()->where('sub_order_no', 'like', $prefix.'%')->exists()) {
+            $this->alignWindow();
+
             return;
         }
 
@@ -461,5 +464,129 @@ final class DemoOrderHistorySeeder extends DemoSeeder
     private function stamp(object $model, Carbon $at): void
     {
         $model->forceFill(['created_at' => $at, 'updated_at' => $at])->save();
+    }
+
+    /**
+     * Slide this channel's generated history so its newest day is today, then make
+     * invoices, payments and deliveries carry the same day as their order.
+     *
+     * A live `SO-{id}` from the app is never touched. Running again on a window that
+     * already ends today only re-copies the child dates.
+     */
+    public function alignWindow(): void
+    {
+        $channelId = $this->channelId();
+        $prefix = 'SO-H'.$channelId.'-%';
+        $latestRaw = DB::table('sub_orders')
+            ->where('channel_id', $channelId)
+            ->where('sub_order_no', 'like', $prefix)
+            ->max('created_at');
+
+        if ($latestRaw === null) {
+            return;
+        }
+
+        $latestDay = Carbon::parse($latestRaw)->timezone('Asia/Damascus')->startOfDay();
+        $today = Carbon::today('Asia/Damascus');
+
+        if ($latestDay->lt($today)) {
+            $days = (int) round($latestDay->diffInDays($today));
+            $cutoff = Carbon::parse($latestRaw)->toDateTimeString();
+            $ids = DB::table('sub_orders')
+                ->where('channel_id', $channelId)
+                ->where('created_at', '<=', $cutoff)
+                ->where(function ($query) use ($prefix): void {
+                    $query->where('sub_order_no', 'like', $prefix)
+                        ->orWhere('sub_order_no', 'like', 'SO-D%');
+                })
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            if ($days >= 1 && $ids !== []) {
+                $this->shiftIds('sub_orders', 'id', $ids, ['created_at', 'updated_at', 'scheduled_at'], $days, $cutoff);
+
+                $orderIds = DB::table('sub_orders')->whereIn('id', $ids)->pluck('order_id')->map(fn ($id) => (int) $id)->all();
+                $this->shiftIds('orders', 'id', $orderIds, ['created_at', 'updated_at', 'client_created_at'], $days, $cutoff);
+                $this->shiftIds('order_sections', 'order_id', $orderIds, ['created_at', 'updated_at', 'scheduled_at'], $days, $cutoff);
+                $this->shiftIds('sub_order_lines', 'sub_order_id', $ids, ['created_at', 'updated_at'], $days, $cutoff);
+                $this->shiftIds('sub_order_events', 'sub_order_id', $ids, ['at'], $days, $cutoff);
+                $this->shiftIds('sub_order_assignments', 'sub_order_id', $ids, ['created_at', 'updated_at'], $days, $cutoff);
+            }
+        }
+
+        $this->followOrderDates($channelId, $prefix);
+    }
+
+    /**
+     * @param  list<int>  $ids
+     * @param  list<string>  $columns
+     */
+    private function shiftIds(string $table, string $key, array $ids, array $columns, int $days, string $cutoff): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        $sets = [];
+        foreach ($columns as $column) {
+            $sets[$column] = DB::raw(
+                "CASE WHEN `{$column}` IS NULL OR `{$column}` > '{$cutoff}' THEN `{$column}` ELSE DATE_ADD(`{$column}`, INTERVAL {$days} DAY) END",
+            );
+        }
+
+        foreach (array_chunk($ids, 400) as $chunk) {
+            DB::table($table)->whereIn($key, $chunk)->update($sets);
+        }
+    }
+
+    private function followOrderDates(int $channelId, string $prefix): void
+    {
+        $match = static function ($query) use ($channelId, $prefix): void {
+            $query->where('s.channel_id', $channelId)
+                ->where(function ($inner) use ($prefix): void {
+                    $inner->where('s.sub_order_no', 'like', $prefix)
+                        ->orWhere('s.sub_order_no', 'like', 'SO-D%');
+                });
+        };
+
+        $deliveries = DB::table('deliveries as d')->join('sub_orders as s', 's.id', '=', 'd.sub_order_id');
+        $match($deliveries);
+        $deliveries->update([
+            'd.created_at' => DB::raw('s.created_at'),
+            'd.updated_at' => DB::raw('s.updated_at'),
+            'd.scheduled_at' => DB::raw('s.created_at'),
+        ]);
+
+        $completions = DB::table('delivery_completions as c')
+            ->join('deliveries as d', 'd.id', '=', 'c.delivery_id')
+            ->join('sub_orders as s', 's.id', '=', 'd.sub_order_id');
+        $match($completions);
+        $completions->update(['c.delivered_at' => DB::raw('s.created_at')]);
+
+        $invoices = DB::table('invoices as i')->join('sub_orders as s', 's.id', '=', 'i.sub_order_id');
+        $match($invoices);
+        $invoices->update([
+            'i.created_at' => DB::raw('s.created_at'),
+            'i.updated_at' => DB::raw('s.updated_at'),
+        ]);
+
+        $payments = DB::table('payments as p')
+            ->join('invoices as i', 'i.id', '=', 'p.invoice_id')
+            ->join('sub_orders as s', 's.id', '=', 'i.sub_order_id');
+        $match($payments);
+        $payments->update([
+            'p.paid_at' => DB::raw('s.created_at'),
+            'p.created_at' => DB::raw('s.created_at'),
+            'p.updated_at' => DB::raw('s.updated_at'),
+        ]);
+
+        $lists = DB::table('picking_lists as pl')->join('sub_orders as s', 's.id', '=', 'pl.sub_order_id');
+        $match($lists);
+        $lists->update([
+            'pl.created_at' => DB::raw('s.created_at'),
+            'pl.updated_at' => DB::raw('s.updated_at'),
+            'pl.due_at' => DB::raw('s.created_at'),
+        ]);
     }
 }

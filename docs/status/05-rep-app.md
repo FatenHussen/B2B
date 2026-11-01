@@ -1,10 +1,10 @@
 # تطبيق المندوب — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-09-24 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-10-29 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 37 | 37 | 0 | 0 | 0 |
+| 40 | 40 | 0 | 0 | 0 |
 
 ## التسجيل والحالة — 2/2
 
@@ -87,9 +87,12 @@ guard `app` · prefix `/api/v1/app/rep/*` · مولَّد آلياً في 2026-0
 | ✅ | EP-RP-063 | SP-13 | `GET` | `/app/rep/wallet/withdrawals` | `rp.wallet.view` | Finance | سجل التسليمات |
 | ✅ | EP-RP-064 | SP-13 | `GET` | `/app/rep/receivables` | `rp.wallet.view` | Finance | ذمم المحلات |
 
-## أخرى — 1/1
+## أخرى — 4/4
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-RP-073 | SP-01 | `PATCH` | `/app/rep/profile` | — | Identity | تعديل ملف المندوب |
+| ✅ | EP-RP-074 | SP-01 | `GET` | `/app/rep/account` | — | Identity | حساب المندوب الشهري |
+| ✅ | EP-RP-012 | SP-06 | `GET` | `/app/rep/categories` | — | Catalog | الفئات الفرعية للمندوب |
+| ✅ | EP-RP-013 | SP-06 | `GET` | `/app/rep/brands` | — | Catalog | علامات المندوب |
 

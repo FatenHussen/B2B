@@ -11,6 +11,7 @@ use Modules\Core\Contracts\PricingEngine;
 use Modules\Core\Support\MediaUrl;
 use Modules\Promotion\Domain\Enums\OfferStatus;
 use Modules\Promotion\Domain\Models\Offer;
+use Modules\Promotion\Domain\Models\OfferRedemption;
 
 final class EloquentOfferFeed implements OfferFeed
 {
@@ -19,6 +20,10 @@ final class EloquentOfferFeed implements OfferFeed
         private readonly CatalogProductLookup $products,
     ) {}
 
+    /**
+     * @param  list<int>  $channelIds
+     * @return list<array<string, mixed>>
+     */
     public function sliderFor(int $zoneId, int $activityTypeId, array $channelIds): array
     {
         return $this->matching($zoneId, $activityTypeId, $channelIds)
@@ -42,6 +47,7 @@ final class EloquentOfferFeed implements OfferFeed
 
     /**
      * @param  list<int>  $channelIds
+     * @return Builder<Offer>
      */
     public function matching(int $zoneId, int $activityTypeId, array $channelIds): Builder
     {
@@ -103,7 +109,8 @@ final class EloquentOfferFeed implements OfferFeed
             }
         }
 
-        $consumed = (int) ($offer->redemption?->qty_consumed ?? 0);
+        $redemption = $offer->redemption;
+        $consumed = $redemption instanceof OfferRedemption ? (int) $redemption->qty_consumed : 0;
         $ends = $offer->ends_at?->timezone('Asia/Damascus');
         $daysLeft = $ends ? max(0, (int) now('Asia/Damascus')->startOfDay()->diffInDays($ends->startOfDay(), false)) : 0;
 

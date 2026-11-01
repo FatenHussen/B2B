@@ -56,6 +56,7 @@ const CHANNEL_SCOPE_ESCAPES = [
     'app-modules/ordering/src/Domain/Models/CartLine.php' => 1,
     'app-modules/ordering/src/Domain/Models/Order.php' => 2,
     'app-modules/ordering/src/Infrastructure/EloquentOpenOrderCounter.php' => 1,
+    'app-modules/ordering/src/Infrastructure/EloquentRepMonthOutcomes.php' => 1,
     'app-modules/pricing/src/Application/Jobs/ApplyPriceListScheduleJob.php' => 1,
     'app-modules/pricing/src/Infrastructure/EloquentPricingEngine.php' => 1,
     'app-modules/pricing/src/Infrastructure/EloquentRepCommercialLimits.php' => 1,
@@ -149,7 +150,7 @@ it('writes a reason beside every escape', function () {
 
 it('pins the inventory to the number rule 10 states', function () {
     // CLAUDE.md rule 10 names this number. When it moves, the rule's text moves with it.
-    expect(array_sum(CHANNEL_SCOPE_ESCAPES))->toBe(67);
+    expect(array_sum(CHANNEL_SCOPE_ESCAPES))->toBe(68);
 })->group('arch');
 
 it('actually catches an escape written without a reason', function () {

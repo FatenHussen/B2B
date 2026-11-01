@@ -10,6 +10,9 @@ use Modules\Core\Http\ApiFormRequest;
 
 final class ChangeCategoryStatusRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

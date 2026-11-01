@@ -90,6 +90,7 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::get('app/rep/home', [RepFieldController::class, 'home']);
         Route::patch('app/rep/status', [RepFieldController::class, 'status']);
         Route::patch('app/rep/profile', [RepFieldController::class, 'updateProfile']);
+        Route::get('app/rep/account', [RepFieldController::class, 'account']);
     });
 
     Route::middleware(['auth:channel', 'guard.tokenable:channel', 'tenant'])->prefix('channel')->group(function (): void {

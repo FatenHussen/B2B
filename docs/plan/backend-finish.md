@@ -48,8 +48,8 @@
 | BF-11 | بذر صلاحيات DOC-08 الناقصة **عند ظهور مسار** (~30) | 2 | Access | BF-10 جزئي | ⬜ مستمر |
 | BF-12 | تكامل Push/WhatsApp إنتاجي (أو إعلان صريح «غير مضبوط») | 2 | Integration | BF-02 | ✅ 2026-09-25 |
 | BF-13…BF-21 | صفوف v1.1 | 3 | انظر الجدول أدناه | كتالوج أولاً | ✅ 2026-09-24 (status حيّ؛ انظر `channel-warehouse-v1.1.md`) |
-| BF-22 | بوابة `openapi:check` (السادسة) | 4 | Tooling | — | ⬜ |
-| BF-23 | دفع Larastan baseline وحدة بوحدة | 4 | الكل | — | ⬜ مستمر — `ordering` ✅ · `delivery` ✅ 2026-10-05 (pin 471→439) |
+| BF-22 | بوابة `openapi:generate --check` (السادسة) | 4 | Tooling | — | ✅ 2026-10-29 |
+| BF-23 | دفع Larastan baseline وحدة بوحدة | 4 | الكل | — | ⬜ مستمر — `ordering` ✅ · `delivery` ✅ 2026-10-05 · `fulfillment` ✅ 2026-10-18 · `promotion` ✅ · `returns` ✅ · `catalog` ✅ 2026-10-29 (pin 337→267) |
 
 ---
 
@@ -173,16 +173,15 @@
 
 ## المرحلة 4 — جودة مستمرة (موازي بعد المرحلة 1)
 
-### BF-22 — البوابة السادسة OpenAPI
+### BF-22 — البوابة السادسة OpenAPI ✅ 2026-10-29
 
 - **يغلق صف دين:** لا `openapi:generate --check` (2026-09-19).
-- **عمل:** أمر يفشل إن اختلف `route:list` عن `b2b-api.openapi.json` (المسار/الطريقة/الحارس على الأقل؛ الوضع يفعلها نصفها).
-- **قبول:** الأمر في CI؛ أخضر على `main`.
+- **ما حصل:** `php artisan openapi:generate --check` يفشل إن اختلف مسار حي تحت `/api/v1` عن `b2b-api.openapi.json` في الطريقة أو المسار أو الحارس. جسم الرد يبقى مراجعة. الخطوة في CI، والاختبار في `OpenApiRouteTest`.
 
 ### BF-23 — Larastan pay-down
 
 - **يغلق صف دين:** baseline (2026-09-16).
-- **عمل:** وحدة واحدة لكل commit حسب جدول الأعراض في `debt-ledger.md` (ابدأ `ordering` ثم `delivery` ثم `fulfillment`…).
+- **عمل:** وحدة واحدة لكل commit حسب جدول الأعراض في `debt-ledger.md`. دُفعت `ordering` ثم `delivery` ثم `fulfillment` ثم `promotion` ثم `returns` ثم `catalog` (2026-10-29). التالية `identity`.
 - **قبول:** كل هبوط يخفّض الرقم في `PhpstanBaselineTest` بنفس الـ commit؛ لا إيجاد جديد في شيفرة جديدة يُضاف للـ baseline.
 
 **خارج الخطة عمداً:** إعادة تسمية طوابع الترحيل الستة عشر المشتركة — تبقى مثبتة ما لم يُثبت rename على كل بيئة.

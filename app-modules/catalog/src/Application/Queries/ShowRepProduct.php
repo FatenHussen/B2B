@@ -35,7 +35,7 @@ final class ShowRepProduct
                 $q->whereNull('brand_id')
                     ->orWhereHas('brand', fn ($b) => $b->where('status', BrandStatus::Active));
             })
-            ->with(['brand', 'variants', 'media'])
+            ->with(['brand', 'variants', 'media', 'category', 'variantAxes.values', 'specs', 'unitFactors'])
             ->whereKey($id)
             ->first();
 

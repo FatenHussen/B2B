@@ -8,6 +8,9 @@ use Modules\Core\Http\ApiFormRequest;
 
 final class ConfirmHandoverRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return ['temp_code' => ['required', 'string', 'size:4']];

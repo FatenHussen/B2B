@@ -25,6 +25,7 @@ class PickingWave extends Model
         'assigned_to',
     ];
 
+    /** @return HasMany<PickingList, $this> */
     public function pickingLists(): HasMany
     {
         return $this->hasMany(PickingList::class, 'wave_id');

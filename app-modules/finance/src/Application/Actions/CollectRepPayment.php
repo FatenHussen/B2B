@@ -34,7 +34,7 @@ final class CollectRepPayment
 
     /**
      * @param  array{receipt_no: string, retailer_id: int, invoice_no?: string|null, amount: int, paid_at: string, client_op_id: string}  $data
-     * @return array{payment: array{id: int}, wallet_balance: int, retailer_receivable: int}
+     * @return array<string, mixed>
      */
     public function __invoke(object $user, array $data): array
     {
@@ -183,7 +183,7 @@ final class CollectRepPayment
     }
 
     /**
-     * @return array{payment: array{id: int}, wallet_balance: int, retailer_receivable: int}
+     * @return array<string, mixed>
      */
     private function payload(Payment $payment, int $repUserId, int $retailerId): array
     {
@@ -192,9 +192,19 @@ final class CollectRepPayment
             ->where('status', 'open')
             ->get()
             ->sum(fn (Invoice $invoice) => $invoice->remaining());
+        $invoice = $payment->invoice_id !== null
+            ? Invoice::query()->find((int) $payment->invoice_id)
+            : null;
+        $shop = $this->retailers->find($retailerId);
 
         return [
             'payment' => ['id' => (int) $payment->id],
+            'amount' => (int) $payment->amount,
+            'receipt_no' => (string) $payment->receipt_no,
+            'paid_at' => $payment->paid_at?->timezone('Asia/Damascus')->toIso8601String(),
+            'shop' => $shop['shop_name'] ?? null,
+            'invoice_no' => $invoice?->no,
+            'invoice_remaining' => $invoice !== null ? $invoice->remaining() : 0,
             'wallet_balance' => $this->wallet->balance($repUserId),
             'retailer_receivable' => $receivable,
         ];

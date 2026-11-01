@@ -23,6 +23,9 @@ final class RetailerBrands
         private readonly ReferenceDirectory $refs,
     ) {}
 
+    /**
+     * @return LengthAwarePaginator<int, Brand>
+     */
     public function paginate(object $user, Request $request): LengthAwarePaginator
     {
         $ctx = $this->shopping->for($user);

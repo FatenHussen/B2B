@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\Ordering\Application\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\OfferConsumption;
+use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Contracts\RepCommercialLimits;
 use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerDirectory;
@@ -30,6 +32,8 @@ final class SubmitRepCartSection
         private readonly RepCommercialLimits $limits,
         private readonly RetailerDirectory $retailers,
         private readonly OfferConsumption $offers,
+        private readonly ChannelDirectory $channels,
+        private readonly ReferenceDirectory $refs,
     ) {}
 
     /**
@@ -157,11 +161,20 @@ final class SubmitRepCartSection
             return $sub;
         });
 
+        $shop = $this->retailers->find($retailerId);
+
         return [
             'sub_order' => [
                 'id' => (int) $sub->id,
                 'sub_order_no' => $sub->sub_order_no,
+                'invoice_no' => null,
                 'status' => $sub->status->value,
+                'shop' => $shop['shop_name'] ?? null,
+                'zone' => $this->refs->zoneName($retailerZoneId),
+                'channel' => $this->channels->name((int) $sub->channel_id),
+                'created_at' => $sub->created_at?->timezone('Asia/Damascus')->toIso8601String(),
+                'gross' => (int) $sub->subtotal,
+                'discount' => (int) $sub->discount,
                 'total' => (int) $sub->total,
             ],
         ];

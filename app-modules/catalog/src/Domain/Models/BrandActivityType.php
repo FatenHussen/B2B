@@ -6,6 +6,7 @@ namespace Modules\Catalog\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/** @property int $activity_type_id */
 class BrandActivityType extends Model
 {
     public $timestamps = false;

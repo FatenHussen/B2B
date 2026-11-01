@@ -17,6 +17,7 @@ class Stocktake extends Model
         'approved_by',
     ];
 
+    /** @return HasMany<StocktakeLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(StocktakeLine::class);

@@ -40,6 +40,7 @@ class ReturnRequest extends Model
         ];
     }
 
+    /** @return HasMany<ReturnLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(ReturnLine::class);

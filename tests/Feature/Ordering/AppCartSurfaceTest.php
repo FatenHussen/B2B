@@ -217,14 +217,23 @@ it('lets a rep build a customer section and submit it', function () {
     $cart = $this->getJson('/api/v1/app/rep/cart')->assertOk();
     expect($cart->json('data.sections.0.retailer.id'))->toBe($customer)
         ->and($cart->json('data.sections.0.retailer.zone_id'))->toBe($refs['zone']->id)
+        ->and($cart->json('data.sections.0.retailer.zone'))->toBe('المزة')
+        ->and($cart->json('data.sections.0.temp_order_no'))->toStartWith('T-')
         ->and($cart->json('data.sections.0.channel.id'))->toBe($channel->id)
         ->and($cart->json('data.sections.0.channel.name'))->not->toBeNull()
         ->and($cart->json('data.sections.0.lines.0.name'))->not->toBe('')
         ->and($cart->json('data.sections.0.lines.0.line_total'))->toBeInt();
 
-    $this->postJson("/api/v1/app/rep/cart/sections/{$customer}/submit", [])
-        ->assertOk()
-        ->assertJsonPath('data.sub_order.status', 'pending');
+    $sent = $this->postJson("/api/v1/app/rep/cart/sections/{$customer}/submit", [])
+        ->assertOk();
+    expect($sent->json('data.sub_order.status'))->toBe('pending')
+        ->and($sent->json('data.sub_order.shop'))->toBe('محل الزبون +963944000101')
+        ->and($sent->json('data.sub_order.zone'))->toBe('المزة')
+        ->and($sent->json('data.sub_order.channel'))->toBe($channel->name)
+        ->and($sent->json('data.sub_order.invoice_no'))->toBeNull()
+        ->and($sent->json('data.sub_order.sub_order_no'))->toStartWith('SO-')
+        ->and($sent->json('data.sub_order.gross'))->toBeInt()
+        ->and($sent->json('data.sub_order.total'))->toBeInt();
 
     expect(DB::table('sub_orders')->where('retailer_id', $customer)->where('channel_id', $channel->id)->count())->toBe(1);
 

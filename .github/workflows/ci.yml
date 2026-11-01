@@ -69,6 +69,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: 'Gate — OpenAPI routes'
+        run: php artisan openapi:generate --check
+
       - name: 'Gate 4 — Architecture'
         # An independent gate. The boundaries fail the build on their own, before
         # anyone has to read a single feature-test failure.

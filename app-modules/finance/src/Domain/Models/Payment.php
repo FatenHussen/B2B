@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Finance\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Modules\Core\Support\Concerns\BelongsToChannel;
 
 /**
@@ -15,6 +16,7 @@ use Modules\Core\Support\Concerns\BelongsToChannel;
  * @property int $amount
  * @property string $method
  * @property string $receipt_no
+ * @property Carbon|null $paid_at
  */
 class Payment extends Model
 {

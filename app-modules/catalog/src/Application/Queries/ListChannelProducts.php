@@ -12,6 +12,9 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 final class ListChannelProducts
 {
+    /**
+     * @return LengthAwarePaginator<int, Product>
+     */
     public function __invoke(Request $request): LengthAwarePaginator
     {
         return QueryBuilder::for(Product::class)

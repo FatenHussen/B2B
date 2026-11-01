@@ -11,6 +11,7 @@ use Modules\Core\Contracts\CreditGuard;
 use Modules\Core\Contracts\IssuesInvoice;
 use Modules\Core\Contracts\ReceiptNumberReserver;
 use Modules\Core\Contracts\RepCollectedToday;
+use Modules\Core\Contracts\RepShopReceivable;
 use Modules\Core\Contracts\RetailerCreditSnapshot;
 use Modules\Finance\Infrastructure\EloquentAppliesReturnCredit;
 use Modules\Finance\Infrastructure\EloquentChannelFinanceMetrics;
@@ -18,6 +19,7 @@ use Modules\Finance\Infrastructure\EloquentCreditGuard;
 use Modules\Finance\Infrastructure\EloquentIssuesInvoice;
 use Modules\Finance\Infrastructure\EloquentReceiptNumberReserver;
 use Modules\Finance\Infrastructure\EloquentRepCollectedToday;
+use Modules\Finance\Infrastructure\EloquentRepShopReceivable;
 use Modules\Finance\Infrastructure\EloquentRetailerCreditSnapshot;
 
 class FinanceServiceProvider extends ServiceProvider
@@ -29,6 +31,7 @@ class FinanceServiceProvider extends ServiceProvider
         $this->app->singleton(ReceiptNumberReserver::class, EloquentReceiptNumberReserver::class);
         $this->app->singleton(ChannelFinanceMetrics::class, EloquentChannelFinanceMetrics::class);
         $this->app->singleton(RepCollectedToday::class, EloquentRepCollectedToday::class);
+        $this->app->singleton(RepShopReceivable::class, EloquentRepShopReceivable::class);
         $this->app->singleton(AppliesReturnCredit::class, EloquentAppliesReturnCredit::class);
         $this->app->singleton(RetailerCreditSnapshot::class, EloquentRetailerCreditSnapshot::class);
     }

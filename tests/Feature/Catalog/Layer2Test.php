@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Laravel\Sanctum\Sanctum;
 use Illuminate\Http\UploadedFile;
+use Laravel\Sanctum\Sanctum;
 use Modules\Access\Database\Seeders\RolesPermissionsSeeder;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\RetailerProductFavorite;
@@ -363,6 +363,9 @@ it('quotes qty 6 on 1-4 / 5-9 / 10+ tiers at 11500 with qty_tier', function () {
         ->and($quote->json('data.lines.0.applied_rule.type'))->toBe('qty_tier')
         ->and($quote->json('data.lines.0.discount'))->toBe(0)
         ->and($quote->json('data.lines.0.line_total'))->toBe(69000)
+        ->and($quote->json('data.gross'))->toBe(69000)
+        ->and($quote->json('data.discount'))->toBe(0)
+        ->and($quote->json('data.subtotal'))->toBe(69000)
         ->and($quote->json('data.currency'))->toBe('SYP');
 });
 

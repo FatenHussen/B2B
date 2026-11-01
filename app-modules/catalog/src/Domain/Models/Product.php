@@ -61,43 +61,59 @@ class Product extends Model
      * and an eager load that re-applied Brand's strict scope threw on every branded
      * product. Lifting it here widens nothing and removes that failure once, where the
      * relation is defined, rather than at every `with('brand')`.
+     *
+     * @return BelongsTo<Brand, $this>
      */
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class)->withoutGlobalScope('channel');
     }
 
-    /** See `brand()`. */
+    /**
+     * See `brand()`.
+     *
+     * @return BelongsTo<Category, $this>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class)->withoutGlobalScope('channel');
     }
 
+    /**
+     * @return HasMany<ProductSpec, $this>
+     */
     public function specs(): HasMany
     {
         return $this->hasMany(ProductSpec::class)->orderBy('order');
     }
 
+    /** @return HasMany<ProductMedia, $this> */
     public function media(): HasMany
     {
         return $this->hasMany(ProductMedia::class)->orderBy('order');
     }
 
+    /**
+     * @return HasMany<ProductUnitFactor, $this>
+     */
     public function unitFactors(): HasMany
     {
         return $this->hasMany(ProductUnitFactor::class);
     }
 
+    /** @return HasMany<ProductZone, $this> */
     public function zones(): HasMany
     {
         return $this->hasMany(ProductZone::class);
     }
 
+    /** @return HasMany<ProductActivityType, $this> */
     public function activityTypes(): HasMany
     {
         return $this->hasMany(ProductActivityType::class);
     }
 
+    /** @return HasMany<ProductSliderTag, $this> */
     public function sliderTags(): HasMany
     {
         return $this->hasMany(ProductSliderTag::class);
@@ -111,11 +127,17 @@ class Product extends Model
         return $this->hasMany(ProductRetailerGroup::class);
     }
 
+    /**
+     * @return HasMany<ProductVariantAxis, $this>
+     */
     public function variantAxes(): HasMany
     {
         return $this->hasMany(ProductVariantAxis::class)->orderBy('order');
     }
 
+    /**
+     * @return HasMany<ProductVariant, $this>
+     */
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);

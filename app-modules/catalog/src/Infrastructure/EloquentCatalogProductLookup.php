@@ -9,6 +9,7 @@ use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Category;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Catalog\Domain\Models\ProductMedia;
+use Modules\Catalog\Domain\Models\ProductUnitFactor;
 use Modules\Catalog\Domain\Models\ProductVariant;
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\ReferenceDirectory;
@@ -72,7 +73,7 @@ final class EloquentCatalogProductLookup implements CatalogProductLookup
     public function snapshot(int $productId, ?int $variantId = null): ?array
     {
         return Tenant::withoutScope(function () use ($productId, $variantId): ?array {
-            $product = Product::query()->with('brand')->whereKey($productId)->first();
+            $product = Product::query()->with(['brand', 'unitFactors'])->whereKey($productId)->first();
             if ($product === null) {
                 return null;
             }
@@ -113,6 +114,20 @@ final class EloquentCatalogProductLookup implements CatalogProductLookup
                     : null,
                 'image' => $primary !== null ? MediaUrl::of((int) $primary->media_id) : null,
                 'variant' => $variantLabel,
+                'unit_factors' => $product->unitFactors
+                    ->map(fn (ProductUnitFactor $factor): array => [
+                        'from_unit' => [
+                            'id' => (int) $factor->from_unit_id,
+                            'name' => $this->refs->saleUnitName((int) $factor->from_unit_id),
+                        ],
+                        'to_unit' => [
+                            'id' => (int) $factor->to_unit_id,
+                            'name' => $this->refs->saleUnitName((int) $factor->to_unit_id),
+                        ],
+                        'factor' => (int) $factor->factor,
+                    ])
+                    ->values()
+                    ->all(),
             ];
         });
     }

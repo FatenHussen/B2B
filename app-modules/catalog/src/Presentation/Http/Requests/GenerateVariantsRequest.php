@@ -8,6 +8,9 @@ use Modules\Core\Http\ApiFormRequest;
 
 final class GenerateVariantsRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

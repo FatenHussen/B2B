@@ -42,6 +42,13 @@ interface RetailerDirectory
     public function phone(int $retailerId): ?string;
 
     /**
+     * Map pin for the delivery sheet. Null when the shop has no coordinates.
+     *
+     * @return array{lat: float, lng: float}|null
+     */
+    public function location(int $retailerId): ?array;
+
+    /**
      * The app user who owns this shop — Notification writes the inbox by user id,
      * not retailer profile id.
      */

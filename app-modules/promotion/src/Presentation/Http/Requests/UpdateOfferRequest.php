@@ -10,6 +10,9 @@ use Modules\Promotion\Domain\Enums\OfferType;
 
 final class UpdateOfferRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

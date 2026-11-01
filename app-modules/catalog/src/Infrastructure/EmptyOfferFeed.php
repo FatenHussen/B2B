@@ -8,6 +8,10 @@ use Modules\Core\Contracts\OfferFeed;
 
 final class EmptyOfferFeed implements OfferFeed
 {
+    /**
+     * @param  list<int>  $channelIds
+     * @return list<array<string, mixed>>
+     */
     public function sliderFor(int $zoneId, int $activityTypeId, array $channelIds): array
     {
         return [];

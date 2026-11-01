@@ -12,6 +12,9 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 final class ListChannelReturnRequests
 {
+    /**
+     * @return LengthAwarePaginator<int, ReturnRequest>
+     */
     public function __invoke(Request $request): LengthAwarePaginator
     {
         $perPage = min((int) $request->input('per_page', 25), 100);

@@ -32,7 +32,7 @@ final class ReturnsWorkspace
     ) {}
 
     /**
-     * @param  array{sub_order_id: int, type: string, lines: list<array{line_id: int, qty: int, reason: string, photos?: array}>}  $data
+     * @param  array{sub_order_id: int, type: string, lines: list<array{line_id: int, qty: int, reason: string, photos?: list<string>}>}  $data
      * @param  bool  $asRetailer  true from the retailer app, false from the rep app
      * @return array{request_no: string, status: string}
      */
@@ -107,6 +107,7 @@ final class ReturnsWorkspace
     }
 
     /**
+     * @param  array{decision: string, reason?: string|null}  $data
      * @return array{status: string}
      */
     public function decide(int $id, array $data, object $actor): array

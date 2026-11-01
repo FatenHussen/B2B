@@ -7,6 +7,7 @@ namespace Modules\Ordering\Application\Support;
 use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\ChannelDirectory;
 use Modules\Core\Contracts\PricingEngine;
+use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Ordering\Domain\Enums\CartLineSource;
 use Modules\Ordering\Domain\Enums\CartStatus;
@@ -20,6 +21,7 @@ final class CartAssembler
         private readonly CatalogProductLookup $products,
         private readonly RetailerDirectory $retailers,
         private readonly ChannelDirectory $channels,
+        private readonly ReferenceDirectory $refs,
     ) {}
 
     public function activeFor(object $owner): Cart
@@ -187,6 +189,7 @@ final class CartAssembler
             if (! isset($byRetailer[$rid])) {
                 $byRetailer[$rid] = [
                     'retailer_id' => $rid,
+                    'section_id' => (int) $section->id,
                     'channel_id' => (int) $section->channel_id,
                     'created_at' => $section->created_at?->timezone('Asia/Damascus')->toIso8601String(),
                     'lines' => [],
@@ -213,16 +216,19 @@ final class CartAssembler
         foreach ($byRetailer as $row) {
             $shop = $this->retailers->find((int) $row['retailer_id']);
             $channelId = (int) $row['channel_id'];
+            $zoneId = $this->retailers->zoneId((int) $row['retailer_id']);
             $sections[] = [
                 'retailer' => [
                     'id' => $row['retailer_id'],
                     'shop_name' => $shop['shop_name'] ?? '',
-                    'zone_id' => $this->retailers->zoneId((int) $row['retailer_id']),
+                    'zone_id' => $zoneId,
+                    'zone' => $zoneId !== null ? $this->refs->zoneName($zoneId) : null,
                 ],
                 'channel' => [
                     'id' => $channelId,
                     'name' => $this->channels->name($channelId),
                 ],
+                'temp_order_no' => 'T-'.$cart->id.'-'.$row['section_id'],
                 'created_at' => $row['created_at'],
                 'lines' => $row['lines'],
                 'total' => $row['total'],

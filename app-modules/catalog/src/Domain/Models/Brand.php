@@ -29,11 +29,13 @@ class Brand extends Model
         return ['status' => BrandStatus::class];
     }
 
+    /** @return HasMany<BrandActivityType, $this> */
     public function activityTypes(): HasMany
     {
         return $this->hasMany(BrandActivityType::class);
     }
 
+    /** @return HasMany<BrandSlider, $this> */
     public function sliders(): HasMany
     {
         return $this->hasMany(BrandSlider::class);

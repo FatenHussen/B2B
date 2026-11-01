@@ -40,14 +40,16 @@ final class CreateCategory
             InvalidFields::throw(['parent_id' => 'catalog.category_level']);
         }
 
-        $category = DB::transaction(function () use ($data, $activityIds, $actor, $level, $storedParent, $rootId): Category {
+        $image = $data['image'] ?? null;
+
+        $category = DB::transaction(function () use ($data, $activityIds, $actor, $level, $storedParent, $rootId, $image): Category {
             $category = Category::query()->create([
                 'name' => $data['name'],
                 'description' => $data['description'] ?? null,
                 'parent_id' => $storedParent,
                 'root_category_id' => $rootId,
-                'image_media_id' => isset($data['image']) && $data['image'] !== null && $data['image'] !== ''
-                    ? (int) $data['image']
+                'image_media_id' => $image !== null && $image !== ''
+                    ? (int) $image
                     : null,
                 'icon' => $data['icon'] ?? null,
                 'order' => (int) ($data['order'] ?? 0),
@@ -84,14 +86,16 @@ final class CreateCategory
 
         $parent = Category::query()->find($parentId);
         if ($parent !== null) {
+            $inheritedRoot = $parent->root_category_id;
+            $parentKey = $parent->getAttribute('parent_id');
+            if ($inheritedRoot === null && (int) $parent->level === 1 && $parentKey === null) {
+                $inheritedRoot = $parent->id;
+            }
+
             return [
                 (int) $parent->level + 1,
                 (int) $parent->id,
-                $parent->root_category_id ? (int) $parent->root_category_id : (
-                    (int) $parent->level === 1 && $parent->parent_id === null
-                        ? (int) $parent->id
-                        : null
-                ),
+                $inheritedRoot !== null ? (int) $inheritedRoot : null,
             ];
         }
 

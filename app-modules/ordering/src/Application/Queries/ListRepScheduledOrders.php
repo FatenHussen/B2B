@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\Ordering\Application\Queries;
 
+use Modules\Core\Contracts\IssuesInvoice;
+use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Ordering\Domain\Enums\SubOrderStatus;
 use Modules\Ordering\Domain\Models\SubOrder;
 
 final class ListRepScheduledOrders
 {
-    public function __construct(private readonly RetailerDirectory $retailers) {}
+    public function __construct(
+        private readonly RetailerDirectory $retailers,
+        private readonly ReferenceDirectory $refs,
+        private readonly IssuesInvoice $invoices,
+    ) {}
 
     /**
      * @return list<array<string, mixed>>
@@ -34,10 +40,14 @@ final class ListRepScheduledOrders
 
             return [
                 'id' => (int) $row->id,
+                'sub_order_no' => $row->sub_order_no,
+                'invoice_no' => $this->invoices->forSubOrder((int) $row->id)['no'] ?? null,
                 'shop_logo' => null,
                 'shop' => $shop['shop_name'] ?? null,
+                'zone' => $row->zone_id ? $this->refs->zoneName((int) $row->zone_id) : null,
                 'address' => $shop['address'] ?? null,
                 'phone' => $phone,
+                'created_at' => $row->created_at?->timezone('Asia/Damascus')->toIso8601String(),
                 'scheduled_at' => $row->scheduled_at?->timezone('Asia/Damascus')->toIso8601String(),
                 'status' => $row->status->value,
                 'color' => 'amber',

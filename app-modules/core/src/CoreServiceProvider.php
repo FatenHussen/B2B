@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Core;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Console\OpenApiGenerateCommand;
 use Modules\Core\Contracts\AuditTrail;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Contracts\RequestsDualApproval;
@@ -25,5 +26,11 @@ class CoreServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                OpenApiGenerateCommand::class,
+            ]);
+        }
     }
 }

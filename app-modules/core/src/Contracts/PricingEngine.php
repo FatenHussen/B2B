@@ -15,7 +15,7 @@ interface PricingEngine
      *     activity_type_id?: int|null,
      *     group_ids?: list<int>
      * }  $request
-     * @return array{lines: list<array<string, mixed>>, subtotal: int, currency: string}
+     * @return array{lines: list<array<string, mixed>>, gross: int, discount: int, subtotal: int, currency: string}
      */
     public function quote(array $request): array;
 

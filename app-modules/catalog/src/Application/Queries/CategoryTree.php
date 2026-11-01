@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Catalog\Application\Queries;
 
-use Illuminate\Support\Collection;
 use Modules\Catalog\Domain\Models\Category;
 use Modules\Catalog\Domain\Models\CategoryActivityType;
 use Modules\Catalog\Domain\Models\Product;
@@ -21,22 +20,26 @@ final class CategoryTree
     public function __invoke(): array
     {
         $categories = Category::query()->orderBy('order')->orderBy('id')->get();
-        $activityByCategory = $categories->isEmpty()
-            ? collect()
-            : CategoryActivityType::query()
-                ->whereIn('category_id', $categories->modelKeys())
-                ->get()
-                ->groupBy('category_id');
-        $byParent = $categories->groupBy(fn (Category $c) => $c->parent_id === null
-            ? 'root-'.($c->root_category_id ?? 'channel-'.$c->id)
-            : 'cat-'.$c->parent_id);
+        $activityByCategory = [];
+        if ($categories->isNotEmpty()) {
+            foreach (CategoryActivityType::query()->whereIn('category_id', $categories->modelKeys())->get() as $row) {
+                $activityByCategory[$row->category_id][] = $row;
+            }
+        }
+        $byParent = [];
+        foreach ($categories as $category) {
+            $key = $category->parent_id === null
+                ? 'root-'.($category->root_category_id ?? 'channel-'.$category->id)
+                : 'cat-'.$category->parent_id;
+            $byParent[$key][] = $category;
+        }
 
         $nodes = [];
         foreach ($this->refs->activeRootCategories() as $root) {
-            $children = $byParent->get('root-'.$root['id'], collect())
-                ->map(fn (Category $c) => $this->node($c, $byParent, $activityByCategory))
-                ->values()
-                ->all();
+            $children = array_map(
+                fn (Category $c) => $this->node($c, $byParent, $activityByCategory),
+                $byParent['root-'.$root['id']] ?? [],
+            );
 
             $nodes[] = [
                 'id' => $root['id'],
@@ -64,24 +67,23 @@ final class CategoryTree
     }
 
     /**
-     * @param  Collection<string, Collection<int, Category>>  $byParent
-     * @param  Collection<int|string, Collection<int, CategoryActivityType>>  $activityByCategory
+     * @param  array<int|string, list<Category>>  $byParent
+     * @param  array<int|string, list<CategoryActivityType>>  $activityByCategory
      * @return array<string, mixed>
      */
-    private function node(Category $category, $byParent, $activityByCategory): array
+    private function node(Category $category, array $byParent, array $activityByCategory): array
     {
-        $children = $byParent->get('cat-'.$category->id, collect())
-            ->map(fn (Category $c) => $this->node($c, $byParent, $activityByCategory))
-            ->values()
-            ->all();
+        $children = array_map(
+            fn (Category $c) => $this->node($c, $byParent, $activityByCategory),
+            $byParent['cat-'.$category->id] ?? [],
+        );
 
         $direct = Product::query()->where('category_id', $category->id)->count();
         $mediaId = $category->image_media_id !== null ? (int) $category->image_media_id : null;
-        $activityIds = $activityByCategory->get($category->id, collect())
-            ->pluck('activity_type_id')
-            ->map(fn ($id) => (int) $id)
-            ->values()
-            ->all();
+        $activityIds = array_map(
+            fn (CategoryActivityType $row) => $row->activity_type_id,
+            $activityByCategory[$category->id] ?? [],
+        );
 
         return [
             'id' => (int) $category->id,

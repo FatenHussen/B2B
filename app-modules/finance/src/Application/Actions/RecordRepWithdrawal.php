@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Finance\Application\Actions;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Contracts\RepDirectory;
 use Modules\Core\Domain\Enums\ErrorCode;
@@ -20,7 +21,7 @@ final class RecordRepWithdrawal
 
     /**
      * @param  array{amount: int, operation_no: string, operated_at: string}  $data
-     * @return array{remaining_balance: int}
+     * @return array{amount: int, operated_at: string, remaining_balance: int}
      */
     public function __invoke(object $user, array $data): array
     {
@@ -41,7 +42,11 @@ final class RecordRepWithdrawal
                 false,
             );
 
-            return ['remaining_balance' => $result['new_balance']];
+            return [
+                'amount' => (int) $data['amount'],
+                'operated_at' => Carbon::parse((string) $data['operated_at'])->timezone('Asia/Damascus')->toIso8601String(),
+                'remaining_balance' => $result['new_balance'],
+            ];
         }));
     }
 }

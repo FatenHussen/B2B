@@ -491,6 +491,20 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 لا صورة، لا سعر، لا مخزون في القائمة. `GET /channel/products/{id}` يعيد جسم المحرّر الكامل (`pricing` قد يكون `null` — استخدم `PUT /products/{id}/pricing`).
 
+`GET /channel/catalog/summary` 🔒 `sc.catalog.view` — نظرة الكتالوج. الأعداد لهذه القناة فقط.
+
+| الحقل | المعنى |
+|---|---|
+| `counts.products` / `categories` / `brands` | عدد الصفوف الحالية |
+| `*_change_pct` | نمو صحيح بالنسبة المئوية مقابل الصفوف المنشأة قبل بداية الشهر (توقيت التطبيق). `null` إن لم يوجد أساس |
+| `active` / `stopped` | `status=active` / `disabled` |
+| `active_share_pct` / `stopped_share_pct` | حصة من إجمالي المنتجات، أو `null` إن لم يوجد منتج |
+| `by_category[]` | `{ bucket: root\|category\|unassigned, id, name, count }` — المنتج يُجمع تحت الفئة الجذرية للمنصة، أو تحت أعلى فئة للقناة |
+| `by_brand[]` | `{ id, name, count }` — بلا علامة: `id: null` والاسم «بدون علامة» |
+| `by_status[]` | `active` \| `disabled` \| `draft`، والحالة ذات العدد صفر لا تُرسل |
+| `recent_products[]` | أحدث 8: `name_ar`, `brand`, `category`, `price` (أساسي بالوحدة الصغرى أو `null`), `currency_id`, `status`, `created_at`, `image` |
+| `recent_changes[]` | أحدث 8 من سجل الكتالوج والتسعير لهذه القناة: `action`, `bulk_action` (فقط لـ `catalog.product.bulk`), `subject_type`, `subject_id`, `subject_name`, `actor_name`, `at` |
+
 `POST /channel/products` 🔁 201 `{ id, sku? }` — `PUT /channel/products/{id}` 🔁 نفس FormRequest (`name_ar` + `sku` إلزاميان دائماً حتى في التحديث).
 
 `pricing.type`: `simple` \| `tiered`. `pricing.base_price` و`tiers[].price` **int**. `status`: `draft` \| `active` \| `disabled`.
@@ -934,7 +948,7 @@ const byCode: Record<string, string> = {
 | 1 | دخول | OTP | — |
 | 2 | لوحة | dashboard + عدّاد pending | أصفار حتى اللقطة؛ بعدها KPI/تنبيهات حقيقية |
 | 3 | طلبات + تفاصيل | sub-orders · assign modes | «لا طلبات تطابق المرشّح.» |
-| 4 | علامات / فئات / منتجات | catalog | «لا منتجات بعد.» |
+| 4 | علامات / فئات / منتجات + نظرة عامة | catalog · `GET /channel/catalog/summary` | «لا منتجات بعد.» الأعداد من الملخص، لا من صف القائمة |
 | 5 | تسعير + سجل | price-lists, change-log | «لا قوائم أسعار.» |
 | 6 | عروض + أداء | offers CRUD + performance | «لا عروض.» |
 | 7 | مخزون + تحويلات | inventory + warehouses | «لا أرصدة.» |

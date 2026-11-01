@@ -6,6 +6,10 @@ namespace Modules\Catalog\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $key
+ * @property string $value
+ */
 class ProductSpec extends Model
 {
     public $timestamps = false;

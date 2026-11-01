@@ -81,41 +81,49 @@ class Offer extends Model
         ];
     }
 
+    /** @return HasMany<OfferMedia, $this> */
     public function media(): HasMany
     {
         return $this->hasMany(OfferMedia::class)->orderBy('order');
     }
 
+    /** @return HasMany<OfferComponent, $this> */
     public function components(): HasMany
     {
         return $this->hasMany(OfferComponent::class);
     }
 
+    /** @return HasMany<OfferReward, $this> */
     public function rewards(): HasMany
     {
         return $this->hasMany(OfferReward::class);
     }
 
+    /** @return HasMany<OfferActivityType, $this> */
     public function activityTypes(): HasMany
     {
         return $this->hasMany(OfferActivityType::class);
     }
 
+    /** @return HasMany<OfferZone, $this> */
     public function zones(): HasMany
     {
         return $this->hasMany(OfferZone::class);
     }
 
+    /** @return HasMany<OfferGroup, $this> */
     public function groups(): HasMany
     {
         return $this->hasMany(OfferGroup::class);
     }
 
+    /** @return HasMany<OfferRetailer, $this> */
     public function retailers(): HasMany
     {
         return $this->hasMany(OfferRetailer::class);
     }
 
+    /** @return HasOne<OfferRedemption, $this> */
     public function redemption(): HasOne
     {
         return $this->hasOne(OfferRedemption::class);

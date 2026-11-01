@@ -7,7 +7,7 @@
 | لوحة المنصة | [platform.md](platform.md) · [platform.json](platform.json) | `platform` | Next.js **3000** | عربي · محدّث |
 | لوحة القناة | [channel.md](channel.md) · [channel.json](channel.json) | `channel` | Next.js **3001** | عربي · 2026-09-24 |
 | لوحة المستودع | [warehouse.md](warehouse.md) | `warehouse` | Next.js **3002** | عربي · 2026-09-25 |
-| تطبيق المندوب | [flutter-rep.md](flutter-rep.md) · [flutter-rep.json](flutter-rep.json) · [flutter-rep-getx.md](flutter-rep-getx.md) | `app` + kind `rep` | Flutter | عربي |
+| تطبيق المندوب | [flutter-rep.md](flutter-rep.md) · [flutter-rep-field.md](flutter-rep-field.md) · [flutter-rep.json](flutter-rep.json) · [flutter-rep-getx.md](flutter-rep-getx.md) | `app` + kind `rep` | Flutter | عربي |
 | تطبيق التاجر | [flutter-retailer.md](flutter-retailer.md) | `app` + kind `retailer` | Flutter | عربي · 2026-09-25 |
 
 ## قاعدة الأولوية (لا تُكسر)

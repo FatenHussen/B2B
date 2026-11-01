@@ -37,6 +37,7 @@ class PickingList extends Model
         ];
     }
 
+    /** @return HasMany<PickingLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(PickingLine::class);

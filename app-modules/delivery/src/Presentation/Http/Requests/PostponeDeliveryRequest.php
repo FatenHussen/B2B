@@ -15,7 +15,8 @@ final class PostponeDeliveryRequest extends ApiFormRequest
     {
         return [
             'scheduled_at' => ['required', 'date'],
-            'reason' => ['required', 'string'],
+            'reason' => ['required', 'string', 'max:255'],
+            'note' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

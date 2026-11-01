@@ -35,6 +35,14 @@ it('lists warehouse receipts with the sub-order id', function () {
     $response = $this->getJson('/api/v1/app/rep/warehouse-receipts');
     CatalogAssert::ok($response);
     expect($response->json('data.count'))->toBe(1)
+        ->and($response->json('data.item_count'))->toBe(1)
+        ->and($response->json('data.items.0.qty'))->toBe(1)
         ->and($response->json('data.orders.0.sub_order_id'))->toBe($id)
-        ->and($response->json('data.orders.0.handover_id'))->toBe($handover->id);
+        ->and($response->json('data.orders.0.handover_id'))->toBe($handover->id)
+        ->and($response->json('data.orders.0.total'))->toBe(12000)
+        ->and($response->json('data.orders.0.invoice_no'))->toBeNull()
+        ->and($response->json('data.orders.0.parties.rep'))->toBe('pending')
+        ->and($response->json('data.orders.0.parties.warehouse'))->toBe('confirmed')
+        ->and($response->json('data.orders.0.lines.0.qty'))->toBe(1)
+        ->and($response->json('data.orders.0.lines.0.line_total'))->toBe(12000);
 });

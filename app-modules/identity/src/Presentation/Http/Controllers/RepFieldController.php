@@ -15,10 +15,12 @@ use Modules\Identity\Application\Actions\UpdateRepProfile;
 use Modules\Identity\Application\Queries\ListRepCustomers;
 use Modules\Identity\Application\Queries\ListRepZones;
 use Modules\Identity\Application\Queries\ListZoneShops;
+use Modules\Identity\Application\Queries\ShowRepAccount;
 use Modules\Identity\Application\Queries\ShowRepCustomer;
 use Modules\Identity\Application\Queries\ShowRepHome;
 use Modules\Identity\Application\Support\RepShopCard;
 use Modules\Identity\Domain\Models\AppUser;
+use Modules\Identity\Presentation\Http\Requests\ShowRepAccountRequest;
 use Modules\Identity\Presentation\Http\Requests\StoreRepCustomerRequest;
 use Modules\Identity\Presentation\Http\Requests\StoreRepZoneRequest;
 use Modules\Identity\Presentation\Http\Requests\UpdateRepProfileRequest;
@@ -90,6 +92,15 @@ final class RepFieldController extends ApiController
         $user = $request->user();
 
         return $this->ok($action($user, (bool) $request->boolean('on_duty')));
+    }
+
+    public function account(ShowRepAccountRequest $request, ShowRepAccount $query): JsonResponse
+    {
+        /** @var AppUser $user */
+        $user = $request->user();
+        $month = $request->validated('month');
+
+        return $this->ok($query($user, is_string($month) ? $month : null));
     }
 
     public function updateProfile(UpdateRepProfileRequest $request, UpdateRepProfile $action): JsonResponse

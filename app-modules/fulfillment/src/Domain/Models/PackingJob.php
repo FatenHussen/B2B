@@ -26,6 +26,7 @@ class PackingJob extends Model
         ];
     }
 
+    /** @return HasMany<Package, $this> */
     public function packages(): HasMany
     {
         return $this->hasMany(Package::class);

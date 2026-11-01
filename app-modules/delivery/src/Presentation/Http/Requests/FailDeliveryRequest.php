@@ -13,6 +13,9 @@ final class FailDeliveryRequest extends ApiFormRequest
      */
     public function rules(): array
     {
-        return ['reason' => ['required', 'string']];
+        return [
+            'reason' => ['required', 'string', 'max:255'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ];
     }
 }

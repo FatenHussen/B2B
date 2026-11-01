@@ -11,6 +11,9 @@ use Modules\Promotion\Domain\Enums\OfferType;
 
 final class StoreOfferRequest extends ApiFormRequest
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [

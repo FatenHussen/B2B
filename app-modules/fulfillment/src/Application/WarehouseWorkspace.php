@@ -43,6 +43,7 @@ final class WarehouseWorkspace
         private readonly RepDirectory $reps,
         private readonly WarehouseDirectory $warehouses,
         private readonly CreatesPickingList $pickingLists,
+        private readonly RepReceiptSheet $receiptSheet,
     ) {}
 
     public function warehouseId(): int
@@ -364,7 +365,11 @@ final class WarehouseWorkspace
     }
 
     /**
-     * @return array{status: string, tracking_enabled: bool}
+     * The warehouse already opened this handover. The rep's code is the second
+     * signature, so a match deducts stock and moves the orders on the way.
+     * Both parties are confirmed in that response — nothing is left waiting.
+     *
+     * @return array{status: string, tracking_enabled: bool, rep_name: string, parties: array{rep: string, warehouse: string}}
      */
     public function confirmHandover(int $handoverId, object $rep, string $tempCode): array
     {
@@ -373,7 +378,7 @@ final class WarehouseWorkspace
             throw new DomainException(__('fulfillment.handover_missing'), 'illegal_transition', 409);
         }
         if ($handover->status === HandoverStatus::Confirmed) {
-            return ['status' => 'on_the_way', 'tracking_enabled' => true];
+            return $this->confirmedPayload($rep);
         }
         if ($handover->temp_code !== $tempCode) {
             throw new DomainException(__('fulfillment.invalid_temp_code'), 'validation_failed', 422);
@@ -391,7 +396,23 @@ final class WarehouseWorkspace
         }
         event(new HandoverConfirmedByRep((int) $handover->id, (int) $rep->getAuthIdentifier(), $ids));
 
-        return ['status' => 'on_the_way', 'tracking_enabled' => true];
+        return $this->confirmedPayload($rep);
+    }
+
+    /**
+     * @return array{status: string, tracking_enabled: bool, rep_name: string, parties: array{rep: string, warehouse: string}}
+     */
+    private function confirmedPayload(object $rep): array
+    {
+        return [
+            'status' => 'on_the_way',
+            'tracking_enabled' => true,
+            'rep_name' => $this->reps->displayName((int) $rep->getAuthIdentifier()) ?? '',
+            'parties' => [
+                'rep' => 'confirmed',
+                'warehouse' => 'confirmed',
+            ],
+        ];
     }
 
     /**
@@ -419,6 +440,7 @@ final class WarehouseWorkspace
     }
 
     /**
+     * @param  array<string|int, mixed>  $data
      * @return array{id: int, status: string}
      */
     public function receiving(array $data): array
@@ -446,6 +468,7 @@ final class WarehouseWorkspace
     }
 
     /**
+     * @param  array<string|int, mixed>  $lines
      * @return array{status: string}
      */
     public function qc(int $id, array $lines, object $actor): array
@@ -482,6 +505,7 @@ final class WarehouseWorkspace
     }
 
     /**
+     * @param  array<string|int, mixed>  $data
      * @return array{id: int, status: string}
      */
     public function startStocktake(array $data, object $actor): array
@@ -497,6 +521,7 @@ final class WarehouseWorkspace
     }
 
     /**
+     * @param  array<string|int, mixed>  $data
      * @return array{line_id: int}
      */
     public function recordCount(int $id, array $data): array
@@ -585,27 +610,15 @@ final class WarehouseWorkspace
         if ($date) {
             $query->whereDate('opened_at', $date);
         }
-        $handovers = $query->with('items')->get();
-        $orders = [];
-        foreach ($handovers as $h) {
-            foreach ($h->items as $item) {
-                $subOrderId = (int) $item->sub_order_id;
-                $header = $this->orders->header($subOrderId);
-                $orders[] = [
-                    'sub_order_id' => $subOrderId,
-                    'order_no' => $header['sub_order_no'] ?? null,
-                    'shop' => $header['shop_name'] ?? null,
-                    'zone' => $header['zone_name'] ?? null,
-                    'handover_id' => (int) $h->id,
-                ];
-            }
-        }
+        $sheet = $this->receiptSheet->present($query->with('items')->get());
 
         return [
             'date' => $date,
             'rep_name' => $rep->name ?? '',
-            'count' => count($orders),
-            'orders' => $orders,
+            'count' => count($sheet['orders']),
+            'item_count' => $sheet['item_count'],
+            'items' => $sheet['items'],
+            'orders' => $sheet['orders'],
         ];
     }
 
@@ -763,11 +776,11 @@ final class WarehouseWorkspace
      */
     public function listStockLots(array $filters): array
     {
-        $warehouseId = isset($filters['warehouse_id']) && $filters['warehouse_id'] !== '' && $filters['warehouse_id'] !== null
+        $warehouseId = isset($filters['warehouse_id']) && $filters['warehouse_id'] !== ''
             ? (int) $filters['warehouse_id']
             : $this->warehouseId();
 
-        $productId = isset($filters['product_id']) && $filters['product_id'] !== '' && $filters['product_id'] !== null
+        $productId = isset($filters['product_id']) && $filters['product_id'] !== ''
             ? (int) $filters['product_id']
             : null;
 

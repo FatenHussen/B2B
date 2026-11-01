@@ -6,15 +6,21 @@ namespace Modules\Catalog\Application\Queries;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Modules\Catalog\Application\Support\RepCategoryIndex;
+use Modules\Catalog\Application\Support\RepVariantSelection;
 use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Catalog\Domain\Enums\ProductMediaRole;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Product;
+use Modules\Catalog\Domain\Models\ProductUnitFactor;
 use Modules\Catalog\Domain\Models\ProductVariant;
 use Modules\Core\Contracts\AvailabilityClassifier;
 use Modules\Core\Contracts\ChannelDirectory;
+use Modules\Core\Contracts\OfferFeed;
 use Modules\Core\Contracts\PricingEngine;
+use Modules\Core\Contracts\ReferenceDirectory;
 use Modules\Core\Contracts\RepSellingContext;
+use Modules\Core\Contracts\StockedProductIds;
 use Modules\Core\Support\MediaUrl;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -26,8 +32,16 @@ final class ListRepProducts
         private readonly PricingEngine $pricing,
         private readonly AvailabilityClassifier $availability,
         private readonly ChannelDirectory $channels,
+        private readonly ReferenceDirectory $refs,
+        private readonly RepVariantSelection $selection,
+        private readonly OfferFeed $offers,
+        private readonly RepCategoryIndex $categories,
+        private readonly StockedProductIds $stocked,
     ) {}
 
+    /**
+     * @return LengthAwarePaginator<int, Product>
+     */
     public function __invoke(object $user, Request $request): LengthAwarePaginator
     {
         $ctx = $this->selling->for($user);
@@ -49,18 +63,47 @@ final class ListRepProducts
             })
             ->with(['brand', 'variants', 'media']);
 
+        if ($request->filled('barcode')) {
+            $base->where('barcode', $request->string('barcode')->toString());
+        }
+
         return QueryBuilder::for($base)
             ->allowedFilters(
-                AllowedFilter::exact('category_id'),
+                AllowedFilter::callback('category_id', function ($query, $value) use ($channelIds): void {
+                    $id = (int) $value;
+                    if ($id <= 0) {
+                        return;
+                    }
+                    $branch = $this->categories->branch($channelIds, $id);
+                    $query->whereIn('category_id', $branch === [] ? [0] : $branch);
+                }),
+                AllowedFilter::callback('root_category_id', function ($query, $value): void {
+                    $id = (int) $value;
+                    if ($id <= 0) {
+                        return;
+                    }
+                    $query->whereHas('category', fn ($category) => $category->where('root_category_id', $id));
+                }),
                 AllowedFilter::exact('brand_id'),
                 AllowedFilter::exact('channel_id', 'supply_channel_id'),
+                AllowedFilter::callback('available_only', function ($query, $value) use ($channelIds): void {
+                    if (! in_array((string) $value, ['1', 'true'], true)) {
+                        return;
+                    }
+                    $stocked = $this->stocked->ids($channelIds);
+                    $query->where(function ($q) use ($stocked): void {
+                        $q->where('tracked', false);
+                        if ($stocked !== []) {
+                            $q->orWhereIn('id', $stocked);
+                        }
+                    });
+                }),
                 AllowedFilter::callback('search', function ($query, $value): void {
                     $query->where(function ($q) use ($value): void {
                         $q->where('name_ar', 'like', '%'.$value.'%')->orWhere('sku', 'like', '%'.$value.'%');
                     });
                 }),
             )
-            ->when($request->filled('barcode'), fn ($q) => $q->where('barcode', $request->string('barcode')->toString()))
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
     }
@@ -70,12 +113,10 @@ final class ListRepProducts
      */
     public function map(object $user, Product $product): array
     {
-        $ctx = $this->selling->for($user);
-        $zoneId = (int) (request('zone') ?: request('filter.zone_id') ?: $ctx['default_zone_id'] ?: 0);
         $quoted = $this->pricing->quoteLine(
             (int) $product->id,
             1,
-            $zoneId,
+            $this->zoneId($user),
             null,
             (int) $product->supply_channel_id,
         );
@@ -83,6 +124,9 @@ final class ListRepProducts
         $product->loadMissing(['brand', 'variants', 'media']);
         $image = $product->media
             ->first(fn ($m) => $m->role !== ProductMediaRole::Video);
+        $ctx = $this->selling->for($user);
+        $zoneId = $this->zoneId($user);
+        $activityId = (int) ($ctx['activity_type_id'] ?? 0);
 
         return [
             'id' => (int) $product->id,
@@ -102,11 +146,16 @@ final class ListRepProducts
                 'label' => $quoted['label'],
             ],
             'availability' => $this->availability->classify((int) $product->id),
-            'variants' => $product->variants->map(fn (ProductVariant $v): array => [
-                'id' => (int) $v->id,
-                'label' => $this->variantLabel($v),
-                'barcode' => $v->barcode,
-            ])->values()->all(),
+            'sale_unit' => $product->sale_unit_id !== null
+                ? $this->refs->saleUnitName((int) $product->sale_unit_id)
+                : null,
+            'created_at' => $product->created_at?->timezone('Asia/Damascus')->toIso8601String(),
+            'has_offer' => $zoneId > 0 && $activityId > 0 && $this->offers->productHasOffer((int) $product->id, $zoneId, $activityId),
+            'variants' => $this->selection->orderable($product->variants)->map(fn (ProductVariant $variant): array => [
+                'id' => (int) $variant->id,
+                'label' => $this->selection->label($variant),
+                'barcode' => $variant->barcode,
+            ])->all(),
         ];
     }
 
@@ -115,32 +164,78 @@ final class ListRepProducts
      */
     public function detail(object $user, Product $product): array
     {
+        $product->loadMissing(['brand', 'variants', 'media', 'category', 'variantAxes.values', 'specs', 'unitFactors']);
+
         $card = $this->map($user, $product);
+        $orderable = $this->selection->orderable($product->variants);
+        $zoneId = $this->zoneId($user);
+
+        $card['variants'] = $orderable->map(function (ProductVariant $variant) use ($product, $zoneId): array {
+            $quoted = $this->pricing->quoteLine(
+                (int) $product->id,
+                1,
+                $zoneId,
+                null,
+                (int) $product->supply_channel_id,
+                [],
+                (int) $variant->id,
+            );
+
+            return [
+                'id' => (int) $variant->id,
+                'label' => $this->selection->label($variant),
+                'barcode' => $variant->barcode,
+                'sku' => (string) $variant->sku,
+                'image' => MediaUrl::of($variant->image_media_id !== null ? (int) $variant->image_media_id : null),
+                'price' => $quoted['unit_price'],
+                'attributes' => $this->selection->attributes($variant),
+            ];
+        })->all();
+        $card['attributes_map'] = $this->selection->map($product, $orderable);
         $card['images'] = $product->media
             ->filter(fn ($m) => $m->role !== ProductMediaRole::Video)
             ->map(fn ($m) => MediaUrl::of((int) $m->media_id))
             ->filter()
             ->values()
             ->all();
+        $card['short_description'] = $product->short_description;
         $card['long_description'] = $product->long_description;
+        $card['category'] = $product->category === null ? null : [
+            'id' => (int) $product->category->id,
+            'name' => (string) $product->category->name,
+        ];
+        $card['specs'] = $product->specs
+            ->map(fn ($spec): array => ['key' => (string) $spec->key, 'value' => (string) $spec->value])
+            ->all();
+        $card['sale_unit'] = $product->sale_unit_id !== null ? $this->namedUnit((int) $product->sale_unit_id) : null;
+        $card['min_order_qty'] = (int) $product->min_order_qty;
+        $card['order_multiple'] = (int) $product->order_multiple;
+        $card['unit_factors'] = $product->unitFactors
+            ->map(fn (ProductUnitFactor $factor): array => [
+                'from_unit' => $this->namedUnit((int) $factor->from_unit_id),
+                'to_unit' => $this->namedUnit((int) $factor->to_unit_id),
+                'factor' => (int) $factor->factor,
+            ])
+            ->all();
 
         return $card;
     }
 
-    private function variantLabel(ProductVariant $variant): string
+    private function zoneId(object $user): int
     {
-        $combination = $variant->combination;
-        if (! is_array($combination) || $combination === []) {
-            return (string) ($variant->sku !== null && $variant->sku !== '' ? $variant->sku : 'متغير');
-        }
+        $ctx = $this->selling->for($user);
 
-        $parts = [];
-        foreach ($combination as $key => $value) {
-            $parts[] = is_string($key) && ! is_numeric($key)
-                ? $key.': '.(string) $value
-                : (string) $value;
-        }
+        return (int) (request('zone') ?: request('filter.zone_id') ?: $ctx['default_zone_id'] ?: 0);
+    }
 
-        return implode(' / ', $parts);
+    /**
+     * @return array{id: int, name: string|null}
+     */
+    private function namedUnit(int $id): array
+    {
+        return [
+            'id' => $id,
+            'name' => $this->refs->saleUnitName($id),
+        ];
     }
 }

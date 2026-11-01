@@ -262,7 +262,11 @@ it('lists a rep\'s own pending assignments with a real app token', function () {
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $id)
-        ->assertJsonPath('data.0.shop', 'متجر الزبون');
+        ->assertJsonPath('data.0.shop', 'متجر الزبون')
+        ->assertJsonPath('data.0.total', 250_000)
+        ->assertJsonPath('data.0.invoice_no', null)
+        ->assertJsonPath('data.0.lines.0.qty', 1)
+        ->assertJsonPath('data.0.lines.0.line_total', 250_000);
 })->group('ordering', 'isolation');
 
 it('never lists another rep\'s assignment', function () {

@@ -36,7 +36,8 @@ interface CatalogProductLookup
      *     min_order_qty: int,
      *     sale_unit: string|null,
      *     image: string|null,
-     *     variant: string|null
+     *     variant: string|null,
+     *     unit_factors: list<array{from_unit: array{id: int, name: string|null}, to_unit: array{id: int, name: string|null}, factor: int}>
      * }|null
      */
     public function snapshot(int $productId, ?int $variantId = null): ?array;

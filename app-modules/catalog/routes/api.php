@@ -30,6 +30,7 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.toke
         Route::put('products/{id}/variants/{variantId}', [ChannelCatalogController::class, 'updateVariant'])->middleware('permission:sc.catalog.variants');
         Route::delete('products/{id}/variants/{variantId}', [ChannelCatalogController::class, 'deleteVariant'])->middleware('permission:sc.catalog.variants');
         Route::post('products/bulk', [ChannelCatalogController::class, 'bulk'])->middleware('permission:sc.catalog.update');
+        Route::get('catalog/summary', [ChannelCatalogController::class, 'summary'])->middleware('permission:sc.catalog.view');
         Route::get('catalog/import/template', [ChannelCatalogController::class, 'importTemplate'])->middleware('permission:sc.catalog.import');
         Route::post('catalog/import', [ChannelCatalogController::class, 'import'])->middleware('permission:sc.catalog.import');
         Route::get('catalog/export', [ChannelCatalogController::class, 'export'])->middleware('permission:sc.catalog.view');
@@ -53,6 +54,8 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
 Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app', 'app.kind:rep'])
     ->prefix('api/v1/app/rep')
     ->group(function (): void {
+        Route::get('categories', [RepCatalogController::class, 'categories']);
+        Route::get('brands', [RepCatalogController::class, 'brands']);
         Route::get('products', [RepCatalogController::class, 'products']);
         Route::get('products/{id}', [RepCatalogController::class, 'show']);
     });

@@ -56,6 +56,12 @@ it('reserves a receipt then collects into the wallet and the invoice', function 
     ]);
     CatalogAssert::ok($paid);
     expect($paid->json('data.payment.id'))->toBeInt()
+        ->and($paid->json('data.amount'))->toBe(48000)
+        ->and($paid->json('data.receipt_no'))->toBe($receiptNo)
+        ->and($paid->json('data.invoice_no'))->toBe($world['invoice']['no'])
+        ->and($paid->json('data.invoice_remaining'))->toBe(0)
+        ->and($paid->json('data.shop'))->toBeString()
+        ->and($paid->json('data.paid_at'))->toBeString()
         ->and($paid->json('data.wallet_balance'))->toBe(48000)
         ->and($paid->json('data.retailer_receivable'))->toBe(0);
 
@@ -64,7 +70,10 @@ it('reserves a receipt then collects into the wallet and the invoice', function 
     expect($wallet->json('data.net_balance'))->toBe(48000)
         ->and($wallet->json('data.stats.collected_total'))->toBe(48000)
         ->and($wallet->json('data.stats.invoices_delivered'))->toBe(1)
-        ->and($wallet->json('data.stats.receivables'))->toBe(0);
+        ->and($wallet->json('data.stats.invoiced_total'))->toBe(48000)
+        ->and($wallet->json('data.stats.handed_over'))->toBe(0)
+        ->and($wallet->json('data.stats.receivables'))->toBe(0)
+        ->and($wallet->json('data.today.invoiced_total'))->toBe(48000);
 });
 
 it('replays the same client_op_id and 409s a reused receipt_no', function () {
@@ -227,7 +236,9 @@ it('records a cash handover once per operation_no and lists it', function () {
     ];
     $first = $this->postJson('/api/v1/app/rep/wallet/withdrawals', $body);
     CatalogAssert::ok($first);
-    expect($first->json('data.remaining_balance'))->toBe(18000);
+    expect($first->json('data.remaining_balance'))->toBe(18000)
+        ->and($first->json('data.amount'))->toBe(30000)
+        ->and($first->json('data.operated_at'))->toBeString();
 
     $replay = $this->postJson('/api/v1/app/rep/wallet/withdrawals', $body);
     CatalogAssert::ok($replay);
@@ -246,10 +257,12 @@ it('groups open shop receivables for the collecting rep', function () {
 
     $list = $this->getJson('/api/v1/app/rep/receivables');
     CatalogAssert::ok($list);
-    expect($list->json('data.by_shop'))->toHaveCount(1)
+    expect($list->json('data.total'))->toBe(48000)
+        ->and($list->json('data.by_shop'))->toHaveCount(1)
         ->and($list->json('data.by_shop.0.retailer_id'))->toBe($world['retailer_id'])
         ->and($list->json('data.by_shop.0.invoices.0.no'))->toBe($world['invoice']['no'])
         ->and($list->json('data.by_shop.0.invoices.0.remaining'))->toBe(48000)
+        ->and($list->json('data.by_shop.0.invoices.0.created_at'))->toBeString()
         ->and($list->json('data.by_shop.0.total'))->toBe(48000);
 });
 

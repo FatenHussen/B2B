@@ -11,6 +11,7 @@ class GoodsReceipt extends Model
 {
     protected $fillable = ['warehouse_id', 'source', 'reference_no', 'status'];
 
+    /** @return HasMany<GoodsReceiptLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(GoodsReceiptLine::class);

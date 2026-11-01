@@ -47,10 +47,12 @@ return [
                 'discount' => 0,
                 'line_total' => 69000,
             ]],
+            'gross' => 69000,
+            'discount' => 0,
             'subtotal' => 69000,
             'currency' => 'SYP',
         ],
-        'd' => 'Single source of truth (REQ-IN-07). Precedence stop-at-first-match (most specific wins; lists do not stack): retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices.',
+        'd' => 'Single source of truth (REQ-IN-07). Precedence stop-at-first-match (most specific wins; lists do not stack): retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices. gross is the sum of unit_price × qty (السعر). discount is the sum of line discounts (الخصم). subtotal is gross − discount (الإجمالي). All three are integers in minor units.',
         'in' => 'REQ-IN-07',
     ]),
 

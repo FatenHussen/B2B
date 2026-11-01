@@ -8,8 +8,8 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Modules\Catalog\Application\Support\ProductCardAssembler;
 use Modules\Catalog\Application\Support\VisibleCatalogQuery;
+use Modules\Catalog\Domain\Models\Product;
 use Modules\Catalog\Domain\Models\RetailerProductFavorite;
-use Modules\Core\Contracts\OfferFeed;
 use Modules\Core\Contracts\RetailerShoppingContext;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -19,13 +19,18 @@ final class ListRetailerProducts
     public function __construct(
         private readonly RetailerShoppingContext $shopping,
         private readonly ProductCardAssembler $cards,
-        private readonly OfferFeed $offers,
     ) {}
 
+    /**
+     * @return LengthAwarePaginator<int, Product>
+     */
     public function paginate(object $user, Request $request): LengthAwarePaginator
     {
         $ctx = $this->shopping->for($user);
         $base = VisibleCatalogQuery::products($ctx)->with(['brand', 'media', 'variants']);
+        if ($request->filled('barcode')) {
+            $base->where('barcode', $request->string('barcode')->toString());
+        }
 
         return QueryBuilder::for($base)
             ->allowedFilters(
@@ -51,7 +56,6 @@ final class ListRetailerProducts
                     });
                 }),
             )
-            ->when($request->filled('barcode'), fn ($q) => $q->where('barcode', $request->string('barcode')->toString()))
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
     }
@@ -59,7 +63,7 @@ final class ListRetailerProducts
     /**
      * @return array<string, mixed>
      */
-    public function cardFor(object $user, $product): array
+    public function cardFor(object $user, Product $product): array
     {
         $ctx = $this->shopping->for($user);
         $favorite = RetailerProductFavorite::query()

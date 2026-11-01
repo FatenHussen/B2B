@@ -13,6 +13,9 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 final class ListBrands
 {
+    /**
+     * @return LengthAwarePaginator<int, Brand>
+     */
     public function __invoke(Request $request): LengthAwarePaginator
     {
         return QueryBuilder::for(Brand::class)

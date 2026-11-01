@@ -22,8 +22,8 @@ final class ShowRepWallet
     /**
      * @return array{
      *     net_balance: int,
-     *     stats: array{invoices_delivered: int, collected_total: int, receivables: int},
-     *     today: array{invoices: int, collected: int, receivables: int}
+     *     stats: array{invoices_delivered: int, invoiced_total: int, collected_total: int, handed_over: int, receivables: int},
+     *     today: array{invoices: int, invoiced_total: int, collected: int, receivables: int}
      * }
      */
     public function __invoke(object $user): array
@@ -52,16 +52,23 @@ final class ShowRepWallet
                 ->where('type', 'collected')
                 ->whereBetween('created_at', [$todayStart, $todayEnd])
                 ->sum('amount');
+            $handedOver = (int) WalletTransaction::query()
+                ->where('rep_id', $repUserId)
+                ->where('type', 'settled')
+                ->sum('amount');
 
             return [
                 'net_balance' => $this->wallet->balance($repUserId),
                 'stats' => [
                     'invoices_delivered' => $invoices->count(),
+                    'invoiced_total' => (int) $invoices->sum(fn (Invoice $invoice) => (int) $invoice->total),
                     'collected_total' => $collectedTotal,
+                    'handed_over' => $handedOver,
                     'receivables' => (int) $invoices->sum(fn (Invoice $invoice) => max(0, $invoice->remaining())),
                 ],
                 'today' => [
                     'invoices' => $todayInvoices->count(),
+                    'invoiced_total' => (int) $todayInvoices->sum(fn (Invoice $invoice) => (int) $invoice->total),
                     'collected' => $todayCollected,
                     'receivables' => (int) $todayInvoices->sum(fn (Invoice $invoice) => max(0, $invoice->remaining())),
                 ],

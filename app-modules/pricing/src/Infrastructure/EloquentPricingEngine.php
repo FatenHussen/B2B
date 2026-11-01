@@ -91,7 +91,29 @@ final class EloquentPricingEngine implements PricingEngine
             ]);
         }
 
-        return $result;
+        return $this->withReviewTotals($result);
+    }
+
+    /**
+     * Footer of the rep's selection review: السعر، الخصم، الإجمالي.
+     * Gift lines contribute nothing. line_total is already net of its discount.
+     *
+     * @param  array{lines: list<array<string, mixed>>, subtotal: int, currency: string}  $quote
+     * @return array{lines: list<array<string, mixed>>, gross: int, discount: int, subtotal: int, currency: string}
+     */
+    private function withReviewTotals(array $quote): array
+    {
+        $gross = 0;
+        $discount = 0;
+        foreach ($quote['lines'] as $line) {
+            $gross += (int) $line['unit_price'] * (int) $line['qty'];
+            $discount += (int) ($line['discount'] ?? 0);
+        }
+
+        $quote['gross'] = $gross;
+        $quote['discount'] = $discount;
+
+        return $quote;
     }
 
     public function quoteLine(
