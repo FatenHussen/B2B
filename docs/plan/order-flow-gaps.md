@@ -1,7 +1,9 @@
-# Order flow gaps — WhatsApp cycle (2026-11-03)
+# Order flow gaps — WhatsApp cycle (2026-11-03) ✅
 
 Achieve the approved field description: channel/warehouse approver, rep auto-assign,
 warehouse assign, automatic SKU shortage FIFO + retailer accept_partial|cancel.
+
+**وثيقة التشغيل الكاملة (كل الأطراف):** [`../DocsLast/order-flow.md`](../DocsLast/order-flow.md)
 
 | EP | Path | Status |
 |---|---|---|

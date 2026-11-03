@@ -9,6 +9,7 @@
 | لوحة المستودع | [warehouse.md](warehouse.md) | `warehouse` | Next.js **3002** | عربي · 2026-09-25 |
 | تطبيق المندوب | [flutter-rep.md](flutter-rep.md) · [flutter-rep-field.md](flutter-rep-field.md) · [flutter-rep.json](flutter-rep.json) · [flutter-rep-getx.md](flutter-rep-getx.md) | `app` + kind `rep` | Flutter | عربي |
 | تطبيق التاجر | [flutter-retailer.md](flutter-retailer.md) | `app` + kind `retailer` | Flutter | عربي · 2026-09-25 |
+| **دورة الطلب (كل الأطراف)** | [order-flow.md](order-flow.md) | مشترك | تشغيل موحّد | عربي · 2026-11-03 |
 
 ## قاعدة الأولوية (لا تُكسر)
 
