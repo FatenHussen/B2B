@@ -2,13 +2,17 @@
 
 | | |
 |---|---|
-| الغرض | الملف الوحيد الذي يحتاجه وكيل Cursor أو مطوّر Next.js لربط **لوحة القناة** بهذا الخادم. كل مسار وجسم واستجابة من `route:list` والكتالوج في **2026-09-24** (116/116 ✅). |
+| الغرض | العقد التشغيلي الوحيد لربط **لوحة قناة التوريد** بهذا الخادم. كل مسار من `route:list` + الكتالوج. |
+| الحالة | **124/124** مسار ✅ — `docs/status/02-channel-dashboard.md` (مولَّد 2026-11-03) |
 | التطبيق | Next.js 15 · App Router · TypeScript · TanStack Query v5 · RTL عربي · المنفذ **3001** |
-| الحارس | `auth:channel` · التوكن = Sanctum personal access token |
-| الملفات الشقيقة | `channel.json` (عقد آلي) · `docs/status/02-channel-dashboard.md` · الكتالوج `04-channel-catalog.php` + `05-channel-ops.php` |
+| الحارس | `auth:channel` · Sanctum personal access token |
+| الشقيق | `channel.json` · الكتالوج `04-channel-catalog.php` + `05-channel-ops.php` · دورة الطلب [`order-flow.md`](order-flow.md) |
 | عند التعارض | `route:list` → الكنترولر/FormRequest → **`channel.json`** → **هذا الملف** → الكتالوج |
 
-> **لـ Cursor.** اقرأ §0 أولاً. ابنِ ما يدرجه §5 فقط، بعميل §3. لا تختلق مساراً ولا حقلاً ولا مفتاح استجابة. إن احتاجت الشاشة شيئاً لا يعيده الخادم، اعرض حالة فارغة صادقة (§8) — لا تُحاكِ بيانات.
+> **لـ Cursor / مطوّر أول.** اقرأ §0 ثم **§0B (دورة الطلب 2026-11-03)** قبل شاشات الطلبات. ابنِ ما يدرجه §5 فقط، بعميل §3. لا تختلق مساراً ولا حقلاً. حالة فارغة صادقة — لا محاكاة بيانات.
+>
+> **قبل الرفع:** لا نقص مسار قناة في الباك. المتبقي تشغيل سيرفر (BF-01…04) + بناء Next في ريبو الواجهة.
+
 ---
 
 ## المحتويات
@@ -16,6 +20,7 @@
 | § | القسم |
 |---|---|
 | 0 | قواعد الوكيل |
+| 0B | **دورة الطلب — تعديلات 2026-11-03** |
 | 1 | البيئة، الترويسات، البذرة |
 | 2 | هيكل Next.js والصلاحيات والتنقّل |
 | 3 | الغلاف، الأخطاء، العميل، التكرار، المال، الوقت |
@@ -23,7 +28,7 @@
 | 5 | مرجع المسارات الحية — JSON + TypeScript |
 | 6 | رحلات مركّبة |
 | 7 | كتالوج الأخطاء → نصوص عربية |
-| 8 | ما ليس حيّاً (لا تبنِ، لا تُحاكِ) |
+| 8 | حدود وممنوعات (محدَّث — v1.1 حيّ) |
 | 9 | خريطة الشاشات + قائمة الإكمال |
 | 10 | قائمة مراجعة عند إعادة الملفات |
 
@@ -43,6 +48,55 @@
 10. **لوحة القيادة من اللقطة.** `GET /channel/dashboard` يقرأ `DailySnapshot` (مجدول 00:05 Asia/Damascus أو `php artisan reports:daily-snapshots`). قبل أول لقطة تظهر أصفار صادقة — لا تختلق GMV. بعد اللقطة: KPI + `charts` + `alerts` حقيقية من الطلبات.
 11. **التجار 360 وIAM القناة حيّان.** `GET /channel/retailers/{id}` · `GET/POST /channel/users` · `GET /channel/reps/{id}/live` · `GET /channel/zones/coverage`. اربطها؛ لا تُحاكِ. رفع الوسائط عبر `POST /channel/media/upload` فقط.
 12. **لا `sort` على أي قائمة.** Spatie يرفض الترتيب غير المصرّح. `per_page` افتراضي 25، سقف 100.
+13. **`settings.order_approver`** يقرّر من يؤكّد الطلب (`channel` | `warehouse`). راجع §0B قبل رسم أزرار التأكيد.
+
+---
+
+## 0B. دورة الطلب — تعديلات 2026-11-03
+
+التفاصيل المشتركة بين الأطراف: [`order-flow.md`](order-flow.md) · الاختبارات: `tests/Feature/Ordering/OrderFlowGapsTest.php`.
+
+### من يوافق؟
+
+```http
+GET /api/v1/channel          # EP-SC-130A — اقرأ settings
+PUT /api/v1/channel          # EP-SC-130B
+```
+
+```json
+{ "quiet_hours": { "from": "22:00", "to": "08:00" }, "returns_sla_hours": 24, "order_approver": "channel" }
+```
+
+| `order_approver` | سلوك لوحة القناة |
+|---|---|
+| `channel` (افتراضي) | أظهر تأكيد/رفض/جماعي · صلاحية `sc.orders.confirm` |
+| `warehouse` | **أخفِ أو عطّل** أزرار التأكيد هنا (الاستدعاء → `409 illegal_transition`) · أبقِ قائمة الوارد ظاهرة دائماً · التأكيد من `POST /warehouse/sub-orders/{id}/confirm` |
+
+في **الحالتين** القناة ترى كل الطلبات الواردة (`GET /channel/sub-orders`).
+
+### مسارات القناة في الدورة
+
+| خطوة | EP | مسار | صلاحية |
+|---|---|---|---|
+| طابور وارد | EP-SC-060 | `GET /channel/sub-orders` | `sc.orders.view` |
+| تفاصيل | EP-SC-061 | `GET /channel/sub-orders/{id}` | `sc.orders.view` |
+| تأكيد | EP-SC-062 | `POST …/{id}/confirm` | `sc.orders.confirm` |
+| تأكيد جماعي | EP-SC-063 | `POST …/bulk-confirm` | `sc.orders.confirm` |
+| رفض | EP-SC-064 | `POST …/{id}/reject` | `sc.orders.confirm` |
+| إسناد / إعادة إسناد | EP-SC-066/067 | `POST …/assign` · `reassign` | `sc.orders.assign` |
+
+- بعد تأكيد طلب **مندوب**: إسناد تلقائي لنفس المندوب (حتى off-duty) — لا تطلب اختيار مندوب.
+- بعد تأكيد طلب **محل**: استخدم `assign` بـ `mode: manual|auto|bulk_zone` لمندوب يغطي منطقة المحل.
+- بلا مندوب مناسب في `auto`/`bulk_zone` → `422`.
+
+### ماذا لا تفعله القناة هنا؟
+
+| العمل | أين |
+|---|---|
+| نقص كلي للصنف (FIFO) | المستودع `POST /warehouse/stock-shortages` |
+| قرار المحل على النقص | تطبيق التاجر EP-RT-035/036 |
+| التقاط / تغليف / عهدة | لوحة المستودع |
+
 ---
 
 ## 1. البيئة
@@ -854,7 +908,12 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 ### 6.2 تأكيد طلب صباح
 
-قائمة `filter[status]=pending` → تفاصيل (`allowed_actions`) → `confirm` أو `bulk-confirm` حتى 50 → إن 423 ائتمان، افتح سقف التاجر بمعرّف مكتوب → إن 409 حدّث القائمة. بعد التأكيد: إسناد `rep_id` من `GET /reps?filter[status]=active`.
+1. اقرأ `settings.order_approver` من `GET /channel`. إن `warehouse` → لا تعرض أزرار التأكيد؛ اعرض شارة «الموافقة من المستودع».
+2. قائمة `filter[status]=pending` → تفاصيل (`allowed_actions`) → `confirm` أو `bulk-confirm` حتى 50.
+3. إن 423 ائتمان → افتح سقف التاجر / طابور `credit-approvals` إن ظهر.
+4. إن 409 `illegal_transition` → حدّث القائمة (غالباً لستَ جهة الموافقة أو الحالة تغيّرت).
+5. طلب مندوب بعد التأكيد: لا تطلب إسناداً يدوياً (تلقائي).
+6. طلب محل: `POST …/assign` بـ `mode` مناسب من `GET /reps?filter[status]=active` أو `auto`.
 
 ### 6.3 اعتماد مندوب جديد
 
@@ -911,33 +970,47 @@ const byCode: Record<string, string> = {
 
 ---
 
-## 8. ليس حيّاً — لا تبنِ ولا تُحاكِ
+## 8. حدود وممنوعات (محدَّث 2026-11-03)
+
+### لا تبنِ / لا تستدعِ
 
 | المسار / الميزة | البديل |
 |---|---|
 | `POST /channel/auth/logout` · `GET /channel/me` | امسح التوكن محلياً؛ الجلسة = verify-otp |
 | `POST /channel/media` | `POST /channel/media/upload` |
-| `/platform/*` و `/app/*` (من لوحة القناة) | حارس خطأ — ما عدا معرفة أن CTR البنر يُملأ من تطبيق التاجر |
+| `/platform/*` و `/app/*` من هذه اللوحة | حارس خطأ |
 | `GET /channel/activity-types` | `GET /public/refs` |
-| `on_exceed: manual_approval` للائتمان | يُحفظ؛ السلوك = **block** (423) بلا طابور موافقة |
-| مستودع offline كامل · مضلعات مناطق · تقويم قناة · طابور موافقة ائتمان | مؤجّل (`docs/plan/channel-warehouse-v1.1.md`) |
-| خريطة مندوبين مجمّعة | نقطة واحدة: `GET /channel/reps/{id}/live` |
-| Push/WhatsApp فعلي | القنوات مقبولة؛ السجل: `partial`/`failed` + `push_whatsapp_provider_not_configured` — **لا تعرض «مُسلَّم»** لـ push/whatsapp (BF-12) |
+| تأكيد طلب وأنت لستَ `order_approver` | أخفِ الزر؛ لا تعتمد على 409 كمسار سعيد |
+| Push/WhatsApp كـ«مُسلَّم» | السجل قد يكون `partial`/`failed` + `push_whatsapp_provider_not_configured` (BF-12) |
 
-### صدقية العمق (حيّ — اعرف الحدود)
+### كان مؤجّلاً — صار حيّاً (v1.1 / BF-13…21) — اربطه
+
+| الميزة | المسار |
+|---|---|
+| خريطة كل المندوبين on-duty | `GET /channel/reps/live` (EP-SC-160) — أبعد من نقطة `/reps/{id}/live` |
+| تقويم توصيل أسبوعي | `GET /channel/delivery-calendar` (EP-SC-161) |
+| تصعيد SLA مرتجعات | `POST /channel/return-requests/{id}/escalate` (EP-SC-162) |
+| مضلعات مناطق + نوافذ | `GET /channel/zones/map` (EP-SC-163) |
+| طابور موافقة ائتمان | `GET /channel/credit-approvals` · `POST …/{id}/decide` (EP-SC-165/A) |
+| تجار 360 موسَّع | `GET /channel/retailers/{id}` (EP-SC-164) |
+| فجوات تغطية | `GET /channel/zones/coverage` |
+
+لا تُرجع هذه الصفوف إلى «مؤجّل» في الواجهة.
+
+### صدقية العمق
 
 | الموضوع | الحقيقة |
 |---|---|
-| لوحة / تقارير / هوامش | من `DailySnapshot`؛ شغّل اللقطة أو انتظر الجدول |
+| لوحة / تقارير / هوامش | من `DailySnapshot`؛ شغّل اللقطة أو انتظر 00:05 Asia/Damascus |
 | `mode: auto` / `bulk_zone` | حيّ — أول مندوب on-duty يغطي المنطقة |
 | أولوية التسعير | stop-at-first-match: تاجر ← مجموعة ← منطقة ← شرائح ← أساسي |
 | FEFO | lots عند الاستلام؛ الصرف يفضّل أقرب صلاحية |
-| CTR البنرات | impressions من `/app/content/home-blocks`؛ clicks من `/app/content/banners/{id}/click` |
-| قوالب الإشعار | أحداث النظام تقرأ EP-SC-091؛ `in_app` فقط مضمون التسليم |
-| قرار مرتجع | approve يصدر مذكرة دائنة (BR-13)؛ المخزون عند فرز المستودع |
-| مسار الالتقاط | ترتيب aisle ثم shelf |
+| CTR البنرات | impressions من التطبيق؛ clicks من مسار البنر |
+| قوالب الإشعار | `in_app` مضمون؛ push/whatsapp غير مضبوط إنتاجياً |
+| قرار مرتجع | approve → مذكرة دائنة؛ المخزون عند فرز المستودع |
+| نقص تجهيز كلي | المستودع EP-WH-063 — ليس شاشة قناة |
 
-حيّ بالكامل للكتالوج: عروض show/update/activate · jobs · retailers 360 · users IAM · zones coverage · warehouses · invoices/{id} · content CRUD · loyalty stop.
+حيّ بالكامل للكتالوج: عروض · jobs · retailers 360 · users IAM · zones · warehouses · invoices · content · loyalty · order_approver.
 
 ---
 
@@ -952,17 +1025,17 @@ const byCode: Record<string, string> = {
 | 5 | تسعير + سجل | price-lists, change-log | «لا قوائم أسعار.» |
 | 6 | عروض + أداء | offers CRUD + performance | «لا عروض.» |
 | 7 | مخزون + تحويلات | inventory + warehouses | «لا أرصدة.» |
-| 8 | مندوبون + حيّ + محفظة | reps* + `/live` | «لا مندوبين.» خريطة نقطة واحدة |
-| 9 | مرتجعات | return-requests (+ SLA) | «لا طلبات إرجاع.» لوّن overdue |
+| 8 | مندوبون + حيّ فردي + **خريطة الكل** + محفظة | reps* · `/reps/{id}/live` · `/reps/live` | «لا مندوبين.» |
+| 9 | مرتجعات + تصعيد SLA | return-requests · escalate | «لا طلبات إرجاع.» لوّن overdue |
 | 10 | فواتير / دفعات / أعمار | finance | «لا فواتير مفتوحة.» |
-| 11 | تجّار 360 + مجموعات + ائتمان | retailers/{id} · groups · credit | «لا تجّار في التغطية.» |
-| 12 | تغطية مناطق + فجوات | zones + coverage | «لا تغطية.» اعرض without_reps |
-| 13 | إشعارات + قوالب | notifications* | «لا سجل بعد.» |
+| 11 | تجّار 360 + مجموعات + ائتمان + **طابور موافقة** | retailers/{id} · groups · credit · credit-approvals | «لا تجّار.» |
+| 12 | تغطية + فجوات + **مضلعات** + **تقويم توصيل** | zones · coverage · map · delivery-calendar | «لا تغطية.» |
+| 13 | إشعارات + قوالب | notifications* | «لا سجل بعد.» لا «مُسلَّم» لـ push |
 | 14 | انترو / بنرات / سلايدر | content | انترو `enabled: false` |
 | 15 | ولاء | loyalty rules/rewards/stop | قواعد فارغة صحيحة |
 | 16 | تقارير + تصدير + jobs | reports + jobs/{id} | صفوف فارغة؛ job_id ثم polling |
 | 17 | مستخدمو القناة | users + invite | «لا مستخدمين.» |
-| 18 | إعدادات | GET/PUT /channel (+ quiet_hours) | — |
+| 18 | إعدادات (+ **order_approver**) | GET/PUT /channel | quiet_hours · returns_sla · order_approver |
 
 لكل شاشة: `can()` على الأزرار · مفتاح تكرار في النموذج · هيكل تحميل · خطأ عبر `ApiError.userMessage` · مال عبر `moneySyp` · 422 تحت الحقل · لا مسار من §8 · ترقيم على 📄 · سحب للتحديث · RTL مع LTR للأرقام.
 
@@ -977,13 +1050,19 @@ const byCode: Record<string, string> = {
 5. الأخطاء: `ApiError` فقط · §7 · 401 على OTP لا يخرج · `wrong_guard` يخرج.
 6. التكرار: يُعاد استخدامه في إعادة المحاولة، يُستبدل بعد نجاح أو تعديل النموذج.
 7. المال int؛ لا ÷100؛ لا اختراع GMV.
-8. الممنوعات غائبة (§8). لا قائمة تجّار وهمية ولا خريطة مندوبين مجمّعة.9. `can(permission)` من حمولة الدخول، لا اسم الدور.
+8. الممنوعات غائبة (§8). لا قائمة تجّار وهمية. خريطة المندوبين من `/reps/live` الحيّة فقط.
+9. `can(permission)` من حمولة الدخول، لا اسم الدور.
 10. `per_page ≤ 100` · لا `sort`.
 11. التوكن في `sessionStorage` مفتاح `channel` فقط. يُمسح عند 401/خروج.
 12. الاستيراد `FormData` لا JSON. حذف المنطقة يتعامل مع 204.
+13. `order_approver` يُقرأ قبل رسم أزرار التأكيد؛ مسار النقص الكلي للمستودع لا للقناة.
+14. ميزات v1.1 في §8 «صار حيّاً» مربوطة — لا `RemoteNotReady` عليها.
 
 إعادة توليد العقد الآلي بعد أي مسار جديد:
 
 ```bash
+php docs/api/generate.php && php docs/status/generate.php
 php docs/api/generate-channel-live.php
 ```
+
+*آخر تحديث: 2026-11-03 · الحالة: 124/124 حيّ · يشمل order-flow gaps + v1.1.*

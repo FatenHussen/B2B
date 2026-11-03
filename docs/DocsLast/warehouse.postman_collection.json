@@ -1,0 +1,2130 @@
+{
+    "info": {
+        "name": "B2B Warehouse floor (المستودع)",
+        "_postman_id": "b2b-warehouse-ae8c8e82aa41",
+        "description": "# B2B Warehouse floor (المستودع)\n\nGenerated **2026-11-03** from `route:list` + catalog. Live routes only.\n\n| | |\n|---|---|\n| Requests | **33** |\n| Environment | `docs/api/environments/warehouse-desktop.postman_environment.json` |\n| X-Client | `warehouse-web` |\n| Seed | php artisan warehouse:register-device … then device_token + PIN |\n\nImport this file **and** the matching environment. `baseUrl` is the host only (no `/api/v1`).\nDo not mix tokens across platform / channel / warehouse collections.\n\nContract briefs: `docs/DocsLast/warehouse.md` · order flow: `docs/DocsLast/order-flow.md`\n\nRegenerate: `php docs/api/generate-dashboard-postman.php`",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://127.0.0.1:8000"
+        },
+        {
+            "key": "token",
+            "value": ""
+        },
+        {
+            "key": "client",
+            "value": "warehouse-web"
+        },
+        {
+            "key": "acceptLanguage",
+            "value": "ar"
+        },
+        {
+            "key": "appVersion",
+            "value": "1.0.0 (1)"
+        },
+        {
+            "key": "deviceId",
+            "value": "22222222-2222-2222-2222-222222222222"
+        },
+        {
+            "key": "deviceToken",
+            "value": ""
+        },
+        {
+            "key": "devicePin",
+            "value": "4821"
+        }
+    ],
+    "item": [
+        {
+            "name": "00. Auth",
+            "item": [
+                {
+                    "name": "POST /warehouse/auth/device-login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/auth/device-login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "auth",
+                                "device-login"
+                            ]
+                        },
+                        "description": "**EP-WH-001**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | **exempt** |\n| X-Client | `warehouse-web` |\n| Name | دخول جهاز المستودع |\n\nDevice must be pre-registered. PIN is short.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"device_token\": \"{{deviceToken}}\",\n    \"pin\": \"{{devicePin}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const j = pm.response.json();",
+                                    "const d = j.data || {};",
+                                    "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                    "if (d.token) { store.set('token', d.token); }",
+                                    "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }",
+                                    "if (d.otp_id) { store.set('otp_id', String(d.otp_id)); }"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "00. Health",
+            "item": [
+                {
+                    "name": "GET /health",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "health"
+                            ]
+                        },
+                        "description": "**EP-CORE-001**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | فحص الصحة |\n\nPublic liveness. No tenant, no auth."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "01. Inbound orders (order-flow 2026-11-03)",
+            "item": [
+                {
+                    "name": "POST /warehouse/stock-shortages",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/stock-shortages",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "stock-shortages"
+                            ]
+                        },
+                        "description": "**EP-WH-063**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.shortage` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | توزيع نقص صنف تلقائياً |\n\nWarehouse enters total available for the SKU once. System distributes FIFO by sub_order.created_at across open fulfillment statuses (confirmed|assigned|accepted|processing). Reduced lines await retailer EP-RT-036 (accept_partial|cancel). EP-WH-014 remains for a single picking-list line.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"product_id\": 880,\n    \"variant_id\": null,\n    \"qty_available\": 12,\n    \"reason\": \"out_of_stock\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /warehouse/sub-orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "sub-orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "filter[status]",
+                                    "value": "pending",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[zone_id]",
+                                    "value": "12",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-WH-060**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.view` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | طلبات واردة للمستودع |\n\nSame card shape as EP-SC-060. Channel tenant from the device. Channel dashboard still lists every inbound order regardless of settings.order_approver."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/sub-orders/assign",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/assign",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "sub-orders",
+                                "assign"
+                            ]
+                        },
+                        "description": "**EP-WH-062**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.assign` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | إسناد لمندوب من المستودع |\n\nSame body and modes as EP-SC-066 (manual|auto|bulk_zone). Assigns a channel rep covering the retailer zone.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sub_order_ids\": [\n        9001\n    ],\n    \"rep_id\": 70,\n    \"mode\": \"manual\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/sub-orders/{id}/confirm",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/{{id}}/confirm",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "sub-orders",
+                                "{{id}}",
+                                "confirm"
+                            ]
+                        },
+                        "description": "**EP-WH-061**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.confirm` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | تأكيد طلب من المستودع |\n\nAllowed only when channel settings.order_approver=warehouse. Reserves stock and creates picking list (same as EP-SC-062). Rep-sourced orders auto-assign to the submitting rep after confirm.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "02. Queues",
+            "item": [
+                {
+                    "name": "GET /warehouse/queues",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/queues",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "queues"
+                            ]
+                        },
+                        "description": "**EP-WH-010**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.queue.view` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | طوابير المستودع |"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "03. Picking",
+            "item": [
+                {
+                    "name": "POST /warehouse/picking-lists/batch",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/picking-lists/batch",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "picking-lists",
+                                "batch"
+                            ]
+                        },
+                        "description": "**EP-WH-014A**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | إنشاء قوائم التقاط دفعة |\n\nCreates one picking list per sub_order via CreatesPickingList; returns existing id when already created.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sub_order_ids\": [\n        9001,\n        9002\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /warehouse/picking-lists/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/picking-lists/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "picking-lists",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-WH-011**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | قائمة الالتقاط |\n\nLines ordered by pick path."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/picking-lists/{id}/complete",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/picking-lists/{{id}}/complete",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "picking-lists",
+                                "{{id}}",
+                                "complete"
+                            ]
+                        },
+                        "description": "**EP-WH-015**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | إنهاء الالتقاط |\n\nMoves to packing queue. Retailer status becomes processing.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/picking-lists/{id}/lines/{lineId}/manual",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/picking-lists/{{id}}/lines/{{lineId}}/manual",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "picking-lists",
+                                "{{id}}",
+                                "lines",
+                                "{{lineId}}",
+                                "manual"
+                            ]
+                        },
+                        "description": "**EP-WH-013**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | إدخال يدوي |\n\nFlagged as manual entry.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qty\": 4\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/picking-lists/{id}/scan",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/picking-lists/{{id}}/scan",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "picking-lists",
+                                "{{id}}",
+                                "scan"
+                            ]
+                        },
+                        "description": "**EP-WH-012**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | مسح صنف |\n\nUnknown barcode → 422 barcode_not_in_order with audio/visual warning.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"barcode\": \"6291000000000\",\n    \"qty\": 1\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/picking-lists/{id}/shortage",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/picking-lists/{{id}}/shortage",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "picking-lists",
+                                "{{id}}",
+                                "shortage"
+                            ]
+                        },
+                        "description": "**EP-WH-014**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.shortage` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | نقص أثناء الالتقاط |\n\nreason: out_of_stock|damaged|not_in_location. alternatives = same-category product ids (may be empty). Immediate sales alert.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"line_id\": 1,\n    \"qty_available\": 2,\n    \"reason\": \"out_of_stock\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/picking-waves",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/picking-waves",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "picking-waves"
+                            ]
+                        },
+                        "description": "**EP-WH-042**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | إنشاء موجة التقاط |\n\nCreates one picking list per sub_order (reuses existing), groups them into a wave for assign + print.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sub_order_ids\": [\n        9001,\n        9002\n    ],\n    \"assigned_to\": null\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /warehouse/picking-waves/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/picking-waves/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "picking-waves",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-WH-042A**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | عرض موجة التقاط |\n\nMerged multi-order pick sheet ordered by aisle/shelf like single pickingList. assign wave + print."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "04. Packing",
+            "item": [
+                {
+                    "name": "POST /warehouse/packing/{id}/complete",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/packing/{{id}}/complete",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "packing",
+                                "{{id}}",
+                                "complete"
+                            ]
+                        },
+                        "description": "**EP-WH-017**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.packing.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | إنهاء التغليف |\n\nflags: fragile|cold_chain",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"packages_count\": 1,\n    \"total_weight\": 4.2,\n    \"flags\": [\n        \"fragile\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/packing/{id}/verify",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/packing/{{id}}/verify",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "packing",
+                                "{{id}}",
+                                "verify"
+                            ]
+                        },
+                        "description": "**EP-WH-016**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.packing.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | تحقق التغليف |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"scans\": [\n        {\n            \"barcode\": \"6291000000000\",\n            \"qty\": 4\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "05. Handover",
+            "item": [
+                {
+                    "name": "POST /warehouse/handovers",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/handovers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "handovers"
+                            ]
+                        },
+                        "description": "**EP-WH-019**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.handover.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | إنشاء عهدة |\n\nDoes NOT deduct stock or set on_the_way by itself (REQ-IN-02).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"rep_id\": 70,\n    \"sub_order_ids\": [\n        9001,\n        9002\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /warehouse/handovers/pending",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/handovers/pending",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "handovers",
+                                "pending"
+                            ]
+                        },
+                        "description": "**EP-WH-018**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.handover.execute` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | عهد بانتظار المندوب |"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/handovers/{id}/return-trip",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/handovers/{{id}}/return-trip",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "handovers",
+                                "{{id}}",
+                                "return-trip"
+                            ]
+                        },
+                        "description": "**EP-WH-020**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.handover.return_trip` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | عودة المندوب |\n\nRestocks undelivered and matches the cash bag.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"undelivered\": [\n        {\n            \"sub_order_id\": 9002,\n            \"reason\": \"closed_shop\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "06. Receiving & lots",
+            "item": [
+                {
+                    "name": "POST /warehouse/receiving",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/receiving",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "receiving"
+                            ]
+                        },
+                        "description": "**EP-WH-021**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.receiving.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | استلام وارد |\n\nsource: purchase|transfer|field_return",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"source\": \"purchase\",\n    \"reference_no\": \"PO-331\",\n    \"lines\": [\n        {\n            \"product_id\": 880,\n            \"variant_id\": null,\n            \"qty_expected\": 100,\n            \"qty_received\": 100,\n            \"lot_no\": \"L202603\",\n            \"expiry_date\": \"2027-03-01\",\n            \"location_id\": 12\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/receiving/{id}/qc",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/receiving/{{id}}/qc",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "receiving",
+                                "{{id}}",
+                                "qc"
+                            ]
+                        },
+                        "description": "**EP-WH-022**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.receiving.qc` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | فحص الوارد |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"decision\": \"accept\",\n            \"qty\": 100,\n            \"photos\": []\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /warehouse/stock-lots",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/stock-lots",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "stock-lots"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "warehouse_id",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "product_id",
+                                    "value": "880",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "expiry_before",
+                                    "value": "2027-03-01",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-WH-040**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.receiving.lots` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | تسجيل الدفعات وتواريخ الصلاحية |\n\nwarehouse_id optional — defaults to the device warehouse. Filters: product_id, expiry_before (expiry_date <=)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/stock-lots/{id}/adjust",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/stock-lots/{{id}}/adjust",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "stock-lots",
+                                "{{id}}",
+                                "adjust"
+                            ]
+                        },
+                        "description": "**EP-WH-040A**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.receiving.lots` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | تسوية دفعة مخزون |\n\nqty_delta may be negative. Syncs on_hand via StockLedger::adjust with the same delta.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qty_delta\": -3,\n    \"reason\": \"تلف أثناء التخزين\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "07. Stocktake",
+            "item": [
+                {
+                    "name": "POST /warehouse/stocktakes",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/stocktakes",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "stocktakes"
+                            ]
+                        },
+                        "description": "**EP-WH-023A**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.stocktake.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | بدء جرد |\n\nBook quantity is never shown to the counter.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"warehouse_id\": 1,\n    \"scope\": \"full\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/stocktakes/{id}/approve",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/stocktakes/{{id}}/approve",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "stocktakes",
+                                "{{id}}",
+                                "approve"
+                            ]
+                        },
+                        "description": "**EP-WH-024**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.stocktake.approve` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | اعتماد الجرد |\n\nCritical + dual + SOD-03.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"فروقات ضمن السماح\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/stocktakes/{id}/lines",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/stocktakes/{{id}}/lines",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "stocktakes",
+                                "{{id}}",
+                                "lines"
+                            ]
+                        },
+                        "description": "**EP-WH-023B**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.stocktake.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | تسجيل العد |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"product_id\": 880,\n    \"variant_id\": null,\n    \"location_id\": 12,\n    \"counted_qty\": 418\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/stocktakes/{id}/submit",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/stocktakes/{{id}}/submit",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "stocktakes",
+                                "{{id}}",
+                                "submit"
+                            ]
+                        },
+                        "description": "**EP-WH-023C**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.stocktake.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | تسليم الجرد |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "08. Returns sort",
+            "item": [
+                {
+                    "name": "POST /warehouse/returns/{id}/sort",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/returns/{{id}}/sort",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "returns",
+                                "{{id}}",
+                                "sort"
+                            ]
+                        },
+                        "description": "**EP-WH-030**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.returns.sort` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | فرز المرتجع |\n\ncondition: resalable|damaged|expired. Warehouse decides item condition, not the requester.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"condition\": \"resalable\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "09. Offline sync",
+            "item": [
+                {
+                    "name": "POST /warehouse/sync/push",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/sync/push",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "sync",
+                                "push"
+                            ]
+                        },
+                        "description": "**EP-WH-041A**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | دفع مزامنة المستودع دون اتصال |\n\nMax 500 ops per batch, 20/min per device (X-Device-Id). Types: pick.scan, pick.manual, pick.shortage, pick.complete, pack.verify, pack.complete. status: applied|duplicate|conflict|failed. DomainException 409 → conflict. Permission covers pick+pack offline.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"operations\": [\n        {\n            \"client_op_id\": \"op_pick_scan_1\",\n            \"type\": \"pick.scan\",\n            \"payload\": {\n                \"picking_list_id\": 11,\n                \"barcode\": \"6291000000000\",\n                \"qty\": 2\n            },\n            \"created_at\": \"2026-03-01T09:05:00+03:00\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /warehouse/sync/resolve-conflict",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/sync/resolve-conflict",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "sync",
+                                "resolve-conflict"
+                            ]
+                        },
+                        "description": "**EP-WH-041C**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | required |\n| X-Client | `warehouse-web` |\n| Name | حل تعارض مزامنة المستودع |\n\nresolution: server_wins (mark discarded) | client_wins (re-apply stored payload).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"conflict_id\": \"12\",\n    \"resolution\": \"server_wins\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /warehouse/sync/status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/sync/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "sync",
+                                "status"
+                            ]
+                        },
+                        "description": "**EP-WH-041B**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.execute` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | حالة مزامنة المستودع |"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "10. Reports",
+            "item": [
+                {
+                    "name": "GET /warehouse/reports/productivity",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/warehouse/reports/productivity",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "warehouse",
+                                "reports",
+                                "productivity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-09-01",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-09-24",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-WH-050**\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.reports.view` |\n| Idempotency | n/a |\n| X-Client | `warehouse-web` |\n| Name | تقرير إنتاجية المستودع |\n\nScoped to the device warehouse. pick_accuracy_bps is integer basis points at 10^4 (1188/1200 = 9900). Empty range → zeros and empty daily[]. date_from/date_to inclusive Asia/Damascus calendar days; default last 7 days."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

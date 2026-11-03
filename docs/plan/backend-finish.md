@@ -4,6 +4,8 @@
 |---|---|
 | الغرض | ترتيب العمل المتبقي حتى يصير الباك **جاهزاً للإطلاق** ثم **منتهياً للنهاية** (عمق DOC + ديون + صلاحيات + v1.1) |
 | الحالة الحيّة | [`../status/00-overview.md`](../status/00-overview.md) — أعد التوليد بعد دمج العقود الجديدة (`php docs/api/generate.php && php docs/status/generate.php`) |
+| ما قبل الرفع | [`pre-deploy-checklist.md`](pre-deploy-checklist.md) — فصل شيفرة منتهية عن BF-01…04 على السيرفر |
+| عقود اللوحات | [`../DocsLast/platform.md`](../DocsLast/platform.md) · [`channel.md`](../DocsLast/channel.md) · [`warehouse.md`](../DocsLast/warehouse.md) · [`order-flow.md`](../DocsLast/order-flow.md) |
 | الديون المعلنة | [`../debt-ledger.md`](../debt-ledger.md) |
 | v1.1 قناة/مستودع | [`channel-warehouse-v1.1.md`](channel-warehouse-v1.1.md) |
 | DOC المرجع | DOC-07 (السنترال) · DOC-08 (170 صلاحية) · DOC-01 عمق قناة/مستودع عبر v1.1 |
