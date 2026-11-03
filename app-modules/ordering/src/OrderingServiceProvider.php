@@ -11,6 +11,7 @@ use Modules\Core\Contracts\HandoverGuard;
 use Modules\Core\Contracts\OfferLineStats;
 use Modules\Core\Contracts\OpenOrderCounter;
 use Modules\Core\Contracts\RepMonthOutcomes;
+use Modules\Core\Contracts\ShortageDecisionPending;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Ordering\Domain\SubOrderStateMachine;
 use Modules\Ordering\Infrastructure\CartSubmitSyncHandler;
@@ -18,6 +19,7 @@ use Modules\Ordering\Infrastructure\EloquentChannelOrderMetrics;
 use Modules\Ordering\Infrastructure\EloquentOfferLineStats;
 use Modules\Ordering\Infrastructure\EloquentOpenOrderCounter;
 use Modules\Ordering\Infrastructure\EloquentRepMonthOutcomes;
+use Modules\Ordering\Infrastructure\EloquentShortageDecisionPending;
 use Modules\Ordering\Infrastructure\EloquentSubOrderLifecycle;
 
 class OrderingServiceProvider extends ServiceProvider
@@ -30,6 +32,7 @@ class OrderingServiceProvider extends ServiceProvider
         $this->app->singleton(OpenOrderCounter::class, EloquentOpenOrderCounter::class);
         $this->app->singleton(OfferLineStats::class, EloquentOfferLineStats::class);
         $this->app->singleton(ChannelOrderMetrics::class, EloquentChannelOrderMetrics::class);
+        $this->app->singleton(ShortageDecisionPending::class, EloquentShortageDecisionPending::class);
         $this->app->singleton(CartSubmitSyncHandler::class);
         $this->app->tag([CartSubmitSyncHandler::class], 'sync.operation');
 

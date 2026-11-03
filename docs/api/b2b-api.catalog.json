@@ -31,8 +31,8 @@
                 "X-Channel-Id": "optional, multi-channel users / platform_admin"
             }
         },
-        "generated_at": "2026-10-29T06:49:23+00:00",
-        "endpoint_count": 430,
+        "generated_at": "2026-11-03T12:45:55+00:00",
+        "endpoint_count": 436,
         "surfaces": {
             "retailer_app": {
                 "label": "تطبيق التاجر",
@@ -2122,6 +2122,113 @@
                 "Authorization": "Bearer {{token}}",
                 "X-Device-Id": "{{deviceId}}",
                 "X-App-Version": "{{appVersion}}"
+            }
+        },
+        {
+            "code": "EP-RT-035",
+            "sprint": "SP-09",
+            "method": "GET",
+            "path": "/app/retailer/orders/{id}/shortage",
+            "full_path": "/api/v1/app/retailer/orders/{id}/shortage",
+            "audience": "retailer",
+            "guard": "app",
+            "permission": null,
+            "guard_only": true,
+            "auth": true,
+            "name": "Shortage allocation for order",
+            "name_ar": "نقص التجهيز على الطلب",
+            "description": "{id} is sub_order_id. Present only while a warehouse stock-shortage allocation (EP-WH-063) awaits this retailer. 404 when none pending.",
+            "query": [],
+            "body": null,
+            "response": {
+                "sub_order_id": 9001,
+                "status": "awaiting_decision",
+                "lines": [
+                    {
+                        "sub_order_line_id": 1,
+                        "product_id": 880,
+                        "name": "زيت دوار الشمس 1 لتر",
+                        "qty_requested": 10,
+                        "qty_allocated": 6
+                    }
+                ],
+                "total_before": 120000,
+                "total_after": 72000
+            },
+            "errors": {
+                "404": "not_found"
+            },
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "01. تطبيق التاجر / 06. السلة والطلبات",
+            "module": "06. السلة والطلبات",
+            "roles": [
+                "retailer"
+            ],
+            "apps": [
+                "retailer_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "retailer-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}"
+            }
+        },
+        {
+            "code": "EP-RT-036",
+            "sprint": "SP-09",
+            "method": "POST",
+            "path": "/app/retailer/orders/{id}/shortage-decision",
+            "full_path": "/api/v1/app/retailer/orders/{id}/shortage-decision",
+            "audience": "retailer",
+            "guard": "app",
+            "permission": null,
+            "guard_only": true,
+            "auth": true,
+            "name": "Decide shortage allocation",
+            "name_ar": "قرار نقص التجهيز",
+            "description": "decision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.",
+            "query": [],
+            "body": {
+                "decision": "accept_partial"
+            },
+            "response": {
+                "status": "confirmed",
+                "decision": "accept_partial"
+            },
+            "errors": {
+                "404": "not_found",
+                "409": "illegal_transition",
+                "422": "validation_failed"
+            },
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "01. تطبيق التاجر / 06. السلة والطلبات",
+            "module": "06. السلة والطلبات",
+            "roles": [
+                "retailer"
+            ],
+            "apps": [
+                "retailer_app"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "retailer-android",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-App-Version": "{{appVersion}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
             }
         },
         {
@@ -5152,7 +5259,7 @@
             "auth": true,
             "name": "Complete delivery",
             "name_ar": "إنهاء التسليم",
-            "description": "Success sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection.",
+            "description": "Success sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection. 409 illegal_transition when the order is not yet on_the_way and the handover is unconfirmed. An order already on_the_way can be finished.",
             "query": [],
             "body": {
                 "lines": [
@@ -6185,6 +6292,157 @@
             "write": true,
             "folder": "03. واجهة المستودع — أمين المستودع / 05. المخزون",
             "module": "05. المخزون",
+            "roles": [
+                "warehouse_keeper"
+            ],
+            "apps": [
+                "warehouse"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "warehouse-desktop",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-WH-060",
+            "sprint": "SP-10",
+            "method": "GET",
+            "path": "/warehouse/sub-orders",
+            "full_path": "/api/v1/warehouse/sub-orders",
+            "audience": "warehouse",
+            "guard": "warehouse",
+            "permission": "wh.orders.view",
+            "guard_only": false,
+            "auth": true,
+            "name": "List inbound sub-orders",
+            "name_ar": "طلبات واردة للمستودع",
+            "description": "Same card shape as EP-SC-060. Channel tenant from the device. Channel dashboard still lists every inbound order regardless of settings.order_approver.",
+            "query": {
+                "filter[status]": "pending",
+                "filter[zone_id]": 12,
+                "per_page": 25
+            },
+            "body": null,
+            "response": [
+                {
+                    "id": 9001,
+                    "sub_order_no": "SO-9001",
+                    "status": "pending",
+                    "zone_id": 12,
+                    "total": 48000
+                }
+            ],
+            "errors": [],
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": false,
+            "folder": "03. واجهة المستودع — أمين المستودع / 06. السلة والطلبات",
+            "module": "06. السلة والطلبات",
+            "roles": [
+                "warehouse_keeper"
+            ],
+            "apps": [
+                "warehouse"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "warehouse-desktop",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}"
+            }
+        },
+        {
+            "code": "EP-WH-061",
+            "sprint": "SP-10",
+            "method": "POST",
+            "path": "/warehouse/sub-orders/{id}/confirm",
+            "full_path": "/api/v1/warehouse/sub-orders/{id}/confirm",
+            "audience": "warehouse",
+            "guard": "warehouse",
+            "permission": "wh.orders.confirm",
+            "guard_only": false,
+            "auth": true,
+            "name": "Confirm sub-order (warehouse)",
+            "name_ar": "تأكيد طلب من المستودع",
+            "description": "Allowed only when channel settings.order_approver=warehouse. Reserves stock and creates picking list (same as EP-SC-062). Rep-sourced orders auto-assign to the submitting rep after confirm.",
+            "query": [],
+            "body": {},
+            "response": {
+                "status": "confirmed",
+                "picking_list_id": 301
+            },
+            "errors": {
+                "409": "illegal_transition",
+                "423": "credit_limit_exceeded"
+            },
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "03. واجهة المستودع — أمين المستودع / 06. السلة والطلبات",
+            "module": "06. السلة والطلبات",
+            "roles": [
+                "warehouse_keeper"
+            ],
+            "apps": [
+                "warehouse"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "warehouse-desktop",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-WH-062",
+            "sprint": "SP-10",
+            "method": "POST",
+            "path": "/warehouse/sub-orders/assign",
+            "full_path": "/api/v1/warehouse/sub-orders/assign",
+            "audience": "warehouse",
+            "guard": "warehouse",
+            "permission": "wh.orders.assign",
+            "guard_only": false,
+            "auth": true,
+            "name": "Assign to rep (warehouse)",
+            "name_ar": "إسناد لمندوب من المستودع",
+            "description": "Same body and modes as EP-SC-066 (manual|auto|bulk_zone). Assigns a channel rep covering the retailer zone.",
+            "query": [],
+            "body": {
+                "sub_order_ids": [
+                    9001
+                ],
+                "rep_id": 70,
+                "mode": "manual"
+            },
+            "response": {
+                "assigned": [
+                    9001
+                ]
+            },
+            "errors": {
+                "422": "validation_failed"
+            },
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "03. واجهة المستودع — أمين المستودع / 06. السلة والطلبات",
+            "module": "06. السلة والطلبات",
             "roles": [
                 "warehouse_keeper"
             ],
@@ -7308,6 +7566,75 @@
             "errors": {
                 "404": "not_found",
                 "409": "insufficient_stock"
+            },
+            "dual_approval": false,
+            "critical": false,
+            "multipart": false,
+            "integration": null,
+            "write": true,
+            "folder": "03. واجهة المستودع — أمين المستودع / 99. أخرى",
+            "module": "99. أخرى",
+            "roles": [
+                "warehouse_keeper"
+            ],
+            "apps": [
+                "warehouse"
+            ],
+            "headers": {
+                "Accept": "application/json",
+                "Accept-Language": "{{acceptLanguage}}",
+                "X-Client": "warehouse-desktop",
+                "Authorization": "Bearer {{token}}",
+                "X-Device-Id": "{{deviceId}}",
+                "X-Idempotency-Key": "{{$guid}}",
+                "Content-Type": "application/json"
+            }
+        },
+        {
+            "code": "EP-WH-063",
+            "sprint": "SP-11",
+            "method": "POST",
+            "path": "/warehouse/stock-shortages",
+            "full_path": "/api/v1/warehouse/stock-shortages",
+            "audience": "warehouse",
+            "guard": "warehouse",
+            "permission": "wh.picking.shortage",
+            "guard_only": false,
+            "auth": true,
+            "name": "Allocate stock shortage by SKU",
+            "name_ar": "توزيع نقص صنف تلقائياً",
+            "description": "Warehouse enters total available for the SKU once. System distributes FIFO by sub_order.created_at across open fulfillment statuses (confirmed|assigned|accepted|processing). Reduced lines await retailer EP-RT-036 (accept_partial|cancel). EP-WH-014 remains for a single picking-list line.",
+            "query": [],
+            "body": {
+                "product_id": 880,
+                "variant_id": null,
+                "qty_available": 12,
+                "reason": "out_of_stock"
+            },
+            "response": {
+                "allocation_id": 501,
+                "product_id": 880,
+                "variant_id": null,
+                "qty_available": 12,
+                "lines": [
+                    {
+                        "sub_order_id": 9001,
+                        "sub_order_line_id": 1,
+                        "qty_requested": 10,
+                        "qty_allocated": 10,
+                        "status": "awaiting_retailer"
+                    },
+                    {
+                        "sub_order_id": 9002,
+                        "sub_order_line_id": 2,
+                        "qty_requested": 10,
+                        "qty_allocated": 2,
+                        "status": "awaiting_retailer"
+                    }
+                ]
+            },
+            "errors": {
+                "422": "validation_failed"
             },
             "dual_approval": false,
             "critical": false,
@@ -10461,7 +10788,7 @@
             "auth": true,
             "name": "Confirm sub-order",
             "name_ar": "تأكيد طلب",
-            "description": "Reserves stock, creates picking list, reveals channel name to retailer.",
+            "description": "Reserves stock, creates picking list, reveals channel name to retailer. Allowed only when settings.order_approver is channel (default). Rep-sourced orders auto-assign to the submitting rep; response status then becomes assigned.",
             "query": [],
             "body": {},
             "response": {
@@ -13625,7 +13952,7 @@
             "auth": true,
             "name": "Update own channel settings",
             "name_ar": "تحديث إعدادات القناة",
-            "description": "Partial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create.",
+            "description": "Partial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create. settings.order_approver ∈ channel|warehouse (default channel): who may confirm pending sub-orders. Channel always lists all inbound orders (EP-SC-060); warehouse confirm is EP-WH-061 when set to warehouse.",
             "query": [],
             "body": {
                 "name": "شركة النور",
@@ -13640,7 +13967,8 @@
                         "end": "08:00",
                         "timezone": "Asia/Damascus"
                     },
-                    "returns_sla_hours": 24
+                    "returns_sla_hours": 24,
+                    "order_approver": "channel"
                 }
             },
             "response": {
@@ -13663,7 +13991,8 @@
                         "end": "08:00",
                         "timezone": "Asia/Damascus"
                     },
-                    "returns_sla_hours": 24
+                    "returns_sla_hours": 24,
+                    "order_approver": "channel"
                 },
                 "created_at": "2026-01-01T00:00:00+03:00"
             },

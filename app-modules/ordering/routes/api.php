@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Ordering\Presentation\Http\Controllers\ChannelSubOrderController;
 use Modules\Ordering\Presentation\Http\Controllers\RepOrderingController;
 use Modules\Ordering\Presentation\Http\Controllers\RetailerOrderingController;
+use Modules\Ordering\Presentation\Http\Controllers\WarehouseSubOrderController;
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:channel', 'guard.tokenable:channel', 'tenant'])
     ->prefix('api/v1/channel/sub-orders')
@@ -37,6 +38,17 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
         Route::post('orders/{id}/cancel', [RetailerOrderingController::class, 'cancel']);
         Route::post('orders/{id}/reorder', [RetailerOrderingController::class, 'reorder']);
         Route::get('orders/{id}/tracking', [RetailerOrderingController::class, 'tracking']);
+        Route::get('orders/{id}/shortage', [RetailerOrderingController::class, 'shortage']);
+        Route::post('orders/{id}/shortage-decision', [RetailerOrderingController::class, 'shortageDecision']);
+    });
+
+Route::middleware(['api', SubstituteBindings::class, 'auth:warehouse', 'guard.tokenable:warehouse', 'tenant'])
+    ->prefix('api/v1/warehouse')
+    ->group(function (): void {
+        Route::get('sub-orders', [WarehouseSubOrderController::class, 'index'])->middleware('permission:wh.orders.view');
+        Route::post('sub-orders/assign', [WarehouseSubOrderController::class, 'assign'])->middleware('permission:wh.orders.assign');
+        Route::post('sub-orders/{id}/confirm', [WarehouseSubOrderController::class, 'confirm'])->middleware('permission:wh.orders.confirm');
+        Route::post('stock-shortages', [WarehouseSubOrderController::class, 'allocateShortage'])->middleware('permission:wh.picking.shortage');
     });
 
 Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenable:app'])

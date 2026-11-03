@@ -4508,6 +4508,295 @@
                 ]
             }
         },
+        "/api/v1/app/retailer/orders/{id}/shortage": {
+            "get": {
+                "operationId": "EP-RT-035",
+                "summary": "Shortage allocation for order",
+                "description": "نقص التجهيز على الطلب\n\n{id} is sub_order_id. Present only while a warehouse stock-shortage allocation (EP-WH-063) awaits this retailer. 404 when none pending.",
+                "tags": [
+                    "retailer_app",
+                    "التاجر"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "retailer-android"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-App-Version",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "sub_order_id": 9001,
+                                        "status": "awaiting_decision",
+                                        "lines": [
+                                            {
+                                                "sub_order_line_id": 1,
+                                                "product_id": 880,
+                                                "name": "زيت دوار الشمس 1 لتر",
+                                                "qty_requested": 10,
+                                                "qty_allocated": 6
+                                            }
+                                        ],
+                                        "total_before": 120000,
+                                        "total_after": 72000
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "not_found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "not_found",
+                                        "message": "not_found"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-sprint": "SP-09",
+                "x-code": "EP-RT-035",
+                "x-guard": "app",
+                "x-audience": "retailer",
+                "x-roles": [
+                    "retailer"
+                ],
+                "x-apps": [
+                    "retailer_app"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/app/retailer/orders/{id}/shortage-decision": {
+            "post": {
+                "operationId": "EP-RT-036",
+                "summary": "Decide shortage allocation",
+                "description": "قرار نقص التجهيز\n\ndecision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.",
+                "tags": [
+                    "retailer_app",
+                    "التاجر"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "retailer-android"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-App-Version",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "status": "confirmed",
+                                        "decision": "accept_partial"
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "not_found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "not_found",
+                                        "message": "not_found"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "illegal_transition",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "illegal_transition",
+                                        "message": "illegal_transition"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "validation_failed",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "validation_failed",
+                                        "message": "validation_failed"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-sprint": "SP-09",
+                "x-code": "EP-RT-036",
+                "x-guard": "app",
+                "x-audience": "retailer",
+                "x-roles": [
+                    "retailer"
+                ],
+                "x-apps": [
+                    "retailer_app"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "decision": "accept_partial"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/app/retailer/receipts/{subOrderId}": {
             "get": {
                 "operationId": "EP-RT-040",
@@ -11163,7 +11452,7 @@
             "post": {
                 "operationId": "EP-RP-053",
                 "summary": "Complete delivery",
-                "description": "إنهاء التسليم\n\nSuccess sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection.",
+                "description": "إنهاء التسليم\n\nSuccess sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection. 409 illegal_transition when the order is not yet on_the_way and the handover is unconfirmed. An order already on_the_way can be finished.",
                 "tags": [
                     "rep_app",
                     "المندوب"
@@ -13581,6 +13870,390 @@
                             },
                             "example": {
                                 "reason": "فروقات ضمن السماح"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/warehouse/sub-orders": {
+            "get": {
+                "operationId": "EP-WH-060",
+                "summary": "List inbound sub-orders",
+                "description": "طلبات واردة للمستودع\n\nSame card shape as EP-SC-060. Channel tenant from the device. Channel dashboard still lists every inbound order regardless of settings.order_approver.",
+                "tags": [
+                    "warehouse",
+                    "أمين المستودع"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "warehouse-desktop"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "filter[status]",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "pending"
+                        }
+                    },
+                    {
+                        "name": "filter[zone_id]",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "12"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "25"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": [
+                                        {
+                                            "id": 9001,
+                                            "sub_order_no": "SO-9001",
+                                            "status": "pending",
+                                            "zone_id": 12,
+                                            "total": 48000
+                                        }
+                                    ],
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "wh.orders.view",
+                "x-sprint": "SP-10",
+                "x-code": "EP-WH-060",
+                "x-guard": "warehouse",
+                "x-audience": "warehouse",
+                "x-roles": [
+                    "warehouse_keeper"
+                ],
+                "x-apps": [
+                    "warehouse"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/warehouse/sub-orders/{id}/confirm": {
+            "post": {
+                "operationId": "EP-WH-061",
+                "summary": "Confirm sub-order (warehouse)",
+                "description": "تأكيد طلب من المستودع\n\nAllowed only when channel settings.order_approver=warehouse. Reserves stock and creates picking list (same as EP-SC-062). Rep-sourced orders auto-assign to the submitting rep after confirm.",
+                "tags": [
+                    "warehouse",
+                    "أمين المستودع"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "warehouse-desktop"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "status": "confirmed",
+                                        "picking_list_id": 301
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "illegal_transition",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "illegal_transition",
+                                        "message": "illegal_transition"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "423": {
+                        "description": "credit_limit_exceeded",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "credit_limit_exceeded",
+                                        "message": "credit_limit_exceeded"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "wh.orders.confirm",
+                "x-sprint": "SP-10",
+                "x-code": "EP-WH-061",
+                "x-guard": "warehouse",
+                "x-audience": "warehouse",
+                "x-roles": [
+                    "warehouse_keeper"
+                ],
+                "x-apps": [
+                    "warehouse"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/warehouse/sub-orders/assign": {
+            "post": {
+                "operationId": "EP-WH-062",
+                "summary": "Assign to rep (warehouse)",
+                "description": "إسناد لمندوب من المستودع\n\nSame body and modes as EP-SC-066 (manual|auto|bulk_zone). Assigns a channel rep covering the retailer zone.",
+                "tags": [
+                    "warehouse",
+                    "أمين المستودع"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "warehouse-desktop"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "assigned": [
+                                            9001
+                                        ]
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "validation_failed",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "validation_failed",
+                                        "message": "validation_failed"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "wh.orders.assign",
+                "x-sprint": "SP-10",
+                "x-code": "EP-WH-062",
+                "x-guard": "warehouse",
+                "x-audience": "warehouse",
+                "x-roles": [
+                    "warehouse_keeper"
+                ],
+                "x-apps": [
+                    "warehouse"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "sub_order_ids": [
+                                    9001
+                                ],
+                                "rep_id": 70,
+                                "mode": "manual"
                             }
                         }
                     }
@@ -16167,6 +16840,148 @@
                             "example": {
                                 "qty_delta": -3,
                                 "reason": "تلف أثناء التخزين"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/warehouse/stock-shortages": {
+            "post": {
+                "operationId": "EP-WH-063",
+                "summary": "Allocate stock shortage by SKU",
+                "description": "توزيع نقص صنف تلقائياً\n\nWarehouse enters total available for the SKU once. System distributes FIFO by sub_order.created_at across open fulfillment statuses (confirmed|assigned|accepted|processing). Reduced lines await retailer EP-RT-036 (accept_partial|cancel). EP-WH-014 remains for a single picking-list line.",
+                "tags": [
+                    "warehouse",
+                    "أمين المستودع"
+                ],
+                "parameters": [
+                    {
+                        "name": "Accept",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "application/json"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Client",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "warehouse-desktop"
+                        }
+                    },
+                    {
+                        "name": "X-Device-Id",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    },
+                    {
+                        "name": "X-Idempotency-Key",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "example"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success envelope `{ data, meta }`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "allocation_id": 501,
+                                        "product_id": 880,
+                                        "variant_id": null,
+                                        "qty_available": 12,
+                                        "lines": [
+                                            {
+                                                "sub_order_id": 9001,
+                                                "sub_order_line_id": 1,
+                                                "qty_requested": 10,
+                                                "qty_allocated": 10,
+                                                "status": "awaiting_retailer"
+                                            },
+                                            {
+                                                "sub_order_id": 9002,
+                                                "sub_order_line_id": 2,
+                                                "qty_requested": 10,
+                                                "qty_allocated": 2,
+                                                "status": "awaiting_retailer"
+                                            }
+                                        ]
+                                    },
+                                    "meta": {
+                                        "server_time": "2026-03-01T09:12:44+03:00"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "validation_failed",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": {
+                                        "code": "validation_failed",
+                                        "message": "validation_failed"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-permission": "wh.picking.shortage",
+                "x-sprint": "SP-11",
+                "x-code": "EP-WH-063",
+                "x-guard": "warehouse",
+                "x-audience": "warehouse",
+                "x-roles": [
+                    "warehouse_keeper"
+                ],
+                "x-apps": [
+                    "warehouse"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            },
+                            "example": {
+                                "product_id": 880,
+                                "variant_id": null,
+                                "qty_available": 12,
+                                "reason": "out_of_stock"
                             }
                         }
                     }
@@ -22800,7 +23615,7 @@
             "post": {
                 "operationId": "EP-SC-062",
                 "summary": "Confirm sub-order",
-                "description": "تأكيد طلب\n\nReserves stock, creates picking list, reveals channel name to retailer.",
+                "description": "تأكيد طلب\n\nReserves stock, creates picking list, reveals channel name to retailer. Allowed only when settings.order_approver is channel (default). Rep-sourced orders auto-assign to the submitting rep; response status then becomes assigned.",
                 "tags": [
                     "channel_dashboard",
                     "مدير القناة",
@@ -30147,7 +30962,7 @@
             "put": {
                 "operationId": "EP-SC-130B",
                 "summary": "Update own channel settings",
-                "description": "تحديث إعدادات القناة\n\nPartial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create.",
+                "description": "تحديث إعدادات القناة\n\nPartial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create. settings.order_approver ∈ channel|warehouse (default channel): who may confirm pending sub-orders. Channel always lists all inbound orders (EP-SC-060); warehouse confirm is EP-WH-061 when set to warehouse.",
                 "tags": [
                     "channel_dashboard",
                     "مدير القناة"
@@ -30228,7 +31043,8 @@
                                                 "end": "08:00",
                                                 "timezone": "Asia/Damascus"
                                             },
-                                            "returns_sla_hours": 24
+                                            "returns_sla_hours": 24,
+                                            "order_approver": "channel"
                                         },
                                         "created_at": "2026-01-01T00:00:00+03:00"
                                     },
@@ -30276,7 +31092,8 @@
                                         "end": "08:00",
                                         "timezone": "Asia/Damascus"
                                     },
-                                    "returns_sla_hours": 24
+                                    "returns_sla_hours": 24,
+                                    "order_approver": "channel"
                                 }
                             }
                         }

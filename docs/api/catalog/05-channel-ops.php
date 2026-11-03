@@ -104,7 +104,7 @@ return [
         'b' => new stdClass(),
         'r' => ['status' => 'confirmed', 'picking_list_id' => 301],
         'e' => [409 => 'illegal_transition', 423 => 'credit_limit_exceeded'],
-        'd' => 'Reserves stock, creates picking list, reveals channel name to retailer.',
+        'd' => 'Reserves stock, creates picking list, reveals channel name to retailer. Allowed only when settings.order_approver is channel (default). Rep-sourced orders auto-assign to the submitting rep; response status then becomes assigned.',
         'in' => 'REQ-IN-06',
     ]),
     ep('EP-SC-063', 'SP-10', 'POST', '/channel/sub-orders/bulk-confirm', 'channel', 'sc.orders.confirm', [
@@ -730,6 +730,7 @@ return [
                 'locale' => 'ar',
                 'quiet_hours' => ['start' => '22:00', 'end' => '08:00', 'timezone' => 'Asia/Damascus'],
                 'returns_sla_hours' => 24,
+                'order_approver' => 'channel',
             ],
         ],
         'r' => [
@@ -746,10 +747,11 @@ return [
                 'locale' => 'ar',
                 'quiet_hours' => ['start' => '22:00', 'end' => '08:00', 'timezone' => 'Asia/Damascus'],
                 'returns_sla_hours' => 24,
+                'order_approver' => 'channel',
             ],
             'created_at' => '2026-01-01T00:00:00+03:00',
         ],
-        'd' => 'Partial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create.',
+        'd' => 'Partial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create. settings.order_approver ∈ channel|warehouse (default channel): who may confirm pending sub-orders. Channel always lists all inbound orders (EP-SC-060); warehouse confirm is EP-WH-061 when set to warehouse.',
     ]),
     ep('EP-SC-131A', 'SP-03', 'GET', '/channel/zones', 'channel', 'sc.zones.view', [
         'name' => 'Channel coverage zones',

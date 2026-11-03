@@ -38,7 +38,7 @@ final class ChannelSubOrderController extends ApiController
 
     public function confirm(Request $request, ConfirmSubOrder $action, int $id): JsonResponse
     {
-        return $this->ok($action($request->user(), $id));
+        return $this->ok($action($request->user(), $id, 'channel'));
     }
 
     public function bulkConfirm(BulkConfirmRequest $request, BulkConfirmSubOrders $action): JsonResponse

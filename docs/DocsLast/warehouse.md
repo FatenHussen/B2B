@@ -153,6 +153,10 @@ lib/api/client.ts
 | EP-WH-015 | POST | `/warehouse/picking-lists/{id}/complete` | `wh.picking.execute` |
 | EP-WH-042 | POST | `/warehouse/picking-waves` | `wh.picking.execute` |
 | EP-WH-042A | GET | `/warehouse/picking-waves/{id}` | `wh.picking.execute` |
+| EP-WH-060 | GET | `/warehouse/sub-orders` | `wh.orders.view` |
+| EP-WH-061 | POST | `/warehouse/sub-orders/{id}/confirm` | `wh.orders.confirm` |
+| EP-WH-062 | POST | `/warehouse/sub-orders/assign` | `wh.orders.assign` |
+| EP-WH-063 | POST | `/warehouse/stock-shortages` | `wh.picking.shortage` |
 
 ### تغليف · عهدة · استلام
 

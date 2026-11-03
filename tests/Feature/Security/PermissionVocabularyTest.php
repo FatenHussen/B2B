@@ -59,16 +59,20 @@ const ROLE_GUARDS = [
 
 /**
  * Codes permitted outside DOC-08: the ones the API catalog defines and DOC-08 does not.
- * One today. An entry here carries the endpoint it serves, and nothing enters without one.
+ * An entry here carries the endpoint it serves, and nothing enters without one.
  *
  * `ad.billing.manage` was once listed too. It was a phantom — in neither DOC-08 nor the
  * API catalog, kept alive only because `bin/extract-permissions.php` re-injected it on
  * every generation; the generator was fixed rather than the exemption maintained.
- * `sc.notify.view` guards EP-SC-092 `GET /channel/notifications/log`. It is not in DOC-08;
- * the catalog is the source of the path, so the code is seeded with that endpoint and
- * listed here.
+ * `sc.notify.view` guards EP-SC-092 `GET /channel/notifications/log`.
+ * `wh.orders.view|confirm|assign` guard EP-WH-060/061/062 (order_approver=warehouse).
  */
-const DOC08_EXEMPT = ['sc.notify.view'];
+const DOC08_EXEMPT = [
+    'sc.notify.view',
+    'wh.orders.assign',
+    'wh.orders.confirm',
+    'wh.orders.view',
+];
 
 /**
  * The DOC-08 catalog as the document defines it, read from the document rather than
@@ -183,9 +187,9 @@ it('pins the shape of the catalog so the gap cannot widen unnoticed', function (
     // three `sc.reps.*` codes below.
     $catalog = doc08Codes();
 
-    // 142, up from 141: `ad.iam.role_update` (EP-AD-015, BF-08).
-    expect(Permission::query()->count())->toBe(142)
-        ->and(PermissionCatalog::codes())->toHaveCount(142)
+    // 145, up from 142: `wh.orders.view|confirm|assign` (EP-WH-060/061/062).
+    expect(Permission::query()->count())->toBe(145)
+        ->and(PermissionCatalog::codes())->toHaveCount(145)
         // 30, unchanged: role_update landed in both DOC-08 and the catalog.
         ->and(count(array_diff($catalog, PermissionCatalog::codes())))->toBe(30)
         ->and(array_values(array_diff(PermissionCatalog::codes(), $catalog)))

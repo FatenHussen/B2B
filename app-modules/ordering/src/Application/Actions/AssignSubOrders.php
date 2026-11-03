@@ -27,6 +27,19 @@ final class AssignSubOrders
     ) {}
 
     /**
+     * Auto-assign after confirm of a rep-sourced order. Skips on-duty: the rep
+     * already submitted the order, so duty state must not block the hand-back.
+     *
+     * @return array{assigned: list<int>}
+     */
+    public function assignExistingRep(object $actor, int $subOrderId, int $repId): array
+    {
+        $channelId = (int) Tenant::currentId();
+
+        return $this->assignMany($actor, [$subOrderId], $repId, $channelId, false, true);
+    }
+
+    /**
      * @param  array{sub_order_ids?: list<int>, rep_id?: int|null, mode?: string, zone_id?: int}  $data
      * @return array{assigned: list<int>}|array{status: string}
      */
@@ -93,7 +106,7 @@ final class AssignSubOrders
      * @param  list<int>  $ids
      * @return array{assigned: list<int>}|array{status: string}
      */
-    private function assignMany(object $actor, array $ids, int $repId, int $channelId, bool $reassign): array
+    private function assignMany(object $actor, array $ids, int $repId, int $channelId, bool $reassign, bool $skipDuty = false): array
     {
         if (! $this->reps->belongsToChannel($repId, $channelId)) {
             throw new DomainException(__('ordering.rep_off_coverage'), 'validation_failed', 422);
@@ -101,11 +114,11 @@ final class AssignSubOrders
         if (! $this->reps->isActiveInChannel($repId, $channelId)) {
             throw new DomainException(__('ordering.rep_not_active'), 'validation_failed', 422);
         }
-        if (! $this->duty->isOnDuty($repId)) {
+        if (! $skipDuty && ! $this->duty->isOnDuty($repId)) {
             throw new DomainException(__('ordering.rep_off_duty'), 'validation_failed', 422);
         }
 
-        $repZones = $this->duty->zoneIds($repId);
+        $repZones = $skipDuty ? [] : $this->duty->zoneIds($repId);
         $assigned = [];
 
         foreach ($ids as $id) {
@@ -117,7 +130,7 @@ final class AssignSubOrders
             if ($reassign && $this->handover->isConfirmedForSubOrder((int) $sub->id)) {
                 throw new DomainException(__('ordering.illegal_transition'), 'illegal_transition', 409);
             }
-            if ($sub->zone_id && $repZones !== [] && ! in_array((int) $sub->zone_id, $repZones, true)) {
+            if (! $skipDuty && $sub->zone_id && $repZones !== [] && ! in_array((int) $sub->zone_id, $repZones, true)) {
                 throw new DomainException(__('ordering.rep_off_coverage'), 'validation_failed', 422);
             }
 

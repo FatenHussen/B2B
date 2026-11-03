@@ -207,6 +207,8 @@ lib/
 | EP-RT-032 | POST | `/app/retailer/orders/{id}/cancel` | ✔ |
 | EP-RT-033 | POST | `/app/retailer/orders/{id}/reorder` | ✔ |
 | EP-RT-034 | GET | `/app/retailer/orders/{id}/tracking` | |
+| EP-RT-035 | GET | `/app/retailer/orders/{id}/shortage` | |
+| EP-RT-036 | POST | `/app/retailer/orders/{id}/shortage-decision` | ✔ |
 
 ### استلام · مرتجع · تقييم
 

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Modules\Core\Http\ApiController;
 use Modules\Ordering\Application\Actions\AddRetailerCartLine;
 use Modules\Ordering\Application\Actions\CancelSubOrder;
+use Modules\Ordering\Application\Actions\DecideRetailerShortage;
 use Modules\Ordering\Application\Actions\RemoveRetailerCartLine;
 use Modules\Ordering\Application\Actions\ReorderSubOrder;
 use Modules\Ordering\Application\Actions\SubmitRetailerCart;
@@ -17,9 +18,11 @@ use Modules\Ordering\Application\Actions\UpdateRetailerCartSection;
 use Modules\Ordering\Application\Queries\ListRetailerOrders;
 use Modules\Ordering\Application\Queries\ShowRetailerCart;
 use Modules\Ordering\Application\Queries\ShowRetailerOrder;
+use Modules\Ordering\Application\Queries\ShowRetailerShortage;
 use Modules\Ordering\Application\Queries\TrackRetailerOrder;
 use Modules\Ordering\Presentation\Http\Requests\AddCartLineRequest;
 use Modules\Ordering\Presentation\Http\Requests\CancelOrderRequest;
+use Modules\Ordering\Presentation\Http\Requests\ShortageDecisionRequest;
 use Modules\Ordering\Presentation\Http\Requests\SubmitCartRequest;
 use Modules\Ordering\Presentation\Http\Requests\UpdateCartLineRequest;
 use Modules\Ordering\Presentation\Http\Requests\UpdateCartSectionRequest;
@@ -79,5 +82,15 @@ final class RetailerOrderingController extends ApiController
     public function tracking(Request $request, TrackRetailerOrder $query, int $id): JsonResponse
     {
         return $this->ok($query($request->user(), $id));
+    }
+
+    public function shortage(Request $request, ShowRetailerShortage $query, int $id): JsonResponse
+    {
+        return $this->ok($query($request->user(), $id));
+    }
+
+    public function shortageDecision(ShortageDecisionRequest $request, DecideRetailerShortage $action, int $id): JsonResponse
+    {
+        return $this->ok($action($request->user(), $id, $request->validated()));
     }
 }

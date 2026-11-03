@@ -1,10 +1,10 @@
 # واجهة المستودع — حالة الواجهات
 
-guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً في 2026-10-29 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً في 2026-11-03 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 28 | 28 | 0 | 0 | 0 |
+| 32 | 32 | 0 | 0 | 0 |
 
 ## الدخول — 1/1
 
@@ -61,10 +61,13 @@ guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً ف�
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-WH-030 | SP-12 | `POST` | `/warehouse/returns/{id}/sort` | `wh.returns.sort` | Returns | فرز المرتجع |
 
-## أخرى — 8/8
+## أخرى — 12/12
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
+| ✅ | EP-WH-060 | SP-10 | `GET` | `/warehouse/sub-orders` | `wh.orders.view` | Ordering | طلبات واردة للمستودع |
+| ✅ | EP-WH-061 | SP-10 | `POST` | `/warehouse/sub-orders/{id}/confirm` | `wh.orders.confirm` | Ordering | تأكيد طلب من المستودع |
+| ✅ | EP-WH-062 | SP-10 | `POST` | `/warehouse/sub-orders/assign` | `wh.orders.assign` | Ordering | إسناد لمندوب من المستودع |
 | ✅ | EP-WH-040 | SP-11 | `GET` | `/warehouse/stock-lots` | `wh.receiving.lots` | Fulfillment | تسجيل الدفعات وتواريخ الصلاحية |
 | ✅ | EP-WH-040A | SP-11 | `POST` | `/warehouse/stock-lots/{id}/adjust` | `wh.receiving.lots` | Fulfillment | تسوية دفعة مخزون |
 | ✅ | EP-WH-041A | SP-11 | `POST` | `/warehouse/sync/push` | `wh.picking.execute` | Fulfillment | دفع مزامنة المستودع دون اتصال |
@@ -72,5 +75,6 @@ guard `warehouse` · prefix `/api/v1/warehouse/*` · مولَّد آلياً ف�
 | ✅ | EP-WH-041C | SP-11 | `POST` | `/warehouse/sync/resolve-conflict` | `wh.picking.execute` | Fulfillment | حل تعارض مزامنة المستودع |
 | ✅ | EP-WH-042 | SP-11 | `POST` | `/warehouse/picking-waves` | `wh.picking.execute` | Fulfillment | إنشاء موجة التقاط |
 | ✅ | EP-WH-042A | SP-11 | `GET` | `/warehouse/picking-waves/{id}` | `wh.picking.execute` | Fulfillment | عرض موجة التقاط |
+| ✅ | EP-WH-063 | SP-11 | `POST` | `/warehouse/stock-shortages` | `wh.picking.shortage` | Ordering | توزيع نقص صنف تلقائياً |
 | ✅ | EP-WH-050 | SP-17 | `GET` | `/warehouse/reports/productivity` | `wh.reports.view` | Fulfillment | تقرير إنتاجية المستودع |
 

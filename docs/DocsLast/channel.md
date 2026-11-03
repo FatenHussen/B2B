@@ -616,7 +616,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 | الإجراء | المسار | الجسم |
 |---|---|---|
-| تأكيد 🔁 | `POST …/{id}/confirm` | `{}` |
+| تأكيد 🔁 | `POST …/{id}/confirm` | `{}` — فقط إذا `settings.order_approver=channel` (افتراضي). طلب مندوب يُسند تلقائياً بعده |
 | تأكيد جماعي 🔁 | `POST …/bulk-confirm` | `{ ids: number[] }` سقف 50. 200 جزئي: `confirmed[]` + `failed[]` |
 | رفض 🔁 | `POST …/{id}/reject` | `{ reason }` إلزامي ≤255 |
 | تعديل بنود 🔁 | `PATCH …/{id}/lines` | `{ changes: [{ line_id, qty, removed? }], reason }` `reason` إلزامي |
@@ -835,10 +835,10 @@ export const verifyOtp = (otp_id: string, code: string) =>
 `PUT /channel` يقبل `settings`:
 
 ```json
-{ "quiet_hours": { "from": "22:00", "to": "08:00" }, "returns_sla_hours": 24 }
+{ "quiet_hours": { "from": "22:00", "to": "08:00" }, "returns_sla_hours": 24, "order_approver": "channel" }
 ```
 
-(أو `start`/`end` بدل `from`/`to`). يؤجّل إرسال الإشعار؛ يضبط `sla_due_at` على طلبات الإرجاع.
+(أو `start`/`end` بدل `from`/`to`). يؤجّل إرسال الإشعار؛ يضبط `sla_due_at` على طلبات الإرجاع. `order_approver` ∈ `channel|warehouse` (افتراضي `channel`)؛ عند `warehouse` التأكيد من `POST /warehouse/sub-orders/{id}/confirm` والقناة تظل ترى كل الوارد.
 
 `GET /channel/return-requests` يعيد أيضاً `sla_due_at` و`overdue`.
 

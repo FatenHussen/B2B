@@ -66,6 +66,12 @@ function place(string $path, string $mw): array
         return ['00. Shared — public & app', '02. App session'];
     if (str_starts_with($path, '/app/pricing')) return ['00. Shared — public & app', '03. Pricing'];
     if (str_starts_with($path, '/app/offers'))  return ['00. Shared — public & app', '04. Offers'];
+    if (str_starts_with($path, '/app/notifications') || $path === '/app/devices/push-token')
+        return ['00. Shared — public & app', '05. Notifications'];
+    if (str_starts_with($path, '/app/sync'))
+        return ['00. Shared — public & app', '06. Sync'];
+    if (str_starts_with($path, '/app/content') || str_starts_with($path, '/app/loyalty'))
+        return ['00. Shared — public & app', '07. Content & loyalty'];
     if (str_starts_with($path, '/public/'))     return ['00. Shared — public & app', '01. Public OTP'];
     if ($path === '/health')                    return ['00. Shared — public & app', '00. Health'];
 
@@ -241,6 +247,34 @@ foreach ($routes as $rt) {
             'PATCH /currencies/{}/status' => ['status' => 'disabled', 'reason' => 'No longer quoted'],
             // A DELETE that carries a body — fetch/axios must be configured to send it.
             'DELETE /platform/iam/assignments' => ['user_id' => 9, 'role_id' => 3, 'reason' => 'Left the team'],
+            // Local OTP accepts "0000" when the stored code is all zeros (rep/channel, or OTP_BYPASS).
+            // {{phone}} and {{client}} come from the collection, overridden by the selected environment.
+            'POST /public/auth/request-otp' => [
+                'phone' => '{{phone}}',
+                'purpose' => 'login',
+                'client' => '{{client}}',
+            ],
+            'POST /public/auth/verify-otp' => [
+                'otp_id' => '{{otp_id}}',
+                'code' => '0000',
+                'device_id' => '{{deviceId}}',
+                'device_name' => 'Postman',
+                'platform' => 'android',
+            ],
+            'POST /channel/auth/verify-otp' => [
+                'otp_id' => '{{otp_id}}',
+                'code' => '0000',
+            ],
+            // Reserve first (POST /app/receipts/reserve). It stores {{receipt_no}}.
+            // Seeded open invoice for عمر الشامي: retailer 4, INV-1, remaining 735000.
+            'POST /app/rep/payments' => [
+                'receipt_no' => '{{receipt_no}}',
+                'retailer_id' => 4,
+                'invoice_no' => 'INV-1',
+                'amount' => 10000,
+                'paid_at' => '2026-11-01T21:54:00+03:00',
+                'client_op_id' => 'op_rep_pay_postman_1',
+            ],
         ];
 
         // ---------- body (from the catalog when it matches)
@@ -269,9 +303,21 @@ foreach ($routes as $rt) {
 
         $query = [];
         if ($e !== null && ! empty($e['query']) && is_array($e['query'])) {
-            foreach ($e['query'] as $q) {
-                $k = is_array($q) ? ($q['name'] ?? null) : $q;
-                if (is_string($k) && $k !== '') $query[] = ['key' => $k, 'value' => '', 'disabled' => true];
+            foreach ($e['query'] as $qk => $q) {
+                $example = '';
+                if (is_array($q)) {
+                    $k = $q['name'] ?? null;
+                    $example = isset($q['example']) && is_scalar($q['example']) ? (string) $q['example'] : '';
+                } elseif (is_string($qk)) {
+                    // Catalog stores some queries as {"app": "retailer"} rather than a list.
+                    $k = $qk;
+                    $example = is_scalar($q) ? (string) $q : '';
+                } else {
+                    $k = is_string($q) ? $q : null;
+                }
+                if (is_string($k) && $k !== '') {
+                    $query[] = ['key' => $k, 'value' => $example, 'disabled' => $example === ''];
+                }
             }
         }
 
@@ -321,6 +367,7 @@ foreach ($routes as $rt) {
             ] + ($body ? ['body' => $body] : []),
             'response' => [],
         ];
+        $req['response'] = exampleResponses($req['request'], $e);
 
         // auto-capture tokens on the login calls. Saved to the active environment, or to
         // the collection when none is selected — with "No environment" pm.environment.set
@@ -341,6 +388,13 @@ JS;
 const j = pm.response.json();
 const store = pm.environment.name ? pm.environment : pm.collectionVariables;
 if (j.data && j.data.otp_id) { store.set('otp_id', j.data.otp_id); console.log('otp_id saved'); }
+JS;
+        } elseif ($path === '/app/receipts/reserve' || str_ends_with($path, '/deliveries/{id}/complete')) {
+            $capture = <<<'JS'
+const j = pm.response.json();
+const d = j.data || {};
+const store = pm.environment.name ? pm.environment : pm.collectionVariables;
+if (d.receipt_no) { store.set('receipt_no', d.receipt_no); console.log('receipt_no saved'); }
 JS;
         }
         if ($capture !== null) {
@@ -411,7 +465,7 @@ foreach ($tree as $app => $subs) {
 $readme = <<<'MD'
 # Start here
 
-**183 requests, every one of them live.** This collection is generated from
+**429 requests, every one of them live.** This collection is generated from
 `php artisan route:list`, not from the API catalog — so nothing here returns 404 because
 it was never built.
 
@@ -429,16 +483,17 @@ it was never built.
 | You build | Folder | Login request |
 |---|---|---|
 | Retailer app | `01. Retailer app` | `00. Shared` → `01. Public OTP` |
-| Field rep app | `02. Field rep app` | `00. Shared` → `01. Public OTP` |
+| Field rep app | `02. Field rep app` | `00. Shared` → `01. Public OTP` — phone `+963932000001`, code `0000` |
 | Channel dashboard | `03. Channel dashboard` | its `00. Auth` |
 | Warehouse dashboard | `04. Warehouse dashboard` | its `00. Device login` |
 | Platform admin | `05. Platform admin` | its `00. Auth` |
 
 Inside each app folder the sub-folders are the roles/modules of that app.
 
-**OTP is switched off during development** (`OTP_BYPASS=true` on the API): send any
-6-character `code` — `000000` — to `verify-otp`. No cooldown, no rate limit. When it is
-switched back on, codes are not sent anywhere locally — read them from the log:
+**OTP is switched off during development** (`OTP_BYPASS=true` on the API, and rep/channel
+clients always get an all-zero code outside production): send `0000` to `verify-otp`.
+The body in this collection already does. When bypass is off and the client is not
+rep/channel, read the code from the log:
 
 ```bash
 tail -f storage/logs/laravel.log | grep OTP
@@ -486,11 +541,14 @@ The generator reads `route:list` for the routes and the catalog only for example
 EP-IDs. A newly built endpoint appears automatically; one that was never built never
 appears.
 
-## 6. What is deliberately absent
+## 6. Examples
 
-180 catalogued endpoints have no route: all money (SP-13), all offline sync (SP-14),
-content and loyalty (SP-15), and every platform reference screen (SP-03). They are not in
-this collection because they do not exist. See `docs/DocsLast/` for what that blocks.
+Each request's **Examples** menu holds the success envelope (`data` + `meta`) and, where the
+catalog names them, the error envelopes. Send the request to hit the live server. The
+example is the contract sample, not a recording of your last call.
+
+A catalogued endpoint with no route is absent. This file only contains what `route:list`
+registers today.
 MD;
 
 array_unshift($items, [
@@ -535,8 +593,108 @@ $collection = [
     'item' => $items,
     'variable' => [
         ['key' => 'baseUrl', 'value' => 'http://127.0.0.1:8000'],
+        ['key' => 'token', 'value' => ''],
+        ['key' => 'otp_id', 'value' => ''],
+        ['key' => 'receipt_no', 'value' => ''],
+        ['key' => 'challenge_token', 'value' => ''],
+        ['key' => 'phone', 'value' => '+963932000001'],
+        ['key' => 'deviceId', 'value' => '11111111-1111-1111-1111-111111111111'],
+        ['key' => 'client', 'value' => 'rep-android'],
+        ['key' => 'appVersion', 'value' => '1.4.2 (142)'],
+        ['key' => 'acceptLanguage', 'value' => 'ar'],
+        ['key' => 'channelId', 'value' => '1'],
     ],
 ];
+
+/**
+ * Saved Postman examples: the success envelope, then one error envelope per catalog code.
+ * Import shows these under Examples. They are samples, not a recorded call.
+ *
+ * @param  array<string, mixed>  $request
+ * @param  array<string, mixed>|null  $endpoint
+ * @return list<array<string, mixed>>
+ */
+function exampleResponses(array $request, ?array $endpoint): array
+{
+    if ($endpoint === null) {
+        return [];
+    }
+
+    $out = [];
+    if (array_key_exists('response', $endpoint) && $endpoint['response'] !== null) {
+        $data = $endpoint['response'];
+        $meta = ['server_time' => '2026-03-01T09:12:44+03:00'];
+        if (is_array($data) && array_is_list($data)) {
+            $meta = [
+                'page' => 1,
+                'per_page' => 25,
+                'total' => count($data),
+                'last_page' => 1,
+                'server_time' => '2026-03-01T09:12:44+03:00',
+            ];
+        }
+        $code = (string) ($endpoint['code'] ?? 'example');
+        $out[] = savedExample($request, 200, 'OK', '200 '.$code, [
+            'data' => $data,
+            'meta' => $meta,
+        ]);
+    }
+
+    foreach ($endpoint['errors'] ?? [] as $status => $errorCode) {
+        if (! is_scalar($errorCode)) {
+            continue;
+        }
+        $status = (int) $status;
+        $out[] = savedExample($request, $status, httpStatusText($status), $status.' '.$errorCode, [
+            'error' => [
+                'code' => (string) $errorCode,
+                'message' => (string) $errorCode,
+                'details' => new stdClass,
+            ],
+        ]);
+    }
+
+    return $out;
+}
+
+function httpStatusText(int $status): string
+{
+    return match ($status) {
+        200 => 'OK',
+        201 => 'Created',
+        401 => 'Unauthorized',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        409 => 'Conflict',
+        422 => 'Unprocessable Entity',
+        423 => 'Locked',
+        426 => 'Upgrade Required',
+        429 => 'Too Many Requests',
+        503 => 'Service Unavailable',
+        default => 'Error',
+    };
+}
+
+/**
+ * @param  array<string, mixed>  $request
+ * @param  array<string, mixed>  $payload
+ * @return array<string, mixed>
+ */
+function savedExample(array $request, int $status, string $statusText, string $name, array $payload): array
+{
+    return [
+        'name' => $name,
+        'originalRequest' => $request,
+        'status' => $statusText,
+        'code' => $status,
+        '_postman_previewlanguage' => 'json',
+        'header' => [
+            ['key' => 'Content-Type', 'value' => 'application/json'],
+        ],
+        'cookie' => [],
+        'body' => json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+    ];
+}
 
 file_put_contents(
     $root . '/docs/api/b2b-api.live.postman_collection.json',

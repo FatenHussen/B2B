@@ -22,7 +22,7 @@ final class BulkConfirmSubOrders
 
         foreach ($ids as $id) {
             try {
-                $this->confirm->__invoke($actor, $id);
+                $this->confirm->__invoke($actor, $id, 'channel');
                 $confirmed[] = $id;
             } catch (DomainException $e) {
                 $failed[] = ['id' => $id, 'error' => $e->errorCode];

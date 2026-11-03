@@ -168,6 +168,10 @@ final class PermissionCatalog
         'sc.zones.view' => ['name_ar' => 'عرض المناطق', 'system' => 'channel', 'module' => 'zones', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.handover.execute' => ['name_ar' => 'عهد بانتظار المندوب', 'system' => 'warehouse', 'module' => 'handover', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.handover.return_trip' => ['name_ar' => 'عودة المندوب', 'system' => 'warehouse', 'module' => 'handover', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        // Catalog-only (not in DOC-08): EP-WH-060/061/062 inbound order queue + confirm + assign when settings.order_approver=warehouse.
+        'wh.orders.assign' => ['name_ar' => 'إسناد طلب لمندوب من المستودع', 'system' => 'warehouse', 'module' => 'orders', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        'wh.orders.confirm' => ['name_ar' => 'تأكيد طلب من المستودع', 'system' => 'warehouse', 'module' => 'orders', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
+        'wh.orders.view' => ['name_ar' => 'عرض الطلبات الواردة للمستودع', 'system' => 'warehouse', 'module' => 'orders', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.packing.execute' => ['name_ar' => 'تحقق التغليف', 'system' => 'warehouse', 'module' => 'packing', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.picking.execute' => ['name_ar' => 'قائمة الالتقاط', 'system' => 'warehouse', 'module' => 'picking', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],
         'wh.picking.shortage' => ['name_ar' => 'نقص أثناء الالتقاط', 'system' => 'warehouse', 'module' => 'picking', 'severity' => 'standard', 'dual_approval' => false, 'delegatable' => true],

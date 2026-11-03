@@ -292,6 +292,33 @@ return [
         ],
         'd' => 'Rep identity only at on_the_way (BR-03).',
     ]),
+    ep('EP-RT-035', 'SP-09', 'GET', '/app/retailer/orders/{id}/shortage', 'retailer', null, [
+        'name' => 'Shortage allocation for order',
+        'name_ar' => 'نقص التجهيز على الطلب',
+        'r' => [
+            'sub_order_id' => 9001,
+            'status' => 'awaiting_decision',
+            'lines' => [[
+                'sub_order_line_id' => 1,
+                'product_id' => 880,
+                'name' => 'زيت دوار الشمس 1 لتر',
+                'qty_requested' => 10,
+                'qty_allocated' => 6,
+            ]],
+            'total_before' => 120000,
+            'total_after' => 72000,
+        ],
+        'e' => [404 => 'not_found'],
+        'd' => '{id} is sub_order_id. Present only while a warehouse stock-shortage allocation (EP-WH-063) awaits this retailer. 404 when none pending.',
+    ]),
+    ep('EP-RT-036', 'SP-09', 'POST', '/app/retailer/orders/{id}/shortage-decision', 'retailer', null, [
+        'name' => 'Decide shortage allocation',
+        'name_ar' => 'قرار نقص التجهيز',
+        'b' => ['decision' => 'accept_partial'],
+        'r' => ['status' => 'confirmed', 'decision' => 'accept_partial'],
+        'e' => [404 => 'not_found', 409 => 'illegal_transition', 422 => 'validation_failed'],
+        'd' => 'decision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.',
+    ]),
 
     ep('EP-RT-040', 'SP-12', 'GET', '/app/retailer/receipts/{subOrderId}', 'retailer', 'rt.receive.confirm', [
         'name' => 'Receiving list',

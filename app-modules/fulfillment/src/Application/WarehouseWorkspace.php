@@ -9,6 +9,7 @@ use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\CreatesPickingList;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Contracts\RepDirectory;
+use Modules\Core\Contracts\ShortageDecisionPending;
 use Modules\Core\Contracts\StockLedger;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Contracts\WarehouseDirectory;
@@ -44,6 +45,7 @@ final class WarehouseWorkspace
         private readonly WarehouseDirectory $warehouses,
         private readonly CreatesPickingList $pickingLists,
         private readonly RepReceiptSheet $receiptSheet,
+        private readonly ShortageDecisionPending $shortagePending,
     ) {}
 
     public function warehouseId(): int
@@ -243,6 +245,9 @@ final class WarehouseWorkspace
     public function completePick(int $id, object $actor): array
     {
         $list = $this->list($id);
+        if ($this->shortagePending->blocksSubOrder((int) $list->sub_order_id)) {
+            throw new DomainException(__('fulfillment.shortage_awaiting_retailer'), 'operation_in_progress', 409);
+        }
         $list->status = PickingStatus::ToPack;
         $list->save();
         PackingJob::query()->firstOrCreate(['picking_list_id' => $list->id], ['status' => 'open']);

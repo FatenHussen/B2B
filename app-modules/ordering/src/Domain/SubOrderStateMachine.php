@@ -17,7 +17,7 @@ final class SubOrderStateMachine
         'reject' => ['pending'],
         'cancel' => ['pending', 'confirmed', 'assigned', 'accepted', 'processing', 'postponed'],
         'retailer_cancel' => ['pending'],
-        'edit_lines' => ['pending', 'confirmed'],
+        'edit_lines' => ['pending', 'confirmed', 'assigned', 'accepted', 'processing'],
         'assign' => ['confirmed', 'postponed'],
         'reassign' => ['assigned', 'accepted'],
         'schedule' => ['confirmed', 'assigned', 'accepted'],

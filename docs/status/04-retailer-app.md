@@ -1,10 +1,10 @@
 # تطبيق التاجر — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2026-10-29 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2026-11-03 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 33 | 33 | 0 | 0 | 0 |
+| 35 | 35 | 0 | 0 | 0 |
 
 ## التسجيل — 1/1
 
@@ -43,7 +43,7 @@ guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2
 | ✅ | EP-RT-024 | SP-09 | `PATCH` | `/app/retailer/cart/sections/{ref}` | — | Ordering | ملاحظة/جدولة قسم |
 | ✅ | EP-RT-025 | SP-09 | `POST` | `/app/retailer/cart/submit` | — | Ordering | إرسال الطلب |
 
-## طلباتي والتتبع — 5/5
+## طلباتي والتتبع — 7/7
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
@@ -52,6 +52,8 @@ guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2
 | ✅ | EP-RT-032 | SP-09 | `POST` | `/app/retailer/orders/{id}/cancel` | — | Ordering | إلغاء طلب |
 | ✅ | EP-RT-033 | SP-09 | `POST` | `/app/retailer/orders/{id}/reorder` | — | Ordering | إعادة الطلب |
 | ✅ | EP-RT-034 | SP-09 | `GET` | `/app/retailer/orders/{id}/tracking` | — | Ordering | تتبع الطلب |
+| ✅ | EP-RT-035 | SP-09 | `GET` | `/app/retailer/orders/{id}/shortage` | — | Ordering | نقص التجهيز على الطلب |
+| ✅ | EP-RT-036 | SP-09 | `POST` | `/app/retailer/orders/{id}/shortage-decision` | — | Ordering | قرار نقص التجهيز |
 
 ## الاستلام والمرتجعات والتقييم — 6/6
 

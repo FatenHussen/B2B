@@ -4,7 +4,7 @@ Generated from `php artisan route:list`, **not** from the API catalog. Every req
 is registered and callable today. Nothing in this collection 404s because it was never
 built.
 
-Verified 2026-09-08 · 178 requests.
+Verified 2026-11-01 · 429 requests. Every request has a saved example response (success, plus each catalog error code).
 
 > The older `b2b-api.postman_collection.json` holds 775 requests generated from the
 > catalog. Most of those are **not implemented** and return 404. Use this collection to
