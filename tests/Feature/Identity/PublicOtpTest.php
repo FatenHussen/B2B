@@ -108,7 +108,7 @@ it('rejects a wrong code', function () {
     CatalogAssert::error(
         $this->postJson('/api/v1/public/auth/verify-otp', [
             'otp_id' => $otp['otp_id'],
-            'code' => '000000',
+            'code' => '111111',
             'device_id' => 'd1',
         ]),
         401,
@@ -151,7 +151,7 @@ it('locks the otp after six failed attempts', function () {
     for ($i = 0; $i < 5; $i++) {
         $this->postJson('/api/v1/public/auth/verify-otp', [
             'otp_id' => $otp['otp_id'],
-            'code' => '000000',
+            'code' => '111111',
             'device_id' => 'd1',
         ])->assertStatus(401);
     }
@@ -159,7 +159,7 @@ it('locks the otp after six failed attempts', function () {
     CatalogAssert::error(
         $this->postJson('/api/v1/public/auth/verify-otp', [
             'otp_id' => $otp['otp_id'],
-            'code' => '000000',
+            'code' => '111111',
             'device_id' => 'd1',
         ]),
         401,
@@ -178,6 +178,29 @@ it('resends over sms after the cooldown window', function () {
 
     CatalogAssert::ok($response, ['channel_used', 'resend_after']);
     expect($response->json('data.channel_used'))->toBe('sms');
+});
+
+it('issues a fixed all-zero code for retailer clients outside production', function () {
+    config(['otp.bypass' => false]);
+
+    $response = $this->withHeaders(['X-Client' => 'retailer-android'])->postJson('/api/v1/public/auth/request-otp', [
+        'phone' => '+963912399001',
+        'purpose' => 'login',
+        'client' => 'retailer-android',
+    ]);
+    CatalogAssert::ok($response, ['otp_id']);
+
+    /** @var FakeOtpChannel $fake */
+    $fake = app(OtpChannel::class);
+    expect($fake->codeFor('+963912399001'))->toBe('000000');
+
+    $verify = $this->postJson('/api/v1/public/auth/verify-otp', [
+        'otp_id' => $response->json('data.otp_id'),
+        'code' => '000000',
+        'device_id' => 'retailer-device-1',
+        'platform' => 'android',
+    ]);
+    CatalogAssert::ok($verify, ['token']);
 });
 
 it('issues a fixed all-zero code for rep clients outside production', function () {

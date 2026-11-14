@@ -229,9 +229,9 @@ final class OtpService
     }
 
     /**
-     * Outside production, rep clients and channel login receive a fixed all-zero
-     * code so dashboards/Flutter can hard-code `0000` or `000000` without reading
-     * the log. Retailer (public) flows keep random codes unless `otp.bypass` is on.
+     * Outside production, retailer and rep clients and channel login receive a
+     * fixed all-zero code so dashboards/Flutter can hard-code `000000` (or
+     * `0000`, which still matches) without reading the log.
      */
     private function generateCode(?string $client = null, ?OtpPurpose $purpose = null): string
     {
@@ -276,6 +276,7 @@ final class OtpService
         $normalized = strtolower($client);
 
         return str_starts_with($normalized, 'rep-')
+            || str_starts_with($normalized, 'retailer-')
             || str_starts_with($normalized, 'channel-');
     }
 }

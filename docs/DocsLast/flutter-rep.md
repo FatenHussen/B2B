@@ -6,8 +6,8 @@
 | الجمهور | مطوّر Flutter، وCursor AI عند إكمال الجوانب الناقصة، ومراجع القبول |
 | الحارس | `auth:app` + `app.kind:rep` · `X-Client: rep-android` أو `rep-ios` · **لا** `X-Channel-Id` |
 | الأساس | `/api/v1` |
-| التاريخ | 2026-09-20 — شاشات المندوب من موجّه المنتج للنسخة للعميل (OTP مؤجّل كما هو) · العقود من الكنترولر الحي + الكتالوج + `docs/status/` |
-| JSON الحي | `docs/DocsLast/flutter-rep.json` — يُولَّد بـ `php docs/api/generate-rep-live.php`. مسار `live:true` في JSON يفوز على جملة هنا؛ هذا الملف يفوز على الشكل والشاشات |
+| التاريخ | 2026-11-03 — 40/40 ✅ · العقد المختصر: [rep.md](rep.md) · الدورة: [order-flow.md](order-flow.md) · الفهرس: [ALL.md](ALL.md) |
+| JSON الحي | `docs/DocsLast/flutter-rep.json` — يُولَّد بـ `php docs/api/generate-rep-live.php`. مسار `live:true` في JSON يفوز على جملة هنا؛ هذا الملف يفوز على الشكل والشاشات · Postman: [rep.postman_collection.json](rep.postman_collection.json) |
 
 > **قاعدة الأولوية (لا تُكسر):** الكود الحي في `app-modules/` ← `docs/status/05-rep-app.md` + `06-shared-app.md` + `07-public.md` ← الكتالوج `docs/api/catalog/08-rep.php` + `09-shared-app.php` + `00-public.php` ← هذا الملف.
 > جملة هنا تخالف الكنترولر → الكنترولر يفوز وهذا الملف يُصلَّح.

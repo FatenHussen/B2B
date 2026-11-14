@@ -3,10 +3,17 @@
 declare(strict_types=1);
 
 /**
- * Three Postman collections — one per dashboard surface:
+ * Per-surface Postman collections (every live /api/v1 route lands in exactly one
+ * primary collection; shared/public are duplicated into both mobile apps):
+ *
  *   docs/DocsLast/platform.postman_collection.json
  *   docs/DocsLast/channel.postman_collection.json
  *   docs/DocsLast/warehouse.postman_collection.json
+ *   docs/DocsLast/retailer.postman_collection.json
+ *   docs/DocsLast/rep.postman_collection.json
+ *
+ * Full monolith (all surfaces): docs/api/b2b-api.live.postman_collection.json
+ *   → php docs/api/generate-live-postman.php
  *
  * Sources: php artisan route:list + b2b-api.catalog.json.
  * Run: php docs/api/generate-dashboard-postman.php
@@ -43,6 +50,9 @@ foreach ($catRaw['endpoints'] ?? [] as $e) {
 }
 
 $exempt = [
+    'api/v1/public/auth/request-otp',
+    'api/v1/public/auth/verify-otp',
+    'api/v1/public/auth/resend-otp',
     'api/v1/platform/auth/login',
     'api/v1/platform/auth/2fa/verify',
     'api/v1/channel/auth/request-otp',
@@ -51,6 +61,18 @@ $exempt = [
 ];
 
 $manual = [
+    'POST /public/auth/request-otp' => [
+        'phone' => '{{phone}}',
+        'purpose' => 'login',
+        'client' => '{{client}}',
+    ],
+    'POST /public/auth/verify-otp' => [
+        'otp_id' => '{{otp_id}}',
+        'code' => '0000',
+        'device_id' => '{{deviceId}}',
+        'device_name' => 'Postman',
+        'platform' => 'android',
+    ],
     'POST /channel/auth/verify-otp' => ['otp_id' => '{{otp_id}}', 'code' => '000000'],
     'POST /channel/auth/request-otp' => ['phone' => '{{phone}}'],
     'PUT /channel' => [
@@ -94,7 +116,23 @@ $manual = [
         'password' => '{{password}}',
         'device_name' => 'Postman',
     ],
+    'POST /app/retailer/orders/{}/shortage-decision' => [
+        'decision' => 'accept_partial',
+    ],
 ];
+
+$mobileVars = static function (string $client, string $phone): array {
+    return [
+        ['key' => 'baseUrl', 'value' => 'http://127.0.0.1:8000'],
+        ['key' => 'token', 'value' => ''],
+        ['key' => 'otp_id', 'value' => ''],
+        ['key' => 'client', 'value' => $client],
+        ['key' => 'acceptLanguage', 'value' => 'ar'],
+        ['key' => 'appVersion', 'value' => '1.0.0 (1)'],
+        ['key' => 'deviceId', 'value' => '33333333-3333-3333-3333-333333333333'],
+        ['key' => 'phone', 'value' => $phone],
+    ];
+};
 
 $surfaces = [
     'platform' => [
@@ -165,9 +203,60 @@ $surfaces = [
             ['key' => 'devicePin', 'value' => '4821'],
         ],
     ],
+    'retailer' => [
+        'file' => 'retailer.postman_collection.json',
+        'name' => 'B2B Retailer app (تطبيق التاجر)',
+        'client' => 'retailer-android',
+        'env' => 'docs/api/environments/retailer-android.postman_environment.json',
+        'seed' => 'public OTP → kind retailer — local code 0000 when bypass',
+        'match' => static function (string $path): bool {
+            return $path === '/health'
+                || str_starts_with($path, '/public/')
+                || str_starts_with($path, '/app/auth')
+                || $path === '/app/session'
+                || str_starts_with($path, '/app/pricing')
+                || str_starts_with($path, '/app/offers')
+                || str_starts_with($path, '/app/notifications')
+                || str_starts_with($path, '/app/devices')
+                || str_starts_with($path, '/app/sync')
+                || str_starts_with($path, '/app/content')
+                || str_starts_with($path, '/app/loyalty')
+                || str_starts_with($path, '/app/retailer/');
+        },
+        'variables' => $mobileVars('retailer-android', '+963911000001'),
+    ],
+    'rep' => [
+        'file' => 'rep.postman_collection.json',
+        'name' => 'B2B Rep app (تطبيق المندوب)',
+        'client' => 'rep-android',
+        'env' => 'docs/api/environments/rep-android.postman_environment.json',
+        'seed' => 'public OTP → kind rep — local code 0000 when bypass',
+        'match' => static function (string $path): bool {
+            return $path === '/health'
+                || str_starts_with($path, '/public/')
+                || str_starts_with($path, '/app/auth')
+                || $path === '/app/session'
+                || str_starts_with($path, '/app/pricing')
+                || str_starts_with($path, '/app/offers')
+                || str_starts_with($path, '/app/notifications')
+                || str_starts_with($path, '/app/devices')
+                || str_starts_with($path, '/app/sync')
+                || str_starts_with($path, '/app/content')
+                || str_starts_with($path, '/app/loyalty')
+                || str_starts_with($path, '/app/receipts')
+                || str_starts_with($path, '/app/rep/');
+        },
+        'variables' => $mobileVars('rep-android', '+963922000001'),
+    ],
 ];
 
-$buckets = ['platform' => [], 'channel' => [], 'warehouse' => []];
+$buckets = [
+    'platform' => [],
+    'channel' => [],
+    'warehouse' => [],
+    'retailer' => [],
+    'rep' => [],
+];
 
 foreach ($routes as $rt) {
     $uri = (string) ($rt['uri'] ?? '');
@@ -258,7 +347,13 @@ foreach ($surfaces as $key => $cfg) {
     fwrite(STDOUT, $cfg['file'].' → '.$n." requests\n");
 }
 
-fwrite(STDOUT, 'done platform='.$counts['platform'].' channel='.$counts['channel'].' warehouse='.$counts['warehouse'].PHP_EOL);
+fwrite(STDOUT, 'done '
+    .'platform='.$counts['platform']
+    .' channel='.$counts['channel']
+    .' warehouse='.$counts['warehouse']
+    .' retailer='.$counts['retailer']
+    .' rep='.$counts['rep']
+    .PHP_EOL);
 
 function meta(array $mw): array
 {
@@ -405,6 +500,65 @@ function folderOf(string $path): string
         return '11. Other warehouse';
     }
 
+    if (str_starts_with($path, '/public/auth')) {
+        return '00. Public OTP';
+    }
+    if (str_starts_with($path, '/public/')) {
+        return '00. Public';
+    }
+    if (str_starts_with($path, '/app/auth') || $path === '/app/session') {
+        return '01. App session';
+    }
+    if (str_starts_with($path, '/app/pricing') || str_starts_with($path, '/app/offers')) {
+        return '02. Pricing & offers';
+    }
+    if (str_starts_with($path, '/app/notifications') || str_starts_with($path, '/app/devices')) {
+        return '03. Notifications';
+    }
+    if (str_starts_with($path, '/app/sync')) {
+        return '04. Sync';
+    }
+    if (str_starts_with($path, '/app/content') || str_starts_with($path, '/app/loyalty')) {
+        return '05. Content & loyalty';
+    }
+    if (str_starts_with($path, '/app/retailer/register') || str_starts_with($path, '/app/rep/register')) {
+        return '06. Registration';
+    }
+    if (str_starts_with($path, '/app/retailer/cart') || str_starts_with($path, '/app/rep/cart')) {
+        return '07. Cart';
+    }
+    if (str_starts_with($path, '/app/retailer/orders')) {
+        return '08. Orders & shortage (order-flow)';
+    }
+    if (str_starts_with($path, '/app/retailer/receipts') || str_starts_with($path, '/app/retailer/return')) {
+        return '09. Receiving & returns';
+    }
+    if (str_starts_with($path, '/app/retailer/')) {
+        return '10. Retailer other';
+    }
+    if (str_starts_with($path, '/app/rep/assignments') || str_starts_with($path, '/app/rep/scheduled')) {
+        return '08. Assignments';
+    }
+    if (str_starts_with($path, '/app/rep/warehouse-receipts')) {
+        return '09. Warehouse pickup';
+    }
+    if (str_starts_with($path, '/app/rep/deliveries') || str_starts_with($path, '/app/rep/locations')) {
+        return '10. Delivery';
+    }
+    if (str_starts_with($path, '/app/rep/return')) {
+        return '11. Returns';
+    }
+    if (str_starts_with($path, '/app/rep/payments') || str_starts_with($path, '/app/rep/wallet')
+        || str_starts_with($path, '/app/rep/receivables') || str_starts_with($path, '/app/receipts')) {
+        return '12. Wallet & cash';
+    }
+    if (str_starts_with($path, '/app/rep/')) {
+        return '13. Rep other';
+    }
+    if (str_starts_with($path, '/app/')) {
+        return '14. Shared app';
+    }
+
     return '99. Other';
 }
 
@@ -430,7 +584,8 @@ function buildRequest(
     if ($guard !== null) {
         $headers[] = ['key' => 'Authorization', 'value' => 'Bearer {{token}}'];
     }
-    if (str_starts_with($path, '/channel/') || str_starts_with($path, '/warehouse/') || $path === '/channel') {
+    if (str_starts_with($path, '/channel/') || str_starts_with($path, '/warehouse/') || $path === '/channel'
+        || str_starts_with($path, '/app/') || str_starts_with($path, '/public/')) {
         $headers[] = ['key' => 'X-Device-Id', 'value' => '{{deviceId}}'];
     }
     if ($isWrite) {

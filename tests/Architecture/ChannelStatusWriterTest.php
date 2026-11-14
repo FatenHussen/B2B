@@ -20,11 +20,11 @@ use Illuminate\Support\Facades\File;
 
 /** Files permitted to assign a status inside Tenancy — one lifecycle per state machine. */
 const CHANNEL_STATUS_WRITERS = [
-    // Channel: provisioning → active → suspended → archived (BE-T01).
-    'app-modules/tenancy/src/Application/Services/ChannelLifecycle.php',
     // Channel application: under_review → provisioning | rejected, under a row lock
     // and in one transaction with the channel it creates (PA-04, 2026-09-24).
     'app-modules/tenancy/src/Application/Services/ChannelApplicationLifecycle.php',
+    // Channel: provisioning → active → suspended → archived (BE-T01).
+    'app-modules/tenancy/src/Application/Services/ChannelLifecycle.php',
     // Plan: active ↔ inactive, syncing `is_active` (PA-02).
     'app-modules/tenancy/src/Application/Services/PlanLifecycle.php',
 ];

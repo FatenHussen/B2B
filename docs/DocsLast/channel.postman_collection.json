@@ -238,6 +238,10 @@
                             {
                                 "key": "X-App-Version",
                                 "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
                             }
                         ],
                         "url": {

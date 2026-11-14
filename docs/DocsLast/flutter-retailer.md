@@ -6,8 +6,8 @@
 | الجمهور | مطوّر Flutter، وCursor عند إكمال الشاشات، ومراجع القبول |
 | الحارس | `auth:app` + `app.kind:retailer` · `X-Client: retailer-android` أو `retailer-ios` · **لا** `X-Channel-Id` |
 | الأساس | `/api/v1` |
-| التاريخ | 2026-09-25 — مسارات التاجر + المشترك + العام كلها ✅ (`docs/status/04` · `06` · `07`) |
-| الشقيق | المندوب: [flutter-rep.md](flutter-rep.md) — لا تخلط المسارات |
+| التاريخ | 2026-11-03 — 35/35 ✅ + قرار نقص التجهيز (order-flow) · العقد المختصر: [retailer.md](retailer.md) |
+| الشقيق | المندوب: [flutter-rep.md](flutter-rep.md) · الدورة: [order-flow.md](order-flow.md) · الفهرس: [ALL.md](ALL.md) |
 
 > **قاعدة الأولوية:** الكود الحي ← `docs/status/04-retailer-app.md` + `06-shared-app.md` + `07-public.md` ← الكتالوج `07-retailer.php` + `09-shared-app.php` + `00-public.php` ← هذا الملف.
 > جملة هنا تخالف الكنترولر → الكود يفوز. مسار بلا حياة في `status/` → لا تختلقه.
@@ -63,7 +63,7 @@
 | `X-Client` | `retailer-android` / `retailer-ios` |
 | `X-Device-Id` | UUID ثابت (SecureStorage) |
 | `X-App-Version` | مثل `1.0.0 (1)` |
-| OTP محلي | نص `"0000"` (4 خانات). إنتاج 6 خانات |
+| OTP محلي | نص `"000000"` (ست أصفار). إنتاج 6 خانات عشوائية |
 | لا إيميل / لا كلمة سر | OTP فقط |
 
 ### 0.5 الهاتف
@@ -86,7 +86,7 @@
 |---|---|---|
 | `+963931000001` / `0931000001` | سوبر ماركت الأمانة (المزة) | نشط · قوائم أسعار |
 | `+963931000002` | بقالية النور | نشط |
-| OTP محلي | `"0000"` كنص | الرقم `0` يُرفض |
+| OTP محلي | `"000000"` كنص | الرقم `0` يُرفض |
 
 ---
 
@@ -260,6 +260,7 @@ lib/
 | أول تشغيل | `app-config` → `intro?` → OTP → `session` → `register?` → `home` |
 | تصفّح وشراء | `categories` / `products` → `quote` → `cart/lines` → `cart/submit` |
 | متابعة | `orders` → `orders/{id}` → `tracking` |
+| نقص تجهيز (order-flow) | `orders/{id}/shortage` → `shortage-decision` (`accept_partial` \| `cancel`) — ليس قائمة `/shortages` الرغبات |
 | عند التسليم | `receipts/{subOrderId}` → عدّل بنود → `confirm` → اختياري `reps/{id}/rate` |
 | حساب | `account/summary` · `debts` · `payments` · `statement` |
 
@@ -281,7 +282,7 @@ lib/
 ## 9. بذور QA
 
 1. `migrate:fresh --seed`
-2. هاتف `0931000001` + OTP `"0000"`
+2. هاتف `0931000001` + OTP `"000000"`
 3. `GET /app/session` → `user_type: retailer`
 4. `GET /app/retailer/home` ثم أضف للسلة وأرسل طلباً تجريبياً بمفتاح تكرار جديد
 

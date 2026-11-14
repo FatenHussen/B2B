@@ -1,0 +1,3941 @@
+{
+    "info": {
+        "name": "B2B Rep app (تطبيق المندوب)",
+        "_postman_id": "b2b-rep-6c25411810e8",
+        "description": "# B2B Rep app (تطبيق المندوب)\n\nGenerated **2026-11-03** from `route:list` + catalog. Live routes only.\n\n| | |\n|---|---|\n| Requests | **65** |\n| Environment | `docs/api/environments/rep-android.postman_environment.json` |\n| X-Client | `rep-android` |\n| Seed | public OTP → kind rep — local code 0000 when bypass |\n\nImport this file **and** the matching environment. `baseUrl` is the host only (no `/api/v1`).\nDo not mix tokens across platform / channel / warehouse collections.\n\nContract briefs: `docs/DocsLast/rep.md` · order flow: `docs/DocsLast/order-flow.md`\n\nRegenerate: `php docs/api/generate-dashboard-postman.php`",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://127.0.0.1:8000"
+        },
+        {
+            "key": "token",
+            "value": ""
+        },
+        {
+            "key": "otp_id",
+            "value": ""
+        },
+        {
+            "key": "client",
+            "value": "rep-android"
+        },
+        {
+            "key": "acceptLanguage",
+            "value": "ar"
+        },
+        {
+            "key": "appVersion",
+            "value": "1.0.0 (1)"
+        },
+        {
+            "key": "deviceId",
+            "value": "33333333-3333-3333-3333-333333333333"
+        },
+        {
+            "key": "phone",
+            "value": "+963922000001"
+        }
+    ],
+    "item": [
+        {
+            "name": "00. Health",
+            "item": [
+                {
+                    "name": "GET /health",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "health"
+                            ]
+                        },
+                        "description": "**EP-CORE-001**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | فحص الصحة |\n\nPublic liveness. No tenant, no auth."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "00. Public",
+            "item": [
+                {
+                    "name": "GET /public/content/intro",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/content/intro",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "content",
+                                "intro"
+                            ]
+                        },
+                        "description": "**EP-PB-011**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | انترو التطبيق |\n\nSame singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "00. Public OTP",
+            "item": [
+                {
+                    "name": "POST /public/auth/request-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/request-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "request-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-001**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | **exempt** |\n| X-Client | `rep-android` |\n| Name | طلب رمز واتساب |\n\npurpose: register|login. Rate: 3/hour per phone, 10/hour per device, 30/hour per IP (REQ-CM-055). Phone E.164 Syrian mobile.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"phone\": \"{{phone}}\",\n    \"purpose\": \"login\",\n    \"client\": \"{{client}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /public/auth/resend-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/resend-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "resend-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-003**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | **exempt** |\n| X-Client | `rep-android` |\n| Name | إعادة إرسال الرمز |\n\nprefer_channel: whatsapp|sms. Falls back to SMS if WhatsApp fails.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"otp_id\": \"{{otp_id}}\",\n    \"prefer_channel\": \"sms\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /public/auth/verify-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/verify-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "verify-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-002**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | **exempt** |\n| X-Client | `rep-android` |\n| Name | تحقق رمز الدخول |\n\n5 attempts per otp_id. New user returns is_new_user=true without a full profile.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"otp_id\": \"{{otp_id}}\",\n    \"code\": \"0000\",\n    \"device_id\": \"{{deviceId}}\",\n    \"device_name\": \"Postman\",\n    \"platform\": \"android\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const j = pm.response.json();",
+                                    "const d = j.data || {};",
+                                    "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                    "if (d.token) { store.set('token', d.token); }",
+                                    "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }",
+                                    "if (d.otp_id) { store.set('otp_id', String(d.otp_id)); }"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "00. Public refs",
+            "item": [
+                {
+                    "name": "GET /public/refs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/refs",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "refs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "since",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-PB-001**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | المرجعيات العامة للتسجيل |\n\nRegistration screens cache this locally and refresh by cursor (REQ-AD-032, REQ-CM-016)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "01. App session",
+            "item": [
+                {
+                    "name": "POST /app/auth/logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/auth/logout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "**EP-CM-005**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | خروج التطبيق |\n\nClient must wipe local data (REQ-CM-056).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/session",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/session",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "session"
+                            ]
+                        },
+                        "description": "**EP-CM-004**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | جلسة الإقلاع |\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits, duty {on_duty, tracking_enabled}, status (profile: pending_review|active|rejected|disabled), and channel {id, name|null} (BF-06)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "02. Pricing & offers",
+            "item": [
+                {
+                    "name": "GET /app/offers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/offers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "offers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[activity_type_id]",
+                                    "value": "3",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[zone_id]",
+                                    "value": "12",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-APP-040**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | العروض |\n\ncompany (channel identity) stays hidden until an order is confirmed (REQ-IN-06)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/offers/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/offers/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "offers",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-APP-041**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | تفاصيل عرض |\n\nRe-validate via quote before submit (TB-RT-043)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/pricing/quote",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/pricing/quote",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "pricing",
+                                "quote"
+                            ]
+                        },
+                        "description": "**EP-APP-030**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تسعير الخادم |\n\nSingle source of truth (REQ-IN-07). Precedence stop-at-first-match (most specific wins; lists do not stack): retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices. gross is the sum of unit_price × qty (السعر). discount is the sum of line discounts (الخصم). subtotal is gross − discount (الإجمالي). All three are integers in minor units.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"product_id\": 880,\n            \"variant_id\": 1,\n            \"qty\": 6\n        }\n    ],\n    \"zone_id\": 12\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "03. Notifications",
+            "item": [
+                {
+                    "name": "POST /app/devices/push-token",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/devices/push-token",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "devices",
+                                "push-token"
+                            ]
+                        },
+                        "description": "**EP-CM-063**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | رمز الإشعارات |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"token\": \"fcm:xxxxx\",\n    \"platform\": \"android\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/notifications",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/notifications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "notifications"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[read]",
+                                    "value": "0",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-CM-060**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | الإشعارات |\n\nmeta.unread_count is included in the envelope."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "DELETE /app/notifications",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/notifications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "notifications"
+                            ]
+                        },
+                        "description": "**EP-CM-062**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | مسح عرض الإشعارات |\n\nClears the inbox view, not the server log."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/notifications/read-all",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/notifications/read-all",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "notifications",
+                                "read-all"
+                            ]
+                        },
+                        "description": "**EP-CM-061**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تعليم الكل كمقروء |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "04. Sync",
+            "item": [
+                {
+                    "name": "GET /app/sync/pull",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/sync/pull",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "sync",
+                                "pull"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cursor",
+                                    "value": "c_9f2a71",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "scopes[]",
+                                    "value": "catalog",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "200",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-SY-001**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | سحب المزامنة |\n\nRetailer scopes: catalog,pricing,offers,zones,orders,refs. Rep extra: rep_catalog,customers,zones,assignments,deliveries,wallet. If cursor is too old, full_resync_required=true."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/sync/push",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/sync/push",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "sync",
+                                "push"
+                            ]
+                        },
+                        "description": "**EP-SY-002**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | دفع المزامنة |\n\nMax 500 ops per batch, 20/min per device. status: applied|duplicate|conflict|failed. Device never pushes catalog/prices/offers/stock (REQ-CM-017). Allowed: order, payment, delivery, receipt, shortage, favorite, rating, add-shop.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"operations\": [\n        {\n            \"client_op_id\": \"op_order_local_88\",\n            \"type\": \"cart.submit\",\n            \"payload\": {\n                \"sections\": [\n                    {\n                        \"ref\": \"ch_a1\"\n                    }\n                ],\n                \"offline_created\": true\n            },\n            \"created_at\": \"2026-03-01T09:05:00+03:00\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/sync/resolve-conflict",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/sync/resolve-conflict",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "sync",
+                                "resolve-conflict"
+                            ]
+                        },
+                        "description": "**EP-SY-004**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | حل تعارض |\n\nClient must not drop an op from the outbox until applied or duplicate (REQ-CM-019).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"conflict_id\": \"cf_12\",\n    \"resolution\": \"server_wins\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/sync/status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/sync/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "sync",
+                                "status"
+                            ]
+                        },
+                        "description": "**EP-SY-003**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | حالة المزامنة |"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "05. Content & loyalty",
+            "item": [
+                {
+                    "name": "POST /app/content/banners/{id}/click",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/content/banners/{{id}}/click",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "content",
+                                "banners",
+                                "{{id}}",
+                                "click"
+                            ]
+                        },
+                        "description": "**EP-APP-101**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تسجيل نقرة بانر |\n\nAtomic clicks++ on a Banner the caller can see (covering channels). Foreign or unknown id → 404.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/content/home-blocks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/content/home-blocks",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "content",
+                                "home-blocks"
+                            ]
+                        },
+                        "description": "**EP-APP-100**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | بلوكات الرئيسية |\n\nFiltered by the user activity type and zone, including intro targeting (TB-RT-010). Serving a Banner row increments impressions atomically."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/loyalty",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/loyalty",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "loyalty"
+                            ]
+                        },
+                        "description": "**EP-APP-110**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | النقاط |"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/loyalty/redeem",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/loyalty/redeem",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "loyalty",
+                                "redeem"
+                            ]
+                        },
+                        "description": "**EP-APP-111**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | استبدال نقاط |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reward_id\": 3\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "06. Registration",
+            "item": [
+                {
+                    "name": "POST /app/rep/register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "register"
+                            ]
+                        },
+                        "description": "**EP-RP-001**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | إكمال تسجيل المندوب |\n\nChannel must be active; zones must be inside its coverage (TB-RP-010). No email field — reps authenticate by Syrian mobile only.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"أحمد العلي\",\n    \"supply_channel_id\": 1,\n    \"activity_type_id\": 3,\n    \"zone_ids\": [\n        12,\n        13\n    ],\n    \"note\": \"خبرة سنتين في المزة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "07. Cart",
+            "item": [
+                {
+                    "name": "GET /app/rep/cart",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/cart",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "cart"
+                            ]
+                        },
+                        "description": "**EP-RP-022**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | سلة المندوب |\n\nOne card per shop. Every section is a draft (مسودة) until submit removes it. retailer.zone is the shop zone name. temp_order_no is the draft reference shown as رقم الفاتورة; logo is always null. total is the payable amount in minor units. The on-device banner is the local outbox, not this payload."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/cart/lines",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/cart/lines",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "cart",
+                                "lines"
+                            ]
+                        },
+                        "description": "**EP-RP-021**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | إضافة لسلة محل |\n\nSame shape as GET /cart. qty increments an existing (product, variant) line. PATCH/DELETE the line via EP-RP-025/026. temp_order_no is the draft reference (رقم الفاتورة while the section is still a cart). It is not an issued invoice.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"retailer_id\": 481,\n    \"product_id\": 880,\n    \"variant_id\": 1,\n    \"qty\": 4\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "PATCH /app/rep/cart/lines/{id}",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/cart/lines/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "cart",
+                                "lines",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RP-025**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تعديل كمية سطر سلة محل |\n\nSame cart shape as GET /cart. qty 0 deletes the line (same as EP-RP-026).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qty\": 6\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "DELETE /app/rep/cart/lines/{id}",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/cart/lines/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "cart",
+                                "lines",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RP-026**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | حذف سطر سلة محل |\n\nSame cart shape as GET /cart. 404 if the line is not on this rep cart."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/cart/sections/{retailer_id}/submit",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/cart/sections/{{retailer_id}}/submit",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "cart",
+                                "sections",
+                                "{{retailer_id}}",
+                                "submit"
+                            ]
+                        },
+                        "description": "**EP-RP-023**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | إرسال طلب محل |\n\ndiscount_percent must be ≤ the rep cap (BR-12). status pending is بانتظار الموافقة. gross is the struck-through amount, total is the payable amount, both minor units. invoice_no is null until finance issues one — show sub_order_no in the رقم الفاتورة row. تابع حالة الطلب reads GET /app/rep/orders by id.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"note\": \"توصيل صباحي\",\n    \"discount_percent\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "08. Assignments",
+            "item": [
+                {
+                    "name": "GET /app/rep/assignments",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/assignments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "assignments"
+                            ]
+                        },
+                        "description": "**EP-RP-030**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.accept` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | إسنادات بانتظار القبول |\n\nPending assignments only, so every card is «بانتظار قبولك» and the badge count is the array length. total is payable minor units. lines are the order lines behind «تفاصيل الفاتورة» — invoice_no stays null until finance, so the card number is sub_order_no. Accept moves the card to deliveries (REQ-IN-03)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/assignments/{id}/accept",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/assignments/{{id}}/accept",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "assignments",
+                                "{{id}}",
+                                "accept"
+                            ]
+                        },
+                        "description": "**EP-RP-031**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.accept` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | قبول الإسناد |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/assignments/{id}/reject",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/assignments/{{id}}/reject",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "assignments",
+                                "{{id}}",
+                                "reject"
+                            ]
+                        },
+                        "description": "**EP-RP-032**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.accept` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | رفض الإسناد |\n\nReturns to unassigned + immediate channel alert (REQ-IN-03).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"خارج مساري اليوم\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/scheduled-orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/scheduled-orders",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "scheduled-orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date",
+                                    "value": "2026-03-02",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-033**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.accept` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | الطلبات المجدولة |\n\nPostponed only, so the badge «مواعيد قادمة» is the array length and every card is مؤجل. اليوم / غداً / هذا الأسبوع filter scheduled_at on the client (omit date to take the whole list). The card number is invoice_no or else sub_order_no. تاريخ الطلب is created_at. The appointment is scheduled_at. A delivered order leaves this list."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "09. Content & apps",
+            "item": [
+                {
+                    "name": "GET /public/app-config",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/app-config",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "app-config"
+                            ],
+                            "query": [
+                                {
+                                    "key": "app",
+                                    "value": "retailer",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "platform",
+                                    "value": "android",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "version",
+                                    "value": "1.4.2",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-PB-010**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | إعداد التطبيق وفحص النسخة |\n\nCalled on every app launch (REQ-AD-073, 074). Stale X-App-Version → 426."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "09. Warehouse pickup",
+            "item": [
+                {
+                    "name": "GET /app/rep/warehouse-receipts",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/warehouse-receipts",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "warehouse-receipts"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date",
+                                    "value": "2026-03-01",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-040**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.warehouse.receive` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | استلام العهدة |\n\nHandovers the warehouse already opened. count is orders (عدد الطلبات). item_count and items[] are the shelf list: same product+variant summed, qty under sale_unit, variant as the subtitle. Search is local. One orders[] element is the custody-match sheet (shop, number, lines, total). parties.warehouse is confirmed because opening the handover was the warehouse signature; parties.rep stays pending until EP-RP-041. invoice_no is null until finance — show order_no. Pass ?date= so the date tile matches the list."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/warehouse-receipts/{handoverId}/confirm",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/warehouse-receipts/{{handoverId}}/confirm",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "warehouse-receipts",
+                                "{{handoverId}}",
+                                "confirm"
+                            ]
+                        },
+                        "description": "**EP-RP-041**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.warehouse.receive` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تأكيد استلام العهدة |\n\ntemp_code is the 4 digits the warehouse shows; the confirm button collects it. Stock is deducted and status becomes on_the_way only when BOTH EP-WH-019 and this confirm exist (REQ-IN-02). That is this response: both parties are confirmed, so the screen does not stay on «بانتظار مسؤول المستودع». Replay of an already-confirmed handover returns the same body. «تسجيل اختلاف في الكمية» has no write on this path.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"temp_code\": \"7391\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "10. Delivery",
+            "item": [
+                {
+                    "name": "GET /app/rep/deliveries",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries"
+                            ],
+                            "query": [
+                                {
+                                    "key": "filter[zone_id]",
+                                    "value": "12",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-050**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | قائمة التسليم |\n\nZone chips are zones[]: id, name, and total as the badge. The line «تم تسليم N من M» is that zone's delivered and total. Card amount is total. The card number is invoice_no when finance has issued one, otherwise sub_order_no. accepted and on_the_way both read «بانتظار التسليم»."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/deliveries/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RP-051**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | تفاصيل التسليم |\n\nThe sheet header is shop plus sub_order_no while invoice_no is null. The green line amount is line_total; price stays the unit price. «تعديل كمية» is EP-RP-052 action=adjust. «طلب إرجاع / استبدال» is EP-RP-057. «أكد استلام الطلب» is EP-RP-053. «تأجيل أو تعذر» is EP-RP-054 or EP-RP-055. lat/lng open the map; both null means the shop has no pin. scheduled_at is the appointment only after a postpone — there is no computed ETA."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/deliveries/{id}/complete",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}/complete",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}",
+                                "complete"
+                            ]
+                        },
+                        "description": "**EP-RP-053**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | إنهاء التسليم |\n\nSuccess sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection. 409 illegal_transition when the order is not yet on_the_way and the handover is unconfirmed. An order already on_the_way can be finished.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty_delivered\": 4,\n            \"action\": \"accept\"\n        }\n    ],\n    \"delivered_at\": \"2026-03-01T12:05:00+03:00\",\n    \"signature\": \"data:image/png;base64,...\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/deliveries/{id}/fail",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}/fail",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}",
+                                "fail"
+                            ]
+                        },
+                        "description": "**EP-RP-055**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تعذر التسليم |\n\nThe status dropdown is this call: the order becomes undelivered. reason is the required dropdown value. note is the details field and is appended to reason, capped at 255. «أبقِ الطلب دون تغيير» dismisses the sheet and sends nothing. The warning copy is static.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"رفض العميل الاستلام\",\n    \"note\": \"العميل طلب مراجعة الفاتورة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "PATCH /app/rep/deliveries/{id}/lines/{lineId}",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}/lines/{{lineId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}",
+                                "lines",
+                                "{{lineId}}"
+                            ]
+                        },
+                        "description": "**EP-RP-052**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تعديل بند التسليم |\n\naction: adjust|return|exchange. Updates the invoice on both sides in the same transaction (REQ-IN-05).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qty_delivered\": 3,\n    \"action\": \"return\",\n    \"reason\": \"رفض التاجر عبوة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/deliveries/{id}/postpone",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/deliveries/{{id}}/postpone",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "deliveries",
+                                "{{id}}",
+                                "postpone"
+                            ]
+                        },
+                        "description": "**EP-RP-054**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.postpone` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تأجيل التسليم |\n\nDate and time are one scheduled_at. note, when present, is appended to reason (the column holds both, capped at 255). The card then appears on GET /scheduled-orders. «إلغاء التسليم» on this sheet is EP-RP-055, not this route.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"scheduled_at\": \"2026-03-02T10:30:00+03:00\",\n    \"reason\": \"المحل مغلق وقت الزيارة\",\n    \"note\": \"طلب صاحب المحل التواصل قبل الوصول\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/locations/ping",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/locations/ping",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "locations",
+                                "ping"
+                            ]
+                        },
+                        "description": "**EP-RP-056**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | نبضات الموقع |\n\nBatched pings, on-duty only. Rate: 1/30s per rep (REQ-CM-044).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"pings\": [\n        {\n            \"lat\": 33.5112,\n            \"lng\": 36.2781,\n            \"at\": \"2026-03-01T11:41:00+03:00\",\n            \"accuracy\": 12\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "11. Returns",
+            "item": [
+                {
+                    "name": "POST /app/rep/return-requests",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/return-requests",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "return-requests"
+                            ]
+                        },
+                        "description": "**EP-RP-057**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.return_request` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | طلب إرجاع ميداني |\n\ntype return|exchange. The product picker is the delivery lines (line_id is the delivery line id). Reason is one string, max 255 — the dropdown value and the extra note are joined by the client. photos stay []. status pending is «بانتظار موافقة قناة التوريد». There is no later read for the rep; keep request_no on the device. The invoice does not change until the channel accepts.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sub_order_id\": 9001,\n    \"type\": \"exchange\",\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty\": 1,\n            \"reason\": \"خطأ صنف\",\n            \"photos\": []\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "12. Wallet & cash",
+            "item": [
+                {
+                    "name": "POST /app/receipts/reserve",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/receipts/reserve",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "receipts",
+                                "reserve"
+                            ]
+                        },
+                        "description": "**EP-CM-050**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.payment.collect` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | حجز رقم وصل |\n\nServer-generated unique number BEFORE payment starts (REQ-IN-01). Used by EP-RP-060 then EP-RT-050.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/payments",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/payments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "payments"
+                            ]
+                        },
+                        "description": "**EP-RP-060**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.payment.collect` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تحصيل دفعة |\n\nreceipt_no must be reserved first via EP-CM-050, or taken from EP-RP-053 — do not reserve a second one after complete. client_op_id makes retries duplicate-safe (REQ-IN-01). invoice_no is optional: omitted, the oldest open invoice for this shop and rep is allocated FIFO and the response names that invoice. No open invoice → 404. The receipt sheet is this body: amount, invoice_no, invoice_remaining on that invoice, wallet_balance, paid_at, shop. Shops come from GET /customers. Open invoices for the picker come from GET /receivables.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"receipt_no\": \"RCPT-10041\",\n    \"retailer_id\": 481,\n    \"invoice_no\": \"INV-501\",\n    \"amount\": 48000,\n    \"paid_at\": \"2026-03-01T12:08:00+03:00\",\n    \"client_op_id\": \"op_rep_pay_10041\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/receivables",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/receivables",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "receivables"
+                            ]
+                        },
+                        "description": "**EP-RP-064**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.wallet.view` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | ذمم المحلات |\n\ntotal is the sum of by_shop totals (إجمالي الذمم). Partial is paid > 0 and remaining > 0, decided on the device. No PDF."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/wallet",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/wallet",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "wallet"
+                            ]
+                        },
+                        "description": "**EP-RP-061**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.wallet.view` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | المحفظة |\n\nnet_balance == SUM(collected) − SUM(settled) at all times (AC-06). The four money tiles are stats.invoiced_total, collected_total, handed_over (SUM of settled), and receivables. invoices_delivered and today.invoices stay counts. today is the Damascus day only. No PDF."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/wallet/withdrawals",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/wallet/withdrawals",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "wallet",
+                                "withdrawals"
+                            ]
+                        },
+                        "description": "**EP-RP-062**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.payment.withdraw` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تسليم نقدية |\n\noperation_no comes from the accountant and must stay unique across sync retries (TB-RP-063). The success sheet is this body: amount is what was handed over, operated_at is the Damascus time, remaining_balance is the wallet left. «افتح كشف التسليمات» is GET /wallet/withdrawals. There is no PDF.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"amount\": 1500000,\n    \"operation_no\": \"OP-7781\",\n    \"operated_at\": \"2026-03-01T16:00:00+03:00\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/wallet/withdrawals",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/wallet/withdrawals",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "wallet",
+                                "withdrawals"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-02-01",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-02-28",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-063**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.wallet.view` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | سجل التسليمات |"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "13. Rep other",
+            "item": [
+                {
+                    "name": "GET /app/rep/account",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/account",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "account"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-09",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-074**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | حساب المندوب الشهري |\n\nmonth is YYYY-MM, Damascus, default the current month. orders_completed counts this rep's sub-orders created in the month whose status is delivered. orders_undelivered counts undelivered the same way. customers_added counts shops this rep sourced in the month. execution_rate is the integer percent completed / (completed + undelivered), null when that sum is 0. Points stay on GET /app/loyalty and are lifetime, not monthly."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/brands",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/brands",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "brands"
+                            ]
+                        },
+                        "description": "**EP-RP-013**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | علامات المندوب |\n\nActive brands on the rep channels, for the filter dropdown. Send the chosen id as filter[brand_id] on GET /products."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/categories",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "root_category_id",
+                                    "value": "10",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-012**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | الفئات الفرعية للمندوب |\n\nThe subcategory dropdown. root_category_id is a public root from GET /public/refs. Rows are active channel categories directly under that root. Omit the query and the list is empty. Deeper children are included when filter[category_id] is applied on the product list."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/customers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/customers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "customers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "النور",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-070A**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | زبائن المندوب |\n\nShops the rep sourced plus active shops in assigned zones. id is retailer_id. logo is always null. is_open is always true until a hours table exists, so «مغلق» cannot be shown. last_order_at is always null, so «الأكثر زيارة» has no rank. «جديد» sorts on created_at."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/customers",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/customers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "customers"
+                            ]
+                        },
+                        "description": "**EP-RP-070B**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | إضافة محل |\n\nStored locally and synced with a unique client_op_id (TB-RP-053). address, category_ids and equipment_ids are optional.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"shop_name\": \"ميني ماركت الشام\",\n    \"owner_name\": \"أبو سامر\",\n    \"phone\": \"+963988000000\",\n    \"zone_id\": 12,\n    \"activity_type_id\": 3,\n    \"lat\": 33.51,\n    \"lng\": 36.27,\n    \"address\": \"المزة فيلات شرقية\",\n    \"category_ids\": [\n        1\n    ],\n    \"equipment_ids\": [],\n    \"client_op_id\": \"op_shop_local_1\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/customers/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/customers/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "customers",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RP-070C**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | تفاصيل محل |\n\n404 if the shop is not sourced by this rep and not an active shop in their zones. receivable is this rep's open remainder at the shop, minor units, 0 when none. lat/lng are the map pin. Distance is device GPS. There is no ETA."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/home",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/home",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "home"
+                            ]
+                        },
+                        "description": "**EP-RP-002**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | رئيسية المندوب |\n\nMorning snapshot the home screen binds. Counts only — does not call GET /deliveries (that list materialises rows). avatar is always null until media upload. loyalty is the EP-APP-110 snapshot (points 0 / bronze when the wallet is empty). unread_notifications is meta.unread_count of EP-CM-060. collected_today is integer minor units. 401 without a bearer — guest browse is local, not a token."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/orders",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "orders"
+                            ]
+                        },
+                        "description": "**EP-RP-024**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | طلبات المندوب |\n\nSub-orders this rep submitted (rep_id is set on submit) or was later assigned. invoice_no is null until finance issues one."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/products",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "زيت",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[category_id]",
+                                    "value": "340",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[root_category_id]",
+                                    "value": "10",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[brand_id]",
+                                    "value": "12",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[offer_only]",
+                                    "value": "0",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[available_only]",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[channel_id]",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "barcode",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-010**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | منتجات المندوب |\n\nUnion of all channels the rep belongs to. variants[] is empty when the SKU has no active combinations (disabled omitted). image is null until media is attached. sale_unit is the unit name (null when unset); the detail replaces it with {id, name}. created_at is the default -created_at order, so «منتجات جديدة» is this list. has_offer is true when an active offer matches the rep zone and activity — split «العروض» on the device. There is no sales rank, so «الأكثر مبيعاً» has no badge. availability is a word (in_stock|low|out_of_stock), never a carton count. filter[root_category_id] keeps products whose category sits under that public root. filter[category_id] keeps that subcategory and its children. filter[available_only]=1 drops tracked products with no available units and keeps untracked products. filter[offer_only] is not applied. The channel dropdown is GET /app/session channel. Subcategories are GET /app/rep/categories. Brands are GET /app/rep/brands. The picker axes and per-variant price are on GET /products/{id}."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/products/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/products/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "products",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RP-011**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | تفاصيل منتج المندوب |\n\nSame isolation as the list. 404 if the product is not in the rep's channel. attributes_map lists a value only when an active variant carries it — do not assume a full cartesian. Match a chip selection by attribute + value. variant.price is the qty-1 unit in minor units (variant override replaces the product base). Strikethrough and percent come from POST /app/pricing/quote as qty changes, not from this payload. Disabled variants are omitted. specs.key «بلد المنشأ» is the origin badge when the channel stored it. unit_factors convert the sale unit (كرتونة × factor = قطعة)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "PATCH /app/rep/profile",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "profile"
+                            ]
+                        },
+                        "description": "**EP-RP-073**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | تعديل ملف المندوب |\n\nName and phone only. avatar stays null until media upload. Phone must be unique among app users.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"أحمد العلي\",\n    \"phone\": \"+963933000001\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "PATCH /app/rep/status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "status"
+                            ]
+                        },
+                        "description": "**EP-RP-034**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | داخل/خارج الخدمة |\n\nTracking is enabled only while on duty (REQ-CM-054).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"on_duty\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/zones",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/zones",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "zones"
+                            ]
+                        },
+                        "description": "**EP-RP-072**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | مناطق تغطية المندوب |\n\nAssigned zones from the rep profile. Governorate name comes from GET /public/refs."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/rep/zones",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/zones",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "zones"
+                            ]
+                        },
+                        "description": "**EP-RP-071**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `rep-android` |\n| Name | إضافة منطقة تغطية |\n\nDOC-12B TB-RP-055.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"zone_id\": 14,\n    \"note\": \"طلب تغطية كفرسوسة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/rep/zones/{id}/shops",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/rep/zones/{{id}}/shops",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "rep",
+                                "zones",
+                                "{{id}}",
+                                "shops"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "النور",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RP-020**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `rep-android` |\n| Name | محلات المنطقة |\n\nSame shop card as GET /customers. is_open is always true. last_order_at is always null. logo is always null. created_at is when the shop profile was created."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

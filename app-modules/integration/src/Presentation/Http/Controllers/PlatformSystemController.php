@@ -7,13 +7,15 @@ namespace Modules\Integration\Presentation\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Core\Contracts\PlatformSettings;
 use Modules\Core\Contracts\RecordsAudit;
 use Modules\Core\Contracts\RequestsDualApproval;
-use Modules\Core\Domain\Models\PlatformSetting;
 use Modules\Core\Http\ApiController;
 
 final class PlatformSystemController extends ApiController
 {
+    public function __construct(private readonly PlatformSettings $settings) {}
+
     public function queues(): JsonResponse
     {
         $pending = 0;
@@ -64,9 +66,8 @@ final class PlatformSystemController extends ApiController
     public function switchOtp(Request $request, RecordsAudit $audit): JsonResponse
     {
         $data = $request->validate(['channel' => ['required', 'in:whatsapp,sms,log']]);
-        PlatformSetting::query()->updateOrCreate(
-            ['group' => 'otp', 'key' => 'channel'],
-            ['value' => ['channel' => $data['channel']], 'updated_by' => $request->user()?->getAuthIdentifier()],
+        $this->settings->put(
+            'otp', 'channel', ['channel' => $data['channel']], $request->user()?->getAuthIdentifier(),
         );
         $audit->record('system.otp_switched', $request->user(), null, null, $data);
 
@@ -106,9 +107,8 @@ final class PlatformSystemController extends ApiController
             return $this->ok(['approval_request_id' => $decision->approvalRequestId]);
         }
 
-        PlatformSetting::query()->updateOrCreate(
-            ['group' => 'maintenance', 'key' => 'config'],
-            ['value' => $payload, 'updated_by' => $request->user()?->getAuthIdentifier()],
+        $this->settings->put(
+            'maintenance', 'config', $payload, $request->user()?->getAuthIdentifier(),
         );
 
         return $this->ok(['enabled' => (bool) $data['enabled']]);
@@ -139,12 +139,11 @@ final class PlatformSystemController extends ApiController
 
     public function restoreTest(RecordsAudit $audit, Request $request): JsonResponse
     {
-        PlatformSetting::query()->updateOrCreate(
-            ['group' => 'backup', 'key' => 'config'],
-            ['value' => array_merge(
-                PlatformSetting::query()->where('group', 'backup')->where('key', 'config')->value('value') ?? [],
+        $this->settings->put(
+            'backup', 'config', array_merge(
+                $this->settings->get('backup', 'config') ?? [],
                 ['last_restore_test_at' => now()->toIso8601String(), 'last_restore_test_status' => 'ok'],
-            ), 'updated_by' => $request->user()?->getAuthIdentifier()],
+            ), $request->user()?->getAuthIdentifier(),
         );
         $audit->record('system.restore_test', $request->user(), null, null, []);
 
@@ -153,8 +152,7 @@ final class PlatformSystemController extends ApiController
 
     public function listIntegrations(): JsonResponse
     {
-        $row = PlatformSetting::query()->where('group', 'integrations')->where('key', 'config')->first();
-        $value = is_array($row?->value) ? $row->value : [];
+        $value = $this->settings->get('integrations', 'config') ?? [];
         $masked = [];
         foreach ($value as $provider => $cfg) {
             $masked[$provider] = ['configured' => ! empty($cfg['api_key']), 'api_key' => '***'];
@@ -166,20 +164,16 @@ final class PlatformSystemController extends ApiController
     public function saveIntegration(Request $request, string $provider): JsonResponse
     {
         $data = $request->validate(['api_key' => ['required', 'string']]);
-        $row = PlatformSetting::query()->firstOrNew(['group' => 'integrations', 'key' => 'config']);
-        $value = is_array($row->value) ? $row->value : [];
+        $value = $this->settings->get('integrations', 'config') ?? [];
         $value[$provider] = ['api_key' => $data['api_key']];
-        $row->value = $value;
-        $row->updated_by = $request->user()?->getAuthIdentifier();
-        $row->save();
+        $this->settings->put('integrations', 'config', $value, $request->user()?->getAuthIdentifier());
 
         return $this->ok(['provider' => $provider, 'api_key' => '***']);
     }
 
     public function testIntegration(string $provider): JsonResponse
     {
-        $row = PlatformSetting::query()->where('group', 'integrations')->where('key', 'config')->first();
-        $value = is_array($row?->value) ? $row->value : [];
+        $value = $this->settings->get('integrations', 'config') ?? [];
         $ok = ! empty($value[$provider]['api_key'] ?? null);
 
         return $this->ok(['provider' => $provider, 'ok' => $ok]);

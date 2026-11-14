@@ -1,7 +1,7 @@
 {
     "info": {
-        "name": "B2B API — live routes only (429)",
-        "_postman_id": "8f3c1d20-b2b0-4a51-9e77-live75fc093c",
+        "name": "B2B API — live routes only (435)",
+        "_postman_id": "8f3c1d20-b2b0-4a51-9e77-liveddb30680",
         "description": "# B2B API — live routes only\n\nGenerated from `php artisan route:list`, **not** from the API catalog. Every request here\nis registered and callable today. Nothing in this collection 404s because it was never\nbuilt.\n\nVerified 2026-11-01 · 429 requests. Every request has a saved example response (success, plus each catalog error code).\n\n> The older `b2b-api.postman_collection.json` holds 775 requests generated from the\n> catalog. Most of those are **not implemented** and return 404. Use this collection to\n> test what exists; use that one to see what is planned.\n\n## Setup — two minutes\n\n1. Import this collection **and** an environment from `docs/api/environments/`.\n2. Select the environment matching the client you are testing.\n3. `baseUrl` is the **host only** — `http://127.0.0.1:8000`, no `/api/v1`. Each request\n   carries `api/v1` in its own path, so the existing environment files work unchanged.\n4. Run a login request. **The token is captured automatically** into `{{token}}` by a test\n   script; every other request already sends `Authorization: Bearer {{token}}`.\n\n## Getting a token per guard\n\n| Guard | Request | Note |\n|---|---|---|\n| `app` (retailer / rep) | `00. Shared` → `01. Public OTP` → request-otp, then verify-otp | code is in `storage/logs/laravel.log` |\n| `channel` | `03. Channel dashboard` → `00. Auth` | seeded phone `+963900000001` |\n| `warehouse` | `04. Warehouse dashboard` → `00. Device login` | register a device first (CLI) |\n| `platform` | `05. Platform admin` → `00. Auth` | `admin@platform.sy` / `password` |\n\nOTP codes are written to the log, not sent:\n\n```bash\ntail -f storage/logs/laravel.log | grep OTP\n```\n\n`request-otp` saves `{{otp_id}}` automatically, so verify-otp works without copying.\n\n## Rules baked into every request\n\n- **`X-Idempotency-Key`** is set to `{{$guid}}` on every write **except** the 8 exempt\n  credential paths. Postman regenerates it per send — which is correct for testing, but\n  **wrong for a real client**, where the key must stay stable across retries of one intent.\n- **`Authorization: Bearer {{token}}`** is present on every guarded request.\n- **`Accept-Language`**, **`X-Client`**, **`X-App-Version`** come from the environment.\n  Note the server currently reads only `Accept-Language` — the other two are for logs.\n- **`X-Device-Id`** is sent on app, public and warehouse routes (OTP rate limiting uses it).\n\n## Folder structure\n\n```\n00. Shared — public & app       health, public OTP, app session, pricing, offers\n01. Retailer app                auth, catalog, cart, orders, receiving, returns\n02. Field rep app               duty/zones/customers, catalog, cart, assignments,\n                                warehouse pickup, delivery, returns\n03. Channel dashboard           auth, settings, zones, catalog, pricing, offers,\n                                inventory, sub-orders, returns\n04. Warehouse dashboard         device login, queues, picking, packing, handover,\n                                receiving, stocktake, return sorting\n05. Platform admin              auth, my account, IAM, audit, channels\n06. Reference (MOVING paths)    governorates & zones\n```\n\nEach request's **description** carries its EP-ID, guard, permission or role, whether an\nidempotency key is required, an example response, and its error codes.\n\n## Stability\n\nEvery request description names one of:\n\n| Value | Meaning |\n|---|---|\n| `stable` | registered at the path the catalog specifies |\n| `MOVING -> …` | registered, but at a temporary path — it will move |\n| `live, not in catalog` | callable, but the catalog has not caught up |\n\n⚠️ **22 requests are `MOVING`**: `/admin/channels` (→ `/platform/channels`, seven requests —\nthe five channel CRUD routes, `POST …/{id}/transition` and `POST …/{id}/retry-provisioning`), `/governorates`, `/zones` and\n`/currencies` (→ `/platform/refs/*`). Anything built against them will need rework. They are\ngrouped so you can see them at a glance, and each is meant to sit behind one base-path\nconstant in a client.\n\n## Path variables\n\nRequests with `{{id}}`, `{{subOrderId}}`, `{{handoverId}}` etc. expect you to set those in\nthe environment or edit them inline. They are left as variables rather than hardcoded ids\nso a folder can be run in order.\n\n## Regenerating\n\n```bash\nphp artisan route:list --json > docs/api/.live-routes.json\nphp docs/api/generate-live-postman.php\n```\n\nRe-run after any sprint merge. The generator reads `route:list` for the routes and the\ncatalog only for example bodies and EP-IDs — so a newly built endpoint appears\nautomatically, and one that was never built never appears.\n\n## What is NOT here\n\n180 catalogued endpoints have no route: all money (SP-13), all offline sync (SP-14),\ncontent and loyalty (SP-15), and every platform reference screen (SP-03). They are absent\nby design — see `docs/DocsLast/` for what that blocks per app.\n",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
@@ -3974,7 +3974,7 @@
             ]
         },
         {
-            "name": "01. Retailer app — 33",
+            "name": "01. Retailer app — 35",
             "item": [
                 {
                     "name": "00. Auth & registration (1)",
@@ -7165,7 +7165,7 @@
                     "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
-                    "name": "03. Orders (5)",
+                    "name": "03. Orders (7)",
                     "item": [
                         {
                             "name": "GET /app/retailer/orders",
@@ -7460,6 +7460,174 @@
                                     ],
                                     "cookie": [],
                                     "body": "{\n    \"data\": {\n        \"lines\": [\n            {\n                \"id\": 1,\n                \"name\": \"زيت دوار الشمس 1 لتر\",\n                \"qty\": 4,\n                \"price\": 12000\n            }\n        ],\n        \"invoice\": null,\n        \"timeline\": [\n            {\n                \"stage\": \"pending\",\n                \"at\": \"2026-03-01T09:10:00+03:00\"\n            }\n        ],\n        \"rep\": null\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "GET /app/retailer/orders/{id}/shortage",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "retailer",
+                                        "orders",
+                                        "{{id}}",
+                                        "shortage"
+                                    ]
+                                },
+                                "description": "**EP-RT-035** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | نقص التجهيز على الطلب |\n\n{id} is sub_order_id. Present only while a warehouse stock-shortage allocation (EP-WH-063) awaits this retailer. 404 when none pending.\n\n**Example response `data`:**\n```json\n{\n    \"sub_order_id\": 9001,\n    \"status\": \"awaiting_decision\",\n    \"lines\": [\n        {\n            \"sub_order_line_id\": 1,\n            \"product_id\": 880,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"qty_requested\": 10,\n            \"qty_allocated\": 6\n        }\n    ],\n    \"total_before\": 120000,\n    \"total_after\": 72000\n}\n```\n\n**Errors:** `404` not_found"
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RT-035",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "retailer",
+                                                "orders",
+                                                "{{id}}",
+                                                "shortage"
+                                            ]
+                                        },
+                                        "description": "**EP-RT-035** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | نقص التجهيز على الطلب |\n\n{id} is sub_order_id. Present only while a warehouse stock-shortage allocation (EP-WH-063) awaits this retailer. 404 when none pending.\n\n**Example response `data`:**\n```json\n{\n    \"sub_order_id\": 9001,\n    \"status\": \"awaiting_decision\",\n    \"lines\": [\n        {\n            \"sub_order_line_id\": 1,\n            \"product_id\": 880,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"qty_requested\": 10,\n            \"qty_allocated\": 6\n        }\n    ],\n    \"total_before\": 120000,\n    \"total_after\": 72000\n}\n```\n\n**Errors:** `404` not_found"
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"data\": {\n        \"sub_order_id\": 9001,\n        \"status\": \"awaiting_decision\",\n        \"lines\": [\n            {\n                \"sub_order_line_id\": 1,\n                \"product_id\": 880,\n                \"name\": \"زيت دوار الشمس 1 لتر\",\n                \"qty_requested\": 10,\n                \"qty_allocated\": 6\n            }\n        ],\n        \"total_before\": 120000,\n        \"total_after\": 72000\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                },
+                                {
+                                    "name": "404 not_found",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "retailer",
+                                                "orders",
+                                                "{{id}}",
+                                                "shortage"
+                                            ]
+                                        },
+                                        "description": "**EP-RT-035** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a (read) |\n| Name | نقص التجهيز على الطلب |\n\n{id} is sub_order_id. Present only while a warehouse stock-shortage allocation (EP-WH-063) awaits this retailer. 404 when none pending.\n\n**Example response `data`:**\n```json\n{\n    \"sub_order_id\": 9001,\n    \"status\": \"awaiting_decision\",\n    \"lines\": [\n        {\n            \"sub_order_line_id\": 1,\n            \"product_id\": 880,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"qty_requested\": 10,\n            \"qty_allocated\": 6\n        }\n    ],\n    \"total_before\": 120000,\n    \"total_after\": 72000\n}\n```\n\n**Errors:** `404` not_found"
+                                    },
+                                    "status": "Not Found",
+                                    "code": 404,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"error\": {\n        \"code\": \"not_found\",\n        \"message\": \"not_found\",\n        \"details\": {}\n    }\n}"
                                 }
                             ]
                         },
@@ -7931,6 +8099,377 @@
                                     ],
                                     "cookie": [],
                                     "body": "{\n    \"data\": {\n        \"cart\": {\n            \"sections\": [\n                {\n                    \"supply_channel_ref\": \"ch_a1\",\n                    \"temp_order_no\": \"T-481-03\",\n                    \"note\": null,\n                    \"lines\": [\n                        {\n                            \"id\": 11,\n                            \"product_id\": 880,\n                            \"name\": \"زيت دوار الشمس 1 لتر\",\n                            \"qty\": 4,\n                            \"unit_price\": 12000,\n                            \"line_total\": 48000\n                        }\n                    ],\n                    \"subtotal\": 48000,\n                    \"discount\": 0,\n                    \"total\": 48000\n                }\n            ],\n            \"summary\": {\n                \"grand_total\": 48000,\n                \"total_discount\": 0,\n                \"final_total\": 48000,\n                \"estimated_delivery\": \"2026-03-02\"\n            },\n            \"applied_offers\": []\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "POST /app/retailer/orders/{id}/shortage-decision",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage-decision",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "retailer",
+                                        "orders",
+                                        "{{id}}",
+                                        "shortage-decision"
+                                    ]
+                                },
+                                "description": "**EP-RT-036** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | قرار نقص التجهيز |\n\ndecision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"decision\": \"accept_partial\"\n}\n```\n\n**Errors:** `404` not_found · `409` illegal_transition · `422` validation_failed",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"decision\": \"accept_partial\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RT-036",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage-decision",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "retailer",
+                                                "orders",
+                                                "{{id}}",
+                                                "shortage-decision"
+                                            ]
+                                        },
+                                        "description": "**EP-RT-036** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | قرار نقص التجهيز |\n\ndecision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"decision\": \"accept_partial\"\n}\n```\n\n**Errors:** `404` not_found · `409` illegal_transition · `422` validation_failed",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"decision\": \"accept_partial\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"data\": {\n        \"status\": \"confirmed\",\n        \"decision\": \"accept_partial\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                },
+                                {
+                                    "name": "404 not_found",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage-decision",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "retailer",
+                                                "orders",
+                                                "{{id}}",
+                                                "shortage-decision"
+                                            ]
+                                        },
+                                        "description": "**EP-RT-036** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | قرار نقص التجهيز |\n\ndecision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"decision\": \"accept_partial\"\n}\n```\n\n**Errors:** `404` not_found · `409` illegal_transition · `422` validation_failed",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"decision\": \"accept_partial\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Not Found",
+                                    "code": 404,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"error\": {\n        \"code\": \"not_found\",\n        \"message\": \"not_found\",\n        \"details\": {}\n    }\n}"
+                                },
+                                {
+                                    "name": "409 illegal_transition",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage-decision",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "retailer",
+                                                "orders",
+                                                "{{id}}",
+                                                "shortage-decision"
+                                            ]
+                                        },
+                                        "description": "**EP-RT-036** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | قرار نقص التجهيز |\n\ndecision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"decision\": \"accept_partial\"\n}\n```\n\n**Errors:** `404` not_found · `409` illegal_transition · `422` validation_failed",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"decision\": \"accept_partial\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Conflict",
+                                    "code": 409,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"error\": {\n        \"code\": \"illegal_transition\",\n        \"message\": \"illegal_transition\",\n        \"details\": {}\n    }\n}"
+                                },
+                                {
+                                    "name": "422 validation_failed",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage-decision",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "retailer",
+                                                "orders",
+                                                "{{id}}",
+                                                "shortage-decision"
+                                            ]
+                                        },
+                                        "description": "**EP-RT-036** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| Name | قرار نقص التجهيز |\n\ndecision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"decision\": \"accept_partial\"\n}\n```\n\n**Errors:** `404` not_found · `409` illegal_transition · `422` validation_failed",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"decision\": \"accept_partial\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Unprocessable Entity",
+                                    "code": 422,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"error\": {\n        \"code\": \"validation_failed\",\n        \"message\": \"validation_failed\",\n        \"details\": {}\n    }\n}"
                                 }
                             ]
                         }
@@ -12903,7 +13442,7 @@
                                         "complete"
                                     ]
                                 },
-                                "description": "**EP-RP-053** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | required |\n| Name | إنهاء التسليم |\n\nSuccess sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection.\n\n**Example response `data`:**\n```json\n{\n    \"shop\": \"بقالية النور\",\n    \"delivered_at\": \"2026-03-01T12:05:00+03:00\",\n    \"invoice\": {\n        \"no\": \"INV-501\",\n        \"total\": 480000\n    },\n    \"receipt_no\": \"RCPT-10041\",\n    \"ask_payment\": true\n}\n```",
+                                "description": "**EP-RP-053** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | required |\n| Name | إنهاء التسليم |\n\nSuccess sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection. 409 illegal_transition when the order is not yet on_the_way and the handover is unconfirmed. An order already on_the_way can be finished.\n\n**Example response `data`:**\n```json\n{\n    \"shop\": \"بقالية النور\",\n    \"delivered_at\": \"2026-03-01T12:05:00+03:00\",\n    \"invoice\": {\n        \"no\": \"INV-501\",\n        \"total\": 480000\n    },\n    \"receipt_no\": \"RCPT-10041\",\n    \"ask_payment\": true\n}\n```",
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty_delivered\": 4,\n            \"action\": \"accept\"\n        }\n    ],\n    \"delivered_at\": \"2026-03-01T12:05:00+03:00\",\n    \"signature\": \"data:image/png;base64,...\"\n}",
@@ -12968,7 +13507,7 @@
                                                 "complete"
                                             ]
                                         },
-                                        "description": "**EP-RP-053** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | required |\n| Name | إنهاء التسليم |\n\nSuccess sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection.\n\n**Example response `data`:**\n```json\n{\n    \"shop\": \"بقالية النور\",\n    \"delivered_at\": \"2026-03-01T12:05:00+03:00\",\n    \"invoice\": {\n        \"no\": \"INV-501\",\n        \"total\": 480000\n    },\n    \"receipt_no\": \"RCPT-10041\",\n    \"ask_payment\": true\n}\n```",
+                                        "description": "**EP-RP-053** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rp.delivery.deliver` |\n| Idempotency | required |\n| Name | إنهاء التسليم |\n\nSuccess sheet: shop and delivered_at under the title, invoice.total as the amount. ask_payment opens collection with this receipt_no and invoice — do not reserve a second receipt. Delivery is not collection. 409 illegal_transition when the order is not yet on_the_way and the handover is unconfirmed. An order already on_the_way can be finished.\n\n**Example response `data`:**\n```json\n{\n    \"shop\": \"بقالية النور\",\n    \"delivered_at\": \"2026-03-01T12:05:00+03:00\",\n    \"invoice\": {\n        \"no\": \"INV-501\",\n        \"total\": 480000\n    },\n    \"receipt_no\": \"RCPT-10041\",\n    \"ask_payment\": true\n}\n```",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty_delivered\": 4,\n            \"action\": \"accept\"\n        }\n    ],\n    \"delivered_at\": \"2026-03-01T12:05:00+03:00\",\n    \"signature\": \"data:image/png;base64,...\"\n}",
@@ -15058,7 +15597,7 @@
                                         "channel"
                                     ]
                                 },
-                                "description": "**EP-SC-130B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.settings.update` |\n| Idempotency | required |\n| Name | تحديث إعدادات القناة |\n\nPartial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 1,\n    \"name\": \"شركة النور\",\n    \"slug\": \"alnoor\",\n    \"legal_name\": \"شركة النور للتجارة\",\n    \"tax_number\": \"123456789\",\n    \"phone\": \"+963911000001\",\n    \"email\": \"ops@alnoor.example\",\n    \"status\": \"active\",\n    \"allowed_next\": [\n        \"suspended\",\n        \"archived\"\n    ],\n    \"settings\": {\n        \"locale\": \"ar\",\n        \"quiet_hours\": {\n            \"start\": \"22:00\",\n            \"end\": \"08:00\",\n            \"timezone\": \"Asia/Damascus\"\n        },\n        \"returns_sla_hours\": 24\n    },\n    \"created_at\": \"2026-01-01T00:00:00+03:00\"\n}\n```",
+                                "description": "**EP-SC-130B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.settings.update` |\n| Idempotency | required |\n| Name | تحديث إعدادات القناة |\n\nPartial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create. settings.order_approver ∈ channel|warehouse (default channel): who may confirm pending sub-orders. Channel always lists all inbound orders (EP-SC-060); warehouse confirm is EP-WH-061 when set to warehouse.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 1,\n    \"name\": \"شركة النور\",\n    \"slug\": \"alnoor\",\n    \"legal_name\": \"شركة النور للتجارة\",\n    \"tax_number\": \"123456789\",\n    \"phone\": \"+963911000001\",\n    \"email\": \"ops@alnoor.example\",\n    \"status\": \"active\",\n    \"allowed_next\": [\n        \"suspended\",\n        \"archived\"\n    ],\n    \"settings\": {\n        \"locale\": \"ar\",\n        \"quiet_hours\": {\n            \"start\": \"22:00\",\n            \"end\": \"08:00\",\n            \"timezone\": \"Asia/Damascus\"\n        },\n        \"returns_sla_hours\": 24,\n        \"order_approver\": \"channel\"\n    },\n    \"created_at\": \"2026-01-01T00:00:00+03:00\"\n}\n```",
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"name\": \"Demo Channel\",\n    \"legal_name\": \"Demo Channel LLC\",\n    \"tax_number\": \"1234567\",\n    \"phone\": \"+963911000000\",\n    \"email\": \"ops@demo.sy\",\n    \"settings\": {}\n}",
@@ -15115,7 +15654,7 @@
                                                 "channel"
                                             ]
                                         },
-                                        "description": "**EP-SC-130B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.settings.update` |\n| Idempotency | required |\n| Name | تحديث إعدادات القناة |\n\nPartial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 1,\n    \"name\": \"شركة النور\",\n    \"slug\": \"alnoor\",\n    \"legal_name\": \"شركة النور للتجارة\",\n    \"tax_number\": \"123456789\",\n    \"phone\": \"+963911000001\",\n    \"email\": \"ops@alnoor.example\",\n    \"status\": \"active\",\n    \"allowed_next\": [\n        \"suspended\",\n        \"archived\"\n    ],\n    \"settings\": {\n        \"locale\": \"ar\",\n        \"quiet_hours\": {\n            \"start\": \"22:00\",\n            \"end\": \"08:00\",\n            \"timezone\": \"Asia/Damascus\"\n        },\n        \"returns_sla_hours\": 24\n    },\n    \"created_at\": \"2026-01-01T00:00:00+03:00\"\n}\n```",
+                                        "description": "**EP-SC-130B** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.settings.update` |\n| Idempotency | required |\n| Name | تحديث إعدادات القناة |\n\nPartial update. status is not writable here — lifecycle stays on the platform. settings.quiet_hours {start,end,timezone} defers push/whatsapp delivery; settings.returns_sla_hours (int, default 24) sets return_requests.sla_due_at on create. settings.order_approver ∈ channel|warehouse (default channel): who may confirm pending sub-orders. Channel always lists all inbound orders (EP-SC-060); warehouse confirm is EP-WH-061 when set to warehouse.\n\n**Example response `data`:**\n```json\n{\n    \"id\": 1,\n    \"name\": \"شركة النور\",\n    \"slug\": \"alnoor\",\n    \"legal_name\": \"شركة النور للتجارة\",\n    \"tax_number\": \"123456789\",\n    \"phone\": \"+963911000001\",\n    \"email\": \"ops@alnoor.example\",\n    \"status\": \"active\",\n    \"allowed_next\": [\n        \"suspended\",\n        \"archived\"\n    ],\n    \"settings\": {\n        \"locale\": \"ar\",\n        \"quiet_hours\": {\n            \"start\": \"22:00\",\n            \"end\": \"08:00\",\n            \"timezone\": \"Asia/Damascus\"\n        },\n        \"returns_sla_hours\": 24,\n        \"order_approver\": \"channel\"\n    },\n    \"created_at\": \"2026-01-01T00:00:00+03:00\"\n}\n```",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{\n    \"name\": \"Demo Channel\",\n    \"legal_name\": \"Demo Channel LLC\",\n    \"tax_number\": \"1234567\",\n    \"phone\": \"+963911000000\",\n    \"email\": \"ops@demo.sy\",\n    \"settings\": {}\n}",
@@ -15136,7 +15675,7 @@
                                         }
                                     ],
                                     "cookie": [],
-                                    "body": "{\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"شركة النور\",\n        \"slug\": \"alnoor\",\n        \"legal_name\": \"شركة النور للتجارة\",\n        \"tax_number\": \"123456789\",\n        \"phone\": \"+963911000001\",\n        \"email\": \"ops@alnoor.example\",\n        \"status\": \"active\",\n        \"allowed_next\": [\n            \"suspended\",\n            \"archived\"\n        ],\n        \"settings\": {\n            \"locale\": \"ar\",\n            \"quiet_hours\": {\n                \"start\": \"22:00\",\n                \"end\": \"08:00\",\n                \"timezone\": \"Asia/Damascus\"\n            },\n            \"returns_sla_hours\": 24\n        },\n        \"created_at\": \"2026-01-01T00:00:00+03:00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"شركة النور\",\n        \"slug\": \"alnoor\",\n        \"legal_name\": \"شركة النور للتجارة\",\n        \"tax_number\": \"123456789\",\n        \"phone\": \"+963911000001\",\n        \"email\": \"ops@alnoor.example\",\n        \"status\": \"active\",\n        \"allowed_next\": [\n            \"suspended\",\n            \"archived\"\n        ],\n        \"settings\": {\n            \"locale\": \"ar\",\n            \"quiet_hours\": {\n                \"start\": \"22:00\",\n                \"end\": \"08:00\",\n                \"timezone\": \"Asia/Damascus\"\n            },\n            \"returns_sla_hours\": 24,\n            \"order_approver\": \"channel\"\n        },\n        \"created_at\": \"2026-01-01T00:00:00+03:00\"\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }
@@ -30043,7 +30582,7 @@
                                         "confirm"
                                     ]
                                 },
-                                "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
+                                "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer. Allowed only when settings.order_approver is channel (default). Rep-sourced orders auto-assign to the submitting rep; response status then becomes assigned.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{}",
@@ -30103,7 +30642,7 @@
                                                 "confirm"
                                             ]
                                         },
-                                        "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
+                                        "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer. Allowed only when settings.order_approver is channel (default). Rep-sourced orders auto-assign to the submitting rep; response status then becomes assigned.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{}",
@@ -30174,7 +30713,7 @@
                                                 "confirm"
                                             ]
                                         },
-                                        "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
+                                        "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer. Allowed only when settings.order_approver is channel (default). Rep-sourced orders auto-assign to the submitting rep; response status then becomes assigned.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{}",
@@ -30245,7 +30784,7 @@
                                                 "confirm"
                                             ]
                                         },
-                                        "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
+                                        "description": "**EP-SC-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `channel` |\n| Permission | `sc.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب |\n\nReserves stock, creates picking list, reveals channel name to retailer. Allowed only when settings.order_approver is channel (default). Rep-sourced orders auto-assign to the submitting rep; response status then becomes assigned.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
                                         "body": {
                                             "mode": "raw",
                                             "raw": "{}",
@@ -32894,7 +33433,7 @@
             ]
         },
         {
-            "name": "04. Warehouse dashboard — 28",
+            "name": "04. Warehouse dashboard — 32",
             "item": [
                 {
                     "name": "00. Device login (1)",
@@ -33108,7 +33647,7 @@
                     "description": "### ⚠️ `X-Idempotency-Key` in this folder is `{{$guid}}` — do not copy that into a client\n\nPostman regenerates `{{$guid}}` on **every send**. That is correct here: each send is a\nfresh test.\n\nIt is **wrong in a real client**. The frontend package requires **one key per user\nintent** — generated when the user commits (taps Confirm), reused verbatim on every retry\nof that intent, and replaced only when the user starts over.\n\nA key minted per request turns one confirmed order into N orders on a bad connection —\nthe exact failure the header exists to prevent.\n\n| | Postman (here) | Your client |\n|---|---|---|\n| New key when | every send | the user starts a new intent |\n| On retry | new key | **same key** |\n| Result of a retry | a second write | a replayed response |\n\nSee §2.5 of your app's file in `docs/DocsLast/`."
                 },
                 {
-                    "name": "01. Queues (9)",
+                    "name": "01. Queues (13)",
                     "item": [
                         {
                             "name": "GET /warehouse/picking-waves/{id}",
@@ -33678,6 +34217,143 @@
                                     ],
                                     "cookie": [],
                                     "body": "{\n    \"data\": [\n        {\n            \"id\": 1,\n            \"warehouse_id\": 1,\n            \"product_id\": 880,\n            \"variant_id\": null,\n            \"lot_no\": \"L202603\",\n            \"expiry_date\": \"2027-03-01\",\n            \"qty\": 100\n        }\n    ],\n    \"meta\": {\n        \"page\": 1,\n        \"per_page\": 25,\n        \"total\": 1,\n        \"last_page\": 1,\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "GET /warehouse/sub-orders",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders?",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "warehouse",
+                                        "sub-orders"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "filter[status]",
+                                            "value": "pending",
+                                            "disabled": false
+                                        },
+                                        {
+                                            "key": "filter[zone_id]",
+                                            "value": "12",
+                                            "disabled": false
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "25",
+                                            "disabled": false
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-WH-060** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.view` |\n| Idempotency | n/a (read) |\n| Name | طلبات واردة للمستودع |\n\nSame card shape as EP-SC-060. Channel tenant from the device. Channel dashboard still lists every inbound order regardless of settings.order_approver.\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 9001,\n        \"sub_order_no\": \"SO-9001\",\n        \"status\": \"pending\",\n        \"zone_id\": 12,\n        \"total\": 48000\n    }\n]\n```"
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-WH-060",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders?",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sub-orders"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "filter[status]",
+                                                    "value": "pending",
+                                                    "disabled": false
+                                                },
+                                                {
+                                                    "key": "filter[zone_id]",
+                                                    "value": "12",
+                                                    "disabled": false
+                                                },
+                                                {
+                                                    "key": "per_page",
+                                                    "value": "25",
+                                                    "disabled": false
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-WH-060** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.view` |\n| Idempotency | n/a (read) |\n| Name | طلبات واردة للمستودع |\n\nSame card shape as EP-SC-060. Channel tenant from the device. Channel dashboard still lists every inbound order regardless of settings.order_approver.\n\n**Example response `data`:**\n```json\n[\n    {\n        \"id\": 9001,\n        \"sub_order_no\": \"SO-9001\",\n        \"status\": \"pending\",\n        \"zone_id\": 12,\n        \"total\": 48000\n    }\n]\n```"
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 9001,\n            \"sub_order_no\": \"SO-9001\",\n            \"status\": \"pending\",\n            \"zone_id\": 12,\n            \"total\": 48000\n        }\n    ],\n    \"meta\": {\n        \"page\": 1,\n        \"per_page\": 25,\n        \"total\": 1,\n        \"last_page\": 1,\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -34357,6 +35033,720 @@
                                     ],
                                     "cookie": [],
                                     "body": "{\n    \"error\": {\n        \"code\": \"insufficient_stock\",\n        \"message\": \"insufficient_stock\",\n        \"details\": {}\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "POST /warehouse/stock-shortages",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/warehouse/stock-shortages",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "warehouse",
+                                        "stock-shortages"
+                                    ]
+                                },
+                                "description": "**EP-WH-063** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.shortage` |\n| Idempotency | required |\n| Name | توزيع نقص صنف تلقائياً |\n\nWarehouse enters total available for the SKU once. System distributes FIFO by sub_order.created_at across open fulfillment statuses (confirmed|assigned|accepted|processing). Reduced lines await retailer EP-RT-036 (accept_partial|cancel). EP-WH-014 remains for a single picking-list line.\n\n**Example response `data`:**\n```json\n{\n    \"allocation_id\": 501,\n    \"product_id\": 880,\n    \"variant_id\": null,\n    \"qty_available\": 12,\n    \"lines\": [\n        {\n            \"sub_order_id\": 9001,\n            \"sub_order_line_id\": 1,\n            \"qty_requested\": 10,\n            \"qty_allocated\": 10,\n            \"status\": \"awaiting_retailer\"\n        },\n        {\n            \"sub_order_id\": 9002,\n            \"sub_order_line_id\": 2,\n            \"qty_requested\": 10,\n            \"qty_allocated\": 2,\n            \"status\": \"awaiting_retailer\"\n        }\n    ]\n}\n```\n\n**Errors:** `422` validation_failed",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"product_id\": 880,\n    \"variant_id\": null,\n    \"qty_available\": 12,\n    \"reason\": \"out_of_stock\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-WH-063",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/stock-shortages",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "stock-shortages"
+                                            ]
+                                        },
+                                        "description": "**EP-WH-063** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.shortage` |\n| Idempotency | required |\n| Name | توزيع نقص صنف تلقائياً |\n\nWarehouse enters total available for the SKU once. System distributes FIFO by sub_order.created_at across open fulfillment statuses (confirmed|assigned|accepted|processing). Reduced lines await retailer EP-RT-036 (accept_partial|cancel). EP-WH-014 remains for a single picking-list line.\n\n**Example response `data`:**\n```json\n{\n    \"allocation_id\": 501,\n    \"product_id\": 880,\n    \"variant_id\": null,\n    \"qty_available\": 12,\n    \"lines\": [\n        {\n            \"sub_order_id\": 9001,\n            \"sub_order_line_id\": 1,\n            \"qty_requested\": 10,\n            \"qty_allocated\": 10,\n            \"status\": \"awaiting_retailer\"\n        },\n        {\n            \"sub_order_id\": 9002,\n            \"sub_order_line_id\": 2,\n            \"qty_requested\": 10,\n            \"qty_allocated\": 2,\n            \"status\": \"awaiting_retailer\"\n        }\n    ]\n}\n```\n\n**Errors:** `422` validation_failed",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"product_id\": 880,\n    \"variant_id\": null,\n    \"qty_available\": 12,\n    \"reason\": \"out_of_stock\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"data\": {\n        \"allocation_id\": 501,\n        \"product_id\": 880,\n        \"variant_id\": null,\n        \"qty_available\": 12,\n        \"lines\": [\n            {\n                \"sub_order_id\": 9001,\n                \"sub_order_line_id\": 1,\n                \"qty_requested\": 10,\n                \"qty_allocated\": 10,\n                \"status\": \"awaiting_retailer\"\n            },\n            {\n                \"sub_order_id\": 9002,\n                \"sub_order_line_id\": 2,\n                \"qty_requested\": 10,\n                \"qty_allocated\": 2,\n                \"status\": \"awaiting_retailer\"\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                },
+                                {
+                                    "name": "422 validation_failed",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/stock-shortages",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "stock-shortages"
+                                            ]
+                                        },
+                                        "description": "**EP-WH-063** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.picking.shortage` |\n| Idempotency | required |\n| Name | توزيع نقص صنف تلقائياً |\n\nWarehouse enters total available for the SKU once. System distributes FIFO by sub_order.created_at across open fulfillment statuses (confirmed|assigned|accepted|processing). Reduced lines await retailer EP-RT-036 (accept_partial|cancel). EP-WH-014 remains for a single picking-list line.\n\n**Example response `data`:**\n```json\n{\n    \"allocation_id\": 501,\n    \"product_id\": 880,\n    \"variant_id\": null,\n    \"qty_available\": 12,\n    \"lines\": [\n        {\n            \"sub_order_id\": 9001,\n            \"sub_order_line_id\": 1,\n            \"qty_requested\": 10,\n            \"qty_allocated\": 10,\n            \"status\": \"awaiting_retailer\"\n        },\n        {\n            \"sub_order_id\": 9002,\n            \"sub_order_line_id\": 2,\n            \"qty_requested\": 10,\n            \"qty_allocated\": 2,\n            \"status\": \"awaiting_retailer\"\n        }\n    ]\n}\n```\n\n**Errors:** `422` validation_failed",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"product_id\": 880,\n    \"variant_id\": null,\n    \"qty_available\": 12,\n    \"reason\": \"out_of_stock\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Unprocessable Entity",
+                                    "code": 422,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"error\": {\n        \"code\": \"validation_failed\",\n        \"message\": \"validation_failed\",\n        \"details\": {}\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "POST /warehouse/sub-orders/assign",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/assign",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "warehouse",
+                                        "sub-orders",
+                                        "assign"
+                                    ]
+                                },
+                                "description": "**EP-WH-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.assign` |\n| Idempotency | required |\n| Name | إسناد لمندوب من المستودع |\n\nSame body and modes as EP-SC-066 (manual|auto|bulk_zone). Assigns a channel rep covering the retailer zone.\n\n**Example response `data`:**\n```json\n{\n    \"assigned\": [\n        9001\n    ]\n}\n```\n\n**Errors:** `422` validation_failed",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"sub_order_ids\": [\n        9001\n    ],\n    \"rep_id\": 70,\n    \"mode\": \"manual\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-WH-062",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/assign",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sub-orders",
+                                                "assign"
+                                            ]
+                                        },
+                                        "description": "**EP-WH-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.assign` |\n| Idempotency | required |\n| Name | إسناد لمندوب من المستودع |\n\nSame body and modes as EP-SC-066 (manual|auto|bulk_zone). Assigns a channel rep covering the retailer zone.\n\n**Example response `data`:**\n```json\n{\n    \"assigned\": [\n        9001\n    ]\n}\n```\n\n**Errors:** `422` validation_failed",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"sub_order_ids\": [\n        9001\n    ],\n    \"rep_id\": 70,\n    \"mode\": \"manual\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"data\": {\n        \"assigned\": [\n            9001\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                },
+                                {
+                                    "name": "422 validation_failed",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/assign",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sub-orders",
+                                                "assign"
+                                            ]
+                                        },
+                                        "description": "**EP-WH-062** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.assign` |\n| Idempotency | required |\n| Name | إسناد لمندوب من المستودع |\n\nSame body and modes as EP-SC-066 (manual|auto|bulk_zone). Assigns a channel rep covering the retailer zone.\n\n**Example response `data`:**\n```json\n{\n    \"assigned\": [\n        9001\n    ]\n}\n```\n\n**Errors:** `422` validation_failed",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"sub_order_ids\": [\n        9001\n    ],\n    \"rep_id\": 70,\n    \"mode\": \"manual\"\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Unprocessable Entity",
+                                    "code": 422,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"error\": {\n        \"code\": \"validation_failed\",\n        \"message\": \"validation_failed\",\n        \"details\": {}\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "POST /warehouse/sub-orders/{id}/confirm",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "{{client}}"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/{{id}}/confirm",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "warehouse",
+                                        "sub-orders",
+                                        "{{id}}",
+                                        "confirm"
+                                    ]
+                                },
+                                "description": "**EP-WH-061** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب من المستودع |\n\nAllowed only when channel settings.order_approver=warehouse. Reserves stock and creates picking list (same as EP-SC-062). Rep-sourced orders auto-assign to the submitting rep after confirm.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-WH-061",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/{{id}}/confirm",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sub-orders",
+                                                "{{id}}",
+                                                "confirm"
+                                            ]
+                                        },
+                                        "description": "**EP-WH-061** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب من المستودع |\n\nAllowed only when channel settings.order_approver=warehouse. Reserves stock and creates picking list (same as EP-SC-062). Rep-sourced orders auto-assign to the submitting rep after confirm.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"data\": {\n        \"status\": \"confirmed\",\n        \"picking_list_id\": 301\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                },
+                                {
+                                    "name": "409 illegal_transition",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/{{id}}/confirm",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sub-orders",
+                                                "{{id}}",
+                                                "confirm"
+                                            ]
+                                        },
+                                        "description": "**EP-WH-061** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب من المستودع |\n\nAllowed only when channel settings.order_approver=warehouse. Reserves stock and creates picking list (same as EP-SC-062). Rep-sourced orders auto-assign to the submitting rep after confirm.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Conflict",
+                                    "code": 409,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"error\": {\n        \"code\": \"illegal_transition\",\n        \"message\": \"illegal_transition\",\n        \"details\": {}\n    }\n}"
+                                },
+                                {
+                                    "name": "423 credit_limit_exceeded",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "{{client}}"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/warehouse/sub-orders/{{id}}/confirm",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "warehouse",
+                                                "sub-orders",
+                                                "{{id}}",
+                                                "confirm"
+                                            ]
+                                        },
+                                        "description": "**EP-WH-061** · Stability: `stable`\n\n| | |\n|---|---|\n| Guard | `warehouse` |\n| Permission | `wh.orders.confirm` |\n| Idempotency | required |\n| Name | تأكيد طلب من المستودع |\n\nAllowed only when channel settings.order_approver=warehouse. Reserves stock and creates picking list (same as EP-SC-062). Rep-sourced orders auto-assign to the submitting rep after confirm.\n\n**Example response `data`:**\n```json\n{\n    \"status\": \"confirmed\",\n    \"picking_list_id\": 301\n}\n```\n\n**Errors:** `409` illegal_transition · `423` credit_limit_exceeded",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "Locked",
+                                    "code": 423,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "cookie": [],
+                                    "body": "{\n    \"error\": {\n        \"code\": \"credit_limit_exceeded\",\n        \"message\": \"credit_limit_exceeded\",\n        \"details\": {}\n    }\n}"
                                 }
                             ]
                         },

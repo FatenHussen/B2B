@@ -1,0 +1,3652 @@
+{
+    "info": {
+        "name": "B2B Retailer app (تطبيق التاجر)",
+        "_postman_id": "b2b-retailer-11482ef28e04",
+        "description": "# B2B Retailer app (تطبيق التاجر)\n\nGenerated **2026-11-03** from `route:list` + catalog. Live routes only.\n\n| | |\n|---|---|\n| Requests | **59** |\n| Environment | `docs/api/environments/retailer-android.postman_environment.json` |\n| X-Client | `retailer-android` |\n| Seed | public OTP → kind retailer — local code 0000 when bypass |\n\nImport this file **and** the matching environment. `baseUrl` is the host only (no `/api/v1`).\nDo not mix tokens across platform / channel / warehouse collections.\n\nContract briefs: `docs/DocsLast/retailer.md` · order flow: `docs/DocsLast/order-flow.md`\n\nRegenerate: `php docs/api/generate-dashboard-postman.php`",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://127.0.0.1:8000"
+        },
+        {
+            "key": "token",
+            "value": ""
+        },
+        {
+            "key": "otp_id",
+            "value": ""
+        },
+        {
+            "key": "client",
+            "value": "retailer-android"
+        },
+        {
+            "key": "acceptLanguage",
+            "value": "ar"
+        },
+        {
+            "key": "appVersion",
+            "value": "1.0.0 (1)"
+        },
+        {
+            "key": "deviceId",
+            "value": "33333333-3333-3333-3333-333333333333"
+        },
+        {
+            "key": "phone",
+            "value": "+963911000001"
+        }
+    ],
+    "item": [
+        {
+            "name": "00. Health",
+            "item": [
+                {
+                    "name": "GET /health",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "health"
+                            ]
+                        },
+                        "description": "**EP-CORE-001**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | فحص الصحة |\n\nPublic liveness. No tenant, no auth."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "00. Public",
+            "item": [
+                {
+                    "name": "GET /public/content/intro",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/content/intro",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "content",
+                                "intro"
+                            ]
+                        },
+                        "description": "**EP-PB-011**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | انترو التطبيق |\n\nSame singleton the platform back office edits (EP-AD-141A/B). No auth — first-run splash before OTP. Vacant store is enabled:false. Apps must not call /platform/content/intro or /channel/content/intro (wrong_guard). Targeting is ignored on first run (no zone yet). media_id is an opaque string, not a URL, until media upload exists."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "00. Public OTP",
+            "item": [
+                {
+                    "name": "POST /public/auth/request-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/request-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "request-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-001**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | **exempt** |\n| X-Client | `retailer-android` |\n| Name | طلب رمز واتساب |\n\npurpose: register|login. Rate: 3/hour per phone, 10/hour per device, 30/hour per IP (REQ-CM-055). Phone E.164 Syrian mobile.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"phone\": \"{{phone}}\",\n    \"purpose\": \"login\",\n    \"client\": \"{{client}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /public/auth/resend-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/resend-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "resend-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-003**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | **exempt** |\n| X-Client | `retailer-android` |\n| Name | إعادة إرسال الرمز |\n\nprefer_channel: whatsapp|sms. Falls back to SMS if WhatsApp fails.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"otp_id\": \"{{otp_id}}\",\n    \"prefer_channel\": \"sms\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /public/auth/verify-otp",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/auth/verify-otp",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "auth",
+                                "verify-otp"
+                            ]
+                        },
+                        "description": "**EP-CM-002**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | **exempt** |\n| X-Client | `retailer-android` |\n| Name | تحقق رمز الدخول |\n\n5 attempts per otp_id. New user returns is_new_user=true without a full profile.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"otp_id\": \"{{otp_id}}\",\n    \"code\": \"0000\",\n    \"device_id\": \"{{deviceId}}\",\n    \"device_name\": \"Postman\",\n    \"platform\": \"android\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const j = pm.response.json();",
+                                    "const d = j.data || {};",
+                                    "const store = pm.environment.name ? pm.environment : pm.collectionVariables;",
+                                    "if (d.token) { store.set('token', d.token); }",
+                                    "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }",
+                                    "if (d.otp_id) { store.set('otp_id', String(d.otp_id)); }"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "00. Public refs",
+            "item": [
+                {
+                    "name": "GET /public/refs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/refs",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "refs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "since",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-PB-001**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | المرجعيات العامة للتسجيل |\n\nRegistration screens cache this locally and refresh by cursor (REQ-AD-032, REQ-CM-016)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "01. App session",
+            "item": [
+                {
+                    "name": "POST /app/auth/logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/auth/logout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "**EP-CM-005**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | خروج التطبيق |\n\nClient must wipe local data (REQ-CM-056).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/session",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/session",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "session"
+                            ]
+                        },
+                        "description": "**EP-CM-004**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | جلسة الإقلاع |\n\nCalled on every launch (REQ-CM-004). Distinguishes new vs returning users (TB-RT-011). requires_legal_accept blocks usage until consent (DOC-12E TB-AD-081). user.avatar is always null until media upload. Reps also receive commercial_limits, duty {on_duty, tracking_enabled}, status (profile: pending_review|active|rejected|disabled), and channel {id, name|null} (BF-06)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "02. Pricing & offers",
+            "item": [
+                {
+                    "name": "GET /app/offers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/offers",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "offers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[activity_type_id]",
+                                    "value": "3",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[zone_id]",
+                                    "value": "12",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-APP-040**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | العروض |\n\ncompany (channel identity) stays hidden until an order is confirmed (REQ-IN-06)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/offers/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/offers/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "offers",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-APP-041**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | تفاصيل عرض |\n\nRe-validate via quote before submit (TB-RT-043)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/pricing/quote",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/pricing/quote",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "pricing",
+                                "quote"
+                            ]
+                        },
+                        "description": "**EP-APP-030**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تسعير الخادم |\n\nSingle source of truth (REQ-IN-07). Precedence stop-at-first-match (most specific wins; lists do not stack): retailer_price ← group_list ← zone_list ← qty_tier ← base_price. Clients must not send prices. gross is the sum of unit_price × qty (السعر). discount is the sum of line discounts (الخصم). subtotal is gross − discount (الإجمالي). All three are integers in minor units.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"product_id\": 880,\n            \"variant_id\": 1,\n            \"qty\": 6\n        }\n    ],\n    \"zone_id\": 12\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "03. Notifications",
+            "item": [
+                {
+                    "name": "POST /app/devices/push-token",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/devices/push-token",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "devices",
+                                "push-token"
+                            ]
+                        },
+                        "description": "**EP-CM-063**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | رمز الإشعارات |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"token\": \"fcm:xxxxx\",\n    \"platform\": \"android\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/notifications",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/notifications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "notifications"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[read]",
+                                    "value": "0",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-CM-060**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | الإشعارات |\n\nmeta.unread_count is included in the envelope."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "DELETE /app/notifications",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/notifications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "notifications"
+                            ]
+                        },
+                        "description": "**EP-CM-062**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | مسح عرض الإشعارات |\n\nClears the inbox view, not the server log."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/notifications/read-all",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/notifications/read-all",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "notifications",
+                                "read-all"
+                            ]
+                        },
+                        "description": "**EP-CM-061**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تعليم الكل كمقروء |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "04. Sync",
+            "item": [
+                {
+                    "name": "GET /app/sync/pull",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/sync/pull",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "sync",
+                                "pull"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cursor",
+                                    "value": "c_9f2a71",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "scopes[]",
+                                    "value": "catalog",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "200",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-SY-001**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | سحب المزامنة |\n\nRetailer scopes: catalog,pricing,offers,zones,orders,refs. Rep extra: rep_catalog,customers,zones,assignments,deliveries,wallet. If cursor is too old, full_resync_required=true."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/sync/push",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/sync/push",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "sync",
+                                "push"
+                            ]
+                        },
+                        "description": "**EP-SY-002**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | دفع المزامنة |\n\nMax 500 ops per batch, 20/min per device. status: applied|duplicate|conflict|failed. Device never pushes catalog/prices/offers/stock (REQ-CM-017). Allowed: order, payment, delivery, receipt, shortage, favorite, rating, add-shop.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"operations\": [\n        {\n            \"client_op_id\": \"op_order_local_88\",\n            \"type\": \"cart.submit\",\n            \"payload\": {\n                \"sections\": [\n                    {\n                        \"ref\": \"ch_a1\"\n                    }\n                ],\n                \"offline_created\": true\n            },\n            \"created_at\": \"2026-03-01T09:05:00+03:00\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/sync/resolve-conflict",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/sync/resolve-conflict",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "sync",
+                                "resolve-conflict"
+                            ]
+                        },
+                        "description": "**EP-SY-004**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | حل تعارض |\n\nClient must not drop an op from the outbox until applied or duplicate (REQ-CM-019).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"conflict_id\": \"cf_12\",\n    \"resolution\": \"server_wins\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/sync/status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/sync/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "sync",
+                                "status"
+                            ]
+                        },
+                        "description": "**EP-SY-003**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | حالة المزامنة |"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "05. Content & loyalty",
+            "item": [
+                {
+                    "name": "POST /app/content/banners/{id}/click",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/content/banners/{{id}}/click",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "content",
+                                "banners",
+                                "{{id}}",
+                                "click"
+                            ]
+                        },
+                        "description": "**EP-APP-101**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تسجيل نقرة بانر |\n\nAtomic clicks++ on a Banner the caller can see (covering channels). Foreign or unknown id → 404.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/content/home-blocks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/content/home-blocks",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "content",
+                                "home-blocks"
+                            ]
+                        },
+                        "description": "**EP-APP-100**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | بلوكات الرئيسية |\n\nFiltered by the user activity type and zone, including intro targeting (TB-RT-010). Serving a Banner row increments impressions atomically."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/loyalty",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/loyalty",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "loyalty"
+                            ]
+                        },
+                        "description": "**EP-APP-110**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | النقاط |"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/loyalty/redeem",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/loyalty/redeem",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "loyalty",
+                                "redeem"
+                            ]
+                        },
+                        "description": "**EP-APP-111**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | استبدال نقاط |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reward_id\": 3\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "06. Registration",
+            "item": [
+                {
+                    "name": "POST /app/retailer/register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "register"
+                            ]
+                        },
+                        "description": "**EP-RT-001**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | إكمال تسجيل التاجر |\n\nNo email field ever (REQ-RT-003). Zone must belong to governorate.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"owner_name\": \"أبو خالد\",\n    \"shop_name\": \"بقالية النور\",\n    \"activity_type_id\": 3,\n    \"category_ids\": [\n        10,\n        11\n    ],\n    \"equipment_ids\": [\n        1\n    ],\n    \"governorate_id\": 1,\n    \"zone_id\": 12,\n    \"lat\": 33.5031,\n    \"lng\": 36.2765,\n    \"address\": \"المزة فيلات شرقية\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "07. Cart",
+            "item": [
+                {
+                    "name": "GET /app/retailer/cart",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/cart",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "cart"
+                            ]
+                        },
+                        "description": "**EP-RT-020**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | السلة |\n\nsupply_channel_ref is anonymous (ch_a1) until submit (REQ-IN-06 / TB-RT-050)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/cart/lines",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/cart/lines",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "cart",
+                                "lines"
+                            ]
+                        },
+                        "description": "**EP-RT-021**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | إضافة للسلة |\n\nsource: browse|shortage|favorite|reorder|offer. Full cart is recalculated.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"product_id\": 880,\n    \"variant_id\": 1,\n    \"qty\": 4,\n    \"source\": \"browse\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "PATCH /app/retailer/cart/lines/{id}",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/cart/lines/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "cart",
+                                "lines",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RT-022**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تعديل كمية |\n\nOffers that lose their condition are listed in removed_offers (BR-20).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qty\": 2\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "DELETE /app/retailer/cart/lines/{id}",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/cart/lines/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "cart",
+                                "lines",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RT-023**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | حذف بند |\n\nRemoving a line that belongs to an offer removes the whole offer (BR-08)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "PATCH /app/retailer/cart/sections/{ref}",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/cart/sections/{{ref}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "cart",
+                                "sections",
+                                "{{ref}}"
+                            ]
+                        },
+                        "description": "**EP-RT-024**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | ملاحظة/جدولة قسم |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"note\": \"الاتصال قبل الوصول\",\n    \"scheduled_at\": \"2026-03-02T10:00:00+03:00\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/cart/submit",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/cart/submit",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "cart",
+                                "submit"
+                            ]
+                        },
+                        "description": "**EP-RT-025**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | إرسال الطلب |\n\nIf offline_created=true the order is always accepted, then repriced; repricing_diff is shown (REQ-CM-018). Split is server-side (REQ-IN-08).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sections\": [\n        {\n            \"ref\": \"ch_a1\",\n            \"note\": \"الاتصال قبل الوصول\",\n            \"scheduled_at\": null\n        }\n    ],\n    \"client_created_at\": \"2026-03-01T09:10:00+03:00\",\n    \"offline_created\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "08. Orders & shortage (order-flow)",
+            "item": [
+                {
+                    "name": "GET /app/retailer/orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "orders"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[status]",
+                                    "value": "active",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[channel_id]",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-02-01",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-03-01",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RT-030**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | طلباتي |\n\nfilter[status]: all|active|pending|processing|delivered|cancelled. supply_channel is null until confirmed (REQ-IN-06)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/orders/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "orders",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RT-031**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | تفاصيل طلب |\n\nrep{name,phone} only when status is on_the_way (BR-03)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/orders/{id}/cancel",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/cancel",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "orders",
+                                "{{id}}",
+                                "cancel"
+                            ]
+                        },
+                        "description": "**EP-RT-032**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | إلغاء طلب |\n\n409 unless status is pending (BR-06).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"طلب بالخطأ\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/orders/{id}/reorder",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/reorder",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "orders",
+                                "{{id}}",
+                                "reorder"
+                            ]
+                        },
+                        "description": "**EP-RT-033**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | إعادة الطلب |\n\nReturns a cart repriced at today's prices.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"modify\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/orders/{id}/shortage",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "orders",
+                                "{{id}}",
+                                "shortage"
+                            ]
+                        },
+                        "description": "**EP-RT-035**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | نقص التجهيز على الطلب |\n\n{id} is sub_order_id. Present only while a warehouse stock-shortage allocation (EP-WH-063) awaits this retailer. 404 when none pending."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/orders/{id}/shortage-decision",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/shortage-decision",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "orders",
+                                "{{id}}",
+                                "shortage-decision"
+                            ]
+                        },
+                        "description": "**EP-RT-036**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | قرار نقص التجهيز |\n\ndecision: accept_partial|cancel. accept_partial keeps the FIFO-allocated quantities and clears the await so picking may complete. cancel cancels the whole sub-order and releases reserved stock.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"decision\": \"accept_partial\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/orders/{id}/tracking",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders/{{id}}/tracking",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "orders",
+                                "{{id}}",
+                                "tracking"
+                            ]
+                        },
+                        "description": "**EP-RT-034**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | تتبع الطلب |\n\nRep identity only at on_the_way (BR-03)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "09. Content & apps",
+            "item": [
+                {
+                    "name": "GET /public/app-config",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/public/app-config",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "public",
+                                "app-config"
+                            ],
+                            "query": [
+                                {
+                                    "key": "app",
+                                    "value": "retailer",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "platform",
+                                    "value": "android",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "version",
+                                    "value": "1.4.2",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-PB-010**\n\n| | |\n|---|---|\n| Guard | `none` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | إعداد التطبيق وفحص النسخة |\n\nCalled on every app launch (REQ-AD-073, 074). Stale X-App-Version → 426."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "09. Receiving & returns",
+            "item": [
+                {
+                    "name": "POST /app/retailer/receipts/{id}/confirm",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/receipts/{{id}}/confirm",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "receipts",
+                                "{{id}}",
+                                "confirm"
+                            ]
+                        },
+                        "description": "**EP-RT-042**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rt.receive.confirm` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تأكيد الاستلام |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty_received\": 4,\n            \"action\": \"accept\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "PATCH /app/retailer/receipts/{id}/lines/{lineId}",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/receipts/{{id}}/lines/{{lineId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "receipts",
+                                "{{id}}",
+                                "lines",
+                                "{{lineId}}"
+                            ]
+                        },
+                        "description": "**EP-RT-041**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rt.receive.confirm` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تعديل بند الاستلام |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"qty_received\": 3,\n    \"action\": \"return\",\n    \"reason\": \"عبوة تالفة\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/receipts/{subOrderId}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/receipts/{{subOrderId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "receipts",
+                                "{{subOrderId}}"
+                            ]
+                        },
+                        "description": "**EP-RT-040**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rt.receive.confirm` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | قائمة الاستلام |\n\nSame payload the rep sees (REQ-IN-05)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/return-requests",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/return-requests",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "return-requests"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[status]",
+                                    "value": "pending",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[channel_id]",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-02-01",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RT-044**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | مرتجعاتي |"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/return-requests",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/return-requests",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "return-requests"
+                            ]
+                        },
+                        "description": "**EP-RT-043**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rt.receive.return_request` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | طلب إرجاع/استبدال |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"sub_order_id\": 9001,\n    \"type\": \"return\",\n    \"lines\": [\n        {\n            \"line_id\": 1,\n            \"qty\": 1,\n            \"reason\": \"تالف\",\n            \"photos\": []\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "10. Retailer other",
+            "item": [
+                {
+                    "name": "GET /app/retailer/account/statement",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/account/statement",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "account",
+                                "statement"
+                            ],
+                            "query": [
+                                {
+                                    "key": "date_from",
+                                    "value": "2026-02-01",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2026-02-28",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "channel_id",
+                                    "value": "1",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RT-052**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rt.account.statement` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | كشف الحساب |\n\nInvariant: retailer.receivable == SUM(invoices) − SUM(payments) − SUM(credit_notes) (AC-07)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/account/statement/export",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/account/statement/export",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "account",
+                                "statement",
+                                "export"
+                            ]
+                        },
+                        "description": "**EP-RT-053**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rt.account.statement` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تصدير الكشف |\n\nThen poll exports; download_url lasts 24h.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"date_from\": \"2026-02-01\",\n    \"date_to\": \"2026-02-28\",\n    \"channel_id\": 1,\n    \"format\": \"pdf\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/account/summary",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/account/summary",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "account",
+                                "summary"
+                            ],
+                            "query": [
+                                {
+                                    "key": "month",
+                                    "value": "2026-03",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RT-051**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | ملخص الحساب |\n\nFrom daily snapshots, not a live join (TB-RT-070 / BR-AD-23)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/brands",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/brands",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "brands"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "filter[activity_type_id]",
+                                    "value": "3",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RT-015A**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | العلامات |"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/brands/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/brands/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "brands",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RT-015B**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | صفحة العلامة |"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/categories",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "categories"
+                            ],
+                            "query": [
+                                {
+                                    "key": "parent_id",
+                                    "value": "10",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "level",
+                                    "value": "2",
+                                    "disabled": false
+                                }
+                            ]
+                        },
+                        "description": "**EP-RT-011**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | الفئات |\n\nFiltered by the retailer activity type and selected categories."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/debts",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/debts",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "debts"
+                            ]
+                        },
+                        "description": "**EP-RT-054**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | الذمم |\n\nChannel name is visible here because invoices exist (after confirm)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/home",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/home",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "home"
+                            ]
+                        },
+                        "description": "**EP-RT-010**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | الرئيسية |\n\nSingle round-trip for the header (TB-RT-020). No five calls."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/payments",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/payments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "payments"
+                            ]
+                        },
+                        "description": "**EP-RT-050**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Permission | `rt.payment.record` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تسجيل دفعة |\n\nreceipt_no comes from the rep app. Duplicate → 409 always (REQ-IN-01).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"receipt_no\": \"RCPT-10041\",\n    \"rep_id\": 70,\n    \"supply_channel_id\": 1,\n    \"invoice_no\": \"INV-501\",\n    \"amount\": 48000\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/products",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/products",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "products"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "زيت",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[category_id]",
+                                    "value": "340",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[brand_id]",
+                                    "value": "12",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[offer_only]",
+                                    "value": "0",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "filter[available_only]",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "barcode",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RT-012**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | المنتجات |\n\navailability is in_stock|low|out_of_stock — never a stock number (REQ-IN-06, BR-02, BR-14). price.label is server-composed."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/products/{id}",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/products/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "products",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RT-013**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | تفاصيل منتج |\n\nsupply_channel is omitted while related orders are pending (REQ-IN-06)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/products/{id}/favorite",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/products/{{id}}/favorite",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "products",
+                                "{{id}}",
+                                "favorite"
+                            ]
+                        },
+                        "description": "**EP-RT-014**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | مفضلة |",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/reps/{id}/rate",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/reps/{{id}}/rate",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "reps",
+                                "{{id}}",
+                                "rate"
+                            ]
+                        },
+                        "description": "**EP-RT-045**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | تقييم المندوب |\n\ntags: fast|polite|intact|late|damaged",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"stars\": 5,\n    \"note\": \"سريع ومهذب\",\n    \"tags\": [\n        \"fast\",\n        \"polite\",\n        \"intact\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "GET /app/retailer/shortages",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/shortages",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "shortages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "25",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "**EP-RT-070A**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | n/a |\n| X-Client | `retailer-android` |\n| Name | النواقص |\n\nDOC-12A TB-RT-031. Synced via EP-SY-002."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "POST /app/retailer/shortages",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/shortages",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "shortages"
+                            ]
+                        },
+                        "description": "**EP-RT-070B**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | إضافة ناقص |\n\nDOC-12A TB-RT-031.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"product_id\": 880,\n    \"note\": \"نفد من الرف\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "DELETE /app/retailer/shortages/{id}",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept-Language",
+                                "value": "{{acceptLanguage}}"
+                            },
+                            {
+                                "key": "X-Client",
+                                "value": "{{client}}"
+                            },
+                            {
+                                "key": "X-App-Version",
+                                "value": "{{appVersion}}"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "X-Device-Id",
+                                "value": "{{deviceId}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Idempotency-Key",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/app/retailer/shortages/{{id}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "app",
+                                "retailer",
+                                "shortages",
+                                "{{id}}"
+                            ]
+                        },
+                        "description": "**EP-RT-070C**\n\n| | |\n|---|---|\n| Guard | `app` |\n| Idempotency | required |\n| X-Client | `retailer-android` |\n| Name | حذف ناقص |\n\nDOC-12A TB-RT-031."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

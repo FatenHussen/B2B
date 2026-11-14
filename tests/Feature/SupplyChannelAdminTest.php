@@ -18,6 +18,8 @@ use Modules\Reference\Domain\Models\Governorate;
 use Modules\Reference\Domain\Models\Zone;
 use Modules\Tenancy\Application\Jobs\ProvisionChannel;
 use Modules\Tenancy\Database\Seeders\ChannelPlanSeeder;
+use Modules\Tenancy\Domain\Enums\ChannelStatus;
+use Modules\Tenancy\Domain\Models\ChannelEvent;
 use Modules\Tenancy\Domain\Models\ChannelPlan;
 use Modules\Tenancy\Domain\Models\SupplyChannel;
 
@@ -114,14 +116,32 @@ it('blocks a channel manager from creating a channel', function () {
     expect(SupplyChannel::where('slug', 'x')->exists())->toBeFalse();
 });
 
-it('lets a platform admin delete a channel', function () {
-    $channel = SupplyChannel::factory()->create();
+it('lets a platform admin request deletion of an archived channel', function () {
+    config(['otp.bypass' => true]);
 
-    $admin = PlatformUser::factory()->create();
+    $admin = PlatformUser::factory()->create(['password' => 'password']);
     $admin->assignRole('platform_admin');
     Sanctum::actingAs($admin, ['*'], 'platform');
 
-    $this->deleteJson("/api/v1/platform/channels/{$channel->id}")->assertNoContent();
+    $channel = SupplyChannel::factory()->create(['status' => ChannelStatus::Archived]);
+    ChannelEvent::query()->create([
+        'channel_id' => $channel->id,
+        'from_status' => ChannelStatus::Suspended,
+        'to_status' => ChannelStatus::Archived,
+        'actor_type' => PlatformUser::class,
+        'actor_id' => $admin->id,
+        'reason' => 'Archive before deletion',
+        'at' => now()->subDays(31),
+    ]);
 
-    expect(SupplyChannel::find($channel->id))->toBeNull();
+    $this->deleteJson("/api/v1/platform/channels/{$channel->id}", [
+        'password_confirmation' => 'password',
+        'otp_code' => '123456',
+        'typed_name' => $channel->name,
+    ])->assertOk()
+        ->assertJsonStructure(['data' => ['deletion_request_id']]);
+
+    // The first admin opens the request; a second approver completes deletion.
+    expect($channel->fresh())->not->toBeNull()
+        ->and($channel->fresh()->trashed())->toBeFalse();
 });

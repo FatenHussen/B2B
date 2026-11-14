@@ -4,8 +4,8 @@
 |---|---|
 | التاريخ | 2026-11-03 |
 | الهدف | فصل **ما اكتمل في الشيفرة** عما يبقى **على السيرفر** قبل مستخدم حقيقي |
-| عقود العملاء | [`../DocsLast/platform.md`](../DocsLast/platform.md) · [`channel.md`](../DocsLast/channel.md) · [`warehouse.md`](../DocsLast/warehouse.md) · [`order-flow.md`](../DocsLast/order-flow.md) |
-| Postman | [`platform`](../DocsLast/platform.postman_collection.json) · [`channel`](../DocsLast/channel.postman_collection.json) · [`warehouse`](../DocsLast/warehouse.postman_collection.json) — مولَّد بـ `php docs/api/generate-dashboard-postman.php` |
+| عقود العملاء | [`../DocsLast/ALL.md`](../DocsLast/ALL.md) — منصة · قناة · مستودع · تاجر · مندوب · مشترك · order-flow |
+| Postman | خمس مجموعات في `DocsLast/` (platform·channel·warehouse·retailer·rep) + الكل في [`b2b-api.live.postman_collection.json`](../api/b2b-api.live.postman_collection.json) |
 
 ---
 
