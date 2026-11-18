@@ -21,6 +21,7 @@ use Modules\Catalog\Domain\Models\ProductVariant;
 use Modules\Catalog\Domain\Models\ProductVariantAxis;
 use Modules\Catalog\Domain\Models\ProductVariantAxisValue;
 use Modules\Catalog\Domain\Models\ProductZone;
+use Modules\Core\Support\Tenant;
 
 /**
  * Brands, the category tree and a working FMCG catalog for the demo channel.
@@ -127,6 +128,19 @@ final class DemoCatalogSeeder extends DemoSeeder
     private const VARIANTS = ['sku' => 'SHP', 'axis' => 'الحجم', 'values' => ['200 مل', '400 مل']];
 
     public function run(): void
+    {
+        if (Tenant::currentId() === null) {
+            foreach ($this->catalogChannelIds() as $channelId) {
+                Tenant::as($channelId, fn () => $this->seedCurrentChannel());
+            }
+
+            return;
+        }
+
+        $this->seedCurrentChannel();
+    }
+
+    private function seedCurrentChannel(): void
     {
         $this->seedBrands();
         $this->seedCategories();

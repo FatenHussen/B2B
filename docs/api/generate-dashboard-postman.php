@@ -68,7 +68,7 @@ $manual = [
     ],
     'POST /public/auth/verify-otp' => [
         'otp_id' => '{{otp_id}}',
-        'code' => '0000',
+        'code' => '000000',
         'device_id' => '{{deviceId}}',
         'device_name' => 'Postman',
         'platform' => 'android',
@@ -208,7 +208,7 @@ $surfaces = [
         'name' => 'B2B Retailer app (تطبيق التاجر)',
         'client' => 'retailer-android',
         'env' => 'docs/api/environments/retailer-android.postman_environment.json',
-        'seed' => 'public OTP → kind retailer — local code 0000 when bypass',
+        'seed' => 'DemoSeeder retailer `+963931000001` — OTP `000000` when bypass / local zeros',
         'match' => static function (string $path): bool {
             return $path === '/health'
                 || str_starts_with($path, '/public/')
@@ -223,14 +223,14 @@ $surfaces = [
                 || str_starts_with($path, '/app/loyalty')
                 || str_starts_with($path, '/app/retailer/');
         },
-        'variables' => $mobileVars('retailer-android', '+963911000001'),
+        'variables' => $mobileVars('retailer-android', '+963931000001'),
     ],
     'rep' => [
         'file' => 'rep.postman_collection.json',
         'name' => 'B2B Rep app (تطبيق المندوب)',
         'client' => 'rep-android',
         'env' => 'docs/api/environments/rep-android.postman_environment.json',
-        'seed' => 'public OTP → kind rep — local code 0000 when bypass',
+        'seed' => 'DemoSeeder rep `+963932000001` — OTP `000000` when bypass / local zeros',
         'match' => static function (string $path): bool {
             return $path === '/health'
                 || str_starts_with($path, '/public/')
@@ -246,7 +246,7 @@ $surfaces = [
                 || str_starts_with($path, '/app/receipts')
                 || str_starts_with($path, '/app/rep/');
         },
-        'variables' => $mobileVars('rep-android', '+963922000001'),
+        'variables' => $mobileVars('rep-android', '+963932000001'),
     ],
 ];
 
@@ -298,14 +298,28 @@ $counts = [];
 foreach ($surfaces as $key => $cfg) {
     $tree = [];
     foreach ($buckets[$key] as $req) {
-        $folder = $req['_folder'];
+        $folder = (string) $req['_folder'];
         unset($req['_folder']);
         $tree[$folder][] = $req;
     }
     ksort($tree);
     $items = [];
     foreach ($tree as $folder => $reqs) {
-        $items[] = ['name' => $folder, 'item' => $reqs];
+        usort($reqs, static function (array $a, array $b): int {
+            $sa = (string) ($a['_sort'] ?? $a['name']);
+            $sb = (string) ($b['_sort'] ?? $b['name']);
+
+            return $sa <=> $sb ?: strcmp((string) $a['name'], (string) $b['name']);
+        });
+        foreach ($reqs as &$r) {
+            unset($r['_sort']);
+        }
+        unset($r);
+        $items[] = [
+            'name' => $folder,
+            'description' => folderDescription($folder, $key),
+            'item' => $reqs,
+        ];
     }
 
     $n = count($buckets[$key]);
@@ -327,7 +341,8 @@ foreach ($surfaces as $key => $cfg) {
                 '| Seed | '.$cfg['seed'].' |',
                 '',
                 'Import this file **and** the matching environment. `baseUrl` is the host only (no `/api/v1`).',
-                'Do not mix tokens across platform / channel / warehouse collections.',
+                'Each request ships saved **Examples** (success + catalog error codes) under the Examples tab.',
+                'Do not mix tokens across platform / channel / warehouse / app collections.',
                 '',
                 'Contract briefs: `docs/DocsLast/'.$key.'.md` · order flow: `docs/DocsLast/order-flow.md`',
                 '',
@@ -407,8 +422,11 @@ function folderOf(string $path): string
     if (str_starts_with($path, '/platform/notifications')) {
         return '08. Notifications';
     }
-    if (str_starts_with($path, '/platform/content') || str_starts_with($path, '/platform/app-versions') || str_starts_with($path, '/public/app-config')) {
+    if (str_starts_with($path, '/platform/content') || str_starts_with($path, '/platform/app-versions')) {
         return '09. Content & apps';
+    }
+    if (str_starts_with($path, '/public/app-config')) {
+        return '00. Public';
     }
     if (str_starts_with($path, '/platform/features') || str_starts_with($path, '/platform/feature-flags')) {
         return '10. Features';
@@ -503,6 +521,9 @@ function folderOf(string $path): string
     if (str_starts_with($path, '/public/auth')) {
         return '00. Public OTP';
     }
+    if ($path === '/public/refs') {
+        return '00. Public refs';
+    }
     if (str_starts_with($path, '/public/')) {
         return '00. Public';
     }
@@ -524,42 +545,162 @@ function folderOf(string $path): string
     if (str_starts_with($path, '/app/retailer/register') || str_starts_with($path, '/app/rep/register')) {
         return '06. Registration';
     }
+    if (str_starts_with($path, '/app/retailer/home') || str_starts_with($path, '/app/retailer/categories')
+        || str_starts_with($path, '/app/retailer/products') || str_starts_with($path, '/app/retailer/brands')
+        || str_starts_with($path, '/app/retailer/shortages') || str_starts_with($path, '/app/retailer/reps')) {
+        return '07. Catalog & home';
+    }
     if (str_starts_with($path, '/app/retailer/cart') || str_starts_with($path, '/app/rep/cart')) {
-        return '07. Cart';
+        return '08. Cart';
     }
     if (str_starts_with($path, '/app/retailer/orders')) {
-        return '08. Orders & shortage (order-flow)';
+        return '09. Orders & shortage (order-flow)';
     }
     if (str_starts_with($path, '/app/retailer/receipts') || str_starts_with($path, '/app/retailer/return')) {
-        return '09. Receiving & returns';
+        return '10. Receiving & returns';
     }
     if (str_starts_with($path, '/app/retailer/')) {
-        return '10. Retailer other';
+        return '11. Retailer other';
+    }
+    if (str_starts_with($path, '/app/rep/status') || str_starts_with($path, '/app/rep/zones')
+        || str_starts_with($path, '/app/rep/customers') || str_starts_with($path, '/app/rep/products')) {
+        return '07. Duty · zones · catalog';
     }
     if (str_starts_with($path, '/app/rep/assignments') || str_starts_with($path, '/app/rep/scheduled')) {
-        return '08. Assignments';
+        return '09. Assignments';
     }
     if (str_starts_with($path, '/app/rep/warehouse-receipts')) {
-        return '09. Warehouse pickup';
+        return '10. Warehouse pickup';
     }
     if (str_starts_with($path, '/app/rep/deliveries') || str_starts_with($path, '/app/rep/locations')) {
-        return '10. Delivery';
+        return '11. Delivery';
     }
     if (str_starts_with($path, '/app/rep/return')) {
-        return '11. Returns';
+        return '12. Returns';
     }
     if (str_starts_with($path, '/app/rep/payments') || str_starts_with($path, '/app/rep/wallet')
         || str_starts_with($path, '/app/rep/receivables') || str_starts_with($path, '/app/receipts')) {
-        return '12. Wallet & cash';
+        return '13. Wallet & cash';
     }
     if (str_starts_with($path, '/app/rep/')) {
-        return '13. Rep other';
+        return '14. Rep other';
     }
     if (str_starts_with($path, '/app/')) {
-        return '14. Shared app';
+        return '15. Shared app';
     }
 
     return '99. Other';
+}
+
+function folderDescription(string $folder, string $surface): string
+{
+    $lines = [
+        'Surface: **'.$surface.'** · Folder: `'.$folder.'`',
+        '',
+        'Run Auth first so `token` / `otp_id` are saved. Writes need `X-Idempotency-Key` unless the request marks exempt.',
+        'Examples under each request are catalog samples (success envelope + known error codes), not a live recording.',
+    ];
+
+    return implode("\n", $lines);
+}
+
+/**
+ * @param  array<string, mixed>  $request
+ * @param  array<string, mixed>|null  $endpoint
+ * @return list<array<string, mixed>>
+ */
+function exampleResponses(array $request, ?array $endpoint): array
+{
+    if ($endpoint === null) {
+        return [];
+    }
+
+    $out = [];
+    if (array_key_exists('response', $endpoint) && $endpoint['response'] !== null) {
+        $data = $endpoint['response'];
+        $meta = ['server_time' => '2026-11-18T12:00:00+03:00'];
+        if (is_array($data) && array_is_list($data)) {
+            $meta = [
+                'page' => 1,
+                'per_page' => 25,
+                'total' => count($data),
+                'last_page' => 1,
+                'server_time' => '2026-11-18T12:00:00+03:00',
+            ];
+        }
+        $code = (string) ($endpoint['code'] ?? 'example');
+        $out[] = savedExample($request, 200, 'OK', '200 '.$code, [
+            'data' => $data,
+            'meta' => $meta,
+        ]);
+    }
+
+    foreach ($endpoint['errors'] ?? [] as $status => $errorCode) {
+        if (! is_scalar($errorCode)) {
+            continue;
+        }
+        $status = (int) $status;
+        $out[] = savedExample($request, $status, httpStatusText($status), $status.' '.$errorCode, [
+            'error' => [
+                'code' => (string) $errorCode,
+                'message' => (string) $errorCode,
+                'details' => new stdClass,
+            ],
+        ]);
+    }
+
+    return $out;
+}
+
+function httpStatusText(int $status): string
+{
+    return match ($status) {
+        200 => 'OK',
+        201 => 'Created',
+        401 => 'Unauthorized',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        409 => 'Conflict',
+        422 => 'Unprocessable Entity',
+        423 => 'Locked',
+        426 => 'Upgrade Required',
+        429 => 'Too Many Requests',
+        503 => 'Service Unavailable',
+        default => 'Error',
+    };
+}
+
+/**
+ * @param  array<string, mixed>  $request
+ * @param  array<string, mixed>  $payload
+ * @return array<string, mixed>
+ */
+function savedExample(array $request, int $status, string $statusText, string $name, array $payload): array
+{
+    return [
+        'name' => $name,
+        'originalRequest' => $request,
+        'status' => $statusText,
+        'code' => $status,
+        '_postman_previewlanguage' => 'json',
+        'header' => [
+            ['key' => 'Content-Type', 'value' => 'application/json'],
+        ],
+        'cookie' => [],
+        'body' => json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+    ];
+}
+
+function methodSortRank(string $method): string
+{
+    return match (strtoupper($method)) {
+        'GET' => '1',
+        'POST' => '2',
+        'PUT' => '3',
+        'PATCH' => '4',
+        'DELETE' => '5',
+        default => '9',
+    };
 }
 
 function buildRequest(
@@ -633,8 +774,12 @@ function buildRequest(
         }
     }
 
+    $epCode = is_array($e) ? (string) ($e['code'] ?? '') : '';
+    $nameAr = is_array($e) ? (string) ($e['name_ar'] ?? '') : '';
+    $nameEn = is_array($e) ? (string) ($e['name'] ?? '') : '';
+
     $desc = [];
-    $desc[] = '**'.($e['code'] ?? 'no EP-ID').'**';
+    $desc[] = '**'.($epCode !== '' ? $epCode : 'no EP-ID').'** · `'.$method.' '.$path.'`';
     $desc[] = '';
     $desc[] = '| | |';
     $desc[] = '|---|---|';
@@ -647,48 +792,87 @@ function buildRequest(
     }
     $desc[] = '| Idempotency | '.($isWrite ? (in_array($uri, $exempt, true) ? '**exempt**' : 'required') : 'n/a').' |';
     $desc[] = '| X-Client | `'.$client.'` |';
-    if ($e !== null && ! empty($e['name_ar'])) {
-        $desc[] = '| Name | '.$e['name_ar'].' |';
+    if ($nameAr !== '') {
+        $desc[] = '| Name | '.$nameAr.' |';
+    } elseif ($nameEn !== '') {
+        $desc[] = '| Name | '.$nameEn.' |';
     }
     if ($e !== null && ! empty($e['description'])) {
         $desc[] = '';
         $desc[] = (string) $e['description'];
     }
+    if ($e !== null && array_key_exists('response', $e) && $e['response'] !== null) {
+        $desc[] = '';
+        $desc[] = '**Example response `data`:**';
+        $desc[] = '```json';
+        $desc[] = json_encode($e['response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $desc[] = '```';
+    }
+    if ($e !== null && ! empty($e['errors']) && is_array($e['errors'])) {
+        $parts = [];
+        foreach ($e['errors'] as $status => $code) {
+            if (is_scalar($code)) {
+                $parts[] = '`'.$status.'` '.$code;
+            }
+        }
+        if ($parts !== []) {
+            $desc[] = '';
+            $desc[] = '**Errors:** '.implode(' · ', $parts);
+        }
+    }
+
+    $display = $method.' '.$path;
+    if ($epCode !== '' && $nameAr !== '') {
+        $display = $epCode.' · '.$nameAr;
+    } elseif ($epCode !== '' && $nameEn !== '') {
+        $display = $epCode.' · '.$nameEn;
+    } elseif ($nameAr !== '') {
+        $display = $method.' · '.$nameAr;
+    }
+
+    $requestPayload = [
+        'method' => $method,
+        'header' => $headers,
+        'url' => [
+            'raw' => '{{baseUrl}}/'.$urlPath.($query !== [] ? '?' : ''),
+            'host' => ['{{baseUrl}}'],
+            'path' => explode('/', $urlPath),
+        ] + ($query !== [] ? ['query' => $query] : []),
+        'description' => implode("\n", $desc),
+    ] + ($body ? ['body' => $body] : []);
 
     $req = [
         '_folder' => folderOf($path),
-        'name' => $method.' '.$path,
-        'request' => [
-            'method' => $method,
-            'header' => $headers,
-            'url' => [
-                'raw' => '{{baseUrl}}/'.$urlPath,
-                'host' => ['{{baseUrl}}'],
-                'path' => explode('/', $urlPath),
-            ] + ($query !== [] ? ['query' => $query] : []),
-            'description' => implode("\n", $desc),
-        ] + ($body ? ['body' => $body] : []),
-        'response' => [],
+        '_sort' => methodSortRank($method).'|'.$path.'|'.$method,
+        'name' => $display,
+        'request' => $requestPayload,
+        'response' => exampleResponses($requestPayload, $e),
     ];
 
-    $captureToken = str_contains($path, '/auth/login')
+    $captureAuth = str_contains($path, '/auth/login')
         || str_contains($path, '/auth/verify-otp')
         || str_contains($path, '/auth/device-login')
         || str_contains($path, '/auth/2fa/verify');
+    $captureOtp = str_ends_with($path, '/auth/request-otp') || str_ends_with($path, '/auth/resend-otp');
 
-    if ($captureToken) {
+    if ($captureAuth || $captureOtp) {
+        $exec = [
+            'const j = pm.response.json();',
+            'const d = j.data || {};',
+            'const store = pm.environment.name ? pm.environment : pm.collectionVariables;',
+        ];
+        if ($captureOtp || $captureAuth) {
+            $exec[] = "if (d.otp_id) { store.set('otp_id', String(d.otp_id)); console.log('otp_id saved'); }";
+        }
+        if ($captureAuth) {
+            $exec[] = "if (d.token) { store.set('token', d.token); console.log('token saved'); }";
+            $exec[] = "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }";
+        }
         $req['event'] = [[
             'listen' => 'test',
             'script' => [
                 'type' => 'text/javascript',
-                'exec' => [
-                    'const j = pm.response.json();',
-                    'const d = j.data || {};',
-                    'const store = pm.environment.name ? pm.environment : pm.collectionVariables;',
-                    "if (d.token) { store.set('token', d.token); }",
-                    "if (d.challenge_token) { store.set('challenge_token', d.challenge_token); }",
-                    "if (d.otp_id) { store.set('otp_id', String(d.otp_id)); }",
-                ],
+                'exec' => $exec,
             ],
         ]];
     }
