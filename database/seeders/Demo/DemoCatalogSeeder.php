@@ -6,6 +6,7 @@ namespace Database\Seeders\Demo;
 
 use Modules\Catalog\Domain\Enums\BrandStatus;
 use Modules\Catalog\Domain\Enums\CategoryStatus;
+use Modules\Catalog\Domain\Enums\ProductMediaRole;
 use Modules\Catalog\Domain\Enums\ProductStatus;
 use Modules\Catalog\Domain\Models\Brand;
 use Modules\Catalog\Domain\Models\BrandActivityType;
@@ -13,6 +14,7 @@ use Modules\Catalog\Domain\Models\Category;
 use Modules\Catalog\Domain\Models\CategoryActivityType;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Catalog\Domain\Models\ProductActivityType;
+use Modules\Catalog\Domain\Models\ProductMedia;
 use Modules\Catalog\Domain\Models\ProductSliderTag;
 use Modules\Catalog\Domain\Models\ProductSpec;
 use Modules\Catalog\Domain\Models\ProductVariant;
@@ -142,6 +144,13 @@ final class DemoCatalogSeeder extends DemoSeeder
                 ['name_en' => $en, 'order' => $i + 1, 'status' => BrandStatus::from($status)],
             );
 
+            if ($brand->logo_media_id === null && $status === 'active') {
+                $brand->forceFill([
+                    'logo_media_id' => $this->demoImageMediaId('brand-'.$en, 512, 512),
+                    'banner_media_id' => $this->demoImageMediaId('brand-banner-'.$en, 1200, 400),
+                ])->save();
+            }
+
             foreach ($activityTypeIds as $activityTypeId) {
                 BrandActivityType::query()->firstOrCreate([
                     'brand_id' => $brand->id,
@@ -241,7 +250,32 @@ final class DemoCatalogSeeder extends DemoSeeder
             foreach ($row['sliders'] ?? [] as $key) {
                 ProductSliderTag::query()->firstOrCreate(['product_id' => $product->id, 'slider_key' => $key]);
             }
+
+            $this->seedProductImages($product, $row['sku']);
         }
+    }
+
+    private function seedProductImages(Product $product, string $sku): void
+    {
+        if (ProductMedia::query()->where('product_id', $product->id)->exists()) {
+            return;
+        }
+
+        $primaryId = $this->demoImageMediaId('product-'.$sku);
+        ProductMedia::query()->create([
+            'product_id' => $product->id,
+            'media_id' => $primaryId,
+            'role' => ProductMediaRole::Primary,
+            'order' => 0,
+        ]);
+
+        // Second angle so product detail `images[]` is not a single frame.
+        ProductMedia::query()->create([
+            'product_id' => $product->id,
+            'media_id' => $this->demoImageMediaId('product-'.$sku.'-alt'),
+            'role' => ProductMediaRole::Image,
+            'order' => 1,
+        ]);
     }
 
     private function seedVariants(): void
@@ -261,7 +295,7 @@ final class DemoCatalogSeeder extends DemoSeeder
 
             $sku = $product->sku.'-'.preg_replace('/\s+/', '', $value);
 
-            ProductVariant::query()->firstOrCreate(
+            $variant = ProductVariant::query()->firstOrCreate(
                 ['product_id' => $product->id, 'sku' => $sku],
                 [
                     'barcode' => $product->barcode.'-'.($j + 1),
@@ -269,6 +303,12 @@ final class DemoCatalogSeeder extends DemoSeeder
                     'status' => 'active',
                 ],
             );
+
+            if ($variant->image_media_id === null) {
+                $variant->forceFill([
+                    'image_media_id' => $this->demoImageMediaId('variant-'.$sku),
+                ])->save();
+            }
         }
     }
 }

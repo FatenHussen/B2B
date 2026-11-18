@@ -6,6 +6,7 @@ namespace Database\Seeders\Demo;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Domain\Models\ChannelMediaLibrary;
 use Modules\Catalog\Domain\Models\Product;
 use Modules\Core\Support\Tenant;
 use Modules\Identity\Domain\Models\AppUser;
@@ -19,6 +20,7 @@ use Modules\Reference\Domain\Models\SaleUnit;
 use Modules\Reference\Domain\Models\Zone;
 use Modules\Tenancy\Domain\Models\Warehouse;
 use RuntimeException;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Shared lookups for the demo seeders.
@@ -190,5 +192,96 @@ abstract class DemoSeeder extends Seeder
     protected function baseCurrencyId(): int
     {
         return (int) Currency::query()->where('is_base', true)->firstOrFail()->id;
+    }
+
+    /**
+     * A channel-scoped Spatie image the catalog and offers can point at.
+     *
+     * Keyed by `demo-{key}` on the channel library so a second seed finds the same
+     * row instead of writing another file. Colours come from the key so product and
+     * offer cards do not all look identical in the rep/retailer apps.
+     */
+    protected function demoImageMediaId(string $key, int $width = 640, int $height = 640): int
+    {
+        $library = ChannelMediaLibrary::query()->firstOrCreate(
+            ['supply_channel_id' => $this->channelId()],
+            [],
+        );
+
+        $name = 'demo-'.$key;
+        $existingId = Media::query()
+            ->where('model_type', $library->getMorphClass())
+            ->where('model_id', $library->id)
+            ->where('collection_name', 'image')
+            ->where('name', $name)
+            ->value('id');
+
+        if ($existingId !== null) {
+            return (int) $existingId;
+        }
+
+        $fileStem = 'demo-'.preg_replace('/[^A-Za-z0-9_-]+/', '-', $key);
+        $path = $this->writeDemoJpeg($fileStem, $width, $height, $key);
+
+        try {
+            $media = $library
+                ->addMedia($path)
+                ->usingName($name)
+                ->usingFileName($fileStem.'.jpg')
+                ->withCustomProperties([
+                    'width' => $width,
+                    'height' => $height,
+                    'demo_key' => $key,
+                ])
+                ->toMediaCollection('image');
+        } finally {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+
+        return (int) $media->id;
+    }
+
+    private function writeDemoJpeg(string $fileStem, int $width, int $height, string $key): string
+    {
+        $image = imagecreatetruecolor($width, $height);
+        if ($image === false) {
+            throw new RuntimeException('GD could not allocate a demo image.');
+        }
+
+        $hash = crc32($key);
+        $r = 40 + ($hash & 0x7F);
+        $g = 40 + (($hash >> 8) & 0x7F);
+        $b = 40 + (($hash >> 16) & 0x7F);
+        $bg = imagecolorallocate($image, $r, $g, $b);
+        $fg = imagecolorallocate($image, 255, 255, 255);
+        $band = imagecolorallocate($image, max(0, $r - 30), max(0, $g - 30), max(0, $b - 30));
+        if ($bg === false || $fg === false || $band === false) {
+            imagedestroy($image);
+            throw new RuntimeException('GD could not allocate demo colours.');
+        }
+
+        imagefilledrectangle($image, 0, 0, $width, $height, $bg);
+        imagefilledrectangle($image, 0, (int) ($height * 0.72), $width, $height, $band);
+
+        $label = strtoupper(substr(preg_replace('/[^A-Za-z0-9_-]+/', '-', $key) ?? $key, 0, 18));
+        imagestring($image, 5, 24, (int) ($height * 0.78), $label, $fg);
+        imagestring($image, 3, 24, 28, 'B2B DEMO', $fg);
+
+        $dir = storage_path('app/demo-seed');
+        if (! is_dir($dir) && ! mkdir($dir, 0755, true) && ! is_dir($dir)) {
+            imagedestroy($image);
+            throw new RuntimeException("Could not create {$dir}");
+        }
+
+        $path = $dir.DIRECTORY_SEPARATOR.$fileStem.'.jpg';
+        if (! imagejpeg($image, $path, 85)) {
+            imagedestroy($image);
+            throw new RuntimeException("Could not write {$path}");
+        }
+        imagedestroy($image);
+
+        return $path;
     }
 }

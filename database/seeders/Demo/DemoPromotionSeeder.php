@@ -11,6 +11,7 @@ use Modules\Promotion\Domain\Enums\TargetingScope;
 use Modules\Promotion\Domain\Models\Offer;
 use Modules\Promotion\Domain\Models\OfferActivityType;
 use Modules\Promotion\Domain\Models\OfferComponent;
+use Modules\Promotion\Domain\Models\OfferMedia;
 use Modules\Promotion\Domain\Models\OfferRedemption;
 use Modules\Promotion\Domain\Models\OfferReward;
 use Modules\Promotion\Domain\Models\OfferZone;
@@ -25,7 +26,7 @@ use Modules\Promotion\Domain\Models\OfferZone;
 final class DemoPromotionSeeder extends DemoSeeder
 {
     /**
-     * @var list<array{name: string, type: string, status: string, description: string, stackable: bool, priority: int, starts: int, ends: int|null, total_qty: int|null, per_retailer: int|null, per_order: int|null, min_invoice: int, min_items: int|null, scope: string, rules: array<string, int>|null, components: array<string, int>, reward: array{product?: string, qty?: int, percent?: int, amount?: int}, zones?: list<array{0: string, 1: string}>, activities?: list<string>, redeemed?: array{0: int, 1: int}, stop_reason?: string}>
+     * @var list<array{name: string, type: string, status: string, description: string, stackable: bool, priority: int, starts: int, ends: int|null, total_qty: int|null, per_retailer: int|null, per_order: int|null, min_invoice: int, min_items: int|null, scope: string, rules: array<string, int|list<string>>|null, components: array<string, int>, reward: array{product?: string, qty?: int, percent?: int, amount?: int}, zones?: list<array{0: string, 1: string}>, activities?: list<string>, redeemed?: array{0: int, 1: int}, stop_reason?: string, display?: array{rating: float, rating_count: int, sold_count: int}, image_key?: string}>
      */
     private const OFFERS = [
         [
@@ -43,10 +44,12 @@ final class DemoPromotionSeeder extends DemoSeeder
             'min_invoice' => 0,
             'min_items' => null,
             'scope' => 'all',
-            'rules' => null,
+            'rules' => ['terms' => ['يسري على عبوة 1 ل فقط', 'لا يجتمع مع عروض أخرى على الزيت']],
             'components' => ['OIL-1L' => 1],
             'reward' => ['product' => 'OIL-1L', 'qty' => 1, 'percent' => 10],
             'redeemed' => [37, 412],
+            'display' => ['rating' => 4.8, 'rating_count' => 214, 'sold_count' => 412],
+            'image_key' => 'offer-oil-10',
         ],
         [
             'name' => 'اشترِ 10 سكر واحصل على 1 مجاناً',
@@ -63,10 +66,12 @@ final class DemoPromotionSeeder extends DemoSeeder
             'min_invoice' => 0,
             'min_items' => 10,
             'scope' => 'all',
-            'rules' => ['buy_qty' => 10, 'get_qty' => 1],
+            'rules' => ['buy_qty' => 10, 'get_qty' => 1, 'terms' => ['الكيس المجاني من نفس الصنف', 'الحد الأقصى 5 مرات في الطلب']],
             'components' => ['SUG-1KG' => 10],
             'reward' => ['product' => 'SUG-1KG', 'qty' => 1],
             'redeemed' => [58, 58],
+            'display' => ['rating' => 4.6, 'rating_count' => 98, 'sold_count' => 58],
+            'image_key' => 'offer-sugar-bxgy',
         ],
         [
             'name' => 'خصم 25,000 ل.س على فواتير فوق 500,000',
@@ -83,10 +88,12 @@ final class DemoPromotionSeeder extends DemoSeeder
             'min_invoice' => 500_000,
             'min_items' => null,
             'scope' => 'all',
-            'rules' => null,
+            'rules' => ['terms' => ['مرة واحدة لكل طلب', 'يُحسب بعد خصومات الأصناف']],
             'components' => [],
             'reward' => ['amount' => 25_000],
             'redeemed' => [12, 12],
+            'display' => ['rating' => 4.4, 'rating_count' => 41, 'sold_count' => 12],
+            'image_key' => 'offer-invoice-25k',
         ],
         [
             'name' => 'باقة الإفطار',
@@ -103,11 +110,13 @@ final class DemoPromotionSeeder extends DemoSeeder
             'min_invoice' => 0,
             'min_items' => 3,
             'scope' => 'zones',
-            'rules' => null,
+            'rules' => ['terms' => ['المكونات الثلاثة معاً', 'مناطق دمشق المحددة فقط']],
             'components' => ['CHZ-500' => 1, 'LAB-500' => 1, 'MILK-1L' => 1],
             'reward' => ['percent' => 8],
             'zones' => [['DI', 'المزة'], ['DI', 'المالكي'], ['DI', 'كفرسوسة'], ['DI', 'الميدان']],
             'redeemed' => [21, 63],
+            'display' => ['rating' => 4.7, 'rating_count' => 156, 'sold_count' => 63],
+            'image_key' => 'offer-breakfast-bundle',
         ],
         [
             'name' => 'خصم متدرج على الشاي',
@@ -124,9 +133,10 @@ final class DemoPromotionSeeder extends DemoSeeder
             'min_invoice' => 0,
             'min_items' => 6,
             'scope' => 'all',
-            'rules' => null,
+            'rules' => ['terms' => ['يُفعّل بعد موافقة المدير']],
             'components' => ['TEA-500' => 6],
             'reward' => ['product' => 'TEA-500', 'qty' => 6, 'percent' => 5],
+            'image_key' => 'offer-tea-tiered',
         ],
         [
             'name' => 'هدية شيبس مع كل كرتونة كولا',
@@ -143,11 +153,13 @@ final class DemoPromotionSeeder extends DemoSeeder
             'min_invoice' => 0,
             'min_items' => 24,
             'scope' => 'all',
-            'rules' => ['buy_qty' => 24, 'get_qty' => 1],
+            'rules' => ['buy_qty' => 24, 'get_qty' => 1, 'terms' => ['الهدية مع الكرتونة الكاملة فقط']],
             'components' => ['COLA-330' => 24],
             'reward' => ['product' => 'CHIPS-50', 'qty' => 1],
             'activities' => ['سوبر ماركت', 'بقالة'],
             'redeemed' => [44, 44],
+            'display' => ['rating' => 4.5, 'rating_count' => 77, 'sold_count' => 44],
+            'image_key' => 'offer-cola-chips',
         ],
         [
             'name' => 'خصم الصيف على العصائر',
@@ -168,6 +180,7 @@ final class DemoPromotionSeeder extends DemoSeeder
             'components' => ['JUICE-ORG-1L' => 1],
             'reward' => ['product' => 'JUICE-ORG-1L', 'qty' => 1, 'percent' => 15],
             'redeemed' => [188, 1_000],
+            'image_key' => 'offer-juice-summer',
         ],
         [
             'name' => 'خصم المنظفات',
@@ -189,6 +202,7 @@ final class DemoPromotionSeeder extends DemoSeeder
             'reward' => ['product' => 'DET-3KG', 'qty' => 1, 'amount' => 5_000],
             'redeemed' => [100, 100],
             'stop_reason' => 'نفاد الكمية المخصصة للعرض',
+            'image_key' => 'offer-detergent',
         ],
     ];
 
@@ -224,11 +238,24 @@ final class DemoPromotionSeeder extends DemoSeeder
                     'min_items' => $row['min_items'],
                     'targeting_scope' => TargetingScope::from($row['scope']),
                     'rules' => $row['rules'],
+                    'display' => $row['display'] ?? null,
                     'stop_reason' => $row['stop_reason'] ?? null,
                 ],
             );
             if ($offer->wasRecentlyCreated || $offer->status === null) {
                 $offer->forceFill(['status' => OfferStatus::from($row['status'])])->save();
+            }
+
+            // Fill display / terms on an older seed that only had the offer shell.
+            $patch = [];
+            if ($offer->display === null && isset($row['display'])) {
+                $patch['display'] = $row['display'];
+            }
+            if (($offer->rules === null || $offer->rules === []) && $row['rules'] !== null) {
+                $patch['rules'] = $row['rules'];
+            }
+            if ($patch !== []) {
+                $offer->forceFill($patch)->save();
             }
 
             foreach ($row['components'] as $sku => $qty) {
@@ -269,6 +296,14 @@ final class DemoPromotionSeeder extends DemoSeeder
                     ['offer_id' => $offer->id],
                     ['applied_count' => $applied, 'qty_consumed' => $consumed],
                 );
+            }
+
+            if (isset($row['image_key']) && ! OfferMedia::query()->where('offer_id', $offer->id)->exists()) {
+                OfferMedia::query()->create([
+                    'offer_id' => $offer->id,
+                    'media_id' => $this->demoImageMediaId($row['image_key'], 800, 600),
+                    'order' => 0,
+                ]);
             }
         }
     }
