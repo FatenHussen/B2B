@@ -17,7 +17,7 @@
 | 1 | سوبر أدمن (منصة) | `platform` | [`platform.md`](platform.md) | [`platform.postman_collection.json`](platform.postman_collection.json) | [`01`](../status/01-platform-admin.md) | 174 |
 | 2 | قناة توريد | `channel` | [`channel.md`](channel.md) | [`channel.postman_collection.json`](channel.postman_collection.json) | [`02`](../status/02-channel-dashboard.md) | 124 |
 | 3 | مستودع | `warehouse` | [`warehouse.md`](warehouse.md) | [`warehouse.postman_collection.json`](warehouse.postman_collection.json) | [`03`](../status/03-warehouse.md) | 32 |
-| 4 | تطبيق التاجر | `app` + `retailer` | [`retailer.md`](retailer.md) · عمق UI [`flutter-retailer.md`](flutter-retailer.md) | [`retailer.postman_collection.json`](retailer.postman_collection.json) | [`04`](../status/04-retailer-app.md) | 35 |
+| 4 | تطبيق التاجر | `app` + `retailer` | [`flutter-retailer.md`](flutter-retailer.md) · ملخص [`retailer.md`](retailer.md) | [`retailer.postman_collection.json`](retailer.postman_collection.json) | [`04`](../status/04-retailer-app.md) | 37 |
 | 5 | تطبيق المندوب | `app` + `rep` | [`rep.md`](rep.md) · عمق UI [`flutter-rep.md`](flutter-rep.md) | [`rep.postman_collection.json`](rep.postman_collection.json) | [`05`](../status/05-rep-app.md) | 40 |
 | — | مشترك التطبيقين | `app` | داخل retailer/rep + [`shared.md`](shared.md) | ضمن مجموعات الموبايل | [`06`](../status/06-shared-app.md) | 18 |
 | — | عام (بلا حارس) | — | [`shared.md`](shared.md) | ضمن الموبايل / القناة | [`07`](../status/07-public.md) | 6 |
@@ -31,10 +31,10 @@
 
 | تريد… | اقرأ |
 |---|---|
-| لوحة Next/Vite منصة | `platform.md` + Postman platform + env `platform-web` |
-| لوحة قناة | `channel.md` + §0B order-flow + Postman channel |
+| لوحة Next/Vite منصة | `platform.md` (§9B ما يصل للتاجر والمندوب) + Postman platform + env `platform-web` |
+| لوحة قناة | `channel.md` + §0B order-flow + §0C حقول التاجر/المندوب + Postman channel |
 | لوحة مستودع أرضية | `warehouse.md` + §5 order-flow + Postman warehouse |
-| Flutter تاجر | `retailer.md` ثم `flutter-retailer.md` للتفاصيل |
+| Flutter تاجر | [`flutter-retailer.md`](flutter-retailer.md) |
 | Flutter مندوب | `rep.md` ثم `flutter-rep.md` / `flutter-rep-field.md` |
 | تسلسل طلب كامل بين الأطراف | `order-flow.md` أولاً |
 | كل الطلبات في Postman واحد | `../api/b2b-api.live.postman_collection.json` |

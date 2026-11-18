@@ -44,6 +44,7 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
         Route::get('products', [RetailerCatalogController::class, 'products']);
         Route::get('products/{id}', [RetailerCatalogController::class, 'showProduct']);
         Route::post('products/{id}/favorite', [RetailerCatalogController::class, 'favorite']);
+        Route::get('favorites', [RetailerCatalogController::class, 'favorites']);
         Route::get('brands', [RetailerCatalogController::class, 'brands']);
         Route::get('brands/{id}', [RetailerCatalogController::class, 'showBrand']);
         Route::get('shortages', [RetailerCatalogController::class, 'shortages']);

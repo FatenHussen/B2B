@@ -1,10 +1,10 @@
 # المشترك بين التطبيقين — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آلياً في 2026-11-03 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آلياً في 2026-11-17 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 18 | 18 | 0 | 0 | 0 |
+| 19 | 19 | 0 | 0 | 0 |
 
 ## الجلسة — 2/2
 
@@ -13,13 +13,14 @@ guard `app` · prefix `/api/v1/app/*` (بلا retailer/rep) · مولَّد آل
 | ✅ | EP-CM-004 | SP-01 | `GET` | `/app/session` | — | Identity | جلسة الإقلاع |
 | ✅ | EP-CM-005 | SP-01 | `POST` | `/app/auth/logout` | — | Identity | خروج التطبيق |
 
-## التسعير والعروض — 3/3
+## التسعير والعروض — 4/4
 
 | الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
 |---|---|---|---|---|---|---|---|
 | ✅ | EP-APP-030 | SP-07 | `POST` | `/app/pricing/quote` | — | Pricing | تسعير الخادم |
 | ✅ | EP-APP-040 | SP-08 | `GET` | `/app/offers` | — | Promotion | العروض |
 | ✅ | EP-APP-041 | SP-08 | `GET` | `/app/offers/{id}` | — | Promotion | تفاصيل عرض |
+| ✅ | EP-APP-042 | SP-08 | `POST` | `/app/offers/{id}/favorite` | — | Promotion | مفضلة عرض |
 
 ## وصل الاستلام — 1/1
 

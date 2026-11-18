@@ -161,6 +161,7 @@ final class SaveProduct
             'lead_time_days' => $availability['lead_time_days'] ?? null,
             'priority' => (int) ($marketing['priority'] ?? 0),
             'tags' => $marketing['tags'] ?? [],
+            'storefront' => is_array($data['storefront'] ?? null) ? $data['storefront'] : null,
         ];
     }
 

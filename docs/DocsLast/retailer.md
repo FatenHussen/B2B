@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| الغرض | عقد المسارات الحية لتطبيق التاجر. شاشات المنتج التفصيلية: [`flutter-retailer.md`](flutter-retailer.md). |
+| الغرض | ملخص مسارات التاجر. العقد الكامل لـ Flutter: [`flutter-retailer.md`](flutter-retailer.md). |
 | الحالة | **35/35** تاجر ✅ + مشترك/عام عبر [`shared.md`](shared.md) — `status/04` · `06` · `07` |
 | الحارس | `auth:app` + `app.kind:retailer` · `X-Client: retailer-android` \| `retailer-ios` |
 | Postman | [`retailer.postman_collection.json`](retailer.postman_collection.json) · env `retailer-android` |

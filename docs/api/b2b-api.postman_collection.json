@@ -1358,7 +1358,7 @@
                                     "query": [],
                                     "variable": []
                                 },
-                                "description": "**EP-RT-010** · SP-06 · الرئيسية\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nSingle round-trip for the header (TB-RT-020). No five calls."
+                                "description": "**EP-RT-010** · SP-06 · الرئيسية\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nSingle round-trip for the header (TB-RT-020). No five calls. channels_slider is a discovery directory of active channels covering the retailer zone (REQ-IN-06 relaxed for home discovery only; cart refs and pending orders stay opaque)."
                             },
                             "response": [
                                 {
@@ -1412,7 +1412,7 @@
                                             "query": [],
                                             "variable": []
                                         },
-                                        "description": "**EP-RT-010** · SP-06 · الرئيسية\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nSingle round-trip for the header (TB-RT-020). No five calls."
+                                        "description": "**EP-RT-010** · SP-06 · الرئيسية\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nSingle round-trip for the header (TB-RT-020). No five calls. channels_slider is a discovery directory of active channels covering the retailer zone (REQ-IN-06 relaxed for home discovery only; cart refs and pending orders stay opaque)."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -1423,7 +1423,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"header\": {\n            \"shop_name\": \"بقالية النور\",\n            \"zone\": {\n                \"id\": 12,\n                \"name\": \"المزة\"\n            },\n            \"points\": 1240,\n            \"tier\": \"silver\",\n            \"unread_notifications\": 3,\n            \"pending_sync\": 0\n        },\n        \"banner\": {\n            \"id\": 9,\n            \"image\": \"https://cdn.example/b/9.jpg\"\n        },\n        \"quick_actions\": [\n            {\n                \"key\": \"orders\",\n                \"count\": 2\n            },\n            {\n                \"key\": \"cart\",\n                \"count\": 4\n            },\n            {\n                \"key\": \"debts\",\n                \"count\": 1\n            }\n        ],\n        \"stats\": {\n            \"orders_count\": 18,\n            \"total_debt\": 48000,\n            \"delivering_today\": 1\n        },\n        \"categories\": [\n            {\n                \"id\": 10,\n                \"name\": \"مواد غذائية\",\n                \"image\": null\n            }\n        ],\n        \"offers_slider\": [],\n        \"brands_slider\": [],\n        \"dynamic_sliders\": []\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"header\": {\n            \"owner_name\": \"علي\",\n            \"shop_name\": \"بقالية النور\",\n            \"zone\": {\n                \"id\": 12,\n                \"name\": \"المزة\"\n            },\n            \"points\": 1240,\n            \"tier\": \"silver\",\n            \"unread_notifications\": 3,\n            \"pending_sync\": 0,\n            \"is_online\": true\n        },\n        \"banner\": {\n            \"id\": 9,\n            \"image\": \"https://cdn.example/b/9.jpg\"\n        },\n        \"quick_actions\": [\n            {\n                \"key\": \"order_products\",\n                \"count\": 0\n            },\n            {\n                \"key\": \"reorder\",\n                \"count\": 0\n            },\n            {\n                \"key\": \"shortages\",\n                \"count\": 0\n            },\n            {\n                \"key\": \"payments\",\n                \"count\": 0\n            }\n        ],\n        \"stats\": {\n            \"active_orders\": 24,\n            \"total_debt\": 48000,\n            \"delivering_today\": 2\n        },\n        \"categories\": [\n            {\n                \"id\": 10,\n                \"name\": \"مواد غذائية\",\n                \"image\": null\n            }\n        ],\n        \"offers_slider\": [],\n        \"brands_slider\": [],\n        \"channels_slider\": [\n            {\n                \"id\": 1,\n                \"name\": \"قناة عافية للتوريد\",\n                \"logo\": null,\n                \"description\": \"تشكيلة واسعة من المواد الغذائية للتجزئة والجملة.\",\n                \"is_verified\": true,\n                \"rating\": 4.8,\n                \"brand_count\": 230,\n                \"delivery_label\": \"توصيل سريع\"\n            }\n        ],\n        \"dynamic_sliders\": []\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }
@@ -1432,6 +1432,176 @@
                 {
                     "name": "02. الكتالوج",
                     "item": [
+                        {
+                            "name": "EP-APP-042 Toggle offer favorite",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "retailer-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/offers/{{id}}/favorite",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "offers",
+                                        ":id",
+                                        "favorite"
+                                    ],
+                                    "query": [],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "{{id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-APP-042** · SP-08 · مفضلة عرض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nHeart on the offer detail. Idempotency required.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-APP-042",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "retailer-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/offers/{{id}}/favorite",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "offers",
+                                                ":id",
+                                                "favorite"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-APP-042** · SP-08 · مفضلة عرض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nHeart on the offer detail. Idempotency required.",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"is_favorite\": true\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
                         {
                             "name": "EP-RT-011 Categories",
                             "request": {
@@ -1607,7 +1777,7 @@
                                     }
                                 ],
                                 "url": {
-                                    "raw": "{{baseUrl}}/api/v1/app/retailer/products?page=1&per_page=25&sort=-created_at&search=%D8%B2%D9%8A%D8%AA&filter%5Bcategory_id%5D=340&filter%5Bbrand_id%5D=12&filter%5Boffer_only%5D=0&filter%5Bavailable_only%5D=1",
+                                    "raw": "{{baseUrl}}/api/v1/app/retailer/products?page=1&per_page=25&sort=-created_at&search=%D8%B2%D9%8A%D8%AA&filter%5Bcategory_id%5D=340&filter%5Bbrand_id%5D=12&filter%5Boffer_only%5D=0&filter%5Bavailable_only%5D=1&filter%5Bfavorites%5D=0",
                                     "host": [
                                         "{{baseUrl}}"
                                     ],
@@ -1650,11 +1820,15 @@
                                         {
                                             "key": "filter[available_only]",
                                             "value": "1"
+                                        },
+                                        {
+                                            "key": "filter[favorites]",
+                                            "value": "0"
                                         }
                                     ],
                                     "variable": []
                                 },
-                                "description": "**EP-RT-012** · SP-06 · المنتجات\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\navailability is in_stock|low|out_of_stock — never a stock number (REQ-IN-06, BR-02, BR-14). price.label is server-composed."
+                                "description": "**EP-RT-012** · SP-06 · المنتجات\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\navailability is in_stock|low|out_of_stock — never a stock number (REQ-IN-06, BR-02, BR-14). price.label is server-composed. filter[favorites]=1 returns only this retailer's favorites."
                             },
                             "response": [
                                 {
@@ -1694,7 +1868,7 @@
                                             }
                                         ],
                                         "url": {
-                                            "raw": "{{baseUrl}}/api/v1/app/retailer/products?page=1&per_page=25&sort=-created_at&search=%D8%B2%D9%8A%D8%AA&filter%5Bcategory_id%5D=340&filter%5Bbrand_id%5D=12&filter%5Boffer_only%5D=0&filter%5Bavailable_only%5D=1",
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/products?page=1&per_page=25&sort=-created_at&search=%D8%B2%D9%8A%D8%AA&filter%5Bcategory_id%5D=340&filter%5Bbrand_id%5D=12&filter%5Boffer_only%5D=0&filter%5Bavailable_only%5D=1&filter%5Bfavorites%5D=0",
                                             "host": [
                                                 "{{baseUrl}}"
                                             ],
@@ -1737,11 +1911,15 @@
                                                 {
                                                     "key": "filter[available_only]",
                                                     "value": "1"
+                                                },
+                                                {
+                                                    "key": "filter[favorites]",
+                                                    "value": "0"
                                                 }
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-RT-012** · SP-06 · المنتجات\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\navailability is in_stock|low|out_of_stock — never a stock number (REQ-IN-06, BR-02, BR-14). price.label is server-composed."
+                                        "description": "**EP-RT-012** · SP-06 · المنتجات\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\navailability is in_stock|low|out_of_stock — never a stock number (REQ-IN-06, BR-02, BR-14). price.label is server-composed. filter[favorites]=1 returns only this retailer's favorites."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -1752,7 +1930,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"brand\": {\n                \"id\": 12,\n                \"name\": \"نور\"\n            },\n            \"image\": \"https://cdn.example/p/880.jpg\",\n            \"sale_unit\": \"قطعة\",\n            \"min_order_qty\": 1,\n            \"price\": {\n                \"type\": \"tiered\",\n                \"value\": 12000,\n                \"from\": 11000,\n                \"to\": 12000,\n                \"label\": \"السعر حسب الكمية\"\n            },\n            \"discount\": 0,\n            \"price_after\": 12000,\n            \"sold_count\": 420,\n            \"availability\": \"in_stock\",\n            \"lead_time_days\": 2,\n            \"rating\": 4.6,\n            \"is_favorite\": false,\n            \"has_offer\": true,\n            \"variants_count\": 2\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"brand\": {\n                \"id\": 12,\n                \"name\": \"نور\"\n            },\n            \"company\": {\n                \"id\": 1,\n                \"name\": \"شركة الخير\"\n            },\n            \"image\": \"https://cdn.example/p/880.jpg\",\n            \"sale_unit\": \"كرتون\",\n            \"sale_unit_label\": \"كرتون (12 قطعة)\",\n            \"pieces_per_sale_unit\": 12,\n            \"min_order_qty\": 1,\n            \"price\": {\n                \"type\": \"tiered\",\n                \"value\": 12000,\n                \"from\": 11000,\n                \"to\": 12000,\n                \"label\": \"السعر حسب الكمية\"\n            },\n            \"price_before\": 15000,\n            \"discount\": 3000,\n            \"discount_percent\": 20,\n            \"price_after\": 12000,\n            \"sold_count\": 420,\n            \"rating_count\": 2564,\n            \"availability\": \"in_stock\",\n            \"lead_time_days\": 2,\n            \"lead_time_label\": \"2-5 أيام\",\n            \"rating\": 4.6,\n            \"is_favorite\": false,\n            \"has_offer\": true,\n            \"variants_count\": 2\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -1813,7 +1991,7 @@
                                         }
                                     ]
                                 },
-                                "description": "**EP-RT-013** · SP-06 · تفاصيل منتج\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nsupply_channel is omitted while related orders are pending (REQ-IN-06)."
+                                "description": "**EP-RT-013** · SP-06 · تفاصيل منتج\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\ncompany is discovery-only (channel name). Stock counts stay unavailable (BR-02). Dimensions/packaging from product columns + specs keys packaging.* when set."
                             },
                             "response": [
                                 {
@@ -1873,7 +2051,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-RT-013** · SP-06 · تفاصيل منتج\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nsupply_channel is omitted while related orders are pending (REQ-IN-06)."
+                                        "description": "**EP-RT-013** · SP-06 · تفاصيل منتج\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\ncompany is discovery-only (channel name). Stock counts stay unavailable (BR-02). Dimensions/packaging from product columns + specs keys packaging.* when set."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -1884,7 +2062,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"id\": 880,\n        \"name\": \"زيت دوار الشمس 1 لتر\",\n        \"brand\": {\n            \"id\": 12,\n            \"name\": \"نور\"\n        },\n        \"image\": \"https://cdn.example/p/880.jpg\",\n        \"sale_unit\": \"قطعة\",\n        \"min_order_qty\": 1,\n        \"price\": {\n            \"type\": \"tiered\",\n            \"value\": 12000,\n            \"from\": 11000,\n            \"to\": 12000,\n            \"label\": \"السعر حسب الكمية\"\n        },\n        \"discount\": 0,\n        \"price_after\": 12000,\n        \"sold_count\": 420,\n        \"availability\": \"in_stock\",\n        \"lead_time_days\": 2,\n        \"rating\": 4.6,\n        \"is_favorite\": false,\n        \"has_offer\": true,\n        \"variants_count\": 2,\n        \"images\": [\n            \"https://cdn.example/p/880.jpg\"\n        ],\n        \"model_no\": \"SUN-1000\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"price\": 12000,\n                \"availability\": \"in_stock\",\n                \"barcode\": \"6291000000000\"\n            }\n        ],\n        \"sliders\": {\n            \"price_comparison\": [],\n            \"same_brand\": [],\n            \"similar\": [],\n            \"suggested\": []\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"id\": 880,\n        \"name\": \"زيت دوار الشمس 1 لتر\",\n        \"brand\": {\n            \"id\": 12,\n            \"name\": \"نور\"\n        },\n        \"company\": {\n            \"id\": 1,\n            \"name\": \"شركة الخير\"\n        },\n        \"image\": \"https://cdn.example/p/880.jpg\",\n        \"sale_unit\": \"كرتون\",\n        \"sale_unit_label\": \"كرتون (12 قطعة)\",\n        \"pieces_per_sale_unit\": 12,\n        \"min_order_qty\": 1,\n        \"price\": {\n            \"type\": \"tiered\",\n            \"value\": 12000,\n            \"from\": 11000,\n            \"to\": 12000,\n            \"label\": \"السعر حسب الكمية\"\n        },\n        \"price_before\": 15000,\n        \"discount\": 3000,\n        \"discount_percent\": 20,\n        \"price_after\": 12000,\n        \"sold_count\": 420,\n        \"rating_count\": 2564,\n        \"availability\": \"in_stock\",\n        \"lead_time_days\": 2,\n        \"lead_time_label\": \"2-5 أيام\",\n        \"rating\": 4.6,\n        \"is_favorite\": false,\n        \"has_offer\": true,\n        \"variants_count\": 2,\n        \"images\": [\n            \"https://cdn.example/p/880.jpg\"\n        ],\n        \"model_no\": \"SUN-1000\",\n        \"short_description\": \"زيت دوار الشمس\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"features\": [\n            {\n                \"text\": \"100% طبيعي\"\n            }\n        ],\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"dimensions\": {\n            \"net_weight_gram\": 5000,\n            \"gross_weight_gram\": 5300,\n            \"height_mm\": 340,\n            \"width_mm\": 160,\n            \"length_mm\": 160\n        },\n        \"packaging\": {\n            \"container_type\": \"بلاستيك\",\n            \"capacity\": \"5 لتر\",\n            \"pieces_per_carton\": 6,\n            \"carton_dimensions\": null,\n            \"carton_weight_gram\": 27500\n        },\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"price\": 12000,\n                \"availability\": \"in_stock\",\n                \"barcode\": \"6291000000000\"\n            }\n        ],\n        \"variant_axes\": [\n            {\n                \"key\": \"الحجم\",\n                \"values\": [\n                    \"0.75L\",\n                    \"1L\",\n                    \"1.5L\",\n                    \"3L\"\n                ]\n            }\n        ],\n        \"sliders\": {\n            \"price_comparison\": [],\n            \"same_brand\": [],\n            \"similar\": [],\n            \"suggested\": []\n        }\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -2061,6 +2239,152 @@
                             ]
                         },
                         {
+                            "name": "EP-RT-014B List favorites",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "retailer-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/retailer/favorites?page=1&per_page=25&sort=-created_at",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "retailer",
+                                        "favorites"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "per_page",
+                                            "value": "25"
+                                        },
+                                        {
+                                            "key": "sort",
+                                            "value": "-created_at"
+                                        }
+                                    ],
+                                    "variable": []
+                                },
+                                "description": "**EP-RT-014B** · SP-06 · قائمة المفضلة\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nSame product card as EP-RT-012, scoped to this retailer's favorites. Equivalent to products?filter[favorites]=1."
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RT-014B",
+                                    "originalRequest": {
+                                        "method": "GET",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "retailer-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/favorites?page=1&per_page=25&sort=-created_at",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "retailer",
+                                                "favorites"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "page",
+                                                    "value": "1"
+                                                },
+                                                {
+                                                    "key": "per_page",
+                                                    "value": "25"
+                                                },
+                                                {
+                                                    "key": "sort",
+                                                    "value": "-created_at"
+                                                }
+                                            ],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-RT-014B** · SP-06 · قائمة المفضلة\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nSame product card as EP-RT-012, scoped to this retailer's favorites. Equivalent to products?filter[favorites]=1."
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 880,\n            \"name\": \"زيت دوار الشمس 1 لتر\",\n            \"brand\": {\n                \"id\": 12,\n                \"name\": \"نور\"\n            },\n            \"company\": {\n                \"id\": 1,\n                \"name\": \"شركة الخير\"\n            },\n            \"image\": \"https://cdn.example/p/880.jpg\",\n            \"sale_unit\": \"كرتون\",\n            \"sale_unit_label\": \"كرتون (12 قطعة)\",\n            \"pieces_per_sale_unit\": 12,\n            \"min_order_qty\": 1,\n            \"price\": {\n                \"type\": \"tiered\",\n                \"value\": 12000,\n                \"from\": 11000,\n                \"to\": 12000,\n                \"label\": \"السعر حسب الكمية\"\n            },\n            \"price_before\": 15000,\n            \"discount\": 3000,\n            \"discount_percent\": 20,\n            \"price_after\": 12000,\n            \"sold_count\": 420,\n            \"rating_count\": 2564,\n            \"availability\": \"in_stock\",\n            \"lead_time_days\": 2,\n            \"lead_time_label\": \"2-5 أيام\",\n            \"rating\": 4.6,\n            \"is_favorite\": false,\n            \"has_offer\": true,\n            \"variants_count\": 2\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
+                        {
                             "name": "EP-RT-015A List brands",
                             "request": {
                                 "method": "GET",
@@ -2210,7 +2534,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 12,\n            \"name\": \"نور\",\n            \"logo\": null,\n            \"banner\": null\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 12,\n            \"name\": \"نور\",\n            \"logo\": null,\n            \"banner\": null,\n            \"description\": \"منتجات غذائية\",\n            \"categories\": [\n                {\n                    \"id\": 340,\n                    \"name\": \"زيوت\"\n                }\n            ]\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -2342,7 +2666,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"banner\": null,\n        \"logo\": null,\n        \"name\": \"نور\",\n        \"activities\": [\n            {\n                \"id\": 3,\n                \"name\": \"بقالة\"\n            }\n        ],\n        \"description\": \"منتجات غذائية\",\n        \"categories\": [\n            {\n                \"id\": 340,\n                \"name\": \"زيوت\"\n            }\n        ],\n        \"sliders\": [\n            {\n                \"key\": \"best_selling\",\n                \"items\": []\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"id\": 12,\n        \"banner\": null,\n        \"logo\": null,\n        \"name\": \"نور\",\n        \"activities\": [\n            {\n                \"id\": 3,\n                \"name\": \"بقالة\"\n            }\n        ],\n        \"description\": \"منتجات غذائية\",\n        \"categories\": [\n            {\n                \"id\": 340,\n                \"name\": \"زيوت\"\n            }\n        ],\n        \"offers\": [],\n        \"sliders\": [\n            {\n                \"key\": \"best_selling\",\n                \"items\": []\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -3041,7 +3365,7 @@
                                     ],
                                     "variable": []
                                 },
-                                "description": "**EP-APP-040** · SP-08 · العروض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\ncompany (channel identity) stays hidden until an order is confirmed (REQ-IN-06)."
+                                "description": "**EP-APP-040** · SP-08 · العروض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\ncompany is the supply-channel discovery label on offer cards (home/offers UI). Cart still uses opaque supply_channel_ref; pending orders still omit channel name (REQ-IN-06 cart/pending unchanged)."
                             },
                             "response": [
                                 {
@@ -3115,7 +3439,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-APP-040** · SP-08 · العروض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\ncompany (channel identity) stays hidden until an order is confirmed (REQ-IN-06)."
+                                        "description": "**EP-APP-040** · SP-08 · العروض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\ncompany is the supply-channel discovery label on offer cards (home/offers UI). Cart still uses opaque supply_channel_ref; pending orders still omit channel name (REQ-IN-06 cart/pending unchanged)."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -3126,7 +3450,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 44,\n            \"image\": \"https://cdn.example/o/44.jpg\",\n            \"name\": \"اشترِ 10 واحصل على 1\",\n            \"company\": null,\n            \"rating\": 4.7,\n            \"components\": [\n                {\n                    \"product_id\": 880,\n                    \"qty\": 10\n                }\n            ],\n            \"price_before\": 120000,\n            \"discount\": 12000,\n            \"price_after\": 108000,\n            \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n            \"days_left\": 30,\n            \"remaining_qty\": 320,\n            \"sold_count\": 180\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 44,\n            \"image\": \"https://cdn.example/o/44.jpg\",\n            \"name\": \"اشترِ 10 واحصل على 1\",\n            \"company\": {\n                \"id\": 1,\n                \"name\": \"شركة الخير\"\n            },\n            \"rating\": 4.7,\n            \"components\": [\n                {\n                    \"product_id\": 880,\n                    \"qty\": 10\n                }\n            ],\n            \"price_before\": 120000,\n            \"discount\": 12000,\n            \"price_after\": 108000,\n            \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n            \"days_left\": 30,\n            \"remaining_qty\": 320,\n            \"sold_count\": 180,\n            \"rating_count\": 128,\n            \"is_favorite\": false\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -3186,7 +3510,7 @@
                                         }
                                     ]
                                 },
-                                "description": "**EP-APP-041** · SP-08 · تفاصيل عرض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nRe-validate via quote before submit (TB-RT-043)."
+                                "description": "**EP-APP-041** · SP-08 · تفاصيل عرض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nFull card + terms + related company rows. Re-validate via quote before submit (TB-RT-043). rating/sold fall back to stable stand-ins until the channel sets display."
                             },
                             "response": [
                                 {
@@ -3245,7 +3569,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-APP-041** · SP-08 · تفاصيل عرض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nRe-validate via quote before submit (TB-RT-043)."
+                                        "description": "**EP-APP-041** · SP-08 · تفاصيل عرض\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nFull card + terms + related company rows. Re-validate via quote before submit (TB-RT-043). rating/sold fall back to stable stand-ins until the channel sets display."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -3256,7 +3580,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"id\": 44,\n        \"images\": [],\n        \"long_description\": \"على زيت دوار الشمس\",\n        \"icons\": [\n            \"gift\"\n        ],\n        \"same_company_offers\": [],\n        \"same_company_products\": []\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"id\": 44,\n        \"name\": \"باقة المؤونة الرئيسية\",\n        \"company\": {\n            \"id\": 1,\n            \"name\": \"شركة الخير\"\n        },\n        \"rating\": 4.7,\n        \"price_before\": 450000,\n        \"discount\": 50000,\n        \"discount_percent\": 20,\n        \"price_after\": 400000,\n        \"components\": [\n            {\n                \"product_id\": 880,\n                \"name\": \"زيت 1.8L\",\n                \"qty\": 1\n            }\n        ],\n        \"ends_at\": \"2026-12-12T23:59:59+03:00\",\n        \"days_left\": 7,\n        \"remaining_qty\": 34,\n        \"sold_count\": 215,\n        \"terms\": [\n            \"خصم 20% عند الإضافة للسلة\",\n            \"الحد الأدنى باقة واحدة\"\n        ],\n        \"images\": [],\n        \"long_description\": \"على زيت دوار الشمس\",\n        \"icons\": [\n            \"gift\"\n        ],\n        \"same_company_offers\": [],\n        \"same_company_products\": [],\n        \"is_favorite\": false\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }
@@ -4240,7 +4564,7 @@
                                     }
                                 ],
                                 "url": {
-                                    "raw": "{{baseUrl}}/api/v1/app/retailer/orders?page=1&per_page=25&sort=-created_at&filter%5Bstatus%5D=active&date_from=2026-02-01&date_to=2026-03-01",
+                                    "raw": "{{baseUrl}}/api/v1/app/retailer/orders?page=1&per_page=25&sort=-created_at&search=SO-9001&filter%5Bstatus%5D=active&date_from=2026-02-01&date_to=2026-03-01",
                                     "host": [
                                         "{{baseUrl}}"
                                     ],
@@ -4265,6 +4589,10 @@
                                             "value": "-created_at"
                                         },
                                         {
+                                            "key": "search",
+                                            "value": "SO-9001"
+                                        },
+                                        {
                                             "key": "filter[status]",
                                             "value": "active"
                                         },
@@ -4279,7 +4607,7 @@
                                     ],
                                     "variable": []
                                 },
-                                "description": "**EP-RT-030** · SP-09 · طلباتي\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nfilter[status]: all|active|pending|processing|delivered|cancelled. supply_channel is null until confirmed (REQ-IN-06)."
+                                "description": "**EP-RT-030** · SP-09 · طلباتي\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nfilter[status]: all|active|pending|processing|delivered|cancelled|on_the_way|postponed. filter[channel_id] + search by sub_order_no. supply_channel null while pending/rejected (REQ-IN-06). meta.status_counts is unfiltered by status tab."
                             },
                             "response": [
                                 {
@@ -4319,7 +4647,7 @@
                                             }
                                         ],
                                         "url": {
-                                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders?page=1&per_page=25&sort=-created_at&filter%5Bstatus%5D=active&date_from=2026-02-01&date_to=2026-03-01",
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/orders?page=1&per_page=25&sort=-created_at&search=SO-9001&filter%5Bstatus%5D=active&date_from=2026-02-01&date_to=2026-03-01",
                                             "host": [
                                                 "{{baseUrl}}"
                                             ],
@@ -4344,6 +4672,10 @@
                                                     "value": "-created_at"
                                                 },
                                                 {
+                                                    "key": "search",
+                                                    "value": "SO-9001"
+                                                },
+                                                {
                                                     "key": "filter[status]",
                                                     "value": "active"
                                                 },
@@ -4358,7 +4690,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-RT-030** · SP-09 · طلباتي\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nfilter[status]: all|active|pending|processing|delivered|cancelled. supply_channel is null until confirmed (REQ-IN-06)."
+                                        "description": "**EP-RT-030** · SP-09 · طلباتي\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nfilter[status]: all|active|pending|processing|delivered|cancelled|on_the_way|postponed. filter[channel_id] + search by sub_order_no. supply_channel null while pending/rejected (REQ-IN-06). meta.status_counts is unfiltered by status tab."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -4369,7 +4701,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 9001,\n            \"sub_order_no\": \"SO-9001\",\n            \"created_at\": \"2026-03-01T09:10:00+03:00\",\n            \"supply_channel\": null,\n            \"status\": \"pending\",\n            \"total\": 48000,\n            \"can_cancel\": true,\n            \"can_reorder\": false\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 9001,\n            \"sub_order_no\": \"SO-9001\",\n            \"created_at\": \"2026-03-01T09:10:00+03:00\",\n            \"supply_channel\": null,\n            \"status\": \"pending\",\n            \"total\": 48000,\n            \"can_cancel\": true,\n            \"can_reorder\": false,\n            \"can_track\": false,\n            \"can_view_invoice\": false\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -4501,7 +4833,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"lines\": [\n            {\n                \"id\": 1,\n                \"name\": \"زيت دوار الشمس 1 لتر\",\n                \"qty\": 4,\n                \"price\": 12000\n            }\n        ],\n        \"invoice\": null,\n        \"timeline\": [\n            {\n                \"stage\": \"pending\",\n                \"at\": \"2026-03-01T09:10:00+03:00\"\n            }\n        ],\n        \"rep\": null\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"id\": 9001,\n        \"sub_order_no\": \"SO-9001\",\n        \"status\": \"on_the_way\",\n        \"created_at\": \"2026-03-01T09:10:00+03:00\",\n        \"total\": 48000,\n        \"products_total\": 51000,\n        \"discount_total\": 3000,\n        \"eta_window\": {\n            \"from\": \"2026-03-01T14:00:00+03:00\",\n            \"to\": \"2026-03-01T16:00:00+03:00\"\n        },\n        \"lines\": [\n            {\n                \"id\": 1,\n                \"name\": \"زيت دوار الشمس 1 لتر\",\n                \"image\": null,\n                \"qty\": 4,\n                \"attrs\": {\n                    \"الحجم\": \"5L\",\n                    \"التعبئة\": \"بلاستيك\"\n                },\n                \"price_before\": 15000,\n                \"discount\": 3000,\n                \"discount_percent\": 20,\n                \"price\": 12000,\n                \"line_total\": 48000\n            }\n        ],\n        \"invoice\": null,\n        \"timeline\": [\n            {\n                \"stage\": \"pending\",\n                \"at\": \"2026-03-01T09:10:00+03:00\"\n            }\n        ],\n        \"rep\": null,\n        \"can_track\": true,\n        \"can_reorder\": true,\n        \"can_cancel\": false\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -4907,7 +5239,7 @@
                                         }
                                     ]
                                 },
-                                "description": "**EP-RT-034** · SP-09 · تتبع الطلب\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nRep identity only at on_the_way (BR-03)."
+                                "description": "**EP-RT-034** · SP-09 · تتبع الطلب\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nRep identity + live lat/lng only at on_the_way (BR-03). can_rate_rep true after delivered."
                             },
                             "response": [
                                 {
@@ -4968,7 +5300,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-RT-034** · SP-09 · تتبع الطلب\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nRep identity only at on_the_way (BR-03)."
+                                        "description": "**EP-RT-034** · SP-09 · تتبع الطلب\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nRep identity + live lat/lng only at on_the_way (BR-03). can_rate_rep true after delivered."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -4979,7 +5311,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"stages\": [\n            {\n                \"key\": \"pending\",\n                \"label\": \"معلق\",\n                \"at\": \"2026-03-01T09:10:00+03:00\"\n            },\n            {\n                \"key\": \"on_the_way\",\n                \"label\": \"في الطريق\",\n                \"at\": \"2026-03-01T11:40:00+03:00\"\n            }\n        ],\n        \"rep\": {\n            \"name\": \"أحمد\",\n            \"phone\": \"+963955000000\",\n            \"lat\": 33.51,\n            \"lng\": 36.28\n        },\n        \"eta_minutes\": 22\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"id\": 9001,\n        \"sub_order_no\": \"SO-9001\",\n        \"status\": \"on_the_way\",\n        \"created_at\": \"2026-03-01T09:10:00+03:00\",\n        \"stages\": [\n            {\n                \"key\": \"pending\",\n                \"label\": \"تم استلام الطلب\",\n                \"at\": \"2026-03-01T09:10:00+03:00\"\n            },\n            {\n                \"key\": \"confirmed\",\n                \"label\": \"تم تأكيد الطلب\",\n                \"at\": \"2026-03-01T09:20:00+03:00\"\n            },\n            {\n                \"key\": \"processing\",\n                \"label\": \"قيد التجهيز\",\n                \"at\": \"2026-03-01T10:00:00+03:00\"\n            },\n            {\n                \"key\": \"on_the_way\",\n                \"label\": \"المندوب في الطريق\",\n                \"at\": \"2026-03-01T11:40:00+03:00\"\n            },\n            {\n                \"key\": \"delivered\",\n                \"label\": \"تم استلام الطلب\",\n                \"at\": null\n            }\n        ],\n        \"rep\": {\n            \"name\": \"أحمد\",\n            \"phone\": \"+963955000000\",\n            \"lat\": 33.51,\n            \"lng\": 36.28\n        },\n        \"eta_minutes\": 22,\n        \"eta_window\": {\n            \"from\": \"2026-03-01T14:00:00+03:00\",\n            \"to\": \"2026-03-01T16:00:00+03:00\"\n        },\n        \"lines\": [\n            {\n                \"id\": 1,\n                \"name\": \"Pepsi 330ml\",\n                \"image\": null,\n                \"qty\": 2,\n                \"price\": 600\n            }\n        ],\n        \"total\": 1550,\n        \"can_rate_rep\": false,\n        \"map_available\": true\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -9077,6 +9409,169 @@
                             ]
                         }
                     ]
+                },
+                {
+                    "name": "99. أخرى",
+                    "item": [
+                        {
+                            "name": "EP-RT-016 Update online presence",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "retailer-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/retailer/presence",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "retailer",
+                                        "presence"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "description": "**EP-RT-016** · SP-06 · حالة متصل\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nToggles the home «متصل» switch. Reflected on EP-RT-010 header.is_online. Idempotency required.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"is_online\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-RT-016",
+                                    "originalRequest": {
+                                        "method": "PUT",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "retailer-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/retailer/presence",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "retailer",
+                                                "presence"
+                                            ],
+                                            "query": [],
+                                            "variable": []
+                                        },
+                                        "description": "**EP-RT-016** · SP-06 · حالة متصل\n\nالدور: **التاجر** (`retailer`)\n\nالحارس: `app`\n\nToggles the home «متصل» switch. Reflected on EP-RT-010 header.is_online. Idempotency required.",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n    \"is_online\": true\n}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"is_online\": true\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        }
+                    ]
                 }
             ],
             "description": "الدور: تاجر\nالحارس: app\nالدخول: هاتف + رمز واتساب مربوط بالجهاز\nX-Client: retailer-android | retailer-ios"
@@ -10290,6 +10785,176 @@
                 {
                     "name": "02. الكتالوج",
                     "item": [
+                        {
+                            "name": "EP-APP-042 Toggle offer favorite",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Accept-Language",
+                                        "value": "{{acceptLanguage}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Client",
+                                        "value": "rep-android",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{token}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Device-Id",
+                                        "value": "{{deviceId}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-App-Version",
+                                        "value": "{{appVersion}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "X-Idempotency-Key",
+                                        "value": "{{$guid}}",
+                                        "type": "text"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/app/offers/{{id}}/favorite",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "app",
+                                        "offers",
+                                        ":id",
+                                        "favorite"
+                                    ],
+                                    "query": [],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "{{id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "**EP-APP-042** · SP-08 · مفضلة عرض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nHeart on the offer detail. Idempotency required.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            },
+                            "response": [
+                                {
+                                    "name": "200 EP-APP-042",
+                                    "originalRequest": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Accept",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Accept-Language",
+                                                "value": "{{acceptLanguage}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Client",
+                                                "value": "rep-android",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Authorization",
+                                                "value": "Bearer {{token}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Device-Id",
+                                                "value": "{{deviceId}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-App-Version",
+                                                "value": "{{appVersion}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "X-Idempotency-Key",
+                                                "value": "{{$guid}}",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json",
+                                                "type": "text"
+                                            }
+                                        ],
+                                        "url": {
+                                            "raw": "{{baseUrl}}/api/v1/app/offers/{{id}}/favorite",
+                                            "host": [
+                                                "{{baseUrl}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "v1",
+                                                "app",
+                                                "offers",
+                                                ":id",
+                                                "favorite"
+                                            ],
+                                            "query": [],
+                                            "variable": [
+                                                {
+                                                    "key": "id",
+                                                    "value": "{{id}}"
+                                                }
+                                            ]
+                                        },
+                                        "description": "**EP-APP-042** · SP-08 · مفضلة عرض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nHeart on the offer detail. Idempotency required.",
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{}",
+                                            "options": {
+                                                "raw": {
+                                                    "language": "json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": "OK",
+                                    "code": 200,
+                                    "_postman_previewlanguage": "json",
+                                    "header": [
+                                        {
+                                            "key": "Content-Type",
+                                            "value": "application/json"
+                                        }
+                                    ],
+                                    "body": "{\n    \"data\": {\n        \"is_favorite\": true\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                }
+                            ]
+                        },
                         {
                             "name": "EP-RP-010 Rep catalog",
                             "request": {
@@ -11979,7 +12644,7 @@
                                     ],
                                     "variable": []
                                 },
-                                "description": "**EP-APP-040** · SP-08 · العروض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\ncompany (channel identity) stays hidden until an order is confirmed (REQ-IN-06)."
+                                "description": "**EP-APP-040** · SP-08 · العروض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\ncompany is the supply-channel discovery label on offer cards (home/offers UI). Cart still uses opaque supply_channel_ref; pending orders still omit channel name (REQ-IN-06 cart/pending unchanged)."
                             },
                             "response": [
                                 {
@@ -12053,7 +12718,7 @@
                                             ],
                                             "variable": []
                                         },
-                                        "description": "**EP-APP-040** · SP-08 · العروض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\ncompany (channel identity) stays hidden until an order is confirmed (REQ-IN-06)."
+                                        "description": "**EP-APP-040** · SP-08 · العروض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\ncompany is the supply-channel discovery label on offer cards (home/offers UI). Cart still uses opaque supply_channel_ref; pending orders still omit channel name (REQ-IN-06 cart/pending unchanged)."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -12064,7 +12729,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 44,\n            \"image\": \"https://cdn.example/o/44.jpg\",\n            \"name\": \"اشترِ 10 واحصل على 1\",\n            \"company\": null,\n            \"rating\": 4.7,\n            \"components\": [\n                {\n                    \"product_id\": 880,\n                    \"qty\": 10\n                }\n            ],\n            \"price_before\": 120000,\n            \"discount\": 12000,\n            \"price_after\": 108000,\n            \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n            \"days_left\": 30,\n            \"remaining_qty\": 320,\n            \"sold_count\": 180\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": [\n        {\n            \"id\": 44,\n            \"image\": \"https://cdn.example/o/44.jpg\",\n            \"name\": \"اشترِ 10 واحصل على 1\",\n            \"company\": {\n                \"id\": 1,\n                \"name\": \"شركة الخير\"\n            },\n            \"rating\": 4.7,\n            \"components\": [\n                {\n                    \"product_id\": 880,\n                    \"qty\": 10\n                }\n            ],\n            \"price_before\": 120000,\n            \"discount\": 12000,\n            \"price_after\": 108000,\n            \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n            \"days_left\": 30,\n            \"remaining_qty\": 320,\n            \"sold_count\": 180,\n            \"rating_count\": 128,\n            \"is_favorite\": false\n        }\n    ],\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         },
@@ -12124,7 +12789,7 @@
                                         }
                                     ]
                                 },
-                                "description": "**EP-APP-041** · SP-08 · تفاصيل عرض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nRe-validate via quote before submit (TB-RT-043)."
+                                "description": "**EP-APP-041** · SP-08 · تفاصيل عرض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nFull card + terms + related company rows. Re-validate via quote before submit (TB-RT-043). rating/sold fall back to stable stand-ins until the channel sets display."
                             },
                             "response": [
                                 {
@@ -12183,7 +12848,7 @@
                                                 }
                                             ]
                                         },
-                                        "description": "**EP-APP-041** · SP-08 · تفاصيل عرض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nRe-validate via quote before submit (TB-RT-043)."
+                                        "description": "**EP-APP-041** · SP-08 · تفاصيل عرض\n\nالدور: **المندوب** (`rep`)\n\nالحارس: `app`\n\nFull card + terms + related company rows. Re-validate via quote before submit (TB-RT-043). rating/sold fall back to stable stand-ins until the channel sets display."
                                     },
                                     "status": "OK",
                                     "code": 200,
@@ -12194,7 +12859,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n    \"data\": {\n        \"id\": 44,\n        \"images\": [],\n        \"long_description\": \"على زيت دوار الشمس\",\n        \"icons\": [\n            \"gift\"\n        ],\n        \"same_company_offers\": [],\n        \"same_company_products\": []\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                    "body": "{\n    \"data\": {\n        \"id\": 44,\n        \"name\": \"باقة المؤونة الرئيسية\",\n        \"company\": {\n            \"id\": 1,\n            \"name\": \"شركة الخير\"\n        },\n        \"rating\": 4.7,\n        \"price_before\": 450000,\n        \"discount\": 50000,\n        \"discount_percent\": 20,\n        \"price_after\": 400000,\n        \"components\": [\n            {\n                \"product_id\": 880,\n                \"name\": \"زيت 1.8L\",\n                \"qty\": 1\n            }\n        ],\n        \"ends_at\": \"2026-12-12T23:59:59+03:00\",\n        \"days_left\": 7,\n        \"remaining_qty\": 34,\n        \"sold_count\": 215,\n        \"terms\": [\n            \"خصم 20% عند الإضافة للسلة\",\n            \"الحد الأدنى باقة واحدة\"\n        ],\n        \"images\": [],\n        \"long_description\": \"على زيت دوار الشمس\",\n        \"icons\": [\n            \"gift\"\n        ],\n        \"same_company_offers\": [],\n        \"same_company_products\": [],\n        \"is_favorite\": false\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                 }
                             ]
                         }
@@ -25452,7 +26117,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"length_mm\": 200,\n        \"width_mm\": 80,\n        \"height_mm\": 80,\n        \"pricing\": {\n            \"type\": \"tiered\",\n            \"base_price\": 12000,\n            \"currency_id\": 1,\n            \"tax_percent\": 0,\n            \"tiers\": [\n                {\n                    \"from\": 1,\n                    \"to\": 4,\n                    \"price\": 12000\n                },\n                {\n                    \"from\": 5,\n                    \"to\": 9,\n                    \"price\": 11500\n                },\n                {\n                    \"from\": 10,\n                    \"to\": null,\n                    \"price\": 11000\n                }\n            ]\n        },\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false,\n            \"opening_stock\": [\n                {\n                    \"warehouse_id\": 1,\n                    \"qty\": 100\n                }\n            ]\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"id\": 880,\n        \"axes\": [\n            {\n                \"name\": \"الحجم\",\n                \"values\": [\n                    \"1L\",\n                    \"2L\"\n                ]\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"sku\": \"OIL-SUN-1L-1L\",\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"barcode\": \"6291000000001\",\n                \"image\": null,\n                \"status\": \"active\",\n                \"price_override\": null,\n                \"price\": 12000,\n                \"stock\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"length_mm\": 200,\n        \"width_mm\": 80,\n        \"height_mm\": 80,\n        \"pricing\": {\n            \"type\": \"tiered\",\n            \"base_price\": 12000,\n            \"currency_id\": 1,\n            \"tax_percent\": 0,\n            \"tiers\": [\n                {\n                    \"from\": 1,\n                    \"to\": 4,\n                    \"price\": 12000\n                },\n                {\n                    \"from\": 5,\n                    \"to\": 9,\n                    \"price\": 11500\n                },\n                {\n                    \"from\": 10,\n                    \"to\": null,\n                    \"price\": 11000\n                }\n            ]\n        },\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false,\n            \"opening_stock\": [\n                {\n                    \"warehouse_id\": 1,\n                    \"qty\": 100\n                }\n            ]\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"storefront\": {\n            \"rating\": 4.8,\n            \"rating_count\": 2564,\n            \"sold_count\": 420,\n            \"compare_price\": 15000,\n            \"gross_weight_gram\": 1000,\n            \"container_type\": \"بلاستيك\",\n            \"capacity\": \"1 لتر\",\n            \"carton_dimensions\": \"40×32×27\",\n            \"carton_weight_gram\": 12000,\n            \"features\": [\n                \"100% طبيعي\"\n            ]\n        },\n        \"id\": 880,\n        \"axes\": [\n            {\n                \"name\": \"الحجم\",\n                \"values\": [\n                    \"1L\",\n                    \"2L\"\n                ]\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"sku\": \"OIL-SUN-1L-1L\",\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"barcode\": \"6291000000001\",\n                \"image\": null,\n                \"status\": \"active\",\n                \"price_override\": null,\n                \"price\": 12000,\n                \"stock\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -25624,7 +26289,7 @@
                                         "description": "**EP-SC-015** · SP-06 · إنشاء منتج\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.catalog.create`\n\nالحارس: `channel`\n\nAll money fields are integer minor units (BR-AD-18). 12000 ≠ 120.00.",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    }\n}",
+                                            "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    },\n    \"storefront\": {\n        \"rating\": 4.8,\n        \"rating_count\": 2564,\n        \"sold_count\": 420,\n        \"compare_price\": 15000,\n        \"gross_weight_gram\": 1000,\n        \"container_type\": \"بلاستيك\",\n        \"capacity\": \"1 لتر\",\n        \"carton_dimensions\": \"40×32×27\",\n        \"carton_weight_gram\": 12000,\n        \"features\": [\n            \"100% طبيعي\"\n        ]\n    }\n}",
                                             "options": {
                                                 "raw": {
                                                     "language": "json"
@@ -25691,7 +26356,7 @@
                                                 "description": "**EP-SC-015** · SP-06 · إنشاء منتج\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.catalog.create`\n\nالحارس: `channel`\n\nAll money fields are integer minor units (BR-AD-18). 12000 ≠ 120.00.",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    }\n}",
+                                                    "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    },\n    \"storefront\": {\n        \"rating\": 4.8,\n        \"rating_count\": 2564,\n        \"sold_count\": 420,\n        \"compare_price\": 15000,\n        \"gross_weight_gram\": 1000,\n        \"container_type\": \"بلاستيك\",\n        \"capacity\": \"1 لتر\",\n        \"carton_dimensions\": \"40×32×27\",\n        \"carton_weight_gram\": 12000,\n        \"features\": [\n            \"100% طبيعي\"\n        ]\n    }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "language": "json"
@@ -25776,7 +26441,7 @@
                                         "description": "**EP-SC-016** · SP-06 · تحديث منتج\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.catalog.update`\n\nالحارس: `channel`",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    }\n}",
+                                            "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    },\n    \"storefront\": {\n        \"rating\": 4.8,\n        \"rating_count\": 2564,\n        \"sold_count\": 420,\n        \"compare_price\": 15000,\n        \"gross_weight_gram\": 1000,\n        \"container_type\": \"بلاستيك\",\n        \"capacity\": \"1 لتر\",\n        \"carton_dimensions\": \"40×32×27\",\n        \"carton_weight_gram\": 12000,\n        \"features\": [\n            \"100% طبيعي\"\n        ]\n    }\n}",
                                             "options": {
                                                 "raw": {
                                                     "language": "json"
@@ -25849,7 +26514,7 @@
                                                 "description": "**EP-SC-016** · SP-06 · تحديث منتج\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.catalog.update`\n\nالحارس: `channel`",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    }\n}",
+                                                    "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    },\n    \"storefront\": {\n        \"rating\": 4.8,\n        \"rating_count\": 2564,\n        \"sold_count\": 420,\n        \"compare_price\": 15000,\n        \"gross_weight_gram\": 1000,\n        \"container_type\": \"بلاستيك\",\n        \"capacity\": \"1 لتر\",\n        \"carton_dimensions\": \"40×32×27\",\n        \"carton_weight_gram\": 12000,\n        \"features\": [\n            \"100% طبيعي\"\n        ]\n    }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "language": "json"
@@ -28354,7 +29019,7 @@
                                         "description": "**EP-SC-040B** · SP-08 · إنشاء عرض\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.offers.create`\n\nالحارس: `channel`\n\ntype: product_discount|invoice_discount|buy_x_get_y|bundle|tiered_discount|gift. Deleting a line in the offer removes the whole offer (BR-08).",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\"\n}",
+                                            "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\",\n    \"display\": {\n        \"rating\": 4.8,\n        \"rating_count\": 128,\n        \"sold_count\": 215\n    }\n}",
                                             "options": {
                                                 "raw": {
                                                     "language": "json"
@@ -28421,7 +29086,7 @@
                                                 "description": "**EP-SC-040B** · SP-08 · إنشاء عرض\n\nالدور: **مدير القناة** (`channel_manager`)\n\nالصلاحية: `sc.offers.create`\n\nالحارس: `channel`\n\ntype: product_discount|invoice_discount|buy_x_get_y|bundle|tiered_discount|gift. Deleting a line in the offer removes the whole offer (BR-08).",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\"\n}",
+                                                    "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\",\n    \"display\": {\n        \"rating\": 4.8,\n        \"rating_count\": 128,\n        \"sold_count\": 215\n    }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "language": "json"
@@ -42039,7 +42704,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"length_mm\": 200,\n        \"width_mm\": 80,\n        \"height_mm\": 80,\n        \"pricing\": {\n            \"type\": \"tiered\",\n            \"base_price\": 12000,\n            \"currency_id\": 1,\n            \"tax_percent\": 0,\n            \"tiers\": [\n                {\n                    \"from\": 1,\n                    \"to\": 4,\n                    \"price\": 12000\n                },\n                {\n                    \"from\": 5,\n                    \"to\": 9,\n                    \"price\": 11500\n                },\n                {\n                    \"from\": 10,\n                    \"to\": null,\n                    \"price\": 11000\n                }\n            ]\n        },\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false,\n            \"opening_stock\": [\n                {\n                    \"warehouse_id\": 1,\n                    \"qty\": 100\n                }\n            ]\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"id\": 880,\n        \"axes\": [\n            {\n                \"name\": \"الحجم\",\n                \"values\": [\n                    \"1L\",\n                    \"2L\"\n                ]\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"sku\": \"OIL-SUN-1L-1L\",\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"barcode\": \"6291000000001\",\n                \"image\": null,\n                \"status\": \"active\",\n                \"price_override\": null,\n                \"price\": 12000,\n                \"stock\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"length_mm\": 200,\n        \"width_mm\": 80,\n        \"height_mm\": 80,\n        \"pricing\": {\n            \"type\": \"tiered\",\n            \"base_price\": 12000,\n            \"currency_id\": 1,\n            \"tax_percent\": 0,\n            \"tiers\": [\n                {\n                    \"from\": 1,\n                    \"to\": 4,\n                    \"price\": 12000\n                },\n                {\n                    \"from\": 5,\n                    \"to\": 9,\n                    \"price\": 11500\n                },\n                {\n                    \"from\": 10,\n                    \"to\": null,\n                    \"price\": 11000\n                }\n            ]\n        },\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false,\n            \"opening_stock\": [\n                {\n                    \"warehouse_id\": 1,\n                    \"qty\": 100\n                }\n            ]\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"storefront\": {\n            \"rating\": 4.8,\n            \"rating_count\": 2564,\n            \"sold_count\": 420,\n            \"compare_price\": 15000,\n            \"gross_weight_gram\": 1000,\n            \"container_type\": \"بلاستيك\",\n            \"capacity\": \"1 لتر\",\n            \"carton_dimensions\": \"40×32×27\",\n            \"carton_weight_gram\": 12000,\n            \"features\": [\n                \"100% طبيعي\"\n            ]\n        },\n        \"id\": 880,\n        \"axes\": [\n            {\n                \"name\": \"الحجم\",\n                \"values\": [\n                    \"1L\",\n                    \"2L\"\n                ]\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"sku\": \"OIL-SUN-1L-1L\",\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"barcode\": \"6291000000001\",\n                \"image\": null,\n                \"status\": \"active\",\n                \"price_override\": null,\n                \"price\": 12000,\n                \"stock\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -43065,7 +43730,7 @@
                                         "description": "**EP-SC-040B** · SP-08 · إنشاء عرض\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.offers.create`\n\nالحارس: `channel`\n\ntype: product_discount|invoice_discount|buy_x_get_y|bundle|tiered_discount|gift. Deleting a line in the offer removes the whole offer (BR-08).",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\"\n}",
+                                            "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\",\n    \"display\": {\n        \"rating\": 4.8,\n        \"rating_count\": 128,\n        \"sold_count\": 215\n    }\n}",
                                             "options": {
                                                 "raw": {
                                                     "language": "json"
@@ -43132,7 +43797,7 @@
                                                 "description": "**EP-SC-040B** · SP-08 · إنشاء عرض\n\nالدور: **مدير المبيعات** (`sales_manager`)\n\nالصلاحية: `sc.offers.create`\n\nالحارس: `channel`\n\ntype: product_discount|invoice_discount|buy_x_get_y|bundle|tiered_discount|gift. Deleting a line in the offer removes the whole offer (BR-08).",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\"\n}",
+                                                    "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\",\n    \"display\": {\n        \"rating\": 4.8,\n        \"rating_count\": 128,\n        \"sold_count\": 215\n    }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "language": "json"
@@ -50095,7 +50760,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"length_mm\": 200,\n        \"width_mm\": 80,\n        \"height_mm\": 80,\n        \"pricing\": {\n            \"type\": \"tiered\",\n            \"base_price\": 12000,\n            \"currency_id\": 1,\n            \"tax_percent\": 0,\n            \"tiers\": [\n                {\n                    \"from\": 1,\n                    \"to\": 4,\n                    \"price\": 12000\n                },\n                {\n                    \"from\": 5,\n                    \"to\": 9,\n                    \"price\": 11500\n                },\n                {\n                    \"from\": 10,\n                    \"to\": null,\n                    \"price\": 11000\n                }\n            ]\n        },\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false,\n            \"opening_stock\": [\n                {\n                    \"warehouse_id\": 1,\n                    \"qty\": 100\n                }\n            ]\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"id\": 880,\n        \"axes\": [\n            {\n                \"name\": \"الحجم\",\n                \"values\": [\n                    \"1L\",\n                    \"2L\"\n                ]\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"sku\": \"OIL-SUN-1L-1L\",\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"barcode\": \"6291000000001\",\n                \"image\": null,\n                \"status\": \"active\",\n                \"price_override\": null,\n                \"price\": 12000,\n                \"stock\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"length_mm\": 200,\n        \"width_mm\": 80,\n        \"height_mm\": 80,\n        \"pricing\": {\n            \"type\": \"tiered\",\n            \"base_price\": 12000,\n            \"currency_id\": 1,\n            \"tax_percent\": 0,\n            \"tiers\": [\n                {\n                    \"from\": 1,\n                    \"to\": 4,\n                    \"price\": 12000\n                },\n                {\n                    \"from\": 5,\n                    \"to\": 9,\n                    \"price\": 11500\n                },\n                {\n                    \"from\": 10,\n                    \"to\": null,\n                    \"price\": 11000\n                }\n            ]\n        },\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false,\n            \"opening_stock\": [\n                {\n                    \"warehouse_id\": 1,\n                    \"qty\": 100\n                }\n            ]\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"storefront\": {\n            \"rating\": 4.8,\n            \"rating_count\": 2564,\n            \"sold_count\": 420,\n            \"compare_price\": 15000,\n            \"gross_weight_gram\": 1000,\n            \"container_type\": \"بلاستيك\",\n            \"capacity\": \"1 لتر\",\n            \"carton_dimensions\": \"40×32×27\",\n            \"carton_weight_gram\": 12000,\n            \"features\": [\n                \"100% طبيعي\"\n            ]\n        },\n        \"id\": 880,\n        \"axes\": [\n            {\n                \"name\": \"الحجم\",\n                \"values\": [\n                    \"1L\",\n                    \"2L\"\n                ]\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"sku\": \"OIL-SUN-1L-1L\",\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"barcode\": \"6291000000001\",\n                \"image\": null,\n                \"status\": \"active\",\n                \"price_override\": null,\n                \"price\": 12000,\n                \"stock\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },
@@ -50267,7 +50932,7 @@
                                         "description": "**EP-SC-015** · SP-06 · إنشاء منتج\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.catalog.create`\n\nالحارس: `channel`\n\nAll money fields are integer minor units (BR-AD-18). 12000 ≠ 120.00.",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    }\n}",
+                                            "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    },\n    \"storefront\": {\n        \"rating\": 4.8,\n        \"rating_count\": 2564,\n        \"sold_count\": 420,\n        \"compare_price\": 15000,\n        \"gross_weight_gram\": 1000,\n        \"container_type\": \"بلاستيك\",\n        \"capacity\": \"1 لتر\",\n        \"carton_dimensions\": \"40×32×27\",\n        \"carton_weight_gram\": 12000,\n        \"features\": [\n            \"100% طبيعي\"\n        ]\n    }\n}",
                                             "options": {
                                                 "raw": {
                                                     "language": "json"
@@ -50334,7 +50999,7 @@
                                                 "description": "**EP-SC-015** · SP-06 · إنشاء منتج\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.catalog.create`\n\nالحارس: `channel`\n\nAll money fields are integer minor units (BR-AD-18). 12000 ≠ 120.00.",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    }\n}",
+                                                    "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    },\n    \"storefront\": {\n        \"rating\": 4.8,\n        \"rating_count\": 2564,\n        \"sold_count\": 420,\n        \"compare_price\": 15000,\n        \"gross_weight_gram\": 1000,\n        \"container_type\": \"بلاستيك\",\n        \"capacity\": \"1 لتر\",\n        \"carton_dimensions\": \"40×32×27\",\n        \"carton_weight_gram\": 12000,\n        \"features\": [\n            \"100% طبيعي\"\n        ]\n    }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "language": "json"
@@ -50419,7 +51084,7 @@
                                         "description": "**EP-SC-016** · SP-06 · تحديث منتج\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.catalog.update`\n\nالحارس: `channel`",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    }\n}",
+                                            "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    },\n    \"storefront\": {\n        \"rating\": 4.8,\n        \"rating_count\": 2564,\n        \"sold_count\": 420,\n        \"compare_price\": 15000,\n        \"gross_weight_gram\": 1000,\n        \"container_type\": \"بلاستيك\",\n        \"capacity\": \"1 لتر\",\n        \"carton_dimensions\": \"40×32×27\",\n        \"carton_weight_gram\": 12000,\n        \"features\": [\n            \"100% طبيعي\"\n        ]\n    }\n}",
                                             "options": {
                                                 "raw": {
                                                     "language": "json"
@@ -50492,7 +51157,7 @@
                                                 "description": "**EP-SC-016** · SP-06 · تحديث منتج\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.catalog.update`\n\nالحارس: `channel`",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    }\n}",
+                                                    "raw": "{\n    \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n    \"name_en\": \"Sunflower Oil 1L\",\n    \"sku\": \"OIL-SUN-1L\",\n    \"brand_id\": 12,\n    \"category_id\": 340,\n    \"model_no\": \"SUN-1000\",\n    \"barcode\": \"6291000000000\",\n    \"status\": \"active\",\n    \"short_description\": \"زيت نباتي للطبخ\",\n    \"long_description\": \"<p>زيت دوار الشمس</p>\",\n    \"specs\": [\n        {\n            \"key\": \"الحجم\",\n            \"value\": \"1 لتر\"\n        }\n    ],\n    \"media\": {\n        \"images\": [\n            \"media_id_1\"\n        ],\n        \"primary\": \"media_id_1\",\n        \"video\": null\n    },\n    \"sale_unit_id\": 3,\n    \"unit_factors\": [\n        {\n            \"from_unit_id\": 3,\n            \"to_unit_id\": 5,\n            \"factor\": 12\n        }\n    ],\n    \"min_order_qty\": 1,\n    \"order_multiple\": 1,\n    \"weight_gram\": 950,\n    \"length_mm\": 200,\n    \"width_mm\": 80,\n    \"height_mm\": 80,\n    \"pricing\": {\n        \"type\": \"tiered\",\n        \"base_price\": 12000,\n        \"currency_id\": 1,\n        \"tax_percent\": 0,\n        \"tiers\": [\n            {\n                \"from\": 1,\n                \"to\": 4,\n                \"price\": 12000\n            },\n            {\n                \"from\": 5,\n                \"to\": 9,\n                \"price\": 11500\n            },\n            {\n                \"from\": 10,\n                \"to\": null,\n                \"price\": 11000\n            }\n        ]\n    },\n    \"inventory\": {\n        \"tracked\": true,\n        \"reorder_point\": 50,\n        \"allow_backorder\": false,\n        \"opening_stock\": [\n            {\n                \"warehouse_id\": 1,\n                \"qty\": 100\n            }\n        ]\n    },\n    \"availability\": {\n        \"zone_ids\": [\n            12,\n            13\n        ],\n        \"activity_type_ids\": [\n            3,\n            4\n        ],\n        \"retailer_group_ids\": [],\n        \"lead_time_days\": 2\n    },\n    \"marketing\": {\n        \"tags\": [\n            \"new\"\n        ],\n        \"sliders\": [\n            \"best_selling\"\n        ],\n        \"priority\": 10\n    },\n    \"storefront\": {\n        \"rating\": 4.8,\n        \"rating_count\": 2564,\n        \"sold_count\": 420,\n        \"compare_price\": 15000,\n        \"gross_weight_gram\": 1000,\n        \"container_type\": \"بلاستيك\",\n        \"capacity\": \"1 لتر\",\n        \"carton_dimensions\": \"40×32×27\",\n        \"carton_weight_gram\": 12000,\n        \"features\": [\n            \"100% طبيعي\"\n        ]\n    }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "language": "json"
@@ -52837,7 +53502,7 @@
                                         "description": "**EP-SC-040B** · SP-08 · إنشاء عرض\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.offers.create`\n\nالحارس: `channel`\n\ntype: product_discount|invoice_discount|buy_x_get_y|bundle|tiered_discount|gift. Deleting a line in the offer removes the whole offer (BR-08).",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\"\n}",
+                                            "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\",\n    \"display\": {\n        \"rating\": 4.8,\n        \"rating_count\": 128,\n        \"sold_count\": 215\n    }\n}",
                                             "options": {
                                                 "raw": {
                                                     "language": "json"
@@ -52904,7 +53569,7 @@
                                                 "description": "**EP-SC-040B** · SP-08 · إنشاء عرض\n\nالدور: **مدير الكتالوج** (`catalog_manager`)\n\nالصلاحية: `sc.offers.create`\n\nالحارس: `channel`\n\ntype: product_discount|invoice_discount|buy_x_get_y|bundle|tiered_discount|gift. Deleting a line in the offer removes the whole offer (BR-08).",
                                                 "body": {
                                                     "mode": "raw",
-                                                    "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\"\n}",
+                                                    "raw": "{\n    \"name\": \"اشترِ 10 واحصل على 1\",\n    \"type\": \"buy_x_get_y\",\n    \"media\": [\n        \"media_id_9\"\n    ],\n    \"description\": \"على زيت دوار الشمس\",\n    \"components\": [\n        {\n            \"product_id\": 880,\n            \"qty\": 10\n        }\n    ],\n    \"rules\": {\n        \"buy_qty\": 10,\n        \"get_qty\": 1\n    },\n    \"rewards\": {\n        \"product_id\": 880,\n        \"qty\": 1\n    },\n    \"targeting\": {\n        \"scope\": \"zones\",\n        \"activity_type_ids\": [\n            3\n        ],\n        \"zone_ids\": [\n            12\n        ],\n        \"group_ids\": [],\n        \"retailer_ids\": []\n    },\n    \"constraints\": {\n        \"starts_at\": \"2026-03-01T00:00:00+03:00\",\n        \"ends_at\": \"2026-03-31T23:59:59+03:00\",\n        \"total_qty\": 500,\n        \"per_retailer_max\": 3,\n        \"per_order_max\": 1,\n        \"min_invoice_value\": 0,\n        \"min_items\": 1\n    },\n    \"stackable\": false,\n    \"priority\": 10,\n    \"status\": \"active\",\n    \"display\": {\n        \"rating\": 4.8,\n        \"rating_count\": 128,\n        \"sold_count\": 215\n    }\n}",
                                                     "options": {
                                                         "raw": {
                                                             "language": "json"
@@ -56748,7 +57413,7 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"length_mm\": 200,\n        \"width_mm\": 80,\n        \"height_mm\": 80,\n        \"pricing\": {\n            \"type\": \"tiered\",\n            \"base_price\": 12000,\n            \"currency_id\": 1,\n            \"tax_percent\": 0,\n            \"tiers\": [\n                {\n                    \"from\": 1,\n                    \"to\": 4,\n                    \"price\": 12000\n                },\n                {\n                    \"from\": 5,\n                    \"to\": 9,\n                    \"price\": 11500\n                },\n                {\n                    \"from\": 10,\n                    \"to\": null,\n                    \"price\": 11000\n                }\n            ]\n        },\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false,\n            \"opening_stock\": [\n                {\n                    \"warehouse_id\": 1,\n                    \"qty\": 100\n                }\n            ]\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"id\": 880,\n        \"axes\": [\n            {\n                \"name\": \"الحجم\",\n                \"values\": [\n                    \"1L\",\n                    \"2L\"\n                ]\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"sku\": \"OIL-SUN-1L-1L\",\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"barcode\": \"6291000000001\",\n                \"image\": null,\n                \"status\": \"active\",\n                \"price_override\": null,\n                \"price\": 12000,\n                \"stock\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
+                                            "body": "{\n    \"data\": {\n        \"name_ar\": \"زيت دوار الشمس 1 لتر\",\n        \"name_en\": \"Sunflower Oil 1L\",\n        \"sku\": \"OIL-SUN-1L\",\n        \"brand_id\": 12,\n        \"category_id\": 340,\n        \"model_no\": \"SUN-1000\",\n        \"barcode\": \"6291000000000\",\n        \"status\": \"active\",\n        \"short_description\": \"زيت نباتي للطبخ\",\n        \"long_description\": \"<p>زيت دوار الشمس</p>\",\n        \"specs\": [\n            {\n                \"key\": \"الحجم\",\n                \"value\": \"1 لتر\"\n            }\n        ],\n        \"media\": {\n            \"images\": [\n                \"media_id_1\"\n            ],\n            \"primary\": \"media_id_1\",\n            \"video\": null\n        },\n        \"sale_unit_id\": 3,\n        \"unit_factors\": [\n            {\n                \"from_unit_id\": 3,\n                \"to_unit_id\": 5,\n                \"factor\": 12\n            }\n        ],\n        \"min_order_qty\": 1,\n        \"order_multiple\": 1,\n        \"weight_gram\": 950,\n        \"length_mm\": 200,\n        \"width_mm\": 80,\n        \"height_mm\": 80,\n        \"pricing\": {\n            \"type\": \"tiered\",\n            \"base_price\": 12000,\n            \"currency_id\": 1,\n            \"tax_percent\": 0,\n            \"tiers\": [\n                {\n                    \"from\": 1,\n                    \"to\": 4,\n                    \"price\": 12000\n                },\n                {\n                    \"from\": 5,\n                    \"to\": 9,\n                    \"price\": 11500\n                },\n                {\n                    \"from\": 10,\n                    \"to\": null,\n                    \"price\": 11000\n                }\n            ]\n        },\n        \"inventory\": {\n            \"tracked\": true,\n            \"reorder_point\": 50,\n            \"allow_backorder\": false,\n            \"opening_stock\": [\n                {\n                    \"warehouse_id\": 1,\n                    \"qty\": 100\n                }\n            ]\n        },\n        \"availability\": {\n            \"zone_ids\": [\n                12,\n                13\n            ],\n            \"activity_type_ids\": [\n                3,\n                4\n            ],\n            \"retailer_group_ids\": [],\n            \"lead_time_days\": 2\n        },\n        \"marketing\": {\n            \"tags\": [\n                \"new\"\n            ],\n            \"sliders\": [\n                \"best_selling\"\n            ],\n            \"priority\": 10\n        },\n        \"storefront\": {\n            \"rating\": 4.8,\n            \"rating_count\": 2564,\n            \"sold_count\": 420,\n            \"compare_price\": 15000,\n            \"gross_weight_gram\": 1000,\n            \"container_type\": \"بلاستيك\",\n            \"capacity\": \"1 لتر\",\n            \"carton_dimensions\": \"40×32×27\",\n            \"carton_weight_gram\": 12000,\n            \"features\": [\n                \"100% طبيعي\"\n            ]\n        },\n        \"id\": 880,\n        \"axes\": [\n            {\n                \"name\": \"الحجم\",\n                \"values\": [\n                    \"1L\",\n                    \"2L\"\n                ]\n            }\n        ],\n        \"variants\": [\n            {\n                \"id\": 1,\n                \"sku\": \"OIL-SUN-1L-1L\",\n                \"combination\": {\n                    \"الحجم\": \"1L\"\n                },\n                \"barcode\": \"6291000000001\",\n                \"image\": null,\n                \"status\": \"active\",\n                \"price_override\": null,\n                \"price\": 12000,\n                \"stock\": 0\n            }\n        ]\n    },\n    \"meta\": {\n        \"server_time\": \"2026-03-01T09:12:44+03:00\"\n    }\n}"
                                         }
                                     ]
                                 },

@@ -39,6 +39,7 @@ class Product extends Model
         'lead_time_days',
         'priority',
         'tags',
+        'storefront',
     ];
 
     protected function casts(): array
@@ -48,6 +49,7 @@ class Product extends Model
             'tracked' => 'boolean',
             'allow_backorder' => 'boolean',
             'tags' => 'array',
+            'storefront' => 'array',
         ];
     }
 

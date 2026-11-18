@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Tenancy\Infrastructure;
 
 use Modules\Core\Contracts\ChannelDirectory;
+use Modules\Core\Support\MediaUrl;
 use Modules\Tenancy\Domain\Enums\ChannelStatus;
 use Modules\Tenancy\Domain\Models\ChannelActivityType;
 use Modules\Tenancy\Domain\Models\ChannelGovernorate;
@@ -127,5 +128,37 @@ final class EloquentChannelDirectory implements ChannelDirectory
             ->where('governorate_id', $governorateId)
             ->distinct('channel_id')
             ->count('channel_id');
+    }
+
+    public function cardsForIds(array $channelIds): array
+    {
+        if ($channelIds === []) {
+            return [];
+        }
+
+        return SupplyChannel::query()
+            ->whereIn('id', $channelIds)
+            ->where('status', ChannelStatus::Active)
+            ->orderBy('name')
+            ->get()
+            ->map(function (SupplyChannel $channel): array {
+                $settings = is_array($channel->settings) ? $channel->settings : [];
+                $description = $settings['description'] ?? $channel->legal_name;
+                $rating = $settings['rating'] ?? 0;
+                $delivery = $settings['delivery_label'] ?? 'توصيل سريع';
+
+                return [
+                    'id' => (int) $channel->id,
+                    'name' => (string) $channel->name,
+                    'logo' => MediaUrl::of($channel->logo_media_id ? (int) $channel->logo_media_id : null),
+                    'description' => is_string($description) && $description !== '' ? $description : null,
+                    'is_verified' => $channel->status === ChannelStatus::Active && $channel->provisioned_at !== null,
+                    'rating' => is_numeric($rating) ? round((float) $rating, 1) : 0.0,
+                    'brand_count' => 0,
+                    'delivery_label' => is_string($delivery) && $delivery !== '' ? $delivery : 'توصيل سريع',
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

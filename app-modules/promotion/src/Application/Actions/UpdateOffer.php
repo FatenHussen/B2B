@@ -82,6 +82,7 @@ final class UpdateOffer
                 'min_items' => $constraints['min_items'] ?? null,
                 'targeting_scope' => TargetingScope::tryFrom((string) ($targeting['scope'] ?? 'all')) ?? TargetingScope::All,
                 'rules' => $data['rules'] ?? [],
+                'display' => is_array($data['display'] ?? null) ? $data['display'] : null,
             ])->save();
 
             OfferMedia::query()->where('offer_id', $offer->id)->delete();

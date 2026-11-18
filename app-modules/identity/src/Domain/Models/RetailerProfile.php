@@ -19,6 +19,7 @@ use Modules\Identity\Domain\Enums\ProfileStatus;
  * @property float|null $lat
  * @property float|null $lng
  * @property string|null $address
+ * @property bool $is_online
  * @property ProfileStatus $status
  */
 class RetailerProfile extends Model
@@ -32,6 +33,7 @@ class RetailerProfile extends Model
         'lat',
         'lng',
         'address',
+        'is_online',
         'status',
     ];
 
@@ -41,6 +43,7 @@ class RetailerProfile extends Model
             'status' => ProfileStatus::class,
             'lat' => 'float',
             'lng' => 'float',
+            'is_online' => 'boolean',
         ];
     }
 

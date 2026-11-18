@@ -29,3 +29,6 @@ Thumbs.db
 
 # Throwaway inspection scripts. They are analysis, not source, and they fail Pint.
 /tmp-*.php
+
+# Firebase service-account keys. Never the client google-services.json from the Flutter app.
+*firebase-adminsdk*.json

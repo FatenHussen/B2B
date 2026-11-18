@@ -25,6 +25,8 @@ interface RetailerShoppingContext
      *     category_ids: list<int>,
      *     channel_ids: list<int>,
      *     shop_name: string,
+     *     owner_name: string,
+     *     is_online: bool,
      *     status: string
      * }
      */

@@ -9,10 +9,12 @@ use Illuminate\Http\Request;
 use Modules\Core\Http\ApiController;
 use Modules\Identity\Application\Actions\RegisterRep;
 use Modules\Identity\Application\Actions\RegisterRetailer;
+use Modules\Identity\Application\Actions\UpdateRetailerPresence;
 use Modules\Identity\Application\Queries\AppSession;
 use Modules\Identity\Domain\Models\AppUser;
 use Modules\Identity\Presentation\Http\Requests\RegisterRepRequest;
 use Modules\Identity\Presentation\Http\Requests\RegisterRetailerRequest;
+use Modules\Identity\Presentation\Http\Requests\UpdateRetailerPresenceRequest;
 
 final class AppAuthController extends ApiController
 {
@@ -45,5 +47,10 @@ final class AppAuthController extends ApiController
         $request->user()?->currentAccessToken()?->delete();
 
         return $this->ok(['success' => true]);
+    }
+
+    public function presence(UpdateRetailerPresenceRequest $request, UpdateRetailerPresence $action): JsonResponse
+    {
+        return $this->ok($action($request->user(), (bool) $request->boolean('is_online')));
     }
 }

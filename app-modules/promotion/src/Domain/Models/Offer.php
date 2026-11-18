@@ -64,6 +64,7 @@ class Offer extends Model
         'min_items',
         'targeting_scope',
         'rules',
+        'display',
         'stop_reason',
     ];
 
@@ -77,6 +78,7 @@ class Offer extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'rules' => 'array',
+            'display' => 'array',
             'min_invoice_value' => 'integer',
         ];
     }

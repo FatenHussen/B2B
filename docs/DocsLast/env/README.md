@@ -67,12 +67,22 @@ curl https://api.sentraxsy.com/api/v1/health
 
 ## Firebase
 
-هذا الريبو **ما فيه** مفاتيح Firebase ولا `google-services.json`.  
-الباكند يسجّل رمز الجهاز فقط: `POST /api/v1/app/devices/push-token`.
+البانر على شاشة الموبايل يحتاج طرفين. هذا الريبو **ما فيه** مفاتيح جاهزة ولا `google-services.json`.
 
-من Firebase Console → Project settings:
+**على السيرفر (Laravel)** — هذا الذي يرسل الإشعار:
 
-1. أنشئ تطبيق Android / iOS.
-2. نزّل `google-services.json` و `GoogleService-Info.plist` وضعها في مشروع Flutter.
-3. انسخ `projectId` / `apiKey` / `appId` / `messagingSenderId` إلى المتغيرات الفارغة في ملف التاجر إن كنت تستخدم `--dart-define` بدل الملفات.
-4. بعد OTP والجلسة: أرسل توكن FCM الحقيقي (مو `fcm:xxxxx` التجريبي).
+1. Firebase Console → Project settings → Service accounts → Generate new private key.
+2. ضع الملف خارج git، مثلاً `storage/app/firebase-adminsdk.json`.
+3. في `.env`: `FIREBASE_CREDENTIALS=` المسار الكامل لذلك الملف (مو `apiKey` العميل).
+4. `php artisan config:cache`. على VPS هذا المشروع العامل هو Supervisor (`sentrax-worker`) ولازم طابور `notifications` يكون ضمن `--queue=`. Horizon غير شغّال هناك.
+
+بدون هذا الملف السجل يبقى `push_whatsapp_provider_not_configured`. واتساب كقناة إرسال ما زال غير مربوط.
+
+**على تطبيق Flutter** — هذا الذي يستقبل الإشعار:
+
+1. أنشئ تطبيق Android / iOS في نفس مشروع Firebase.
+2. `google-services.json` و `GoogleService-Info.plist` (أو `flutterfire configure`).
+3. انسخ مفاتيح العميل إلى `FIREBASE_*` في ملف التاجر إن كنت تستخدم `--dart-define`. Laravel لا يقرأها.
+4. بعد OTP: `POST /api/v1/app/devices/push-token` مع توكن FCM الحقيقي و `X-Device-Id`.
+
+الإشعار يظهر على الشاشة والبرنامج في الخلفية أو مقفل. إذا كان التطبيق في الواجهة، Flutter يعرض البانر من `onMessage`.

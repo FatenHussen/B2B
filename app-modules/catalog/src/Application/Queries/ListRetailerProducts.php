@@ -27,6 +27,7 @@ final class ListRetailerProducts
     public function paginate(object $user, Request $request): LengthAwarePaginator
     {
         $ctx = $this->shopping->for($user);
+        $retailerId = $ctx['retailer_id'];
         $base = VisibleCatalogQuery::products($ctx)->with(['brand', 'media', 'variants']);
         if ($request->filled('barcode')) {
             $base->where('barcode', $request->string('barcode')->toString());
@@ -49,6 +50,14 @@ final class ListRetailerProducts
                         $q->whereRaw('0 = 1');
                     });
                 }),
+                AllowedFilter::callback('favorites', function ($query, $value) use ($retailerId): void {
+                    if ((string) $value !== '1') {
+                        return;
+                    }
+                    $query->whereIn('id', RetailerProductFavorite::query()
+                        ->where('retailer_id', $retailerId)
+                        ->select('product_id'));
+                }),
                 AllowedFilter::callback('search', function ($query, $value): void {
                     $query->where(function ($q) use ($value): void {
                         $q->where('name_ar', 'like', '%'.$value.'%')
@@ -58,6 +67,21 @@ final class ListRetailerProducts
             )
             ->defaultSort('-created_at')
             ->paginate(min((int) $request->get('per_page', 25), 100));
+    }
+
+    /**
+     * Favorites screen — same card as browse, scoped to this retailer's hearts.
+     *
+     * @return LengthAwarePaginator<int, Product>
+     */
+    public function favorites(object $user, Request $request): LengthAwarePaginator
+    {
+        $request->merge(['filter' => array_merge(
+            is_array($request->input('filter')) ? $request->input('filter') : [],
+            ['favorites' => '1'],
+        )]);
+
+        return $this->paginate($user, $request);
     }
 
     /**

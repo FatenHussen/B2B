@@ -9,7 +9,7 @@
 | الشقيق | `channel.json` · الكتالوج `04-channel-catalog.php` + `05-channel-ops.php` · دورة الطلب [`order-flow.md`](order-flow.md) |
 | عند التعارض | `route:list` → الكنترولر/FormRequest → **`channel.json`** → **هذا الملف** → الكتالوج |
 
-> **لـ Cursor / مطوّر أول.** اقرأ §0 ثم **§0B (دورة الطلب 2026-11-03)** قبل شاشات الطلبات. ابنِ ما يدرجه §5 فقط، بعميل §3. لا تختلق مساراً ولا حقلاً. حالة فارغة صادقة — لا محاكاة بيانات.
+> **لـ Cursor / مطوّر أول.** اقرأ §0 ثم **§0B (دورة الطلب)** ثم **§0C (ما يقرأه التاجر والمندوب)** قبل شاشات الكتالوج والإعدادات. ابنِ ما يدرجه §5 فقط، بعميل §3. لا تختلق مساراً ولا حقلاً. حالة فارغة صادقة — لا محاكاة بيانات.
 >
 > **قبل الرفع:** لا نقص مسار قناة في الباك. المتبقي تشغيل سيرفر (BF-01…04) + بناء Next في ريبو الواجهة.
 
@@ -21,6 +21,7 @@
 |---|---|
 | 0 | قواعد الوكيل |
 | 0B | **دورة الطلب — تعديلات 2026-11-03** |
+| 0C | **ما يقرأه التاجر والمندوب من هذه اللوحة — 2026-11-18** |
 | 1 | البيئة، الترويسات، البذرة |
 | 2 | هيكل Next.js والصلاحيات والتنقّل |
 | 3 | الغلاف، الأخطاء، العميل، التكرار، المال، الوقت |
@@ -96,6 +97,81 @@ PUT /api/v1/channel          # EP-SC-130B
 | نقص كلي للصنف (FIFO) | المستودع `POST /warehouse/stock-shortages` |
 | قرار المحل على النقص | تطبيق التاجر EP-RT-035/036 |
 | التقاط / تغليف / عهدة | لوحة المستودع |
+
+---
+
+## 0C. ما يقرأه التاجر والمندوب من هذه اللوحة — 2026-11-18
+
+عقد التطبيقين: [`flutter-retailer.md`](flutter-retailer.md) · [`flutter-rep.md`](flutter-rep.md). هذه اللوحة لا تستدعي `/app/*`. هي التي **تكتب** الحقول التي يعرضها التطبيق. مفتاح فارغ يملؤه الخادم رقماً أو جملة ثابتة حتى لا تظهر الشاشة صفراً — املأ الحقل هنا إن أردت الرقم الحقيقي.
+
+### بطاقة القناة على رئيسية التاجر
+
+`GET /app/retailer/home` → `channels_slider[]`. المصدر صف القناة نفسها:
+
+| ما يراه التاجر | من أين تكتبه هذه اللوحة |
+|---|---|
+| `name` | `name` في `PUT /channel` |
+| `description` | `settings.description`. إن غاب يُستخدم `legal_name`، ثم جملة ثابتة |
+| `rating` | `settings.rating` رقم 0–5 ومنزلة واحدة. `0` أو الغياب → رقم مشتق من معرّف القناة |
+| `delivery_label` | `settings.delivery_label`. الغياب → `توصيل سريع` |
+| `brand_count` | عدد العلامات `active`. صفر علامات → رقم واجهة. انشر علامات حقيقية |
+| `logo` | `logo_media_id`. يُضبط عند **إنشاء** القناة من لوحة المنصة (`logo`). هذه اللوحة لا تغيّره |
+| `is_verified` | القناة `active` وقد اكتمل تجهيزها (`provisioned_at`). ليس مفتاحاً في الإعدادات |
+
+`company` على بطاقة المنتج وبطاقة العرض = `{ id, name }` لاسم القناة. تغيير `name` يغيّر الشارة في التطبيقين.
+
+`PUT /channel` يستبدل كائن `settings` كاملاً. أعد إرسال `quiet_hours` و`returns_sla_hours` و`order_approver` مع مفاتيح الواجهة في نفس الجسم، وإلا تُمسح.
+
+```json
+{
+  "name": "قناة عافية",
+  "legal_name": "شركة عافية للتجارة",
+  "settings": {
+    "quiet_hours": { "from": "22:00", "to": "08:00" },
+    "returns_sla_hours": 24,
+    "order_approver": "channel",
+    "description": "تشكيلة واسعة من المواد الغذائية للتجزئة والجملة.",
+    "rating": 4.8,
+    "delivery_label": "توصيل خلال 24 ساعة"
+  }
+}
+```
+
+### منتج التاجر — `storefront`
+
+على `POST/PUT /channel/products` ويظهر في `GET /channel/products/{id}`. التفاصيل في §5.5.
+
+| مفتاح `storefront` | حقل تطبيق التاجر |
+|---|---|
+| `rating` · `rating_count` · `sold_count` | البطاقة |
+| `compare_price` | `price_before` (int، أصغر وحدة). الخصم = الفرق عن سعر التسعير |
+| `features[]` | قائمة الميزات في التفاصيل |
+| `gross_weight_gram` · `container_type` · `capacity` · `carton_dimensions` · `carton_weight_gram` | المواصفات والتغليف |
+
+`lead_time_days` على المنتج (خارج `storefront`) يصير `lead_time_label`: يوم أو أقل → `24 ساعة`، وإلا `N-(N+3) أيام`.
+
+`status: disabled` على العلامة يخفي العلامة ومنتجاتها من التاجر والمندوب. المتغيرات من `POST …/variants/generate` هي ما يعدّه المندوب فوق كل محور في تسجيل الطلب.
+
+### عرض التاجر — `display` و`rules.terms`
+
+على إنشاء العرض وتحديثه (§5.7).
+
+| مفتاح | حقل التطبيق |
+|---|---|
+| `display.rating` · `rating_count` · `sold_count` | بطاقة العرض |
+| `rules.terms[]` | قائمة الشروط في التفاصيل. الغياب → نصوص ثابتة |
+
+`company` على العرض هو اسم القناة، لا حقل داخل العرض. صورة العرض من وسائط العرض عبر `POST /channel/media/upload`.
+
+### ما لا تحرّره هذه اللوحة
+
+| السلوك في التطبيق | الجهة |
+|---|---|
+| مفتاح «متصل» `is_online` | التاجر `PUT /app/retailer/presence`. بطاقة 360 لا تعيده |
+| المفضلة ونواقص الرغبة | التاجر. نواقص الرغبة ليست نقص تجهيز المستودع |
+| انترو أول تشغيل | لوحة المنصة `PUT /platform/content/intro`. التطبيقان يقرآن `GET /public/content/intro`. انترو القناة (§5.15) شاشة هذه اللوحة ولا يصل للتطبيق |
+| فرض تحديث التطبيق | جدول إصدارات المنصة. `GET /public/app-config` اليوم لا يقرأ ذلك الجدول (`force_update` دائماً false والحد `1.0.0`) |
+| سقف خصم المندوب ونقده | هذه اللوحة: `PUT /channel/reps/{id}/discount-cap` — المندوب يُرفض إن تجاوز السقف عند الإرسال |
 
 ---
 
@@ -563,6 +639,8 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 `pricing.type`: `simple` \| `tiered`. `pricing.base_price` و`tiers[].price` **int**. `status`: `draft` \| `active` \| `disabled`.
 
+`storefront` (اختياري، نفس الإنشاء والتحديث وظهوره في `GET /channel/products/{id}`): ما يعرضه تطبيق التاجر. الخريطة الكاملة في §0C. المفاتيح: `rating` (0–5)، `rating_count`، `sold_count`، `compare_price` (سعر قبل الخصم بالوحدة الصغرى)، `gross_weight_gram`، `container_type`، `capacity`، `carton_dimensions`، `carton_weight_gram`، `features[]`. مفتاح غائب يملؤه الخادم من معرّف المنتج أو من المواصفات إن وُجدت.
+
 `POST /channel/products/{id}/variants/generate` 🔁 — `{ "axes": [{ "name": "الحجم", "values": ["1ل", "5ل"] }] }`
 
 `POST /channel/products/bulk` 🔁 — `{ "product_ids": [880], "action": "activate"|"disable"|"delete_draft", "payload"? }` سقف 200.
@@ -607,13 +685,17 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 `type` ∈ `product_discount|invoice_discount|buy_x_get_y|bundle|tiered_discount|gift`.
 
-`POST /channel/offers` 🔁 201 `{ id }` — الجسم الكامل في `channel.json` / FormRequest: `name`, `type`, `components[]`, `rules`, `rewards`, `targeting`, `constraints`, `stackable`, `priority`, `status`.
+`POST /channel/offers` 🔁 201 `{ id }` — الجسم الكامل في `channel.json` / FormRequest: `name`, `type`, `components[]`, `rules`, `rewards`, `targeting`, `constraints`, `stackable`, `priority`, `status`, `display`.
+
+`display`: `rating`، `rating_count`، `sold_count` — بطاقة العرض في تطبيق التاجر (§0C). `rules.terms[]` شروط التفاصيل. الغياب يملأ قيماً ثابتة. `company` على البطاقة هو `name` القناة.
+
+`GET /channel/offers/{id}` و`PUT /channel/offers/{id}` جسم المحرّر الكامل (يشمل `display`).
 
 `PATCH /channel/offers/{id}/stop` 🔁 — `{ "reason": "…" }` إلزامي ≤255.
 
 `GET /channel/offers/{id}/performance` — `net_margin` = `linked_sales − cost` (عندما `product_base_prices.cost_price` مضبوط؛ وإلا التكلفة 0). `conversion_rate` سلم 10^4 من مشاهدات التجار الفريدة ÷ المستفيدين.
 
-**لا `GET /channel/offers/{id}` ولا PUT.**
+`GET`/`PUT /channel/offers/{id}` حيّان (جسم المحرّر).
 
 ---
 
@@ -815,7 +897,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 `PUT /channel/content/intro` 🔁 — `enabled` إلزامي. `media_type` ∈ `image|video`. **الاستجابة `{ enabled }` فقط** — أعد الجلب للنموذج.
 
-تطبيق المندوب **لا** يستدعي هذا المسار (`wrong_guard`). يقرأ `GET /public/content/intro` (انترو المنصة الافتراضي).
+تطبيق التاجر وتطبيق المندوب يقرآن انترو المنصة `GET /public/content/intro` (كتابة لوحة المنصة). هذا المسار شاشة القناة ولا يصل إليهما (`wrong_guard` إن استدعياه).
 
 `GET /channel/content/banners` 📄 → `{ id, media_type, placements }`.
 
@@ -859,7 +941,7 @@ export const verifyOtp = (otp_id: string, code: string) =>
   "top_products": [{ "product_id": 880, "name": "زيت", "qty": 40 }] }
 ```
 
-أجنبي / خارج التغطية → 404.
+أجنبي / خارج التغطية → 404. `is_online` (مفتاح متصل في تطبيق التاجر) ليس على هذه البطاقة؛ التاجر يكتبه من تطبيقه.
 
 `GET /channel/reps/{id}/live` 🔒 `sc.reps.view` → `{ lat, lng, at, on_duty }`. بلا ping: `lat`/`lng`/`at` = null و`on_duty` يبقى.
 
@@ -886,13 +968,13 @@ export const verifyOtp = (otp_id: string, code: string) =>
 
 ### إعدادات القناة — ساعات هدوء وSLA
 
-`PUT /channel` يقبل `settings`:
+`PUT /channel` يقبل `settings` **ويستبدل الكائن كله**. أعد المفاتيح الموجودة مع أي مفتاح جديد (§0C: `description` · `rating` · `delivery_label`):
 
 ```json
-{ "quiet_hours": { "from": "22:00", "to": "08:00" }, "returns_sla_hours": 24, "order_approver": "channel" }
+{ "quiet_hours": { "from": "22:00", "to": "08:00" }, "returns_sla_hours": 24, "order_approver": "channel", "description": "…", "rating": 4.8, "delivery_label": "توصيل خلال 24 ساعة" }
 ```
 
-(أو `start`/`end` بدل `from`/`to`). يؤجّل إرسال الإشعار؛ يضبط `sla_due_at` على طلبات الإرجاع. `order_approver` ∈ `channel|warehouse` (افتراضي `channel`)؛ عند `warehouse` التأكيد من `POST /warehouse/sub-orders/{id}/confirm` والقناة تظل ترى كل الوارد.
+(أو `start`/`end` بدل `from`/`to`). `quiet_hours` يؤجّل إرسال الإشعار؛ `returns_sla_hours` يضبط `sla_due_at` على طلبات الإرجاع. `order_approver` ∈ `channel|warehouse` (افتراضي `channel`)؛ عند `warehouse` التأكيد من `POST /warehouse/sub-orders/{id}/confirm` والقناة تظل ترى كل الوارد.
 
 `GET /channel/return-requests` يعيد أيضاً `sla_due_at` و`overdue`.
 
@@ -1006,7 +1088,7 @@ const byCode: Record<string, string> = {
 | أولوية التسعير | stop-at-first-match: تاجر ← مجموعة ← منطقة ← شرائح ← أساسي |
 | FEFO | lots عند الاستلام؛ الصرف يفضّل أقرب صلاحية |
 | CTR البنرات | impressions من التطبيق؛ clicks من مسار البنر |
-| قوالب الإشعار | `in_app` مضمون؛ push/whatsapp غير مضبوط إنتاجياً |
+| قوالب الإشعار | `in_app` مضمون. `push` يصل للموبايل إذا `FIREBASE_CREDENTIALS` مضبوط وHorizon يعمل. `whatsapp` غير مضبوط |
 | قرار مرتجع | approve → مذكرة دائنة؛ المخزون عند فرز المستودع |
 | نقص تجهيز كلي | المستودع EP-WH-063 — ليس شاشة قناة |
 
@@ -1021,21 +1103,21 @@ const byCode: Record<string, string> = {
 | 1 | دخول | OTP | — |
 | 2 | لوحة | dashboard + عدّاد pending | أصفار حتى اللقطة؛ بعدها KPI/تنبيهات حقيقية |
 | 3 | طلبات + تفاصيل | sub-orders · assign modes | «لا طلبات تطابق المرشّح.» |
-| 4 | علامات / فئات / منتجات + نظرة عامة | catalog · `GET /channel/catalog/summary` | «لا منتجات بعد.» الأعداد من الملخص، لا من صف القائمة |
+| 4 | علامات / فئات / منتجات + نظرة عامة + **`storefront`** | catalog · `GET /channel/catalog/summary` · `storefront` على المحرّر (§0C) | «لا منتجات بعد.» الأعداد من الملخص، لا من صف القائمة |
 | 5 | تسعير + سجل | price-lists, change-log | «لا قوائم أسعار.» |
-| 6 | عروض + أداء | offers CRUD + performance | «لا عروض.» |
+| 6 | عروض + أداء + **`display` / `rules.terms`** | offers CRUD + performance (§0C) | «لا عروض.» |
 | 7 | مخزون + تحويلات | inventory + warehouses | «لا أرصدة.» |
 | 8 | مندوبون + حيّ فردي + **خريطة الكل** + محفظة | reps* · `/reps/{id}/live` · `/reps/live` | «لا مندوبين.» |
 | 9 | مرتجعات + تصعيد SLA | return-requests · escalate | «لا طلبات إرجاع.» لوّن overdue |
 | 10 | فواتير / دفعات / أعمار | finance | «لا فواتير مفتوحة.» |
 | 11 | تجّار 360 + مجموعات + ائتمان + **طابور موافقة** | retailers/{id} · groups · credit · credit-approvals | «لا تجّار.» |
 | 12 | تغطية + فجوات + **مضلعات** + **تقويم توصيل** | zones · coverage · map · delivery-calendar | «لا تغطية.» |
-| 13 | إشعارات + قوالب | notifications* | «لا سجل بعد.» لا «مُسلَّم» لـ push |
-| 14 | انترو / بنرات / سلايدر | content | انترو `enabled: false` |
+| 13 | إشعارات + قوالب | notifications* | «لا سجل بعد.» `push` مُسلَّم فقط بعد قبول FCM؛ وإلا `partial`/`failed` |
+| 14 | انترو القناة / بنرات / سلايدر | content | انترو القناة `enabled: false`. انترو التطبيقين من لوحة المنصة |
 | 15 | ولاء | loyalty rules/rewards/stop | قواعد فارغة صحيحة |
 | 16 | تقارير + تصدير + jobs | reports + jobs/{id} | صفوف فارغة؛ job_id ثم polling |
 | 17 | مستخدمو القناة | users + invite | «لا مستخدمين.» |
-| 18 | إعدادات (+ **order_approver**) | GET/PUT /channel | quiet_hours · returns_sla · order_approver |
+| 18 | إعدادات (+ **order_approver** + بطاقة التاجر) | GET/PUT /channel | أعد `settings` كاملاً: quiet_hours · returns_sla · order_approver · description · rating · delivery_label |
 
 لكل شاشة: `can()` على الأزرار · مفتاح تكرار في النموذج · هيكل تحميل · خطأ عبر `ApiError.userMessage` · مال عبر `moneySyp` · 422 تحت الحقل · لا مسار من §8 · ترقيم على 📄 · سحب للتحديث · RTL مع LTR للأرقام.
 
@@ -1057,6 +1139,7 @@ const byCode: Record<string, string> = {
 12. الاستيراد `FormData` لا JSON. حذف المنطقة يتعامل مع 204.
 13. `order_approver` يُقرأ قبل رسم أزرار التأكيد؛ مسار النقص الكلي للمستودع لا للقناة.
 14. ميزات v1.1 في §8 «صار حيّاً» مربوطة — لا `RemoteNotReady` عليها.
+15. محرّر المنتج يرسل `storefront`، ومحرّر العرض يرسل `display` و`rules.terms`، وإعدادات القناة تعيد `settings` كاملاً بما فيه وصف البطاقة وتقييمها وعبارة التوصيل (§0C).
 
 إعادة توليد العقد الآلي بعد أي مسار جديد:
 
@@ -1065,4 +1148,4 @@ php docs/api/generate.php && php docs/status/generate.php
 php docs/api/generate-channel-live.php
 ```
 
-*آخر تحديث: 2026-11-03 · الحالة: 124/124 حيّ · يشمل order-flow gaps + v1.1.*
+*آخر تحديث: 2026-11-18 · الحالة: 124/124 حيّ · §0C يربط اللوحة بعقد التاجر والمندوب (بطاقة القناة، storefront، display).*

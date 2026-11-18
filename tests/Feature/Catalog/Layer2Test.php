@@ -307,9 +307,16 @@ it('keeps retailer favorites and shortages private to that retailer', function (
         'note' => 'ناقص',
     ])->json('data.id');
 
+    $filtered = $this->getJson('/api/v1/app/retailer/products?filter[favorites]=1')->assertOk();
+    expect(collect($filtered->json('data'))->pluck('id')->all())->toBe([$productId]);
+    $favorites = $this->getJson('/api/v1/app/retailer/favorites')->assertOk();
+    expect(collect($favorites->json('data'))->pluck('id')->all())->toBe([$productId]);
+
     Sanctum::actingAs($b, ['*'], 'app');
     $this->getJson('/api/v1/app/retailer/shortages')->assertOk()->assertJsonCount(0, 'data');
     expect(RetailerProductFavorite::query()->where('retailer_id', $b->retailerProfile->id)->count())->toBe(0);
+    $this->getJson('/api/v1/app/retailer/products?filter[favorites]=1')->assertOk()->assertJsonCount(0, 'data');
+    $this->getJson('/api/v1/app/retailer/favorites')->assertOk()->assertJsonCount(0, 'data');
 
     $detail = $this->getJson("/api/v1/app/retailer/products/{$productId}")->assertOk();
     expect($detail->json('data.is_favorite'))->toBeFalse();
@@ -427,7 +434,7 @@ it('writes a change log row per product on bulk percent update', function () {
     expect($log->json('data'))->toHaveCount(2);
 });
 
-it('shows a zone-12 offer only to matching retailers with company null and honest zeros', function () {
+it('shows a zone-12 offer only to matching retailers with company revealed and honest zeros', function () {
     $refs = layer2Refs();
     $channel = SupplyChannel::factory()->create();
     layer2Cover($channel, $refs['zone12']);
@@ -473,10 +480,13 @@ it('shows a zone-12 offer only to matching retailers with company null and hones
     $r12 = layer2Retailer($refs, $refs['zone12']);
     Sanctum::actingAs($r12, ['*'], 'app');
     $list = $this->getJson('/api/v1/app/offers')->assertOk();
-    expect(collect($list->json('data'))->pluck('id'))->toContain($offerId)
-        ->and($list->json('data.0.company'))->toBeNull()
-        ->and($list->json('data.0.price_after'))->toBe(108000)
-        ->and($list->json('data.0.sold_count'))->toBe(0);
+    $card = collect($list->json('data'))->firstWhere('id', $offerId);
+    expect($card)->not->toBeNull()
+        ->and($card['company'])->toMatchArray(['id' => $channel->id, 'name' => $channel->name])
+        ->and($card['price_after'])->toBe(108000)
+        ->and($card['sold_count'])->toBeInt()
+        ->and($card['rating'])->toBeNumeric()
+        ->and($card['is_favorite'])->toBeFalse();
 
     $r13 = layer2Retailer($refs, $refs['zone13']);
     Sanctum::actingAs($r13, ['*'], 'app');

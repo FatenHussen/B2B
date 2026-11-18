@@ -7,6 +7,7 @@ namespace Modules\Notification\Application\Listeners;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Domain\Events\DeliveryCompleted;
+use Modules\Notification\Application\Support\DevicePushQueue;
 use Modules\Notification\Application\Support\EventTemplateResolver;
 use Modules\Notification\Application\Support\InboxWriter;
 
@@ -17,6 +18,7 @@ final class NotifyOnDeliveryCompleted
         private readonly SubOrderLifecycle $orders,
         private readonly RetailerDirectory $retailers,
         private readonly EventTemplateResolver $templates,
+        private readonly DevicePushQueue $devices,
     ) {}
 
     public function handle(DeliveryCompleted $event): void
@@ -41,18 +43,28 @@ final class NotifyOnDeliveryCompleted
             ['sub_order_no' => $no, 'invoice_no' => $invoice],
         );
 
-        if (! $tpl['enabled'] || ! in_array('in_app', $tpl['channels'], true)) {
+        if (! $tpl['enabled']) {
             return;
         }
 
-        $this->inbox->write(
-            'retailer',
-            $userId,
-            (int) $header['channel_id'],
-            'delivery',
-            $tpl['title'],
-            $tpl['body'],
-            ['type' => 'order', 'target' => $event->subOrderId],
-        );
+        $wantsInApp = in_array('in_app', $tpl['channels'], true);
+        $wantsPush = in_array('push', $tpl['channels'], true);
+        if (! $wantsInApp && ! $wantsPush) {
+            return;
+        }
+
+        $action = ['type' => 'order', 'target' => $event->subOrderId];
+        if ($wantsInApp) {
+            $this->inbox->write(
+                'retailer',
+                $userId,
+                (int) $header['channel_id'],
+                'delivery',
+                $tpl['title'],
+                $tpl['body'],
+                $action,
+            );
+        }
+        $this->devices->send('retailer', $userId, $tpl['title'], $tpl['body'], $action);
     }
 }

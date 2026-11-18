@@ -6,6 +6,7 @@ namespace Modules\Notification\Application\Listeners;
 
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Domain\Events\SubOrderAssigned;
+use Modules\Notification\Application\Support\DevicePushQueue;
 use Modules\Notification\Application\Support\EventTemplateResolver;
 use Modules\Notification\Application\Support\InboxWriter;
 
@@ -15,6 +16,7 @@ final class NotifyOnSubOrderAssigned
         private readonly InboxWriter $inbox,
         private readonly SubOrderLifecycle $orders,
         private readonly EventTemplateResolver $templates,
+        private readonly DevicePushQueue $devices,
     ) {}
 
     public function handle(SubOrderAssigned $event): void
@@ -32,18 +34,28 @@ final class NotifyOnSubOrderAssigned
             ['sub_order_no' => $no, 'shop_name' => $shop],
         );
 
-        if (! $tpl['enabled'] || ! in_array('in_app', $tpl['channels'], true)) {
+        if (! $tpl['enabled']) {
             return;
         }
 
-        $this->inbox->write(
-            'rep',
-            $event->repUserId,
-            $event->channelId,
-            'order',
-            $tpl['title'],
-            $tpl['body'],
-            ['type' => 'assignment', 'target' => $event->subOrderId],
-        );
+        $wantsInApp = in_array('in_app', $tpl['channels'], true);
+        $wantsPush = in_array('push', $tpl['channels'], true);
+        if (! $wantsInApp && ! $wantsPush) {
+            return;
+        }
+
+        $action = ['type' => 'assignment', 'target' => $event->subOrderId];
+        if ($wantsInApp) {
+            $this->inbox->write(
+                'rep',
+                $event->repUserId,
+                $event->channelId,
+                'order',
+                $tpl['title'],
+                $tpl['body'],
+                $action,
+            );
+        }
+        $this->devices->send('rep', $event->repUserId, $tpl['title'], $tpl['body'], $action);
     }
 }

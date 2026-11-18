@@ -92,20 +92,25 @@ own VirtualHost and certificate before the name is used anywhere.
 | `APP_KEY` | set | Distinct from the key committed in `.env.testing`. |
 | `SENTRY_*` | absent | Sentry is not installed (§8). |
 
-### Notifications — Push / WhatsApp (BF-12, 2026-09-25)
+### Notifications — Push / WhatsApp (BF-12)
 
-Channel campaigns may list `push` / `whatsapp` / `in_app`. **Only `in_app` is
-delivered** until a provider is wired in Integration. Delivery log rows:
+`in_app` writes the phone inbox. **FCM** sends the lock-screen banner when
+`FIREBASE_CREDENTIALS` points at a Firebase service-account JSON (HTTP v1, not the
+client apiKey). Order, assignment, handover and delivery events fan out to that
+token, and so does a channel campaign (`push`, or `in_app` once credentials exist).
+WhatsApp is still not a provider. Horizon must be running: the send is the
+`notifications` queue.
 
-| Channels requested | Log `status` | `failure_reason` |
-|---|---|---|
-| `in_app` only | `sent` | null |
-| `in_app` + push/whatsapp | `partial` | `push_whatsapp_provider_not_configured` |
-| push/whatsapp only | `failed` | `push_whatsapp_provider_not_configured` |
+| Channels requested | Credentials | Log `status` | `failure_reason` |
+|---|---|---|---|
+| `in_app` only | absent | `sent` | null |
+| `in_app` + `push`, or `push` only | absent | `partial` / `failed` | `push_whatsapp_provider_not_configured` |
+| `push` (with or without `in_app`) | set, token accepted | `sent` | null |
+| `push` only | set, no device token | `failed` | `no_push_token` |
+| `in_app` + `push` | set, no device token | `partial` | `no_push_token` |
+| `whatsapp` | any | `failed` (or `partial` if `in_app` also went) | `push_whatsapp_provider_not_configured` |
 
-Clients must not treat push/whatsapp as delivered while that reason is present.
-No server env flag turns external delivery on yet — wiring a provider is a later
-change; until then the honest failure string stays.
+Clients must not treat a row as delivered push while `push_whatsapp_provider_not_configured` is present. A dead FCM token (`unregistered`) is deleted.
 
 ## 4. Database
 

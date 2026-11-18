@@ -1,10 +1,10 @@
 # تطبيق التاجر — حالة الواجهات
 
-guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2026-11-03 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
+guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2026-11-17 من الكتالوج و`route:list` — لا يُحرَّر يدوياً (`php docs/status/generate.php`).
 
 | الكتالوج | ✅ حيّ | ⚠️ منحرف | ❌ ناقص | حيّ خارج الكتالوج |
 |---|---|---|---|---|
-| 35 | 35 | 0 | 0 | 0 |
+| 37 | 37 | 0 | 0 | 0 |
 
 ## التسجيل — 1/1
 
@@ -75,4 +75,11 @@ guard `app` · prefix `/api/v1/app/retailer/*` · مولَّد آلياً في 2
 | ✅ | EP-RT-052 | SP-13 | `GET` | `/app/retailer/account/statement` | `rt.account.statement` | Finance | كشف الحساب |
 | ✅ | EP-RT-053 | SP-13 | `POST` | `/app/retailer/account/statement/export` | `rt.account.statement` | Finance | تصدير الكشف |
 | ✅ | EP-RT-054 | SP-13 | `GET` | `/app/retailer/debts` | — | Finance | الذمم |
+
+## أخرى — 2/2
+
+| الحالة | EP | السبرنت | الطريقة | المسار | الصلاحية | الوحدة | ملاحظة |
+|---|---|---|---|---|---|---|---|
+| ✅ | EP-RT-014B | SP-06 | `GET` | `/app/retailer/favorites` | — | Catalog | قائمة المفضلة |
+| ✅ | EP-RT-016 | SP-06 | `PUT` | `/app/retailer/presence` | — | Identity | حالة متصل |
 

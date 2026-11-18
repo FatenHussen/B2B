@@ -22,5 +22,6 @@ Route::middleware(['api', SubstituteBindings::class, 'auth:app', 'guard.tokenabl
     ->prefix('api/v1/app')
     ->group(function (): void {
         Route::get('offers', [OfferController::class, 'appIndex']);
+        Route::post('offers/{id}/favorite', [OfferController::class, 'favorite']);
         Route::get('offers/{id}', [OfferController::class, 'appShow']);
     });

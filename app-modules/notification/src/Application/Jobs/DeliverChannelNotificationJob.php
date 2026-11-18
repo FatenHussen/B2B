@@ -15,6 +15,7 @@ use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\RetailerGroupDirectory;
 use Modules\Core\Support\Tenant;
 use Modules\Notification\Application\Support\InboxWriter;
+use Modules\Notification\Application\Support\PushDispatcher;
 use Modules\Notification\Domain\Models\ChannelNotification;
 use Modules\Notification\Domain\Models\NotificationDeliveryLog;
 
@@ -29,6 +30,7 @@ final class DeliverChannelNotificationJob implements ShouldQueue
         RetailerGroupDirectory $groups,
         InboxWriter $inbox,
         ChannelDirectory $channels,
+        PushDispatcher $push,
     ): void {
         $row = ChannelNotification::query()->find($this->notificationId);
         if ($row === null) {
@@ -39,7 +41,7 @@ final class DeliverChannelNotificationJob implements ShouldQueue
             return;
         }
 
-        Tenant::as((int) $row->supply_channel_id, function () use ($row, $retailers, $groups, $inbox, $channels): void {
+        Tenant::as((int) $row->supply_channel_id, function () use ($row, $retailers, $groups, $inbox, $channels, $push): void {
             if ($this->inQuietHours($channels->settings((int) $row->supply_channel_id))) {
                 $row->forceFill(['status' => 'queued'])->save();
                 self::dispatch($this->notificationId)
@@ -50,11 +52,17 @@ final class DeliverChannelNotificationJob implements ShouldQueue
             }
 
             $recipients = $this->resolveRecipients($row->targeting ?? [], $retailers, $groups);
-            $channels = is_array($row->channels) ? $row->channels : [];
+            $via = is_array($row->channels) ? $row->channels : [];
             $action = is_array($row->action) ? $row->action : ['type' => 'none', 'target' => null];
             $icon = is_string($row->icon) && $row->icon !== '' ? $row->icon : 'bell';
-            $wantsInApp = in_array('in_app', $channels, true);
-            $wantsExternal = in_array('push', $channels, true) || in_array('whatsapp', $channels, true);
+            $wantsInApp = in_array('in_app', $via, true);
+            $wantsPush = in_array('push', $via, true);
+            $wantsWhatsapp = in_array('whatsapp', $via, true);
+            $target = $action['target'] ?? null;
+            $pushData = PushDispatcher::dataFromAction([
+                'type' => (string) ($action['type'] ?? 'none'),
+                'target' => is_int($target) || is_string($target) ? $target : null,
+            ]);
 
             NotificationDeliveryLog::query()
                 ->where('notification_id', $row->id)
@@ -75,6 +83,7 @@ final class DeliverChannelNotificationJob implements ShouldQueue
                 return;
             }
 
+            $statuses = [];
             foreach ($recipients as $userId) {
                 if ($wantsInApp) {
                     $inbox->write(
@@ -91,18 +100,34 @@ final class DeliverChannelNotificationJob implements ShouldQueue
                     );
                 }
 
-                // BF-12: only `in_app` is actually delivered today. Push/WhatsApp are
-                // accepted on the write but never claim a pure `sent` while no provider
-                // is wired — `partial` (in_app ok) or `failed` (external only).
-                $status = 'sent';
-                $failure = null;
-                if ($wantsExternal) {
-                    $failure = 'push_whatsapp_provider_not_configured';
-                    $status = $wantsInApp ? 'partial' : 'failed';
-                } elseif (! $wantsInApp) {
-                    $status = 'failed';
-                    $failure = 'no_delivery_channel';
+                $reasons = [];
+                $okCount = $wantsInApp ? 1 : 0;
+                $askCount = ($wantsInApp ? 1 : 0) + ($wantsPush ? 1 : 0) + ($wantsWhatsapp ? 1 : 0);
+
+                if ($wantsPush) {
+                    $sent = $push->toRecipient('retailer', $userId, (string) $row->title, (string) $row->body, $pushData);
+                    if ($sent['ok']) {
+                        $okCount++;
+                    } elseif ($sent['reason'] !== null) {
+                        $reasons[] = $sent['reason'];
+                    }
+                } elseif ($wantsInApp) {
+                    // Inbox is already delivered. A phone banner is best-effort once
+                    // Firebase is configured, and a missing token must not turn `sent` into `partial`.
+                    $push->toRecipient('retailer', $userId, (string) $row->title, (string) $row->body, $pushData);
                 }
+                if ($wantsWhatsapp) {
+                    $reasons[] = 'push_whatsapp_provider_not_configured';
+                }
+                if ($askCount === 0) {
+                    $reasons[] = 'no_delivery_channel';
+                }
+
+                $status = match (true) {
+                    $askCount === 0 || $okCount === 0 => 'failed',
+                    $okCount < $askCount => 'partial',
+                    default => 'sent',
+                };
 
                 NotificationDeliveryLog::query()->create([
                     'supply_channel_id' => $row->supply_channel_id,
@@ -110,15 +135,17 @@ final class DeliverChannelNotificationJob implements ShouldQueue
                     'recipient' => $userId,
                     'template' => null,
                     'status' => $status,
-                    'failure_reason' => $failure,
+                    'failure_reason' => $reasons[0] ?? null,
                     'at' => now(),
                 ]);
+                $statuses[] = $status;
             }
 
+            $unique = array_values(array_unique($statuses));
             $campaignStatus = match (true) {
-                $wantsInApp && $wantsExternal => 'partial',
-                $wantsInApp || ! $wantsExternal => 'sent',
-                default => 'failed',
+                $unique === [] || $unique === ['sent'] => 'sent',
+                $unique === ['failed'] => 'failed',
+                default => 'partial',
             };
             $row->forceFill(['status' => $campaignStatus])->save();
         });

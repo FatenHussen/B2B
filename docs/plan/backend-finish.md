@@ -139,8 +139,9 @@
 
 ### BF-12 — إشعارات خارج in_app ✅ 2026-09-25
 
-- لا مقدّم Push/WhatsApp بعد؛ السجل: `partial`/`failed` + `push_whatsapp_provider_not_configured`.
-- موثّق في `docs/deploy/current-state.md` و DocsLast/channel.md؛ اختبار في `ChannelNotificationTest`.
+- WhatsApp ما زال بلا مقدّم؛ السجل: `partial`/`failed` + `push_whatsapp_provider_not_configured` ما دام `FIREBASE_CREDENTIALS` فارغاً.
+- FCM (HTTP v1) يرسل بانر الجهاز عندما يشير `FIREBASE_CREDENTIALS` إلى JSON حساب الخدمة. اختبار `FcmPushTest` و`ChannelNotificationTest`.
+- موثّق في `docs/deploy/current-state.md` و DocsLast/channel.md.
 
 ---
 

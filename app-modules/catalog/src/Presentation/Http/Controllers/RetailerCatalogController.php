@@ -16,8 +16,8 @@ use Modules\Catalog\Application\Queries\RetailerBrands;
 use Modules\Catalog\Application\Queries\RetailerHome;
 use Modules\Catalog\Application\Queries\ShowRetailerProduct;
 use Modules\Catalog\Presentation\Http\Requests\StoreShortageRequest;
+use Modules\Core\Contracts\RetailerShoppingContext;
 use Modules\Core\Http\ApiController;
-use Modules\Core\Support\MediaUrl;
 
 final class RetailerCatalogController extends ApiController
 {
@@ -48,14 +48,22 @@ final class RetailerCatalogController extends ApiController
         return $this->ok($action($request->user(), $id));
     }
 
-    public function brands(Request $request, RetailerBrands $query): JsonResponse
+    public function favorites(Request $request, ListRetailerProducts $query): JsonResponse
     {
-        return $this->paginated($query->paginate($request->user(), $request), fn ($brand) => [
-            'id' => (int) $brand->id,
-            'name' => $brand->name_ar,
-            'logo' => MediaUrl::of($brand->logo_media_id ? (int) $brand->logo_media_id : null),
-            'banner' => MediaUrl::of($brand->banner_media_id ? (int) $brand->banner_media_id : null),
-        ]);
+        $page = $query->favorites($request->user(), $request);
+
+        return $this->paginated($page, fn ($product) => $query->cardFor($request->user(), $product));
+    }
+
+    public function brands(Request $request, RetailerBrands $query, RetailerShoppingContext $shopping): JsonResponse
+    {
+        $user = $request->user();
+        $ctx = $shopping->for($user);
+
+        return $this->paginated(
+            $query->paginate($user, $request),
+            fn ($brand) => $query->mapList($brand, $ctx),
+        );
     }
 
     public function showBrand(Request $request, RetailerBrands $query, int $id): JsonResponse

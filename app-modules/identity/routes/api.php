@@ -80,6 +80,10 @@ Route::middleware(['api', SubstituteBindings::class])->prefix('api/v1')->group(f
         Route::post('app/auth/logout', [AppAuthController::class, 'logout']);
     });
 
+    Route::middleware(['auth:app', 'guard.tokenable:app', 'app.kind:retailer'])->group(function (): void {
+        Route::put('app/retailer/presence', [AppAuthController::class, 'presence']);
+    });
+
     Route::middleware(['auth:app', 'guard.tokenable:app', 'app.kind:rep'])->group(function (): void {
         Route::get('app/rep/customers', [RepFieldController::class, 'customers']);
         Route::get('app/rep/customers/{id}', [RepFieldController::class, 'showCustomer']);

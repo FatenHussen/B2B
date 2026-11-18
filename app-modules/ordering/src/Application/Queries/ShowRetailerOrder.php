@@ -32,9 +32,6 @@ final class ShowRetailerOrder
         // group sets no tenant, so the channel scope would throw rather than filter. The
         // isolation that matters here is `retailer_id` — a retailer sees their own orders
         // and no one else's, which is the line below and is not a channel question.
-        //
-        // Before SubOrder carried BelongsToChannel this worked by accident. It broke
-        // silently when the scope landed because no test touched this route.
         $sub = SubOrder::query()
             ->acrossChannels()
             ->with(['lines', 'events'])
@@ -46,28 +43,69 @@ final class ShowRetailerOrder
 
         $rep = null;
         if ($sub->status === SubOrderStatus::OnTheWay && $sub->rep_id) {
-            $name = $this->reps->displayName((int) $sub->rep_id);
-            $phone = $this->reps->phone((int) $sub->rep_id);
-            $rep = ['name' => $name, 'phone' => $phone];
+            $rep = [
+                'name' => $this->reps->displayName((int) $sub->rep_id),
+                'phone' => $this->reps->phone((int) $sub->rep_id),
+            ];
+        }
+
+        $lines = $sub->lines->map(function ($l) {
+            $snap = $this->products->snapshot((int) $l->product_id, $l->variant_id ? (int) $l->variant_id : null);
+            $price = (int) $l->unit_price;
+            $discount = (int) $l->discount;
+            $before = $price + $discount;
+            $percent = $before > 0 ? (int) round(($discount * 100) / $before) : 0;
+            $attrs = [];
+            if (! empty($snap['variant'])) {
+                $attrs['المتغير'] = (string) $snap['variant'];
+            }
+
+            return [
+                'id' => (int) $l->id,
+                'name' => $snap['name'] ?? '',
+                'image' => $snap['image'] ?? null,
+                'qty' => (int) $l->qty,
+                'attrs' => $attrs,
+                'price_before' => $before,
+                'discount' => $discount,
+                'discount_percent' => $percent,
+                'price' => $price,
+                'line_total' => (int) $l->line_total,
+            ];
+        })->all();
+
+        $eta = null;
+        if ($sub->scheduled_at !== null) {
+            $from = $sub->scheduled_at->timezone('Asia/Damascus');
+            $eta = [
+                'from' => $from->toIso8601String(),
+                'to' => $from->copy()->addHours(2)->toIso8601String(),
+            ];
         }
 
         return [
-            'lines' => $sub->lines->map(function ($l) {
-                $snap = $this->products->snapshot((int) $l->product_id, $l->variant_id ? (int) $l->variant_id : null);
-
-                return [
-                    'id' => (int) $l->id,
-                    'name' => $snap['name'] ?? '',
-                    'qty' => (int) $l->qty,
-                    'price' => (int) $l->unit_price,
-                ];
-            })->all(),
+            'id' => (int) $sub->id,
+            'sub_order_no' => $sub->sub_order_no,
+            'status' => $sub->status->value,
+            'created_at' => $sub->created_at?->timezone('Asia/Damascus')->toIso8601String(),
+            'total' => (int) $sub->total,
+            'products_total' => (int) $sub->subtotal,
+            'discount_total' => (int) $sub->discount,
+            'eta_window' => $eta,
+            'lines' => $lines,
             'invoice' => $this->invoices->forSubOrder((int) $sub->id),
             'timeline' => $sub->events->map(fn ($e) => [
                 'stage' => $e->stage,
                 'at' => $e->at?->timezone('Asia/Damascus')->toIso8601String(),
             ])->all(),
             'rep' => $rep,
+            'can_track' => in_array($sub->status, [
+                SubOrderStatus::Processing,
+                SubOrderStatus::AwaitingHandover,
+                SubOrderStatus::OnTheWay,
+            ], true),
+            'can_reorder' => true,
+            'can_cancel' => $sub->status === SubOrderStatus::Pending,
         ];
     }
 }

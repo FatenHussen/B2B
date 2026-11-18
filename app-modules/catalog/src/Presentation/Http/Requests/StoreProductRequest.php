@@ -72,6 +72,18 @@ final class StoreProductRequest extends ApiFormRequest
             'marketing.tags' => ['nullable', 'array'],
             'marketing.sliders' => ['nullable', 'array'],
             'marketing.priority' => ['nullable', 'integer'],
+            'storefront' => ['nullable', 'array'],
+            'storefront.rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
+            'storefront.rating_count' => ['nullable', 'integer', 'min:0'],
+            'storefront.sold_count' => ['nullable', 'integer', 'min:0'],
+            'storefront.compare_price' => ['nullable', 'integer', 'min:0'],
+            'storefront.gross_weight_gram' => ['nullable', 'integer', 'min:0'],
+            'storefront.container_type' => ['nullable', 'string', 'max:80'],
+            'storefront.capacity' => ['nullable', 'string', 'max:80'],
+            'storefront.carton_dimensions' => ['nullable', 'string', 'max:80'],
+            'storefront.carton_weight_gram' => ['nullable', 'integer', 'min:0'],
+            'storefront.features' => ['nullable', 'array'],
+            'storefront.features.*' => ['string', 'max:200'],
         ];
     }
 }

@@ -47,6 +47,8 @@ final class IdentityRetailerShoppingContext implements RetailerShoppingContext
             'category_ids' => $categoryIds,
             'channel_ids' => $this->channels->activeIdsCoveringZone((int) $profile->zone_id),
             'shop_name' => (string) $profile->shop_name,
+            'owner_name' => (string) ($user->name ?? ''),
+            'is_online' => (bool) $profile->is_online,
             'status' => $profile->status->value,
         ];
     }

@@ -50,7 +50,7 @@ const CHANNEL_SCOPE_ESCAPES = [
     'app-modules/ordering/src/Application/Queries/ListRepAssignments.php' => 1,
     'app-modules/ordering/src/Application/Queries/ListRepOrders.php' => 1,
     'app-modules/ordering/src/Application/Queries/ListRepScheduledOrders.php' => 1,
-    'app-modules/ordering/src/Application/Queries/ListRetailerOrders.php' => 1,
+    'app-modules/ordering/src/Application/Queries/ListRetailerOrders.php' => 2,
     'app-modules/ordering/src/Application/Queries/ShowRetailerOrder.php' => 1,
     'app-modules/ordering/src/Application/Queries/ShowRetailerShortage.php' => 1,
     'app-modules/ordering/src/Application/Queries/TrackRetailerOrder.php' => 1,
@@ -152,7 +152,7 @@ it('writes a reason beside every escape', function () {
 
 it('pins the inventory to the number rule 10 states', function () {
     // CLAUDE.md rule 10 names this number. When it moves, the rule's text moves with it.
-    expect(array_sum(CHANNEL_SCOPE_ESCAPES))->toBe(71);
+    expect(array_sum(CHANNEL_SCOPE_ESCAPES))->toBe(72);
 })->group('arch');
 
 it('actually catches an escape written without a reason', function () {

@@ -185,6 +185,18 @@ final class ShowChannelProduct
                     ->all(),
                 'priority' => (int) $product->priority,
             ],
+            'storefront' => is_array($product->storefront) ? $product->storefront : [
+                'rating' => null,
+                'rating_count' => null,
+                'sold_count' => null,
+                'compare_price' => null,
+                'gross_weight_gram' => null,
+                'container_type' => null,
+                'capacity' => null,
+                'carton_dimensions' => null,
+                'carton_weight_gram' => null,
+                'features' => [],
+            ],
             'axes' => $axes,
             'variants' => $variants,
         ];

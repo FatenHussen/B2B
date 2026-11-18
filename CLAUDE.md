@@ -133,7 +133,8 @@ Enforced by CI, not by reviewers. Breaking one fails the build.
     (2026-09-23) added three — **66 sites**; banner click recording (2026-09-24) added one — **67 sites**;
     the rep account month count (`EloquentRepMonthOutcomes`, 2026-10-29) added one — **68 sites**;
     retailer shortage decision reads (`ShowRetailerShortage`, `DecideRetailerShortage`, 2026-11-03)
-    added three — **71 sites** — every one with a comment saying why on the same line, within the six
+    added three — **71 sites**; retailer order status-tab counts (`ListRetailerOrders::statusCounts`,
+    2026-11-17) added one — **72 sites** — every one with a comment saying why on the same line, within the six
  lines above, or in the method's docblock. `tests/Architecture/ChannelScopeEscapeTest.php` pins
  the count per file and fails on an escape with no reason within reach — a new site is a change
  to this inventory, said out loud, not a discovery.

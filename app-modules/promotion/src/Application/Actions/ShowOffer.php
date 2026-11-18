@@ -40,6 +40,10 @@ final class ShowOffer
                 'qty' => (int) $c->qty,
             ])->values()->all(),
             'rules' => $offer->rules ?? [],
+            'display' => is_array($offer->display) ? $offer->display : [
+                'rating' => null,
+                'rating_count' => null,
+            ],
             'rewards' => $reward === null ? [] : array_filter([
                 'product_id' => $reward->product_id !== null ? (int) $reward->product_id : null,
                 'qty' => (int) $reward->qty,

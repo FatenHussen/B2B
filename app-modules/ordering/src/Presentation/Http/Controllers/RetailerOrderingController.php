@@ -61,7 +61,11 @@ final class RetailerOrderingController extends ApiController
 
     public function orders(Request $request, ListRetailerOrders $query): JsonResponse
     {
-        return $this->paginated($query($request->user(), $request), fn ($row) => $query->map($row));
+        return $this->paginated(
+            $query($request->user(), $request),
+            fn ($row) => $query->map($row),
+            ['status_counts' => $query->statusCounts($request->user(), $request)],
+        );
     }
 
     public function show(Request $request, ShowRetailerOrder $query, int $id): JsonResponse

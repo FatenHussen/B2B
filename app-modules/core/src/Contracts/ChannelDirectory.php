@@ -58,4 +58,22 @@ interface ChannelDirectory
      * governorate is disabled, EP-AD-043A (BE-R02).
      */
     public function countCoveringGovernorate(int $governorateId): int;
+
+    /**
+     * Discovery cards for the retailer home `channels_slider` (EP-RT-010).
+     * `brand_count` is left at 0 — Catalog fills it from its own brands table.
+     *
+     * @param  list<int>  $channelIds
+     * @return list<array{
+     *     id: int,
+     *     name: string,
+     *     logo: string|null,
+     *     description: string|null,
+     *     is_verified: bool,
+     *     rating: float,
+     *     brand_count: int,
+     *     delivery_label: string
+     * }>
+     */
+    public function cardsForIds(array $channelIds): array;
 }

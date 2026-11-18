@@ -6,6 +6,7 @@ namespace Modules\Promotion\Presentation\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Core\Contracts\CatalogProductLookup;
 use Modules\Core\Contracts\OfferConsumption;
 use Modules\Core\Contracts\RepSellingContext;
 use Modules\Core\Contracts\RetailerShoppingContext;
@@ -15,10 +16,12 @@ use Modules\Promotion\Application\Actions\ActivateOffer;
 use Modules\Promotion\Application\Actions\CreateOffer;
 use Modules\Promotion\Application\Actions\ShowOffer;
 use Modules\Promotion\Application\Actions\StopOffer;
+use Modules\Promotion\Application\Actions\ToggleOfferFavorite;
 use Modules\Promotion\Application\Actions\UpdateOffer;
 use Modules\Promotion\Application\Queries\ShowOfferPerformance;
 use Modules\Promotion\Application\Services\OfferStatusRefresh;
 use Modules\Promotion\Domain\Models\Offer;
+use Modules\Promotion\Domain\Models\RetailerOfferFavorite;
 use Modules\Promotion\Infrastructure\EloquentOfferFeed;
 use Modules\Promotion\Presentation\Http\Requests\ActivateOfferRequest;
 use Modules\Promotion\Presentation\Http\Requests\StopOfferRequest;
@@ -116,8 +119,13 @@ final class OfferController extends ApiController
                 $consumption->recordView((int) $offer->getKey(), $retailerId);
             }
 
-            return $feed->card($offer, $zoneId);
+            return $this->withFavorite($feed->card($offer, $zoneId), $retailerId);
         });
+    }
+
+    public function favorite(Request $request, ToggleOfferFavorite $action, int $id): JsonResponse
+    {
+        return $this->ok($action($request->user(), $id));
     }
 
     public function appShow(
@@ -126,6 +134,7 @@ final class OfferController extends ApiController
         RetailerShoppingContext $shopping,
         RepSellingContext $selling,
         OfferConsumption $consumption,
+        CatalogProductLookup $products,
         int $id,
     ): JsonResponse {
         $user = $request->user();
@@ -156,13 +165,74 @@ final class OfferController extends ApiController
         }
 
         $card = $feed->card($offer, $zoneId);
+        $channelId = (int) $offer->supply_channel_id;
 
-        return $this->ok($card + [
+        $sameOffers = $feed->matching($zoneId, $activityId, [$channelId])
+            ->whereKeyNot($offer->getKey())
+            ->limit(10)
+            ->get()
+            ->map(fn (Offer $row) => $this->withFavorite($feed->card($row, $zoneId), $retailerId))
+            ->all();
+
+        $sameProducts = $products->sliderCards(
+            $channelId,
+            'channel',
+            null,
+            'recent',
+            10,
+            [
+                'zone_id' => $zoneId,
+                'activity_type_id' => $activityId,
+                'channel_ids' => [$channelId],
+            ],
+        );
+
+        $rules = is_array($offer->rules) ? $offer->rules : [];
+        $terms = [];
+        if (isset($rules['terms']) && is_array($rules['terms'])) {
+            $terms = array_values(array_map('strval', $rules['terms']));
+        } elseif (isset($rules['notes']) && is_string($rules['notes'])) {
+            $terms = [$rules['notes']];
+        }
+        foreach ($rules as $key => $value) {
+            if (in_array($key, ['terms', 'notes'], true)) {
+                continue;
+            }
+            if (is_scalar($value)) {
+                $terms[] = (string) $key.': '.(string) $value;
+            }
+        }
+        if ($terms === []) {
+            $percent = (int) ($card['discount_percent'] ?? 0);
+            $terms = [
+                $percent > 0 ? 'خصم '.$percent.'% عند إضافة الباقة للسلة' : 'السعر المعروض هو سعر الباقة',
+                'الحد الأدنى للطلب: باقة واحدة',
+                'يشمل الأصناف المذكورة أعلاه',
+                'لا يمكن دمجه مع خصومات أخرى على الأصناف',
+            ];
+        }
+
+        return $this->ok($this->withFavorite($card, $retailerId) + [
+            'terms' => $terms,
             'images' => $offer->media->map(fn ($m) => MediaUrl::of((int) $m->media_id))->filter()->values()->all(),
             'long_description' => $offer->description,
             'icons' => [$offer->type->value],
-            'same_company_offers' => [],
-            'same_company_products' => [],
+            'same_company_offers' => $sameOffers,
+            'same_company_products' => $sameProducts,
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $card
+     * @return array<string, mixed>
+     */
+    private function withFavorite(array $card, ?int $retailerId): array
+    {
+        $card['is_favorite'] = $retailerId !== null && RetailerOfferFavorite::query()
+            ->where('retailer_id', $retailerId)
+            ->where('offer_id', (int) $card['id'])
+            ->exists();
+
+        return $card;
     }
 }

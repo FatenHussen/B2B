@@ -47,6 +47,18 @@ $productBody = [
         'lead_time_days' => 2,
     ],
     'marketing' => ['tags' => ['new'], 'sliders' => ['best_selling'], 'priority' => 10],
+    'storefront' => [
+        'rating' => 4.8,
+        'rating_count' => 2564,
+        'sold_count' => 420,
+        'compare_price' => 15000,
+        'gross_weight_gram' => 1000,
+        'container_type' => 'بلاستيك',
+        'capacity' => '1 لتر',
+        'carton_dimensions' => '40×32×27',
+        'carton_weight_gram' => 12000,
+        'features' => ['100% طبيعي'],
+    ],
 ];
 
 return [
@@ -522,6 +534,7 @@ return [
             'stackable' => false,
             'priority' => 10,
             'status' => 'active',
+            'display' => ['rating' => 4.8, 'rating_count' => 128, 'sold_count' => 215],
         ],
         'r' => ['id' => 44],
         'd' => 'type: product_discount|invoice_discount|buy_x_get_y|bundle|tiered_discount|gift. Deleting a line in the offer removes the whole offer (BR-08).',

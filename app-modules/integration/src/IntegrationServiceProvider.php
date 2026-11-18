@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace Modules\Integration;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Contracts\DevicePush;
 use Modules\Core\Contracts\OtpChannel;
 use Modules\Integration\Otp\CompositeOtpChannel;
 use Modules\Integration\Otp\SmsOtpChannel;
 use Modules\Integration\Otp\WhatsAppOtpChannel;
+use Modules\Integration\Push\FcmDevicePush;
 
 class IntegrationServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->singleton(DevicePush::class, FcmDevicePush::class);
         $this->app->bind(SmsOtpChannel::class, SmsOtpChannel::class);
         $this->app->bind(WhatsAppOtpChannel::class, WhatsAppOtpChannel::class);
 

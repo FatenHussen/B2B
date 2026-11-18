@@ -38,9 +38,23 @@ it('shows home with a branded product in a covered zone', function () {
     $refs = AppSurface::refs();
     $channel = AppSurface::channel($refs);
     AppSurface::productWithBrand($this, $channel, $refs);
-    Sanctum::actingAs(AppSurface::retailer($refs), ['*'], 'app');
+    $retailer = AppSurface::retailer($refs);
+    Sanctum::actingAs($retailer, ['*'], 'app');
 
-    $this->getJson('/api/v1/app/retailer/home')->assertOk();
+    $home = $this->getJson('/api/v1/app/retailer/home')->assertOk();
+    expect($home->json('data.header'))->toHaveKeys(['owner_name', 'shop_name', 'is_online', 'points'])
+        ->and($home->json('data.header.is_online'))->toBeTrue()
+        ->and($home->json('data.channels_slider'))->toBeArray()
+        ->and(collect($home->json('data.channels_slider'))->firstWhere('id', $channel->id))->not->toBeNull()
+        ->and(collect($home->json('data.quick_actions'))->pluck('key')->all())
+        ->toBe(['order_products', 'reorder', 'shortages', 'payments'])
+        ->and($home->json('data.stats'))->toHaveKeys(['active_orders', 'total_debt', 'delivering_today']);
+
+    $this->putJson('/api/v1/app/retailer/presence', ['is_online' => false], [
+        'X-Idempotency-Key' => 'presence-off-'.uniqid(),
+    ])->assertOk()->assertJsonPath('data.is_online', false);
+
+    expect($this->getJson('/api/v1/app/retailer/home')->json('data.header.is_online'))->toBeFalse();
 });
 
 it('lists branded products and shows one', function () {

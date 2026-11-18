@@ -7,6 +7,7 @@ namespace Modules\Notification\Application\Listeners;
 use Modules\Core\Contracts\RetailerDirectory;
 use Modules\Core\Contracts\SubOrderLifecycle;
 use Modules\Core\Domain\Events\SubOrderConfirmed;
+use Modules\Notification\Application\Support\DevicePushQueue;
 use Modules\Notification\Application\Support\EventTemplateResolver;
 use Modules\Notification\Application\Support\InboxWriter;
 use Modules\Notification\Domain\Models\NotificationDeliveryLog;
@@ -18,6 +19,7 @@ final class NotifyOnSubOrderConfirmed
         private readonly SubOrderLifecycle $orders,
         private readonly RetailerDirectory $retailers,
         private readonly EventTemplateResolver $templates,
+        private readonly DevicePushQueue $devices,
     ) {}
 
     public function handle(SubOrderConfirmed $event): void
@@ -45,7 +47,11 @@ final class NotifyOnSubOrderConfirmed
             return;
         }
 
-        if (in_array('in_app', $tpl['channels'], true)) {
+        $action = ['type' => 'order', 'target' => $event->subOrderId];
+        $wantsInApp = in_array('in_app', $tpl['channels'], true);
+        $wantsPush = in_array('push', $tpl['channels'], true);
+
+        if ($wantsInApp) {
             $this->inbox->write(
                 'retailer',
                 $userId,
@@ -53,17 +59,23 @@ final class NotifyOnSubOrderConfirmed
                 'order',
                 $tpl['title'],
                 $tpl['body'],
-                ['type' => 'order', 'target' => $event->subOrderId],
+                $action,
             );
         }
+        if ($wantsInApp || $wantsPush) {
+            $this->devices->send('retailer', $userId, $tpl['title'], $tpl['body'], $action);
+        }
+
+        $pushUnconfigured = $wantsPush && ! $this->devices->configured();
+        $whatsapp = in_array('whatsapp', $tpl['channels'], true);
 
         NotificationDeliveryLog::query()->create([
             'supply_channel_id' => $event->channelId,
             'notification_id' => null,
             'recipient' => $userId,
             'template' => 'order.confirmed',
-            'status' => in_array('in_app', $tpl['channels'], true) ? 'sent' : 'skipped',
-            'failure_reason' => in_array('push', $tpl['channels'], true) || in_array('whatsapp', $tpl['channels'], true)
+            'status' => $wantsInApp ? 'sent' : 'skipped',
+            'failure_reason' => ($pushUnconfigured || $whatsapp)
                 ? 'push_whatsapp_provider_not_configured'
                 : null,
             'at' => now(),
