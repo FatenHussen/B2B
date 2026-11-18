@@ -222,6 +222,11 @@ final class DemoPromotionSeeder extends DemoSeeder
     private function seedCurrentChannel(): void
     {
         foreach (self::OFFERS as $row) {
+            $window = [
+                'starts_at' => now()->addDays($row['starts'])->startOfDay(),
+                'ends_at' => $row['ends'] !== null ? now()->addDays($row['ends'])->endOfDay() : null,
+            ];
+
             $offer = Offer::query()->firstOrCreate(
                 ['name' => $row['name']],
                 [
@@ -229,8 +234,8 @@ final class DemoPromotionSeeder extends DemoSeeder
                     'description' => $row['description'],
                     'stackable' => $row['stackable'],
                     'priority' => $row['priority'],
-                    'starts_at' => now()->addDays($row['starts'])->startOfDay(),
-                    'ends_at' => $row['ends'] !== null ? now()->addDays($row['ends'])->endOfDay() : null,
+                    'starts_at' => $window['starts_at'],
+                    'ends_at' => $window['ends_at'],
                     'total_qty' => $row['total_qty'],
                     'per_retailer_max' => $row['per_retailer'],
                     'per_order_max' => $row['per_order'],
@@ -242,21 +247,20 @@ final class DemoPromotionSeeder extends DemoSeeder
                     'stop_reason' => $row['stop_reason'] ?? null,
                 ],
             );
-            if ($offer->wasRecentlyCreated || $offer->status === null) {
-                $offer->forceFill(['status' => OfferStatus::from($row['status'])])->save();
-            }
 
-            // Fill display / terms on an older seed that only had the offer shell.
-            $patch = [];
+            // Demo windows are relative to "today". firstOrCreate kept September
+            // dates forever, so active offers vanished from /app/offers after a month.
+            $patch = $window;
+            if ($offer->wasRecentlyCreated || $offer->status === null || $offer->status !== OfferStatus::from($row['status'])) {
+                $patch['status'] = OfferStatus::from($row['status']);
+            }
             if ($offer->display === null && isset($row['display'])) {
                 $patch['display'] = $row['display'];
             }
             if (($offer->rules === null || $offer->rules === []) && $row['rules'] !== null) {
                 $patch['rules'] = $row['rules'];
             }
-            if ($patch !== []) {
-                $offer->forceFill($patch)->save();
-            }
+            $offer->forceFill($patch)->save();
 
             foreach ($row['components'] as $sku => $qty) {
                 OfferComponent::query()->firstOrCreate(
